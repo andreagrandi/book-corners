@@ -1,0 +1,11 @@
+.git
+.gitignore
+.venv
+.env
+.envrc
+.claude
+__pycache__
+*.pyc
+db.sqlite3
+*.md
+LICENSE
