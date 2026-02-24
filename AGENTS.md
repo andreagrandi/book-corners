@@ -77,6 +77,13 @@ Expected:
 
 If the page looks unstyled in browser, treat it as a blocker and debug Docker static file serving before moving on.
 
+## Code style expectations
+
+- Add a docstring to every new function, method, and test function.
+- When touching existing code, add missing docstrings in the edited scope before finishing.
+- Keep docstrings to exactly two lines: a concise summary sentence and one intent sentence.
+- Do not include args/kwargs/returns sections in docstrings.
+
 ## Architecture
 
 Django 6 project with PostGIS for geospatial data. Two apps:

@@ -1,15 +1,20 @@
 from io import BytesIO
+from unittest.mock import patch
 
 import pytest
 from django.contrib.gis.geos import Point
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
-from PIL import Image
+from PIL import ExifTags, Image
+from PIL.TiffImagePlugin import IFDRational
 
+from libraries.geolocation import extract_gps_coordinates
 from libraries.models import Library, Report
 
 
 def _build_uploaded_photo(*, file_name: str = "library.jpg") -> SimpleUploadedFile:
+    """Build an in-memory JPEG upload for form and endpoint tests.
+    Keeps image fixtures deterministic without touching disk."""
     image_bytes = BytesIO()
     image = Image.new("RGB", (640, 480), color=(140, 165, 210))
     image.save(image_bytes, format="JPEG")
@@ -22,8 +27,78 @@ def _build_uploaded_photo(*, file_name: str = "library.jpg") -> SimpleUploadedFi
     )
 
 
+def _decimal_to_dms(value: float) -> tuple[IFDRational, IFDRational, IFDRational]:
+    """Convert decimal degrees into EXIF DMS rationals for test images.
+    Produces stable GPS metadata for EXIF extraction coverage."""
+    absolute_value = abs(value)
+    degrees = int(absolute_value)
+    minutes_float = (absolute_value - degrees) * 60
+    minutes = int(minutes_float)
+    seconds = (minutes_float - minutes) * 60
+
+    return (
+        IFDRational(degrees, 1),
+        IFDRational(minutes, 1),
+        IFDRational(int(round(seconds * 10000)), 10000),
+    )
+
+
+def _build_uploaded_photo_with_gps(
+    *,
+    latitude: float,
+    longitude: float,
+    file_name: str = "library-with-gps.jpg",
+) -> SimpleUploadedFile:
+    """Build an in-memory JPEG upload that contains EXIF GPS tags.
+    Lets tests exercise backend photo geolocation without fixture files."""
+    image_bytes = BytesIO()
+    image = Image.new("RGB", (640, 480), color=(140, 165, 210))
+
+    exif = Image.Exif()
+    exif[ExifTags.Base.GPSInfo] = {
+        ExifTags.GPS.GPSLatitudeRef: "N" if latitude >= 0 else "S",
+        ExifTags.GPS.GPSLatitude: _decimal_to_dms(latitude),
+        ExifTags.GPS.GPSLongitudeRef: "E" if longitude >= 0 else "W",
+        ExifTags.GPS.GPSLongitude: _decimal_to_dms(longitude),
+    }
+
+    image.save(image_bytes, format="JPEG", exif=exif)
+    image_bytes.seek(0)
+
+    return SimpleUploadedFile(
+        name=file_name,
+        content=image_bytes.getvalue(),
+        content_type="image/jpeg",
+    )
+
+
+class TestPhotoGeolocationUtilities:
+    def test_extract_gps_coordinates_returns_decimal_coordinates(self):
+        """Verify EXIF GPS tags are converted to decimal coordinates.
+        Covers happy-path parsing for geotagged photo uploads."""
+        photo = _build_uploaded_photo_with_gps(latitude=43.7696, longitude=11.2558)
+
+        coordinates = extract_gps_coordinates(photo)
+
+        assert coordinates is not None
+        latitude, longitude = coordinates
+        assert latitude == pytest.approx(43.7696, abs=1e-4)
+        assert longitude == pytest.approx(11.2558, abs=1e-4)
+
+    def test_extract_gps_coordinates_returns_none_without_metadata(self):
+        """Verify extraction returns None when GPS EXIF tags are missing.
+        Covers fallback behavior for photos without location metadata."""
+        photo = _build_uploaded_photo()
+
+        coordinates = extract_gps_coordinates(photo)
+
+        assert coordinates is None
+
+
 @pytest.fixture
 def library(user):
+    """Create a reusable library fixture for model and report tests.
+    Provides baseline location and address data shared across scenarios."""
     return Library.objects.create(
         name="Test Library",
         photo="libraries/photos/2026/02/test.jpg",
@@ -37,6 +112,8 @@ def library(user):
 
 @pytest.fixture
 def admin_library(admin_user):
+    """Create a pending library fixture owned by an admin user.
+    Supports moderation action tests that update library status."""
     return Library.objects.create(
         name="Pending Library",
         photo="libraries/photos/2026/02/test.jpg",
@@ -50,6 +127,8 @@ def admin_library(admin_user):
 
 @pytest.fixture
 def admin_report(admin_library, admin_user):
+    """Create an open report fixture linked to the admin library.
+    Supports report moderation tests for resolve and dismiss actions."""
     return Report.objects.create(
         library=admin_library,
         created_by=admin_user,
@@ -63,6 +142,8 @@ class TestLibraryModel:
     """Tests for the Library model."""
 
     def test_create_library_with_all_fields(self, user):
+        """Verify create library with all fields.
+        Confirms the expected behavior stays stable."""
         library = Library.objects.create(
             name="The Book Nook",
             description="A cozy little library on the corner.",
@@ -83,6 +164,8 @@ class TestLibraryModel:
         assert library.updated_at is not None
 
     def test_create_library_without_name(self, user):
+        """Verify create library without name.
+        Confirms the expected behavior stays stable."""
         library = Library.objects.create(
             photo="libraries/photos/2026/02/test.jpg",
             location=Point(x=11.2558, y=43.7696, srid=4326),
@@ -97,6 +180,8 @@ class TestLibraryModel:
         assert library.slug == "florence-via-rosina-15"
 
     def test_slug_uniqueness_adds_numeric_suffix(self, user):
+        """Verify slug uniqueness adds numeric suffix.
+        Confirms the expected behavior stays stable."""
         common_kwargs = {
             "photo": "libraries/photos/2026/02/test.jpg",
             "location": Point(x=11.2558, y=43.7696, srid=4326),
@@ -113,6 +198,8 @@ class TestLibraryModel:
         assert library_2.slug == "florence-via-rosina-15-2"
 
     def test_library_str_with_name(self, user):
+        """Verify library str with name.
+        Confirms the expected behavior stays stable."""
         library = Library.objects.create(
             name="The Book Nook",
             photo="libraries/photos/2026/02/test.jpg",
@@ -126,6 +213,8 @@ class TestLibraryModel:
         assert str(library) == "The Book Nook (Florence)"
 
     def test_library_str_without_name(self, user):
+        """Verify library str without name.
+        Confirms the expected behavior stays stable."""
         library = Library.objects.create(
             photo="libraries/photos/2026/02/test.jpg",
             location=Point(x=11.2558, y=43.7696, srid=4326),
@@ -138,6 +227,8 @@ class TestLibraryModel:
         assert str(library) == "Via Rosina 15, Florence"
 
     def test_slug_truncated_for_long_inputs(self, user):
+        """Verify slug truncated for long inputs.
+        Confirms the expected behavior stays stable."""
         long_address = "A" * 255
         library = Library.objects.create(
             name="B" * 255,
@@ -153,6 +244,8 @@ class TestLibraryModel:
         assert len(library.slug) <= max_length
 
     def test_slug_truncation_still_allows_uniqueness(self, user):
+        """Verify slug truncation still allows uniqueness.
+        Confirms the expected behavior stays stable."""
         long_address = "A" * 255
         common_kwargs = {
             "photo": "libraries/photos/2026/02/test.jpg",
@@ -172,6 +265,8 @@ class TestLibraryModel:
         assert len(library_2.slug) <= max_length
 
     def test_default_status_is_pending(self, user):
+        """Verify default status is pending.
+        Confirms the expected behavior stays stable."""
         library = Library.objects.create(
             photo="libraries/photos/2026/02/test.jpg",
             location=Point(x=11.2558, y=43.7696, srid=4326),
@@ -189,6 +284,8 @@ class TestReportModel:
     """Tests for the Report model."""
 
     def test_create_report(self, library, user):
+        """Verify create report.
+        Confirms the expected behavior stays stable."""
         report = Report.objects.create(
             library=library,
             created_by=user,
@@ -203,6 +300,8 @@ class TestReportModel:
         assert report.photo == ""
 
     def test_create_report_with_photo(self, library, user):
+        """Verify create report with photo.
+        Confirms the expected behavior stays stable."""
         report = Report.objects.create(
             library=library,
             created_by=user,
@@ -215,6 +314,8 @@ class TestReportModel:
         assert report.photo == "reports/photos/2026/02/evidence.jpg"
 
     def test_default_status_is_open(self, library, user):
+        """Verify default status is open.
+        Confirms the expected behavior stays stable."""
         report = Report.objects.create(
             library=library,
             created_by=user,
@@ -225,6 +326,8 @@ class TestReportModel:
         assert report.status == Report.Status.OPEN
 
     def test_report_str(self, library, user):
+        """Verify report str.
+        Confirms the expected behavior stays stable."""
         report = Report.objects.create(
             library=library,
             created_by=user,
@@ -240,6 +343,8 @@ class TestLibraryAdmin:
     """Tests for Library admin actions."""
 
     def test_approve_libraries_action(self, admin_client, admin_library):
+        """Verify approve libraries action.
+        Confirms the expected behavior stays stable."""
         url = reverse("admin:libraries_library_changelist")
         response = admin_client.post(url, {
             "action": "approve_libraries",
@@ -251,6 +356,8 @@ class TestLibraryAdmin:
         assert admin_library.status == Library.Status.APPROVED
 
     def test_reject_libraries_action(self, admin_client, admin_library):
+        """Verify reject libraries action.
+        Confirms the expected behavior stays stable."""
         url = reverse("admin:libraries_library_changelist")
         response = admin_client.post(url, {
             "action": "reject_libraries",
@@ -262,6 +369,8 @@ class TestLibraryAdmin:
         assert admin_library.status == Library.Status.REJECTED
 
     def test_bulk_approve_multiple_libraries(self, admin_client, admin_library, admin_user):
+        """Verify bulk approve multiple libraries.
+        Confirms the expected behavior stays stable."""
         library_2 = Library.objects.create(
             photo="libraries/photos/2026/02/test2.jpg",
             location=Point(x=11.2600, y=43.7700, srid=4326),
@@ -289,6 +398,8 @@ class TestReportAdmin:
     """Tests for Report admin actions."""
 
     def test_resolve_reports_action(self, admin_client, admin_report):
+        """Verify resolve reports action.
+        Confirms the expected behavior stays stable."""
         url = reverse("admin:libraries_report_changelist")
         response = admin_client.post(url, {
             "action": "resolve_reports",
@@ -300,6 +411,8 @@ class TestReportAdmin:
         assert admin_report.status == Report.Status.RESOLVED
 
     def test_dismiss_reports_action(self, admin_client, admin_report):
+        """Verify dismiss reports action.
+        Confirms the expected behavior stays stable."""
         url = reverse("admin:libraries_report_changelist")
         response = admin_client.post(url, {
             "action": "dismiss_reports",
@@ -313,6 +426,8 @@ class TestReportAdmin:
 
 class TestTailwindIntegration:
     def test_style_preview_template_renders_daisyui_classes(self, client):
+        """Verify style preview template renders daisyui classes.
+        Confirms the expected behavior stays stable."""
         response = client.get(reverse("style_preview"))
 
         content = response.content.decode()
@@ -324,6 +439,8 @@ class TestTailwindIntegration:
 @pytest.mark.django_db
 class TestHomepageTemplate:
     def test_homepage_uses_base_template_layout(self, client):
+        """Verify homepage uses base template layout.
+        Confirms the expected behavior stays stable."""
         response = client.get(reverse("home"))
 
         content = response.content.decode()
@@ -344,6 +461,8 @@ class TestHomepageTemplate:
 @pytest.mark.django_db
 class TestHomepageLatestEntries:
     def test_latest_entries_partial_includes_only_approved_libraries(self, client, user):
+        """Verify latest entries partial includes only approved libraries.
+        Confirms the expected behavior stays stable."""
         approved = Library.objects.create(
             name="Approved Library",
             description="Visible on homepage",
@@ -378,6 +497,8 @@ class TestHomepageLatestEntries:
         assert f"href=\"{detail_url}\"" in content
 
     def test_latest_entries_partial_renders_load_more_when_next_page_exists(self, client, user):
+        """Verify latest entries partial renders load more when next page exists.
+        Confirms the expected behavior stays stable."""
         for index in range(10):
             Library.objects.create(
                 name=f"Library {index}",
@@ -409,6 +530,8 @@ class TestHomepageLatestEntries:
 @pytest.mark.django_db
 class TestLibraryDetailView:
     def test_approved_library_detail_renders_expected_content(self, client, user):
+        """Verify approved library detail renders expected content.
+        Confirms the expected behavior stays stable."""
         library = Library.objects.create(
             name="Canal Book Corner",
             description="Waterproof little free library with kid-friendly picks.",
@@ -435,6 +558,8 @@ class TestLibraryDetailView:
         assert "leaflet@1.9.4" in content
 
     def test_pending_library_detail_returns_404(self, client, user):
+        """Verify pending library detail returns 404.
+        Confirms the expected behavior stays stable."""
         library = Library.objects.create(
             name="Pending Detail",
             description="Not visible yet.",
@@ -452,11 +577,15 @@ class TestLibraryDetailView:
         assert response.status_code == 404
 
     def test_nonexistent_library_slug_returns_404(self, client):
+        """Verify nonexistent library slug returns 404.
+        Confirms the expected behavior stays stable."""
         response = client.get(reverse("library_detail", kwargs={"slug": "does-not-exist"}))
 
         assert response.status_code == 404
 
     def test_report_button_is_only_visible_to_authenticated_users(self, client, user):
+        """Verify report button is only visible to authenticated users.
+        Confirms the expected behavior stays stable."""
         library = Library.objects.create(
             name="Reportable Library",
             description="A popular little free library.",
@@ -486,12 +615,16 @@ class TestLibraryDetailView:
 @pytest.mark.django_db
 class TestSubmitLibraryView:
     def test_submit_view_requires_authentication(self, client):
+        """Verify anonymous users are redirected before opening submit form.
+        Protects login gating on the library submission flow."""
         response = client.get(reverse("submit_library"))
 
         assert response.status_code == 302
         assert response.url.startswith(f"{reverse('login')}?next=")
 
     def test_submit_view_renders_map_and_country_selector(self, client, user):
+        """Verify the submit page renders map controls and country selector.
+        Covers the core UI required to choose and refine coordinates."""
         client.force_login(user)
 
         response = client.get(reverse("submit_library"))
@@ -515,6 +648,8 @@ class TestSubmitLibraryView:
         assert country_position < city_position < address_position < postal_code_position
 
     def test_authenticated_submit_creates_pending_library_and_redirects_to_confirmation(self, client, user):
+        """Verify valid submissions create pending libraries and redirect.
+        Covers persistence rules for new user-submitted library entries."""
         client.force_login(user)
 
         response = client.post(
@@ -543,7 +678,83 @@ class TestSubmitLibraryView:
         assert library.location.x == pytest.approx(4.9041, abs=1e-6)
         assert library.photo.name
 
+    def test_photo_metadata_endpoint_requires_authentication(self, client):
+        """Verify the photo metadata endpoint is protected by login.
+        Prevents unauthenticated EXIF and geocoding lookups."""
+        response = client.post(
+            reverse("submit_library_photo_metadata"),
+            data={"photo": _build_uploaded_photo()},
+        )
+
+        assert response.status_code == 302
+        assert response.url.startswith(f"{reverse('login')}?next=")
+
+    @patch("libraries.views.reverse_geocode_coordinates")
+    def test_photo_metadata_endpoint_returns_prefill_payload_when_exif_exists(
+        self,
+        mocked_reverse_geocode,
+        client,
+        user,
+    ):
+        """Verify geotagged photos return EXIF and prefill address payload.
+        Covers the JSON contract used by submit-form auto-prefill."""
+        client.force_login(user)
+        mocked_reverse_geocode.return_value = {
+            "address": "Via Rosina 15",
+            "city": "Florence",
+            "country": "IT",
+            "postal_code": "50123",
+        }
+
+        response = client.post(
+            reverse("submit_library_photo_metadata"),
+            data={
+                "photo": _build_uploaded_photo_with_gps(
+                    latitude=43.7696,
+                    longitude=11.2558,
+                ),
+            },
+        )
+
+        payload = response.json()
+        assert response.status_code == 200
+        assert payload["gps_found"] is True
+        assert payload["geocoded"] is True
+        assert payload["address"] == "Via Rosina 15"
+        assert payload["city"] == "Florence"
+        assert payload["country"] == "IT"
+        assert payload["postal_code"] == "50123"
+        assert payload["latitude"] == pytest.approx(43.7696, abs=1e-4)
+        assert payload["longitude"] == pytest.approx(11.2558, abs=1e-4)
+
+        assert mocked_reverse_geocode.call_count == 1
+        called_kwargs = mocked_reverse_geocode.call_args.kwargs
+        assert called_kwargs["latitude"] == pytest.approx(43.7696, abs=1e-4)
+        assert called_kwargs["longitude"] == pytest.approx(11.2558, abs=1e-4)
+
+    @patch("libraries.views.reverse_geocode_coordinates")
+    def test_photo_metadata_endpoint_returns_no_gps_when_photo_has_no_exif(
+        self,
+        mocked_reverse_geocode,
+        client,
+        user,
+    ):
+        """Verify non-geotagged photos return a no-GPS metadata response.
+        Covers graceful fallback when EXIF coordinates are unavailable."""
+        client.force_login(user)
+
+        response = client.post(
+            reverse("submit_library_photo_metadata"),
+            data={"photo": _build_uploaded_photo()},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {"gps_found": False}
+        mocked_reverse_geocode.assert_not_called()
+
     def test_submit_confirmation_page_renders_continue_button(self, client):
+        """Verify the confirmation page renders success copy and continue link.
+        Covers the final step of the submission user journey."""
         response = client.get(reverse("submit_library_confirmation"))
 
         content = response.content.decode()

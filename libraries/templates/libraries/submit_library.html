@@ -146,11 +146,15 @@
       const mapElement = document.getElementById("submit-library-map");
       const latitudeInput = document.getElementById("id_latitude");
       const longitudeInput = document.getElementById("id_longitude");
+      const photoInput = document.getElementById("id_photo");
       const countrySelect = document.getElementById("id_country");
       const cityInput = document.getElementById("id_city");
       const addressInput = document.getElementById("id_address");
+      const postalCodeInput = document.getElementById("id_postal_code");
       const geocodeButton = document.getElementById("center-map-from-address");
       const statusElement = document.getElementById("submit-map-status");
+      const csrfTokenInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+      const photoMetadataEndpoint = "{% url 'submit_library_photo_metadata' %}";
 
       if (
         !mapElement ||
@@ -190,6 +194,42 @@
         longitudeInput.value = longitude.toFixed(6);
       }
 
+      function fillInputIfEmpty(inputElement, value) {
+        if (!inputElement || !value) {
+          return;
+        }
+
+        if (inputElement.value.trim().length > 0) {
+          return;
+        }
+
+        inputElement.value = value;
+      }
+
+      let countrySelectControl = null;
+
+      function fillCountryIfEmpty(countryCode) {
+        if (!countryCode || countrySelect.value) {
+          return;
+        }
+
+        const normalizedCountryCode = countryCode.toUpperCase();
+        const optionExists = Array.from(countrySelect.options).some(function (option) {
+          return option.value === normalizedCountryCode;
+        });
+        if (!optionExists) {
+          return;
+        }
+
+        if (countrySelectControl) {
+          countrySelectControl.setValue(normalizedCountryCode, true);
+        } else {
+          countrySelect.value = normalizedCountryCode;
+        }
+
+        countrySelect.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+
       function selectMarkerLocation(latitude, longitude) {
         marker.setLatLng([latitude, longitude]);
         map.setView([latitude, longitude], 16);
@@ -217,7 +257,7 @@
       setStatus("Choose the map point by centering from address, dragging marker, or clicking map.");
 
       if (typeof TomSelect !== "undefined") {
-        const countrySelectControl = new TomSelect(countrySelect, {
+        countrySelectControl = new TomSelect(countrySelect, {
           create: false,
           maxOptions: 250,
           closeAfterSelect: true,
@@ -237,6 +277,56 @@
 
       let previousQuery = "";
       let geocodeTimeoutId = null;
+
+      async function detectPhotoMetadata() {
+        if (!photoInput || photoInput.files.length === 0) {
+          return;
+        }
+
+        const payload = new FormData();
+        payload.append("photo", photoInput.files[0]);
+
+        setStatus("Reading GPS metadata from the selected photo...");
+
+        try {
+          const response = await fetch(photoMetadataEndpoint, {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": csrfTokenInput?.value || "",
+              Accept: "application/json",
+            },
+            body: payload,
+          });
+          if (!response.ok) {
+            throw new Error("Photo metadata lookup failed");
+          }
+
+          const metadata = await response.json();
+          if (!metadata.gps_found) {
+            setStatus("No GPS metadata found in this photo. Set location manually on the map.");
+            return;
+          }
+
+          const latitude = Number.parseFloat(metadata.latitude || "");
+          const longitude = Number.parseFloat(metadata.longitude || "");
+          if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+            selectMarkerLocation(latitude, longitude);
+          }
+
+          if (metadata.geocoded) {
+            fillInputIfEmpty(addressInput, metadata.address || "");
+            fillInputIfEmpty(cityInput, metadata.city || "");
+            fillInputIfEmpty(postalCodeInput, metadata.postal_code || "");
+            fillCountryIfEmpty(metadata.country || "");
+            setStatus("GPS metadata found. Map centered and address fields pre-filled from the photo.");
+            return;
+          }
+
+          setStatus("GPS metadata found. Map centered from photo location.");
+        } catch (error) {
+          setStatus("Could not read photo metadata right now. Set the location manually on the map.", true);
+        }
+      }
 
       async function geocodeAddress() {
         const selectedCountryText = countrySelect.options[countrySelect.selectedIndex]?.textContent?.trim() || "";
@@ -299,6 +389,11 @@
 
       addressInput.addEventListener("input", queueGeocodeAddress);
       cityInput.addEventListener("input", queueGeocodeAddress);
+      if (photoInput) {
+        photoInput.addEventListener("change", function () {
+          void detectPhotoMetadata();
+        });
+      }
 
       if (geocodeButton) {
         geocodeButton.addEventListener("click", function () {

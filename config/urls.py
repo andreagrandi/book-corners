@@ -27,6 +27,7 @@ from libraries.views import (
     style_preview,
     submit_library,
     submit_library_confirmation,
+    submit_library_photo_metadata,
 )
 
 urlpatterns = [
@@ -40,6 +41,11 @@ urlpatterns = [
         "submit/confirmation/",
         submit_library_confirmation,
         name="submit_library_confirmation",
+    ),
+    path(
+        "submit/photo-metadata/",
+        submit_library_photo_metadata,
+        name="submit_library_photo_metadata",
     ),
     path("style-preview/", style_preview, name="style_preview"),
     path("api/v1/", api.urls),

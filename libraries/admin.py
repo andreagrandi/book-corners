@@ -19,6 +19,8 @@ class LibraryAdmin(admin.GISModelAdmin):
     def approve_libraries(
         self, request: HttpRequest, queryset: QuerySet[Library]
     ) -> None:
+        """Handle approve libraries.
+        Supports the module workflow with a focused operation."""
         count = queryset.update(status=Library.Status.APPROVED)
         self.message_user(
             request, f"{count} {'library' if count == 1 else 'libraries'} approved."
@@ -28,6 +30,8 @@ class LibraryAdmin(admin.GISModelAdmin):
     def reject_libraries(
         self, request: HttpRequest, queryset: QuerySet[Library]
     ) -> None:
+        """Handle reject libraries.
+        Supports the module workflow with a focused operation."""
         count = queryset.update(status=Library.Status.REJECTED)
         self.message_user(
             request, f"{count} {'library' if count == 1 else 'libraries'} rejected."
@@ -48,6 +52,8 @@ class ReportAdmin(admin.ModelAdmin):
     def resolve_reports(
         self, request: HttpRequest, queryset: QuerySet[Report]
     ) -> None:
+        """Handle resolve reports.
+        Supports the module workflow with a focused operation."""
         count = queryset.update(status=Report.Status.RESOLVED)
         self.message_user(
             request, f"{count} {'report' if count == 1 else 'reports'} resolved."
@@ -57,6 +63,8 @@ class ReportAdmin(admin.ModelAdmin):
     def dismiss_reports(
         self, request: HttpRequest, queryset: QuerySet[Report]
     ) -> None:
+        """Handle dismiss reports.
+        Supports the module workflow with a focused operation."""
         count = queryset.update(status=Report.Status.DISMISSED)
         self.message_user(
             request, f"{count} {'report' if count == 1 else 'reports'} dismissed."

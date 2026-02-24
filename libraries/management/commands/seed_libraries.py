@@ -73,6 +73,8 @@ class Command(BaseCommand):
     help = "Seed local library records and optionally reset existing library/report data."
 
     def add_arguments(self, parser) -> None:
+        """Register command-line options for this command.
+        Defines supported flags and input parameters."""
         parser.add_argument(
             "--reset",
             action="store_true",
@@ -116,6 +118,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args: Any, **options: Any) -> None:
+        """Run the management command workflow.
+        Executes the requested operation from parsed options."""
         count = options["count"]
         if count < 0:
             raise CommandError("--count must be zero or greater.")
@@ -164,6 +168,8 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"Created {created_count} libraries."))
 
     def _reset_data(self) -> None:
+        """Handle reset data.
+        Keeps this module logic focused and reusable."""
         with transaction.atomic():
             report_count = Report.objects.count()
             library_count = Library.objects.count()
@@ -177,6 +183,8 @@ class Command(BaseCommand):
         )
 
     def _get_or_create_seed_user(self):
+        """Handle get or create seed user.
+        Keeps this module logic focused and reusable."""
         user_model = get_user_model()
         user, created = user_model.objects.get_or_create(
             username="seedbot",
@@ -192,6 +200,8 @@ class Command(BaseCommand):
         return user
 
     def _collect_seed_images(self, *, images_dir: Path) -> list[Path]:
+        """Handle collect seed images.
+        Keeps this module logic focused and reusable."""
         if images_dir.is_absolute():
             root = images_dir
         else:
@@ -218,6 +228,8 @@ class Command(BaseCommand):
         rejected_ratio: float,
         rng: random.Random,
     ) -> int:
+        """Handle create libraries.
+        Keeps this module logic focused and reusable."""
         status_weights = [approved_ratio, pending_ratio, rejected_ratio]
         status_options = [
             Library.Status.APPROVED,
@@ -281,6 +293,8 @@ class Command(BaseCommand):
         index: int,
         rng: random.Random,
     ) -> None:
+        """Handle attach photo.
+        Keeps this module logic focused and reusable."""
         if image_paths:
             selected_image = rng.choice(image_paths)
             with selected_image.open("rb") as image_file:
@@ -304,6 +318,8 @@ class Command(BaseCommand):
         index: int,
         rng: random.Random,
     ) -> bytes:
+        """Handle build placeholder image.
+        Keeps this module logic focused and reusable."""
         base_color = (
             rng.randint(35, 95),
             rng.randint(95, 155),

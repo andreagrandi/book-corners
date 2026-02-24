@@ -8,6 +8,8 @@ User = get_user_model()
 @pytest.mark.django_db
 class TestAuthAPI:
     def test_register_returns_tokens_and_creates_user(self, client):
+        """Verify register returns tokens and creates user.
+        Confirms the expected behavior stays stable."""
         response = client.post(
             "/api/v1/auth/register",
             data={
@@ -25,6 +27,8 @@ class TestAuthAPI:
         assert User.objects.filter(username="newuser").exists()
 
     def test_login_returns_jwt_pair(self, client, user):
+        """Verify login returns jwt pair.
+        Confirms the expected behavior stays stable."""
         response = client.post(
             "/api/v1/auth/login",
             data={
@@ -40,6 +44,8 @@ class TestAuthAPI:
         assert "refresh" in body
 
     def test_refresh_returns_new_access_token(self, client, user):
+        """Verify refresh returns new access token.
+        Confirms the expected behavior stays stable."""
         refresh_token = str(RefreshToken.for_user(user))
         response = client.post(
             "/api/v1/auth/refresh",
@@ -52,6 +58,8 @@ class TestAuthAPI:
         assert "access" in body
 
     def test_me_returns_current_user(self, client, user):
+        """Verify me returns current user.
+        Confirms the expected behavior stays stable."""
         access_token = str(RefreshToken.for_user(user).access_token)
         response = client.get(
             "/api/v1/auth/me",

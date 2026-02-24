@@ -9,6 +9,8 @@ User = get_user_model()
 
 
 def _apply_input_classes(*, form: forms.BaseForm) -> None:
+    """Handle apply input classes.
+    Keeps this module logic focused and reusable."""
     for field in form.fields.values():
         existing_classes = field.widget.attrs.get("class", "")
         classes = f"{existing_classes} input input-bordered w-full".strip()
@@ -23,6 +25,8 @@ class RegistrationForm(UserCreationForm):
         fields = ("username", "email", "password1", "password2")
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the object state.
+        Sets up values required by later calls."""
         super().__init__(*args, **kwargs)
         _apply_input_classes(form=self)
 
@@ -31,10 +35,14 @@ class UsernameOrEmailAuthenticationForm(AuthenticationForm):
     username = forms.CharField(label="Username or email")
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the object state.
+        Sets up values required by later calls."""
         super().__init__(*args, **kwargs)
         _apply_input_classes(form=self)
 
     def clean(self) -> dict[str, Any]:
+        """Handle clean.
+        Supports the module workflow with a focused operation."""
         username_or_email_value = self.cleaned_data.get("username")
         password_value = self.cleaned_data.get("password")
         username_or_email = (
