@@ -1,0 +1,15 @@
+<div id="latest-entries-pagination" class="mt-6 flex justify-center"{% if use_oob %} hx-swap-oob="outerHTML"{% endif %}>
+  {% if page_obj.has_next %}
+    <button
+      type="button"
+      class="btn btn-outline"
+      hx-get="{% url 'latest_entries' %}?page={{ page_obj.next_page_number }}"
+      hx-target="#latest-entries-grid"
+      hx-swap="beforeend"
+    >
+      Load more
+    </button>
+  {% elif page_obj.paginator.count > 0 %}
+    <p class="text-sm text-base-content/60">You have reached the latest approved entries.</p>
+  {% endif %}
+</div>

@@ -1,9 +1,61 @@
+from __future__ import annotations
+
+from django.core.paginator import Page, Paginator
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 
+from libraries.models import Library
+
+LATEST_ENTRIES_PAGE_SIZE = 9
+
+
+def _parse_page_number(value: str | None) -> int:
+    if value is None:
+        return 1
+
+    try:
+        page_number = int(value)
+    except ValueError:
+        return 1
+
+    if page_number < 1:
+        return 1
+
+    return page_number
+
+
+def _get_latest_entries_page(*, page_number: int) -> Page[Library]:
+    queryset = (
+        Library.objects.filter(status=Library.Status.APPROVED)
+        .order_by("-created_at")
+    )
+    paginator = Paginator(queryset, LATEST_ENTRIES_PAGE_SIZE)
+    return paginator.get_page(page_number)
+
 
 def home(request: HttpRequest) -> HttpResponse:
-    return render(request, "home.html")
+    page_obj = _get_latest_entries_page(page_number=1)
+    return render(
+        request,
+        "home.html",
+        {
+            "latest_entries_page": page_obj,
+        },
+    )
+
+
+def latest_entries(request: HttpRequest) -> HttpResponse:
+    page_number = _parse_page_number(request.GET.get("page"))
+    page_obj = _get_latest_entries_page(page_number=page_number)
+
+    return render(
+        request,
+        "libraries/_latest_entries.html",
+        {
+            "page_obj": page_obj,
+            "is_first_page": page_obj.number == 1,
+        },
+    )
 
 
 def style_preview(request: HttpRequest) -> HttpResponse:
