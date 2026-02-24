@@ -34,10 +34,12 @@ INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
+    "django.contrib.gis",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "users",
+    "libraries",
 ]
 
 MIDDLEWARE = [
@@ -75,7 +77,6 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=600,
     )
 }
@@ -120,3 +121,8 @@ STATIC_URL = "static/"
 # Auth
 
 AUTH_USER_MODEL = "users.User"
+
+# Media files (uploads)
+
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"

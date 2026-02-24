@@ -200,26 +200,26 @@ Everything else is server-rendered Django templates + HTMX.
 ### Phase 1 — Project Skeleton & Local Dev
 
 #### 1.1 — Django project init + custom user model
-- [ ] Create Django project (`startproject`) and a `users` app
-- [ ] Define custom User model (AbstractUser, email/username/password)
-- [ ] Set `AUTH_USER_MODEL` in settings
-- [ ] Create initial migration for users app
-- [ ] Verify `createsuperuser` works
+- [x] Create Django project (`startproject`) and a `users` app
+- [x] Define custom User model (AbstractUser, email/username/password)
+- [x] Set `AUTH_USER_MODEL` in settings
+- [x] Create initial migration for users app
+- [x] Verify `createsuperuser` works
 
 #### 1.2 — Docker setup
-- [ ] Write Dockerfile for the Django app (Python, uv for dependency management, gunicorn)
-- [ ] Write `docker-compose.yml` with `app` + `db` (PostGIS image) services
-- [ ] Add volume for PostgreSQL data persistence
-- [ ] Configure Django settings to read DB connection from env vars
-- [ ] Verify `docker compose up` starts both services and Django connects to PostGIS
+- [x] Write Dockerfile for the Django app (Python, uv for dependency management, gunicorn)
+- [x] Write `docker-compose.yml` with `app` + `db` (PostGIS image) services
+- [x] Add volume for PostgreSQL data persistence
+- [x] Configure Django settings to read DB connection from env vars
+- [x] Verify `docker compose up` starts both services and Django connects to PostGIS
 
 #### 1.3 — Library and Report models
-- [ ] Create `libraries` app
-- [ ] Define Library model with all fields from the data model table
-- [ ] Implement slug auto-generation logic (city + street, optional name, numeric suffix for dupes)
-- [ ] Define Report model with all fields from the data model table
-- [ ] Create and run migrations
-- [ ] Add a basic test that creates a Library and a Report in the DB
+- [x] Create `libraries` app
+- [x] Define Library model with all fields from the data model table
+- [x] Implement slug auto-generation logic (city + address, optional name, numeric suffix for dupes)
+- [x] Define Report model with all fields from the data model table
+- [x] Create and run migrations
+- [x] Add a basic test that creates a Library and a Report in the DB
 
 #### 1.4 — Django admin for moderation
 - [ ] Register Library in admin with list_display (name, city, status, created_at)
