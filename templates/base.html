@@ -9,6 +9,7 @@
     <title>{% block title %}Little Free Libraries{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
     <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+    {% block extra_head %}{% endblock %}
   </head>
   <body class="min-h-screen bg-base-200">
     <div class="navbar border-b border-base-300 bg-base-100 px-4">
@@ -71,5 +72,7 @@
         <p>Little Free Libraries - built with Django, HTMX, and OpenStreetMap data.</p>
       </aside>
     </footer>
+
+    {% block extra_scripts %}{% endblock %}
   </body>
 </html>

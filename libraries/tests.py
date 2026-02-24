@@ -353,10 +353,12 @@ class TestHomepageLatestEntries:
         response = client.get(reverse("latest_entries"))
 
         content = response.content.decode()
+        detail_url = reverse("library_detail", kwargs={"slug": approved.slug})
         assert response.status_code == 200
         assert approved.name in content
         assert "Pending Library" not in content
         assert "id=\"latest-entries-grid\"" in content
+        assert f"href=\"{detail_url}\"" in content
 
     def test_latest_entries_partial_renders_load_more_when_next_page_exists(self, client, user):
         for index in range(10):
@@ -385,3 +387,80 @@ class TestHomepageLatestEntries:
         assert second_response.status_code == 200
         assert "hx-swap-oob=\"outerHTML\"" in second_content
         assert "You have reached the latest approved entries." in second_content
+
+
+@pytest.mark.django_db
+class TestLibraryDetailView:
+    def test_approved_library_detail_renders_expected_content(self, client, user):
+        library = Library.objects.create(
+            name="Canal Book Corner",
+            description="Waterproof little free library with kid-friendly picks.",
+            photo="libraries/photos/2026/02/detail.jpg",
+            location=Point(x=4.9041, y=52.3676, srid=4326),
+            address="Prinsengracht 140",
+            city="Amsterdam",
+            country="NL",
+            postal_code="1015",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.get(reverse("library_detail", kwargs={"slug": library.slug}))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Canal Book Corner" in content
+        assert "Waterproof little free library with kid-friendly picks." in content
+        assert "Prinsengracht 140" in content
+        assert "City:</span> Amsterdam" in content
+        assert "Country:</span> NL" in content
+        assert "id=\"library-detail-map\"" in content
+        assert "leaflet@1.9.4" in content
+
+    def test_pending_library_detail_returns_404(self, client, user):
+        library = Library.objects.create(
+            name="Pending Detail",
+            description="Not visible yet.",
+            photo="libraries/photos/2026/02/pending-detail.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via dei Neri 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.PENDING,
+            created_by=user,
+        )
+
+        response = client.get(reverse("library_detail", kwargs={"slug": library.slug}))
+
+        assert response.status_code == 404
+
+    def test_nonexistent_library_slug_returns_404(self, client):
+        response = client.get(reverse("library_detail", kwargs={"slug": "does-not-exist"}))
+
+        assert response.status_code == 404
+
+    def test_report_button_is_only_visible_to_authenticated_users(self, client, user):
+        library = Library.objects.create(
+            name="Reportable Library",
+            description="A popular little free library.",
+            photo="libraries/photos/2026/02/reportable.jpg",
+            location=Point(x=2.3522, y=48.8566, srid=4326),
+            address="Rue de Rivoli 20",
+            city="Paris",
+            country="FR",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        detail_url = reverse("library_detail", kwargs={"slug": library.slug})
+
+        anonymous_response = client.get(detail_url)
+        anonymous_content = anonymous_response.content.decode()
+        assert anonymous_response.status_code == 200
+        assert "Report this library" not in anonymous_content
+
+        client.force_login(user)
+        authenticated_response = client.get(detail_url)
+        authenticated_content = authenticated_response.content.decode()
+        assert authenticated_response.status_code == 200
+        assert "Report this library" in authenticated_content
+        assert "id=\"report-form\"" in authenticated_content

@@ -284,11 +284,13 @@ Everything else is server-rendered Django templates + HTMX.
 - [x] Add "Load more" / pagination on the partial if more entries exist
 
 #### 2.3 — Library detail page
-- [ ] Create detail view that fetches a library by slug
-- [ ] Build detail template: photo (full size), name, description, address, city/country
-- [ ] Add a "Report" button (links to report form, visible to authenticated users)
-- [ ] Handle 404 for non-existent slugs
-- [ ] Add a test for the detail view (approved library visible, pending library returns 404)
+- [x] Create detail view that fetches a library by slug
+- [x] Build detail template: photo (full size), name, description, address, city/country
+- [x] Embed a small map (OpenStreetMap, tell me if/how I need to get the API key) on the page to show the location
+- [x] Add a "Report" button (links to report form, visible to authenticated users)
+- [x] Handle 404 for non-existent slugs
+- [x] You must be able to click a library in the home and reach the detail page
+- [x] Add a test for the detail view (approved library visible, pending library returns 404)
 
 #### 2.4 — Submit library form: basic photo upload + address fields
 - [ ] Create submit view (login required) with a form

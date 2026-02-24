@@ -20,13 +20,14 @@ from django.contrib import admin
 from django.urls import include, path
 
 from config.api import api
-from libraries.views import home, latest_entries, style_preview
+from libraries.views import home, latest_entries, library_detail, style_preview
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("users.urls")),
     path("", home, name="home"),
     path("latest-entries/", latest_entries, name="latest_entries"),
+    path("library/<slug:slug>/", library_detail, name="library_detail"),
     path("style-preview/", style_preview, name="style_preview"),
     path("api/v1/", api.urls),
 ]
