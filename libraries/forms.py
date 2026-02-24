@@ -18,6 +18,11 @@ COUNTRY_CHOICES = [
     ),
 ]
 
+SEARCH_COUNTRY_CHOICES = [
+    ("", "Any country"),
+    *COUNTRY_CHOICES[1:],
+]
+
 
 class LibrarySubmissionForm(forms.ModelForm):
     latitude = forms.FloatField(required=True, widget=forms.HiddenInput())
@@ -88,3 +93,72 @@ class LibrarySubmissionForm(forms.ModelForm):
             library.save()
 
         return library
+
+
+class LibrarySearchForm(forms.Form):
+    q = forms.CharField(required=False, max_length=120)
+    near = forms.CharField(required=False, max_length=120)
+    radius_km = forms.IntegerField(required=False, min_value=1, max_value=100, initial=10)
+    city = forms.CharField(required=False, max_length=100)
+    country = forms.ChoiceField(required=False, choices=SEARCH_COUNTRY_CHOICES)
+    postal_code = forms.CharField(required=False, max_length=20)
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize form widgets for search interactions.
+        Keeps quick and advanced search controls visually consistent."""
+        super().__init__(*args, **kwargs)
+
+        self.fields["q"].widget.attrs.update(
+            {
+                "class": "input input-bordered w-full",
+                "placeholder": "Keywords in name or description",
+            }
+        )
+        self.fields["near"].widget.attrs.update(
+            {
+                "class": "input input-bordered w-full",
+                "placeholder": "City, area, postcode, or address",
+            }
+        )
+        self.fields["radius_km"].widget.attrs.update(
+            {
+                "class": "input input-bordered w-full",
+                "min": "1",
+                "max": "100",
+                "step": "1",
+            }
+        )
+        self.fields["city"].widget.attrs.update(
+            {
+                "class": "input input-bordered w-full",
+                "placeholder": "Filter by city",
+            }
+        )
+        self.fields["country"].widget.attrs.update(
+            {
+                "class": "select select-bordered w-full",
+            }
+        )
+        self.fields["postal_code"].widget.attrs.update(
+            {
+                "class": "input input-bordered w-full",
+                "placeholder": "Filter by postal code",
+            }
+        )
+
+    def clean(self) -> dict[str, Any]:
+        """Normalize optional inputs before search execution.
+        Ensures blank radius values fall back to the default distance."""
+        cleaned_data = super().clean()
+
+        for field_name in ("q", "near", "city", "postal_code"):
+            value = cleaned_data.get(field_name)
+            cleaned_data[field_name] = value.strip() if isinstance(value, str) else ""
+
+        country = cleaned_data.get("country")
+        cleaned_data["country"] = country.strip().upper() if isinstance(country, str) else ""
+
+        radius_km = cleaned_data.get("radius_km")
+        cleaned_data["radius_km"] = radius_km if isinstance(radius_km, int) else 10
+
+        return cleaned_data

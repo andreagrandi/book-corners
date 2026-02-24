@@ -3,10 +3,13 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any
 
+from django.core.cache import cache
 from django.core.files.uploadedfile import UploadedFile
 from geopy.exc import GeocoderServiceError, GeocoderTimedOut, GeocoderUnavailable
 from geopy.geocoders import Nominatim
 from PIL import ExifTags, Image, UnidentifiedImageError
+
+FORWARD_GEOCODE_CACHE_TIMEOUT_SECONDS = 60 * 60 * 6
 
 
 def _normalize_gps_reference(value: Any) -> str:
@@ -19,6 +22,14 @@ def _normalize_gps_reference(value: Any) -> str:
             return ""
 
     return str(value).strip().upper()
+
+
+def _build_forward_geocode_cache_key(*, place_query: str, country_code: str | None) -> str:
+    """Build a stable cache key for forward geocoding lookups.
+    Keeps repeated place searches fast while respecting rate limits."""
+    normalized_query = place_query.strip().lower()
+    normalized_country = (country_code or "").strip().lower()
+    return f"forward-geocode:{normalized_country}:{normalized_query}"
 
 
 def _dms_to_decimal(values: Sequence[Any], reference: str) -> float | None:
@@ -40,6 +51,60 @@ def _dms_to_decimal(values: Sequence[Any], reference: str) -> float | None:
     if reference in ("N", "E"):
         return decimal
     return None
+
+
+def forward_geocode_place(
+    *,
+    place_query: str,
+    user_agent: str,
+    timeout_seconds: int,
+    country_code: str | None = None,
+) -> tuple[float, float] | None:
+    """Forward geocode a place string into latitude and longitude.
+    Returns None when no usable coordinates are resolved."""
+    normalized_query = place_query.strip()
+    if not normalized_query:
+        return None
+
+    cache_key = _build_forward_geocode_cache_key(
+        place_query=normalized_query,
+        country_code=country_code,
+    )
+    cached_coordinates = cache.get(cache_key)
+    if (
+        isinstance(cached_coordinates, tuple)
+        and len(cached_coordinates) == 2
+        and all(isinstance(value, float) for value in cached_coordinates)
+    ):
+        return cached_coordinates
+
+    geolocator = Nominatim(user_agent=user_agent, timeout=timeout_seconds)
+    geocode_kwargs: dict[str, Any] = {
+        "exactly_one": True,
+        "language": "en",
+        "addressdetails": False,
+    }
+
+    normalized_country = (country_code or "").strip().lower()
+    if normalized_country:
+        geocode_kwargs["country_codes"] = normalized_country
+
+    try:
+        location = geolocator.geocode(normalized_query, **geocode_kwargs)
+    except (GeocoderServiceError, GeocoderTimedOut, GeocoderUnavailable, ValueError):
+        return None
+
+    if location is None:
+        return None
+
+    latitude = getattr(location, "latitude", None)
+    longitude = getattr(location, "longitude", None)
+    if not isinstance(latitude, (float, int)) or not isinstance(longitude, (float, int)):
+        return None
+
+    coordinates = (float(latitude), float(longitude))
+    cache.set(cache_key, coordinates, FORWARD_GEOCODE_CACHE_TIMEOUT_SECONDS)
+    return coordinates
 
 
 def extract_gps_coordinates(image_file: UploadedFile) -> tuple[float, float] | None:

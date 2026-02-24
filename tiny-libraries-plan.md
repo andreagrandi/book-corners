@@ -326,12 +326,12 @@ Everything else is server-rendered Django templates + HTMX.
 - [x] Add a test for the dashboard view
 
 #### 2.8 — Search page
-- [ ] Create search view with a form: text query (q), city, country, postal_code filters
-- [ ] Implement PostgreSQL full-text search on Library name + description (SearchVector/SearchQuery)
-- [ ] Filter by city/country/postal_code when provided
-- [ ] Render results as a card grid (reuse the library card partial)
-- [ ] Wire up HTMX: form submits via hx-get, results replace a target div
-- [ ] Add a test for search (text match, filter match, no results)
+- [x] Create search view with a form: text query (q), city, country, postal_code filters
+- [x] Implement PostgreSQL full-text search on Library name + description (SearchVector/SearchQuery)
+- [x] Filter by city/country/postal_code when provided
+- [x] Render results as a card grid (reuse the library card partial)
+- [x] Wire up HTMX: form submits via hx-get, results replace a target div
+- [x] Add a test for search (text match, filter match, no results)
 
 ---
 

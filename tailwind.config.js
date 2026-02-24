@@ -7,6 +7,8 @@ module.exports = {
   safelist: [
     "input",
     "input-bordered",
+    "select",
+    "select-bordered",
     "textarea",
     "textarea-bordered",
     "file-input",
