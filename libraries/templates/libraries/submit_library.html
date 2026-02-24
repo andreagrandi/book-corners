@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block title %}Submit a library - Little Free Libraries{% endblock %}
+
+{% block extra_head %}
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  >
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css"
+  >
+  <style>
+    .ts-wrapper.single {
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      background-color: #ffffff;
+    }
+
+    .ts-wrapper.single .ts-control {
+      min-height: 3rem;
+      border-radius: 0.5rem;
+      border: 0 !important;
+      background-color: #ffffff;
+      padding: 0.5rem 0.75rem;
+      font-size: 1rem;
+      line-height: 1.5rem;
+      box-shadow: none;
+    }
+
+    .ts-wrapper.single.focus {
+      border-color: #9ca3af !important;
+      box-shadow: 0 0 0 1px #9ca3af;
+    }
+
+    .ts-wrapper.single .ts-control input,
+    .ts-wrapper.single .ts-control .item,
+    .ts-dropdown .option,
+    .ts-dropdown .no-results {
+      font-size: 1rem;
+      line-height: 1.5rem;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <section class="grid gap-6 lg:grid-cols-2">
+    <article class="card border border-base-300 bg-base-100 shadow-sm">
+      <div class="card-body p-5">
+        <h1 class="text-3xl font-bold">Submit a library</h1>
+        <p class="text-base-content/70">
+          Share a little free library with the community. Set the exact point on the map before submitting.
+        </p>
+        <p class="text-sm text-base-content/60">Fields marked with <span class="font-medium">(optional)</span> can be left blank.</p>
+
+        <form method="post" enctype="multipart/form-data" class="space-y-4" novalidate>
+          {% csrf_token %}
+          {{ form.latitude }}
+          {{ form.longitude }}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-error text-sm">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <label class="form-control w-full">
+            <span class="label-text mb-1">Photo</span>
+            {{ form.photo }}
+            {% if form.photo.errors %}<span class="mt-1 text-sm text-error">{{ form.photo.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="form-control w-full">
+            <span class="label-text mb-1">Name (optional)</span>
+            {{ form.name }}
+            {% if form.name.errors %}<span class="mt-1 text-sm text-error">{{ form.name.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="form-control w-full">
+            <span class="label-text mb-1">Description (optional)</span>
+            {{ form.description }}
+            {% if form.description.errors %}<span class="mt-1 text-sm text-error">{{ form.description.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="form-control w-full">
+            <span class="label-text mb-1">Country</span>
+            {{ form.country }}
+            {% if form.country.errors %}<span class="mt-1 text-sm text-error">{{ form.country.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="form-control w-full">
+            <span class="label-text mb-1">City</span>
+            {{ form.city }}
+            {% if form.city.errors %}<span class="mt-1 text-sm text-error">{{ form.city.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="form-control w-full">
+            <span class="label-text mb-1">Address</span>
+            {{ form.address }}
+            {% if form.address.errors %}<span class="mt-1 text-sm text-error">{{ form.address.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="form-control w-full">
+            <span class="label-text mb-1">Postal code (optional)</span>
+            {{ form.postal_code }}
+            {% if form.postal_code.errors %}<span class="mt-1 text-sm text-error">{{ form.postal_code.errors.0 }}</span>{% endif %}
+          </label>
+
+          {% if form.latitude.errors %}<p class="text-sm text-error">{{ form.latitude.errors.0 }}</p>{% endif %}
+          {% if form.longitude.errors %}<p class="text-sm text-error">{{ form.longitude.errors.0 }}</p>{% endif %}
+
+          <button type="submit" class="btn btn-primary w-full">Submit library</button>
+        </form>
+      </div>
+    </article>
+
+    <section class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-xl font-semibold">Set exact location</h2>
+        <button id="center-map-from-address" type="button" class="btn btn-sm btn-outline">Center from address</button>
+      </div>
+      <p class="mt-2 text-sm text-base-content/70">
+        Type country, city, and street to auto-center the map. Drag the marker to the exact location.
+      </p>
+      <p id="submit-map-status" class="mt-2 text-sm text-base-content/60"></p>
+      <div
+        id="submit-library-map"
+        class="mt-4 h-[520px] w-full rounded-box border border-base-300"
+        data-default-latitude="{{ submit_map_default_latitude }}"
+        data-default-longitude="{{ submit_map_default_longitude }}"
+      ></div>
+    </section>
+  </section>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const mapElement = document.getElementById("submit-library-map");
+      const latitudeInput = document.getElementById("id_latitude");
+      const longitudeInput = document.getElementById("id_longitude");
+      const countrySelect = document.getElementById("id_country");
+      const cityInput = document.getElementById("id_city");
+      const addressInput = document.getElementById("id_address");
+      const geocodeButton = document.getElementById("center-map-from-address");
+      const statusElement = document.getElementById("submit-map-status");
+
+      if (
+        !mapElement ||
+        !latitudeInput ||
+        !longitudeInput ||
+        !countrySelect ||
+        !cityInput ||
+        !addressInput ||
+        !statusElement ||
+        typeof L === "undefined"
+      ) {
+        return;
+      }
+
+      const defaultLatitude = Number.parseFloat(mapElement.dataset.defaultLatitude || "48.8566");
+      const defaultLongitude = Number.parseFloat(mapElement.dataset.defaultLongitude || "2.3522");
+
+      const map = L.map(mapElement).setView([defaultLatitude, defaultLongitude], 5);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
+
+      const marker = L.marker([defaultLatitude, defaultLongitude], {
+        draggable: true,
+      }).addTo(map);
+
+      function setStatus(message, isError = false) {
+        statusElement.textContent = message;
+        statusElement.className = isError
+          ? "mt-2 text-sm text-error"
+          : "mt-2 text-sm text-base-content/60";
+      }
+
+      function updateCoordinates(latitude, longitude) {
+        latitudeInput.value = latitude.toFixed(6);
+        longitudeInput.value = longitude.toFixed(6);
+      }
+
+      function selectMarkerLocation(latitude, longitude) {
+        marker.setLatLng([latitude, longitude]);
+        map.setView([latitude, longitude], 16);
+        updateCoordinates(latitude, longitude);
+      }
+
+      marker.on("dragend", function () {
+        const markerPosition = marker.getLatLng();
+        updateCoordinates(markerPosition.lat, markerPosition.lng);
+        setStatus("Marker moved. Coordinates updated.");
+      });
+
+      map.on("click", function (event) {
+        selectMarkerLocation(event.latlng.lat, event.latlng.lng);
+        setStatus("Map point selected. Coordinates updated.");
+      });
+
+      const existingLatitude = Number.parseFloat(latitudeInput.value || "");
+      const existingLongitude = Number.parseFloat(longitudeInput.value || "");
+      if (Number.isFinite(existingLatitude) && Number.isFinite(existingLongitude)) {
+        marker.setLatLng([existingLatitude, existingLongitude]);
+        map.setView([existingLatitude, existingLongitude], 16);
+      }
+
+      setStatus("Choose the map point by centering from address, dragging marker, or clicking map.");
+
+      if (typeof TomSelect !== "undefined") {
+        const countrySelectControl = new TomSelect(countrySelect, {
+          create: false,
+          maxOptions: 250,
+          closeAfterSelect: true,
+          sortField: {
+            field: "text",
+            direction: "asc",
+          },
+          placeholder: "Select a country",
+        });
+
+        countrySelectControl.on("change", function () {
+          queueGeocodeAddress();
+        });
+      } else {
+        countrySelect.addEventListener("change", queueGeocodeAddress);
+      }
+
+      let previousQuery = "";
+      let geocodeTimeoutId = null;
+
+      async function geocodeAddress() {
+        const selectedCountryText = countrySelect.options[countrySelect.selectedIndex]?.textContent?.trim() || "";
+        const address = addressInput.value.trim();
+        const city = cityInput.value.trim();
+
+        if (!countrySelect.value || !address || !city) {
+          return;
+        }
+
+        const query = `${address}, ${city}, ${selectedCountryText}`;
+        if (query === previousQuery) {
+          return;
+        }
+        previousQuery = query;
+
+        setStatus("Finding location from address...");
+
+        const endpoint = new URL("https://nominatim.openstreetmap.org/search");
+        endpoint.searchParams.set("q", query);
+        endpoint.searchParams.set("format", "jsonv2");
+        endpoint.searchParams.set("limit", "1");
+
+        try {
+          const response = await fetch(endpoint.toString(), {
+            headers: { Accept: "application/json" },
+          });
+          if (!response.ok) {
+            throw new Error("Address lookup failed");
+          }
+
+          const results = await response.json();
+          if (!Array.isArray(results) || results.length === 0) {
+            setStatus("Address not found. Move the marker manually on the map.", true);
+            return;
+          }
+
+          const latitude = Number.parseFloat(results[0].lat || "");
+          const longitude = Number.parseFloat(results[0].lon || "");
+          if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+            setStatus("Address lookup returned invalid coordinates.", true);
+            return;
+          }
+
+          selectMarkerLocation(latitude, longitude);
+          setStatus("Map centered from address. Drag marker if you need to refine the point.");
+        } catch (error) {
+          setStatus("Geocoding is unavailable right now. You can still click the map to pick coordinates.", true);
+        }
+      }
+
+      function queueGeocodeAddress() {
+        if (geocodeTimeoutId !== null) {
+          window.clearTimeout(geocodeTimeoutId);
+        }
+        geocodeTimeoutId = window.setTimeout(function () {
+          void geocodeAddress();
+        }, 600);
+      }
+
+      addressInput.addEventListener("input", queueGeocodeAddress);
+      cityInput.addEventListener("input", queueGeocodeAddress);
+
+      if (geocodeButton) {
+        geocodeButton.addEventListener("click", function () {
+          void geocodeAddress();
+        });
+      }
+    });
+  </script>
+{% endblock %}

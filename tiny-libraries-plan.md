@@ -293,12 +293,17 @@ Everything else is server-rendered Django templates + HTMX.
 - [x] Add a test for the detail view (approved library visible, pending library returns 404)
 
 #### 2.4 — Submit library form: basic photo upload + address fields
-- [ ] Create submit view (login required) with a form
-- [ ] Form fields: photo (file upload), name (optional), description (optional), address, city, country, postal_code
-- [ ] Handle file upload: save photo via ImageField
-- [ ] Set status=pending and created_by=current user on save
-- [ ] Redirect to detail page (or dashboard) after successful submission
-- [ ] Add a test for submission (authenticated user creates a pending library)
+- [x] Create submit view (login required) with a form
+- [x] Form fields: photo (file upload), name (optional), description (optional), address, city, country, postal_code
+- [x] Submission page should have an embedded map, once the user types the Country, the City and the Street, the map should
+    be centered to that street and the user should be able to move the pointer to the exact location. That location
+    should be used for the coordinates
+- [x] Check if it's possible to have a selector for the countries with a list of countries ordered alphabetcally
+    and the possibility to type and search
+- [x] Handle file upload: save photo via ImageField
+- [x] Set status=pending and created_by=current user on save
+- [x] Redirect to a confirmation page after successful submission
+- [x] Add a test for submission (authenticated user creates a pending library)
 
 #### 2.5 — Submit form: EXIF GPS extraction
 - [ ] Add utility function: extract GPS coordinates from an uploaded image using Pillow/exifread

@@ -1,8 +1,25 @@
+from io import BytesIO
+
 import pytest
 from django.contrib.gis.geos import Point
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
+from PIL import Image
 
 from libraries.models import Library, Report
+
+
+def _build_uploaded_photo(*, file_name: str = "library.jpg") -> SimpleUploadedFile:
+    image_bytes = BytesIO()
+    image = Image.new("RGB", (640, 480), color=(140, 165, 210))
+    image.save(image_bytes, format="JPEG")
+    image_bytes.seek(0)
+
+    return SimpleUploadedFile(
+        name=file_name,
+        content=image_bytes.getvalue(),
+        content_type="image/jpeg",
+    )
 
 
 @pytest.fixture
@@ -464,3 +481,74 @@ class TestLibraryDetailView:
         assert authenticated_response.status_code == 200
         assert "Report this library" in authenticated_content
         assert "id=\"report-form\"" in authenticated_content
+
+
+@pytest.mark.django_db
+class TestSubmitLibraryView:
+    def test_submit_view_requires_authentication(self, client):
+        response = client.get(reverse("submit_library"))
+
+        assert response.status_code == 302
+        assert response.url.startswith(f"{reverse('login')}?next=")
+
+    def test_submit_view_renders_map_and_country_selector(self, client, user):
+        client.force_login(user)
+
+        response = client.get(reverse("submit_library"))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "id=\"submit-library-map\"" in content
+        assert "id=\"id_country\"" in content
+        assert "tom-select" in content
+        assert "id=\"id_latitude\"" in content
+        assert "id=\"id_longitude\"" in content
+        assert "Center from address" in content
+        assert "Name (optional)" in content
+        assert "Description (optional)" in content
+        assert "Postal code (optional)" in content
+
+        country_position = content.find(">Country<")
+        city_position = content.find(">City<")
+        address_position = content.find(">Address<")
+        postal_code_position = content.find(">Postal code (optional)<")
+        assert country_position < city_position < address_position < postal_code_position
+
+    def test_authenticated_submit_creates_pending_library_and_redirects_to_confirmation(self, client, user):
+        client.force_login(user)
+
+        response = client.post(
+            reverse("submit_library"),
+            data={
+                "photo": _build_uploaded_photo(),
+                "name": "Canal Shelf",
+                "description": "Small library near the water.",
+                "address": "Prinsengracht 150",
+                "city": "Amsterdam",
+                "country": "NL",
+                "postal_code": "1015",
+                "latitude": "52.3676",
+                "longitude": "4.9041",
+            },
+        )
+
+        assert response.status_code == 302
+        assert response.url == reverse("submit_library_confirmation")
+
+        library = Library.objects.get(name="Canal Shelf")
+        assert library.status == Library.Status.PENDING
+        assert library.created_by == user
+        assert library.country == "NL"
+        assert library.location.y == pytest.approx(52.3676, abs=1e-6)
+        assert library.location.x == pytest.approx(4.9041, abs=1e-6)
+        assert library.photo.name
+
+    def test_submit_confirmation_page_renders_continue_button(self, client):
+        response = client.get(reverse("submit_library_confirmation"))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Submission received" in content
+        assert "reviewed and approved as soon as possible" in content
+        assert f"href=\"{reverse('home')}\"" in content
+        assert "Continue" in content

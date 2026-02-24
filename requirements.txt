@@ -6,6 +6,7 @@ django-ninja-jwt==5.4.4
 gunicorn==25.1.0
 Pillow==11.1.0
 psycopg2-binary==2.9.11
+pycountry==24.6.1
 pytest==8.3.5
 pytest-django==4.11.1
 sqlparse==0.5.5

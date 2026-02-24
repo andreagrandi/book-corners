@@ -7,6 +7,10 @@ module.exports = {
   safelist: [
     "input",
     "input-bordered",
+    "textarea",
+    "textarea-bordered",
+    "file-input",
+    "file-input-bordered",
   ],
   theme: {
     extend: {},
