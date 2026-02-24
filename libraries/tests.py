@@ -2,6 +2,7 @@ from io import BytesIO
 from unittest.mock import patch
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
@@ -10,6 +11,8 @@ from PIL.TiffImagePlugin import IFDRational
 
 from libraries.geolocation import extract_gps_coordinates
 from libraries.models import Library, Report
+
+User = get_user_model()
 
 
 def _build_uploaded_photo(*, file_name: str = "library.jpg") -> SimpleUploadedFile:
@@ -445,7 +448,7 @@ class TestHomepageTemplate:
 
         content = response.content.decode()
         assert response.status_code == 200
-        assert "Little Free Libraries" in content
+        assert "Book Corners" in content
         assert "href=\"/map/\"" in content
         assert "href=\"/search/\"" in content
         assert "href=\"/submit/\"" in content
@@ -576,6 +579,56 @@ class TestLibraryDetailView:
 
         assert response.status_code == 404
 
+    def test_creator_can_view_pending_library_detail(self, client, user):
+        """Verify creators can view their own pending library detail pages.
+        Keeps dashboard detail links usable before moderation approval."""
+        library = Library.objects.create(
+            name="Pending by Creator",
+            description="Waiting for moderation.",
+            photo="libraries/photos/2026/02/pending-owner.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via del Corso 9",
+            city="Florence",
+            country="IT",
+            status=Library.Status.PENDING,
+            created_by=user,
+        )
+
+        client.force_login(user)
+        response = client.get(reverse("library_detail", kwargs={"slug": library.slug}))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Pending by Creator" in content
+
+    def test_pending_library_detail_returns_404_for_authenticated_non_owner(self, client, user):
+        """Verify pending library detail stays private for non-owners.
+        Prevents authenticated users from accessing others' pending entries."""
+        owner = User.objects.create_user(
+            username="owneruser",
+            password="OwnerPass123!",
+        )
+        viewer = User.objects.create_user(
+            username="vieweruser",
+            password="ViewerPass123!",
+        )
+        library = Library.objects.create(
+            name="Pending Private",
+            description="Not visible to other users.",
+            photo="libraries/photos/2026/02/pending-private.jpg",
+            location=Point(x=11.2668, y=43.7806, srid=4326),
+            address="Via del Proconsolo 12",
+            city="Florence",
+            country="IT",
+            status=Library.Status.PENDING,
+            created_by=owner,
+        )
+
+        client.force_login(viewer)
+        response = client.get(reverse("library_detail", kwargs={"slug": library.slug}))
+
+        assert response.status_code == 404
+
     def test_nonexistent_library_slug_returns_404(self, client):
         """Verify nonexistent library slug returns 404.
         Confirms the expected behavior stays stable."""
@@ -610,6 +663,80 @@ class TestLibraryDetailView:
         assert authenticated_response.status_code == 200
         assert "Report this library" in authenticated_content
         assert "id=\"report-form\"" in authenticated_content
+
+
+@pytest.mark.django_db
+class TestUserDashboardView:
+    def test_dashboard_requires_authentication(self, client):
+        """Verify dashboard requires authentication before rendering.
+        Protects user-specific submissions from anonymous visitors."""
+        response = client.get(reverse("dashboard"))
+
+        assert response.status_code == 302
+        assert response.url.startswith(f"{reverse('login')}?next=")
+
+    def test_dashboard_lists_only_current_user_submissions_with_status_badges(self, client, user):
+        """Verify dashboard shows only current user submissions and statuses.
+        Ensures moderation state and detail links are visible per submission."""
+        other_user = User.objects.create_user(
+            username="someoneelse",
+            password="AnotherPass123!",
+        )
+        pending_library = Library.objects.create(
+            name="Pending Shelf",
+            photo="libraries/photos/2026/02/pending-dashboard.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            created_by=user,
+        )
+        approved_library = Library.objects.create(
+            name="Approved Shelf",
+            photo="libraries/photos/2026/02/approved-dashboard.jpg",
+            location=Point(x=11.2568, y=43.7706, srid=4326),
+            address="Via de' Benci 10",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        rejected_library = Library.objects.create(
+            name="Rejected Shelf",
+            photo="libraries/photos/2026/02/rejected-dashboard.jpg",
+            location=Point(x=11.2578, y=43.7716, srid=4326),
+            address="Via Ghibellina 25",
+            city="Florence",
+            country="IT",
+            status=Library.Status.REJECTED,
+            created_by=user,
+        )
+        other_users_library = Library.objects.create(
+            name="Private Shelf",
+            photo="libraries/photos/2026/02/private-dashboard.jpg",
+            location=Point(x=11.2588, y=43.7726, srid=4326),
+            address="Via dei Neri 7",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=other_user,
+        )
+
+        client.force_login(user)
+        response = client.get(reverse("dashboard"))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert pending_library.name in content
+        assert approved_library.name in content
+        assert rejected_library.name in content
+        assert other_users_library.name not in content
+        assert "badge-warning" in content
+        assert "badge-success" in content
+        assert "badge-error" in content
+        assert f'href="{reverse("library_detail", kwargs={"slug": pending_library.slug})}"' in content
+        assert f'href="{reverse("library_detail", kwargs={"slug": approved_library.slug})}"' in content
+        assert f'href="{reverse("library_detail", kwargs={"slug": rejected_library.slug})}"' in content
 
 
 @pytest.mark.django_db

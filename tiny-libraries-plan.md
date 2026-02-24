@@ -320,10 +320,10 @@ Everything else is server-rendered Django templates + HTMX.
 - [x] Store both the PointField and human-readable address fields
 
 #### 2.7 — User dashboard
-- [ ] Create dashboard view (login required) listing the current user's submissions
-- [ ] Show each library: photo thumbnail, name/address, status badge (pending/approved/rejected)
-- [ ] Link each entry to its detail page
-- [ ] Add a test for the dashboard view
+- [x] Create dashboard view (login required) listing the current user's submissions
+- [x] Show each library: photo thumbnail, name/address, status badge (pending/approved/rejected)
+- [x] Link each entry to its detail page
+- [x] Add a test for the dashboard view
 
 #### 2.8 — Search page
 - [ ] Create search view with a form: text query (q), city, country, postal_code filters

@@ -3,6 +3,7 @@ from __future__ import annotations
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Page, Paginator
+from django.db.models import Q
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -74,18 +75,37 @@ def latest_entries(request: HttpRequest) -> HttpResponse:
 
 
 def library_detail(request: HttpRequest, slug: str) -> HttpResponse:
-    """Render a detail page for one approved library.
-    Returns 404 for missing slugs or non-approved entries."""
+    """Render one public library detail or the creator's own submission.
+    Keeps non-approved entries private while allowing author review."""
+    visibility_filter = Q(status=Library.Status.APPROVED)
+    user = getattr(request, "user", None)
+    if user is not None and user.is_authenticated:
+        visibility_filter |= Q(created_by=user)
+
     library = get_object_or_404(
         Library,
+        visibility_filter,
         slug=slug,
-        status=Library.Status.APPROVED,
     )
     return render(
         request,
         "libraries/library_detail.html",
         {
             "library": library,
+        },
+    )
+
+
+@login_required(login_url="login")
+def dashboard(request: HttpRequest) -> HttpResponse:
+    """Render the authenticated dashboard with user submissions.
+    Shows the current user's libraries and moderation statuses."""
+    submissions = Library.objects.filter(created_by=request.user).order_by("-created_at")
+    return render(
+        request,
+        "libraries/dashboard.html",
+        {
+            "submissions": submissions,
         },
     )
 
