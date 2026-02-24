@@ -248,11 +248,11 @@ Everything else is server-rendered Django templates + HTMX.
 - [x] Verify: a template using daisyUI classes renders correctly
 
 #### 1.7 — Base template + navbar/footer
-- [ ] Create `base.html` template: HTML boilerplate, meta tags, CSS/JS includes
-- [ ] Add responsive navbar using daisyUI (links: Home, Map, Search, Submit, Login/Register)
-- [ ] Add simple footer (project name, credits)
-- [ ] Add HTMX script include in base template
-- [ ] Create a placeholder homepage view and URL to verify the base template renders
+- [x] Create `base.html` template: HTML boilerplate, meta tags, CSS/JS includes
+- [x] Add responsive navbar using daisyUI (links: Home, Map, Search, Submit, Login/Register)
+- [x] Add simple footer (project name, credits)
+- [x] Add HTMX script include in base template
+- [x] Create a placeholder homepage view and URL to verify the base template renders
 
 #### 1.8 — CI with GitHub Actions
 - [ ] Create `.github/workflows/ci.yml`

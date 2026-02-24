@@ -32,6 +32,45 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+## End-to-end smoke test (Docker + browser)
+
+After UI/template/static changes, always run this check before considering the task done:
+
+1. Start the full stack and rebuild app image when needed:
+
+```bash
+docker compose up -d --build app db tailwind
+docker compose ps
+```
+
+2. Verify HTTP responses for homepage and compiled CSS:
+
+```bash
+curl -I http://localhost:8000/
+curl -I http://localhost:8000/static/css/app.css
+```
+
+Expected: both return `200 OK`.
+
+3. Inspect logs for runtime issues:
+
+```bash
+docker compose logs --no-color --tail=120 app tailwind
+```
+
+Expected:
+- `tailwind` container stays running (watch mode active)
+- no repeated `Not Found: /static/css/app.css` in app logs
+
+4. Validate real rendering with Playwright tools:
+
+- Open `http://localhost:8000/`
+- Capture snapshot/screenshot
+- Check browser console for errors
+- Check network requests (including static assets)
+
+If the page looks unstyled in browser, treat it as a blocker and debug Docker static file serving before moving on.
+
 ## Architecture
 
 Django 6 project with PostGIS for geospatial data. Two apps:

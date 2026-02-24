@@ -302,3 +302,19 @@ class TestTailwindIntegration:
         assert response.status_code == 200
         assert "btn btn-primary" in content
         assert "/static/css/app.css" in content
+
+
+class TestHomepageTemplate:
+    def test_homepage_uses_base_template_layout(self, client):
+        response = client.get(reverse("home"))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Little Free Libraries" in content
+        assert "href=\"/map/\"" in content
+        assert "href=\"/search/\"" in content
+        assert "href=\"/submit/\"" in content
+        assert "href=\"/login/\"" in content
+        assert "href=\"/register/\"" in content
+        assert "https://unpkg.com/htmx.org@2.0.4" in content
+        assert "built with Django, HTMX, and OpenStreetMap data" in content

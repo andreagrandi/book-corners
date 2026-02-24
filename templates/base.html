@@ -1,0 +1,55 @@
+{% load static %}
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Community map of little free libraries.">
+    <link rel="icon" href="data:,">
+    <title>{% block title %}Little Free Libraries{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+  </head>
+  <body class="min-h-screen bg-base-200">
+    <div class="navbar border-b border-base-300 bg-base-100 px-4">
+      <div class="navbar-start">
+        <div class="dropdown">
+          <div tabindex="0" role="button" class="btn btn-ghost lg:hidden" aria-label="Open navigation menu">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" />
+            </svg>
+          </div>
+          <ul tabindex="0" class="menu menu-sm dropdown-content z-[1] mt-3 w-56 rounded-box bg-base-100 p-2 shadow">
+            <li><a href="/">Home</a></li>
+            <li><a href="/map/">Map</a></li>
+            <li><a href="/search/">Search</a></li>
+            <li><a href="/submit/">Submit</a></li>
+            <li><a href="/login/">Login</a></li>
+            <li><a href="/register/">Register</a></li>
+          </ul>
+        </div>
+        <a href="/" class="btn btn-ghost text-xl">Little Free Libraries</a>
+      </div>
+      <div class="navbar-end hidden lg:flex">
+        <ul class="menu menu-horizontal px-1">
+          <li><a href="/">Home</a></li>
+          <li><a href="/map/">Map</a></li>
+          <li><a href="/search/">Search</a></li>
+          <li><a href="/submit/">Submit</a></li>
+          <li><a href="/login/">Login</a></li>
+          <li><a href="/register/">Register</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <main class="mx-auto w-full max-w-6xl p-4 lg:p-8">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer border-t border-base-300 bg-base-100 p-6 text-base-content">
+      <aside>
+        <p>Little Free Libraries - built with Django, HTMX, and OpenStreetMap data.</p>
+      </aside>
+    </footer>
+  </body>
+</html>

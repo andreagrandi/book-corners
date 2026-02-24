@@ -9,3 +9,4 @@ psycopg2-binary==2.9.11
 pytest==8.3.5
 pytest-django==4.11.1
 sqlparse==0.5.5
+whitenoise==6.11.0
