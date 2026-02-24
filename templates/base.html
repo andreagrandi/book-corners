@@ -20,24 +20,44 @@
             </svg>
           </div>
           <ul tabindex="0" class="menu menu-sm dropdown-content z-[1] mt-3 w-56 rounded-box bg-base-100 p-2 shadow">
-            <li><a href="/">Home</a></li>
+            <li><a href="{% url 'home' %}">Home</a></li>
             <li><a href="/map/">Map</a></li>
             <li><a href="/search/">Search</a></li>
             <li><a href="/submit/">Submit</a></li>
-            <li><a href="/login/">Login</a></li>
-            <li><a href="/register/">Register</a></li>
+            {% if request.user.is_authenticated %}
+              <li class="menu-title"><span>{{ request.user.username }}</span></li>
+              <li>
+                <form method="post" action="{% url 'logout' %}" class="px-2 py-1">
+                  {% csrf_token %}
+                  <button type="submit" class="w-full text-left">Logout</button>
+                </form>
+              </li>
+            {% else %}
+              <li><a href="{% url 'login' %}">Login</a></li>
+              <li><a href="{% url 'register' %}">Register</a></li>
+            {% endif %}
           </ul>
         </div>
-        <a href="/" class="btn btn-ghost text-xl">Little Free Libraries</a>
+        <a href="{% url 'home' %}" class="btn btn-ghost text-xl">Little Free Libraries</a>
       </div>
       <div class="navbar-end hidden lg:flex">
         <ul class="menu menu-horizontal px-1">
-          <li><a href="/">Home</a></li>
+          <li><a href="{% url 'home' %}">Home</a></li>
           <li><a href="/map/">Map</a></li>
           <li><a href="/search/">Search</a></li>
           <li><a href="/submit/">Submit</a></li>
-          <li><a href="/login/">Login</a></li>
-          <li><a href="/register/">Register</a></li>
+          {% if request.user.is_authenticated %}
+            <li><span>{{ request.user.username }}</span></li>
+            <li>
+              <form method="post" action="{% url 'logout' %}" class="px-3 py-2">
+                {% csrf_token %}
+                <button type="submit">Logout</button>
+              </form>
+            </li>
+          {% else %}
+            <li><a href="{% url 'login' %}">Login</a></li>
+            <li><a href="{% url 'register' %}">Register</a></li>
+          {% endif %}
         </ul>
       </div>
     </div>

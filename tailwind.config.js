@@ -4,6 +4,10 @@ module.exports = {
     "./templates/**/*.html",
     "./**/templates/**/*.html",
   ],
+  safelist: [
+    "input",
+    "input-bordered",
+  ],
   theme: {
     extend: {},
   },
