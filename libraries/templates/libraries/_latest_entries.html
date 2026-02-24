@@ -5,17 +5,24 @@
 {% for library in page_obj.object_list %}
   <article class="card border border-base-300 bg-base-100 shadow-sm">
     <figure class="aspect-[4/3] overflow-hidden bg-base-200">
-      <img
-        src="{{ library.photo.url }}"
-        alt="{{ library.name|default:library.address }}"
-        class="h-full w-full object-cover"
-        loading="lazy"
-      >
+      <a href="{% url 'library_detail' slug=library.slug %}" class="h-full w-full">
+        <img
+          src="{{ library.photo.url }}"
+          alt="{{ library.name|default:library.address }}"
+          class="h-full w-full object-cover"
+          loading="lazy"
+        >
+      </a>
     </figure>
     <div class="card-body p-4">
-      <h3 class="card-title text-lg">{{ library.name|default:"Neighborhood Library" }}</h3>
+      <h3 class="card-title text-lg">
+        <a href="{% url 'library_detail' slug=library.slug %}" class="link link-hover">{{ library.name|default:"Neighborhood Library" }}</a>
+      </h3>
       <p class="text-sm text-base-content/70">{{ library.city }}, {{ library.country }}</p>
       <p class="text-sm text-base-content/80">{{ library.description|default:library.address|truncatechars:120 }}</p>
+      <div class="card-actions mt-2 justify-end">
+        <a href="{% url 'library_detail' slug=library.slug %}" class="btn btn-sm btn-outline">View details</a>
+      </div>
     </div>
   </article>
 {% empty %}

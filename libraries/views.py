@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from django.core.paginator import Page, Paginator
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 
 from libraries.models import Library
 
@@ -24,7 +24,7 @@ def _parse_page_number(value: str | None) -> int:
     return page_number
 
 
-def _get_latest_entries_page(*, page_number: int) -> Page[Library]:
+def _get_latest_entries_page(*, page_number: int) -> Page:
     queryset = (
         Library.objects.filter(status=Library.Status.APPROVED)
         .order_by("-created_at")
@@ -45,7 +45,8 @@ def home(request: HttpRequest) -> HttpResponse:
 
 
 def latest_entries(request: HttpRequest) -> HttpResponse:
-    page_number = _parse_page_number(request.GET.get("page"))
+    page_value = request.GET.get("page")
+    page_number = _parse_page_number(page_value if isinstance(page_value, str) else None)
     page_obj = _get_latest_entries_page(page_number=page_number)
 
     return render(
@@ -54,6 +55,21 @@ def latest_entries(request: HttpRequest) -> HttpResponse:
         {
             "page_obj": page_obj,
             "is_first_page": page_obj.number == 1,
+        },
+    )
+
+
+def library_detail(request: HttpRequest, slug: str) -> HttpResponse:
+    library = get_object_or_404(
+        Library,
+        slug=slug,
+        status=Library.Status.APPROVED,
+    )
+    return render(
+        request,
+        "libraries/library_detail.html",
+        {
+            "library": library,
         },
     )
 
