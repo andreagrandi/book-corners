@@ -306,11 +306,11 @@ Everything else is server-rendered Django templates + HTMX.
 - [x] Add a test for submission (authenticated user creates a pending library)
 
 #### 2.5 — Submit form: EXIF GPS extraction
-- [ ] Add utility function: extract GPS coordinates from an uploaded image using Pillow/exifread
-- [ ] On photo upload, attempt EXIF extraction on the backend
-- [ ] If GPS found: reverse geocode via Nominatim (geopy) to get address, city, country, postal_code
-- [ ] Pre-fill address fields with the geocoded result (return as JSON or render pre-filled form)
-- [ ] Add a test with a sample geotagged image
+- [x] Add utility function: extract GPS coordinates from an uploaded image using Pillow/exifread
+- [x] On photo upload, attempt EXIF extraction on the backend
+- [x] If GPS found: reverse geocode via Nominatim (geopy) to get address, city, country, postal_code
+- [x] Pre-fill address fields with the geocoded result (return as JSON or render pre-filled form)
+- [x] Add a test with a sample geotagged image
 
 #### 2.6 — Submit form: Photon address autocomplete
 - [ ] Add address autocomplete input using Photon API (photon.komoot.io)
@@ -482,6 +482,12 @@ Everything else is server-rendered Django templates + HTMX.
 
 ### Phase 7 — Future Enhancements (out of scope for now)
 
+- [ ] Find a better name and rename the home page title
+- [ ] Find a logo for the project
+- [ ] Improve the footer (remove mention of Django, HTMX and add link to the GitHub repository)
+- [ ] "Report this library" should be "Report an issue with this library"
+- [ ] Multi language support with language selector (at least English and Italian)
+- [ ] An About page which explain the project more in details
 - [ ] Multiple photos per library (LibraryPhoto model)
 - [ ] OAuth2 / Sign in with Apple (django-allauth)
 - [ ] Custom moderation dashboard (beyond Django admin)
