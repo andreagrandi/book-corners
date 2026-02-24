@@ -304,6 +304,7 @@ class TestTailwindIntegration:
         assert "/static/css/app.css" in content
 
 
+@pytest.mark.django_db
 class TestHomepageTemplate:
     def test_homepage_uses_base_template_layout(self, client):
         response = client.get(reverse("home"))
@@ -317,4 +318,70 @@ class TestHomepageTemplate:
         assert "href=\"/login/\"" in content
         assert "href=\"/register/\"" in content
         assert "https://unpkg.com/htmx.org@2.0.4" in content
+        assert "id=\"latest-entries\"" in content
+        assert "hx-get=\"/latest-entries/\"" in content
+        assert "Latest entries" in content
         assert "built with Django, HTMX, and OpenStreetMap data" in content
+
+
+@pytest.mark.django_db
+class TestHomepageLatestEntries:
+    def test_latest_entries_partial_includes_only_approved_libraries(self, client, user):
+        approved = Library.objects.create(
+            name="Approved Library",
+            description="Visible on homepage",
+            photo="libraries/photos/2026/02/approved.jpg",
+            location=Point(x=2.3522, y=48.8566, srid=4326),
+            address="Rue de Rivoli 11",
+            city="Paris",
+            country="FR",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        Library.objects.create(
+            name="Pending Library",
+            description="Should not be visible",
+            photo="libraries/photos/2026/02/pending.jpg",
+            location=Point(x=2.3400, y=48.8500, srid=4326),
+            address="Rue Oberkampf 8",
+            city="Paris",
+            country="FR",
+            status=Library.Status.PENDING,
+            created_by=user,
+        )
+
+        response = client.get(reverse("latest_entries"))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert approved.name in content
+        assert "Pending Library" not in content
+        assert "id=\"latest-entries-grid\"" in content
+
+    def test_latest_entries_partial_renders_load_more_when_next_page_exists(self, client, user):
+        for index in range(10):
+            Library.objects.create(
+                name=f"Library {index}",
+                description=f"Description for library {index}",
+                photo="libraries/photos/2026/02/test.jpg",
+                location=Point(x=11.2558 + index * 0.0005, y=43.7696 + index * 0.0005, srid=4326),
+                address=f"Via Rosina {index + 1}",
+                city="Florence",
+                country="IT",
+                status=Library.Status.APPROVED,
+                created_by=user,
+            )
+
+        first_response = client.get(reverse("latest_entries"))
+        second_response = client.get(reverse("latest_entries"), {"page": 2})
+
+        first_content = first_response.content.decode()
+        second_content = second_response.content.decode()
+
+        assert first_response.status_code == 200
+        assert "Load more" in first_content
+        assert "hx-target=\"#latest-entries-grid\"" in first_content
+
+        assert second_response.status_code == 200
+        assert "hx-swap-oob=\"outerHTML\"" in second_content
+        assert "You have reached the latest approved entries." in second_content

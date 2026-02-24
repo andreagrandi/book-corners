@@ -276,12 +276,12 @@ Everything else is server-rendered Django templates + HTMX.
 - [x] Add a test for registration and login flows
 
 #### 2.2 — Homepage: hero section + latest entries
-- [ ] Create homepage view that fetches latest N approved libraries
-- [ ] Build hero section in template: heading, short description, CTA buttons (Explore Map, Submit)
-- [ ] Build latest-entries card grid: each card shows photo thumbnail, name/city, short description
-- [ ] Extract the card grid into an HTMX partial template (`_latest_entries.html`)
-- [ ] Add HTMX loading for the card grid (hx-get, hx-target, hx-trigger="load")
-- [ ] Add "Load more" / pagination on the partial if more entries exist
+- [x] Create homepage view that fetches latest N approved libraries
+- [x] Build hero section in template: heading, short description, CTA buttons (Explore Map, Submit)
+- [x] Build latest-entries card grid: each card shows photo thumbnail, name/city, short description
+- [x] Extract the card grid into an HTMX partial template (`_latest_entries.html`)
+- [x] Add HTMX loading for the card grid (hx-get, hx-target, hx-trigger="load")
+- [x] Add "Load more" / pagination on the partial if more entries exist
 
 #### 2.3 — Library detail page
 - [ ] Create detail view that fetches a library by slug

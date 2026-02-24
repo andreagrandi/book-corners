@@ -1,0 +1,35 @@
+{% if is_first_page %}
+  <div id="latest-entries-grid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+{% endif %}
+
+{% for library in page_obj.object_list %}
+  <article class="card border border-base-300 bg-base-100 shadow-sm">
+    <figure class="aspect-[4/3] overflow-hidden bg-base-200">
+      <img
+        src="{{ library.photo.url }}"
+        alt="{{ library.name|default:library.address }}"
+        class="h-full w-full object-cover"
+        loading="lazy"
+      >
+    </figure>
+    <div class="card-body p-4">
+      <h3 class="card-title text-lg">{{ library.name|default:"Neighborhood Library" }}</h3>
+      <p class="text-sm text-base-content/70">{{ library.city }}, {{ library.country }}</p>
+      <p class="text-sm text-base-content/80">{{ library.description|default:library.address|truncatechars:120 }}</p>
+    </div>
+  </article>
+{% empty %}
+  {% if is_first_page %}
+    <div class="col-span-full rounded-box border border-dashed border-base-300 bg-base-100 p-8 text-center">
+      <h3 class="text-lg font-semibold">No approved libraries yet</h3>
+      <p class="mt-2 text-base-content/70">Use the seed command to generate sample records or submit your first library.</p>
+    </div>
+  {% endif %}
+{% endfor %}
+
+{% if is_first_page %}
+  </div>
+  {% include "libraries/_latest_entries_pagination.html" with page_obj=page_obj use_oob=False %}
+{% else %}
+  {% include "libraries/_latest_entries_pagination.html" with page_obj=page_obj use_oob=True %}
+{% endif %}

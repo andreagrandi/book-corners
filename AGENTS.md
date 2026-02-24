@@ -30,6 +30,12 @@ python manage.py migrate
 
 # Run dev server
 python manage.py runserver
+
+# Seed local demo data (reuses images from libraries_examples/ if available)
+python manage.py seed_libraries --reset --count 36 --images-dir libraries_examples --seed 42
+
+# Same seed command inside Docker app container
+docker compose exec app python manage.py seed_libraries --reset --count 36 --images-dir libraries_examples --seed 42
 ```
 
 ## End-to-end smoke test (Docker + browser)
@@ -80,7 +86,7 @@ Django 6 project with PostGIS for geospatial data. Two apps:
 
 Admin uses `GISModelAdmin` for the Library model to support map-based editing.
 
-URL routing currently only exposes the Django admin (`/admin/`). REST API via Django Ninja is planned.
+URL routing currently includes web pages (`/`, `/login/`, `/register/`, `/latest-entries/`) plus Django admin (`/admin/`). API is scaffolded at `/api/v1/` and will be expanded.
 
 ## Key Patterns
 
@@ -88,6 +94,8 @@ URL routing currently only exposes the Django admin (`/admin/`). REST API via Dj
 - **Database config**: Uses `dj-database-url` to parse `DATABASE_URL` env var. GIS library paths (`GDAL_LIBRARY_PATH`, `GEOS_LIBRARY_PATH`) are read from environment in `config/settings.py`.
 - **Test fixtures**: Shared fixtures (`user`, `admin_user`, `admin_client`) in root `conftest.py`. App-specific fixtures (`library`, `admin_library`, `admin_report`) in `libraries/tests.py`.
 - **Environment**: `.envrc` (direnv) sets `DATABASE_URL`, `GDAL_LIBRARY_PATH`, and `GEOS_LIBRARY_PATH` for local macOS development. `.env.example` has Docker equivalents.
+- **Seed data command**: `seed_libraries` can reset and generate realistic sample `Library` rows with geospatial points and status mix. It accepts `--reset`, `--count`, `--seed`, and `--images-dir` and will reuse local images when provided.
+- **Local seed images**: `libraries_examples/` is intentionally gitignored so each developer can use their own local photo set for seeding.
 
 ## Dependencies
 
