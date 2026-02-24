@@ -18,8 +18,10 @@ from django.contrib import admin
 from django.urls import path
 
 from config.api import api
+from libraries.views import style_preview
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("style-preview/", style_preview, name="style_preview"),
     path("api/v1/", api.urls),
 ]
