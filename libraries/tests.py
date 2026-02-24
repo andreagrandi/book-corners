@@ -637,6 +637,8 @@ class TestSubmitLibraryView:
         assert "id=\"id_latitude\"" in content
         assert "id=\"id_longitude\"" in content
         assert "Center from address" in content
+        assert "id=\"address-suggestions\"" in content
+        assert "photon.komoot.io/api" in content
         assert "Name (optional)" in content
         assert "Description (optional)" in content
         assert "Postal code (optional)" in content
