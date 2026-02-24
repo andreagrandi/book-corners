@@ -23,7 +23,7 @@ RUN uv pip install --system --no-cache -r requirements.txt
 
 COPY . .
 
-RUN python manage.py collectstatic --noinput 2>/dev/null || true
+RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
