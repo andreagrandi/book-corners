@@ -2,18 +2,28 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.geos import Point
+from django.contrib.gis.measure import D
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.core.paginator import Page, Paginator
-from django.db.models import Q
+from django.db import connection
+from django.db.models import Q, QuerySet
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from libraries.forms import LibrarySubmissionForm
-from libraries.geolocation import extract_gps_coordinates, reverse_geocode_coordinates
+from libraries.forms import LibrarySearchForm, LibrarySubmissionForm
+from libraries.geolocation import (
+    extract_gps_coordinates,
+    forward_geocode_place,
+    reverse_geocode_coordinates,
+)
 from libraries.models import Library
 
 LATEST_ENTRIES_PAGE_SIZE = 9
 DEFAULT_SUBMIT_MAP_LATITUDE = 48.8566
 DEFAULT_SUBMIT_MAP_LONGITUDE = 2.3522
+DEFAULT_SEARCH_RADIUS_KM = 10
 
 
 def _parse_page_number(value: str | None) -> int:
@@ -44,6 +54,90 @@ def _get_latest_entries_page(*, page_number: int) -> Page:
     return paginator.get_page(page_number)
 
 
+def _is_htmx_request(*, request: HttpRequest) -> bool:
+    """Check whether the current request originates from HTMX.
+    Allows one view to return either full pages or partial fragments."""
+    return request.headers.get("HX-Request", "").lower() == "true"
+
+
+def _has_active_search_criteria(*, cleaned_data: dict[str, object]) -> bool:
+    """Detect whether the user provided any meaningful search filters.
+    Prevents showing empty-state results before a real search is submitted."""
+    for key in ("q", "near", "city", "country", "postal_code"):
+        value = cleaned_data.get(key)
+        if isinstance(value, str) and value:
+            return True
+    return False
+
+
+def _apply_text_search(*, queryset: QuerySet[Library], query_text: str) -> QuerySet[Library]:
+    """Filter approved libraries by text on name and description.
+    Uses PostgreSQL full-text search with a safe fallback for non-Postgres DBs."""
+    if connection.vendor != "postgresql":
+        return queryset.filter(
+            Q(name__icontains=query_text) | Q(description__icontains=query_text)
+        )
+
+    search_vector = SearchVector("name", weight="A") + SearchVector("description", weight="B")
+    search_query = SearchQuery(query_text, search_type="plain")
+    return (
+        queryset
+        .annotate(search=search_vector, rank=SearchRank(search_vector, search_query))
+        .filter(search=search_query)
+        .order_by("-rank", "-created_at")
+    )
+
+
+def _run_library_search(*, cleaned_data: dict[str, object]) -> tuple[QuerySet[Library], bool]:
+    """Execute combined text, field, and proximity search filters.
+    Returns a queryset plus a flag indicating unresolved place queries."""
+    query_text = str(cleaned_data.get("q") or "")
+    near_text = str(cleaned_data.get("near") or "")
+    city = str(cleaned_data.get("city") or "")
+    country = str(cleaned_data.get("country") or "")
+    postal_code = str(cleaned_data.get("postal_code") or "")
+
+    radius_km_value = cleaned_data.get("radius_km")
+    radius_km = radius_km_value if isinstance(radius_km_value, int) else DEFAULT_SEARCH_RADIUS_KM
+
+    queryset = Library.objects.filter(status=Library.Status.APPROVED).order_by("-created_at")
+
+    if city:
+        queryset = queryset.filter(city__icontains=city)
+    if country:
+        queryset = queryset.filter(country__iexact=country)
+    if postal_code:
+        queryset = queryset.filter(postal_code__icontains=postal_code)
+
+    if query_text:
+        queryset = _apply_text_search(queryset=queryset, query_text=query_text)
+
+    location_resolution_failed = False
+    if near_text:
+        coordinates = forward_geocode_place(
+            place_query=near_text,
+            user_agent=settings.NOMINATIM_USER_AGENT,
+            timeout_seconds=settings.NOMINATIM_TIMEOUT_SECONDS,
+            country_code=country or None,
+        )
+        if coordinates is None:
+            location_resolution_failed = True
+            if not query_text:
+                queryset = _apply_text_search(queryset=queryset, query_text=near_text)
+        else:
+            latitude, longitude = coordinates
+            center_point = Point(x=longitude, y=latitude, srid=4326)
+            queryset = (
+                queryset
+                .annotate(distance=Distance("location", center_point))
+                .filter(location__distance_lte=(center_point, D(km=radius_km)))
+                .order_by("distance", "-created_at")
+            )
+            return queryset, location_resolution_failed
+
+    return queryset, location_resolution_failed
+
+
 def home(request: HttpRequest) -> HttpResponse:
     """Render the homepage with the first latest-entries page.
     Loads approved libraries for the initial full-page response."""
@@ -72,6 +166,44 @@ def latest_entries(request: HttpRequest) -> HttpResponse:
             "is_first_page": page_obj.number == 1,
         },
     )
+
+
+def search_libraries(request: HttpRequest) -> HttpResponse:
+    """Render the search page and HTMX results fragment.
+    Supports keyword, structured filters, and radius-based place searches."""
+    form = LibrarySearchForm(request.GET or None)
+    has_submitted_search = False
+    location_resolution_failed = False
+    libraries = Library.objects.none()
+    near_query = ""
+
+    if form.is_valid():
+        cleaned_data = form.cleaned_data
+        near_query = str(cleaned_data.get("near") or "")
+        has_submitted_search = _has_active_search_criteria(cleaned_data=cleaned_data)
+        if has_submitted_search:
+            libraries, location_resolution_failed = _run_library_search(
+                cleaned_data=cleaned_data
+            )
+    elif request.GET:
+        has_submitted_search = True
+        near_value = request.GET.get("near", "")
+        near_query = near_value if isinstance(near_value, str) else ""
+
+    context = {
+        "form": form,
+        "libraries": libraries,
+        "has_submitted_search": has_submitted_search,
+        "location_resolution_failed": location_resolution_failed,
+        "near_query": near_query,
+    }
+
+    template_name = (
+        "libraries/_search_results.html"
+        if _is_htmx_request(request=request)
+        else "libraries/search.html"
+    )
+    return render(request, template_name, context)
 
 
 def library_detail(request: HttpRequest, slug: str) -> HttpResponse:

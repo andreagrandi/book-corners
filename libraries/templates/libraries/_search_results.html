@@ -1,0 +1,32 @@
+{% if form.errors %}
+  <div class="alert alert-error mb-4">
+    <span>Please review the search fields and try again.</span>
+  </div>
+{% endif %}
+
+{% if has_submitted_search %}
+  {% if location_resolution_failed and near_query %}
+    <div class="alert alert-warning mb-4">
+      <span>Could not resolve "{{ near_query }}" to a place, so keyword matching was used instead.</span>
+    </div>
+  {% endif %}
+
+  {% if libraries %}
+    <div class="mb-3 text-sm text-base-content/70">{{ libraries|length }} libraries found.</div>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {% for library in libraries %}
+        {% include "libraries/_library_card.html" with library=library %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="rounded-box border border-dashed border-base-300 bg-base-100 p-8 text-center">
+      <h2 class="text-lg font-semibold">No libraries found</h2>
+      <p class="mt-2 text-base-content/70">Try broader keywords, increase the radius, or relax one of the filters.</p>
+    </div>
+  {% endif %}
+{% else %}
+  <div class="rounded-box border border-dashed border-base-300 bg-base-100 p-8 text-center">
+    <h2 class="text-lg font-semibold">Start a search</h2>
+    <p class="mt-2 text-base-content/70">Use a place like London for nearby results, or add keywords and filters.</p>
+  </div>
+{% endif %}

@@ -25,6 +25,7 @@ from libraries.views import (
     home,
     latest_entries,
     library_detail,
+    search_libraries,
     style_preview,
     submit_library,
     submit_library_confirmation,
@@ -37,6 +38,7 @@ urlpatterns = [
     path("", home, name="home"),
     path("dashboard/", dashboard, name="dashboard"),
     path("latest-entries/", latest_entries, name="latest_entries"),
+    path("search/", search_libraries, name="search_libraries"),
     path("library/<slug:slug>/", library_detail, name="library_detail"),
     path("submit/", submit_library, name="submit_library"),
     path(

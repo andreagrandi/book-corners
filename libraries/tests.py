@@ -457,6 +457,8 @@ class TestHomepageTemplate:
         assert "https://unpkg.com/htmx.org@2.0.4" in content
         assert "id=\"latest-entries\"" in content
         assert "hx-get=\"/latest-entries/\"" in content
+        assert "name=\"near\"" in content
+        assert "Advanced search" in content
         assert "Latest entries" in content
         assert "built with Django, HTMX, and OpenStreetMap data" in content
 
@@ -528,6 +530,201 @@ class TestHomepageLatestEntries:
         assert second_response.status_code == 200
         assert "hx-swap-oob=\"outerHTML\"" in second_content
         assert "You have reached the latest approved entries." in second_content
+
+
+@pytest.mark.django_db
+class TestLibrarySearchView:
+    def test_search_by_keywords_matches_approved_name_and_description(self, client, user):
+        """Verify keyword search matches approved libraries only.
+        Ensures full-text behavior excludes pending entries from results."""
+        matching_library = Library.objects.create(
+            name="Canal Stories Shelf",
+            description="Weekly fiction swaps by the water.",
+            photo="libraries/photos/2026/02/search-keyword-1.jpg",
+            location=Point(x=4.9041, y=52.3676, srid=4326),
+            address="Prinsengracht 140",
+            city="Amsterdam",
+            country="NL",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        Library.objects.create(
+            name="Garden Exchange",
+            description="Children books and picture books.",
+            photo="libraries/photos/2026/02/search-keyword-2.jpg",
+            location=Point(x=4.9100, y=52.3600, srid=4326),
+            address="Nieuwe Spiegelstraat 9",
+            city="Amsterdam",
+            country="NL",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        Library.objects.create(
+            name="Canal Hidden Shelf",
+            description="Pending moderation.",
+            photo="libraries/photos/2026/02/search-keyword-3.jpg",
+            location=Point(x=4.9200, y=52.3500, srid=4326),
+            address="Keizersgracht 1",
+            city="Amsterdam",
+            country="NL",
+            status=Library.Status.PENDING,
+            created_by=user,
+        )
+
+        response = client.get(reverse("search_libraries"), {"q": "Canal"})
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert matching_library.name in content
+        assert "Garden Exchange" not in content
+        assert "Canal Hidden Shelf" not in content
+
+    def test_search_filters_city_country_and_postal_code(self, client, user):
+        """Verify structured filters can be combined in one request.
+        Confirms city, country, and postal code filters narrow results."""
+        matching_library = Library.objects.create(
+            name="Florence Central Shelf",
+            description="Community favorite.",
+            photo="libraries/photos/2026/02/search-filter-1.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            postal_code="50123",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        Library.objects.create(
+            name="Rome Shelf",
+            description="Different city.",
+            photo="libraries/photos/2026/02/search-filter-2.jpg",
+            location=Point(x=12.4964, y=41.9028, srid=4326),
+            address="Via dei Fori Imperiali 1",
+            city="Rome",
+            country="IT",
+            postal_code="00184",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.get(
+            reverse("search_libraries"),
+            {
+                "city": "Flor",
+                "country": "IT",
+                "postal_code": "501",
+            },
+        )
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert matching_library.name in content
+        assert "Rome Shelf" not in content
+
+    @patch("libraries.views.forward_geocode_place")
+    def test_search_by_place_returns_nearby_results_within_radius(
+        self,
+        mocked_forward_geocode,
+        client,
+        user,
+    ):
+        """Verify place-like search includes nearby non-matching city names.
+        Confirms radius filtering extends results beyond strict city-text matching."""
+        mocked_forward_geocode.return_value = (51.5074, -0.1278)
+        london_library = Library.objects.create(
+            name="Central London Shelf",
+            description="Close to the Thames.",
+            photo="libraries/photos/2026/02/search-near-1.jpg",
+            location=Point(x=-0.1270, y=51.5070, srid=4326),
+            address="Whitehall",
+            city="London",
+            country="GB",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        nearby_non_london_city = Library.objects.create(
+            name="Westminster Pocket Shelf",
+            description="A short walk from the center.",
+            photo="libraries/photos/2026/02/search-near-2.jpg",
+            location=Point(x=-0.1410, y=51.5010, srid=4326),
+            address="Birdcage Walk",
+            city="Westminster",
+            country="GB",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        far_library = Library.objects.create(
+            name="Cambridge Shelf",
+            description="Too far for a 20 km search.",
+            photo="libraries/photos/2026/02/search-near-3.jpg",
+            location=Point(x=0.1218, y=52.2053, srid=4326),
+            address="King's Parade",
+            city="Cambridge",
+            country="GB",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.get(
+            reverse("search_libraries"),
+            {"near": "London", "radius_km": "20"},
+        )
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert london_library.name in content
+        assert nearby_non_london_city.name in content
+        assert far_library.name not in content
+
+    @patch("libraries.views.forward_geocode_place")
+    def test_search_by_place_falls_back_to_keywords_when_geocoding_fails(
+        self,
+        mocked_forward_geocode,
+        client,
+        user,
+    ):
+        """Verify unresolved place searches still return keyword matches.
+        Keeps the simple home search useful even when geocoding fails."""
+        mocked_forward_geocode.return_value = None
+        matching_library = Library.objects.create(
+            name="London Stories Library",
+            description="A traveling collection.",
+            photo="libraries/photos/2026/02/search-fallback-1.jpg",
+            location=Point(x=2.3522, y=48.8566, srid=4326),
+            address="Rue de Rivoli 20",
+            city="Paris",
+            country="FR",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.get(reverse("search_libraries"), {"near": "London"})
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert matching_library.name in content
+        assert "Could not resolve \"London\"" in content
+
+    def test_search_page_shows_empty_state_when_no_results_match(self, client, user):
+        """Verify no-match searches render a clear empty state message.
+        Helps users understand they need to broaden their query."""
+        Library.objects.create(
+            name="Florence Shelf",
+            description="Classic novels.",
+            photo="libraries/photos/2026/02/search-empty-1.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.get(reverse("search_libraries"), {"q": "nonexistent-search-term"})
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "No libraries found" in content
 
 
 @pytest.mark.django_db
