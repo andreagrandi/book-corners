@@ -4,9 +4,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Community map of little free libraries.">
-    <link rel="icon" href="data:,">
-    <title>{% block title %}Little Free Libraries{% endblock %}</title>
+    <meta name="description" content="Community map of neighborhood book exchange spots.">
+    <link rel="icon" href="{% static 'images/book-corners-logo-navbar.png' %}">
+    <title>{% block title %}Book Corners{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
     <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
     {% block extra_head %}{% endblock %}
@@ -26,7 +26,7 @@
             <li><a href="/search/">Search</a></li>
             <li><a href="/submit/">Submit</a></li>
             {% if request.user.is_authenticated %}
-              <li class="menu-title"><span>{{ request.user.username }}</span></li>
+              <li><a href="{% url 'dashboard' %}">{{ request.user.username }}</a></li>
               <li>
                 <form method="post" action="{% url 'logout' %}" class="px-2 py-1">
                   {% csrf_token %}
@@ -39,7 +39,15 @@
             {% endif %}
           </ul>
         </div>
-        <a href="{% url 'home' %}" class="btn btn-ghost text-xl">Little Free Libraries</a>
+        <a href="{% url 'home' %}" class="btn btn-ghost gap-2 px-2 text-xl normal-case">
+          <img
+            src="{% static 'images/book-corners-logo-navbar.png' %}"
+            alt=""
+            class="h-9 w-9 object-contain"
+            aria-hidden="true"
+          >
+          <span>Book Corners</span>
+        </a>
       </div>
       <div class="navbar-end hidden lg:flex">
         <ul class="menu menu-horizontal px-1">
@@ -48,7 +56,7 @@
           <li><a href="/search/">Search</a></li>
           <li><a href="/submit/">Submit</a></li>
           {% if request.user.is_authenticated %}
-            <li><span>{{ request.user.username }}</span></li>
+            <li><a href="{% url 'dashboard' %}">{{ request.user.username }}</a></li>
             <li>
               <form method="post" action="{% url 'logout' %}" class="px-3 py-2">
                 {% csrf_token %}
@@ -69,7 +77,7 @@
 
     <footer class="footer border-t border-base-300 bg-base-100 p-6 text-base-content">
       <aside>
-        <p>Little Free Libraries - built with Django, HTMX, and OpenStreetMap data.</p>
+        <p>Book Corners - built with Django, HTMX, and OpenStreetMap data.</p>
       </aside>
     </footer>
 

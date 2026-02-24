@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Book Corners{% endblock %}
+
+{% block content %}
+  <section class="space-y-6">
+    <header class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm">
+      <h1 class="text-3xl font-bold">Your submissions</h1>
+      <p class="mt-2 text-base-content/70">
+        Track the moderation status of the libraries you submitted.
+      </p>
+    </header>
+
+    {% if submissions %}
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {% for library in submissions %}
+          <article class="card overflow-hidden border border-base-300 bg-base-100 shadow-sm">
+            <figure class="h-48 overflow-hidden bg-base-200">
+              <img
+                src="{{ library.photo.url }}"
+                alt="{{ library.name|default:library.address }}"
+                class="h-full w-full object-cover"
+                loading="lazy"
+              >
+            </figure>
+            <div class="card-body p-4">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <h2 class="card-title text-lg">{{ library.name|default:library.address }}</h2>
+                <span
+                  class="badge {% if library.status == library.Status.APPROVED %}badge-success{% elif library.status == library.Status.REJECTED %}badge-error{% else %}badge-warning{% endif %}"
+                >
+                  {{ library.get_status_display }}
+                </span>
+              </div>
+              <p class="text-sm text-base-content/70">{{ library.address }}</p>
+              <p class="text-sm text-base-content/70">{{ library.city }}, {{ library.country }}</p>
+              <div class="card-actions mt-2 justify-end">
+                <a href="{% url 'library_detail' slug=library.slug %}" class="btn btn-sm btn-outline">View details</a>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <article class="rounded-box border border-dashed border-base-300 bg-base-100 p-8 text-center">
+        <h2 class="text-xl font-semibold">No submissions yet</h2>
+        <p class="mt-2 text-base-content/70">Share your first little free library to start your dashboard history.</p>
+        <a href="{% url 'submit_library' %}" class="btn btn-primary mt-4">Submit a library</a>
+      </article>
+    {% endif %}
+  </section>
+{% endblock %}

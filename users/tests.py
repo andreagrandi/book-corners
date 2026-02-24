@@ -81,6 +81,7 @@ class TestNavbarAuthState:
         assert response.status_code == 200
         assert "href=\"/login/\"" in content
         assert "href=\"/register/\"" in content
+        assert "href=\"/dashboard/\"" not in content
         assert "action=\"/logout/\"" not in content
 
     def test_navbar_shows_username_and_logout_for_authenticated_user(self, client, user):
@@ -91,7 +92,9 @@ class TestNavbarAuthState:
 
         content = response.content.decode()
         assert response.status_code == 200
-        assert user.username in content
+        assert f'href="{reverse("dashboard")}"' in content
+        assert f'>{user.username}<' in content
+        assert ">Dashboard<" not in content
         assert "action=\"/logout/\"" in content
         assert "href=\"/login/\"" not in content
         assert "href=\"/register/\"" not in content
