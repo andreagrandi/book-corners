@@ -292,3 +292,13 @@ class TestReportAdmin:
         assert response.status_code == 302
         admin_report.refresh_from_db()
         assert admin_report.status == Report.Status.DISMISSED
+
+
+class TestTailwindIntegration:
+    def test_style_preview_template_renders_daisyui_classes(self, client):
+        response = client.get(reverse("style_preview"))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "btn btn-primary" in content
+        assert "/static/css/app.css" in content

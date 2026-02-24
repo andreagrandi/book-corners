@@ -11,6 +11,14 @@ services:
     volumes:
       - .:/app
 
+  tailwind:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm ci && npm run watch:css"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+
   db:
     image: postgis/postgis:17-3.5
     environment:
@@ -29,3 +37,4 @@ services:
 
 volumes:
   pgdata:
+  node_modules:

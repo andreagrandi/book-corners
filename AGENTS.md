@@ -8,6 +8,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Start PostGIS database (required for tests)
 docker compose up db -d
 
+# Start app + db + Tailwind watcher for local development
+docker compose up app db tailwind
+
+# Build CSS once
+npm run build:css
+
 # Run all tests
 nox -s tests
 
