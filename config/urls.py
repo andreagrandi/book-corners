@@ -20,7 +20,14 @@ from django.contrib import admin
 from django.urls import include, path
 
 from config.api import api
-from libraries.views import home, latest_entries, library_detail, style_preview
+from libraries.views import (
+    home,
+    latest_entries,
+    library_detail,
+    style_preview,
+    submit_library,
+    submit_library_confirmation,
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -28,6 +35,12 @@ urlpatterns = [
     path("", home, name="home"),
     path("latest-entries/", latest_entries, name="latest_entries"),
     path("library/<slug:slug>/", library_detail, name="library_detail"),
+    path("submit/", submit_library, name="submit_library"),
+    path(
+        "submit/confirmation/",
+        submit_library_confirmation,
+        name="submit_library_confirmation",
+    ),
     path("style-preview/", style_preview, name="style_preview"),
     path("api/v1/", api.urls),
 ]

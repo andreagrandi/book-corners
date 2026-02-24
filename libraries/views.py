@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Page, Paginator
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 
+from libraries.forms import LibrarySubmissionForm
 from libraries.models import Library
 
 LATEST_ENTRIES_PAGE_SIZE = 9
+DEFAULT_SUBMIT_MAP_LATITUDE = 48.8566
+DEFAULT_SUBMIT_MAP_LONGITUDE = 2.3522
 
 
 def _parse_page_number(value: str | None) -> int:
@@ -72,6 +76,34 @@ def library_detail(request: HttpRequest, slug: str) -> HttpResponse:
             "library": library,
         },
     )
+
+
+@login_required(login_url="login")
+def submit_library(request: HttpRequest) -> HttpResponse:
+    current_user = getattr(request, "user", None)
+    form = LibrarySubmissionForm(
+        data=request.POST or None,
+        files=request.FILES or None,
+        created_by=current_user,
+    )
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("submit_library_confirmation")
+
+    return render(
+        request,
+        "libraries/submit_library.html",
+        {
+            "form": form,
+            "submit_map_default_latitude": DEFAULT_SUBMIT_MAP_LATITUDE,
+            "submit_map_default_longitude": DEFAULT_SUBMIT_MAP_LONGITUDE,
+        },
+    )
+
+
+def submit_library_confirmation(request: HttpRequest) -> HttpResponse:
+    return render(request, "libraries/submit_library_confirmation.html")
 
 
 def style_preview(request: HttpRequest) -> HttpResponse:
