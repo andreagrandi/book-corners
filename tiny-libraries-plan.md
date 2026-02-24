@@ -255,12 +255,12 @@ Everything else is server-rendered Django templates + HTMX.
 - [x] Create a placeholder homepage view and URL to verify the base template renders
 
 #### 1.8 — CI with GitHub Actions
-- [ ] Create `.github/workflows/ci.yml`
-- [ ] Set up a job that runs on push and pull requests
-- [ ] Use a PostGIS service container for the test database
-- [ ] Install Python dependencies with uv and run `python manage.py test`
-- [ ] Build Tailwind CSS as part of the pipeline (or skip if tests don't need it)
-- [ ] Verify the pipeline passes on the current codebase
+- [x] Create `.github/workflows/ci.yml`
+- [x] Set up a job that runs on push and pull requests
+- [x] Use a PostGIS service container for the test database
+- [x] Install Python dependencies with uv and run `nox -s tests`
+- [x] Build Tailwind CSS as part of the pipeline (so you can test it still builds properly)
+- [x] Verify the pipeline passes on the current codebase
 
 ---
 
@@ -331,6 +331,7 @@ Everything else is server-rendered Django templates + HTMX.
 ### Phase 3 — Map Page
 
 #### 3.1 — Full map page with markers
+- [ ] Create a map page template and use OpenStreetMap (if API key is needed, tell me how to get it)
 - [ ] Create `/map/` view that returns the map page template
 - [ ] Add Leaflet CSS/JS to the template (CDN or local static)
 - [ ] Initialize Leaflet map centered on a sensible default (e.g. Europe or user's region)
