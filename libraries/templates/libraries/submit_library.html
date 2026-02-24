@@ -98,6 +98,10 @@
           <label class="form-control w-full">
             <span class="label-text mb-1">Address</span>
             {{ form.address }}
+            <ul
+              id="address-suggestions"
+              class="menu mt-2 hidden w-full rounded-box border border-base-300 bg-base-100 p-1 shadow"
+            ></ul>
             {% if form.address.errors %}<span class="mt-1 text-sm text-error">{{ form.address.errors.0 }}</span>{% endif %}
           </label>
 
@@ -121,7 +125,7 @@
         <button id="center-map-from-address" type="button" class="btn btn-sm btn-outline">Center from address</button>
       </div>
       <p class="mt-2 text-sm text-base-content/70">
-        Type country, city, and street to auto-center the map. Drag the marker to the exact location.
+        Type an address and choose a suggestion to center the map. Drag the marker to refine the exact point.
       </p>
       <p id="submit-map-status" class="mt-2 text-sm text-base-content/60"></p>
       <div
@@ -150,6 +154,7 @@
       const countrySelect = document.getElementById("id_country");
       const cityInput = document.getElementById("id_city");
       const addressInput = document.getElementById("id_address");
+      const suggestionsElement = document.getElementById("address-suggestions");
       const postalCodeInput = document.getElementById("id_postal_code");
       const geocodeButton = document.getElementById("center-map-from-address");
       const statusElement = document.getElementById("submit-map-status");
@@ -163,6 +168,7 @@
         !countrySelect ||
         !cityInput ||
         !addressInput ||
+        !suggestionsElement ||
         !statusElement ||
         typeof L === "undefined"
       ) {
@@ -208,8 +214,12 @@
 
       let countrySelectControl = null;
 
-      function fillCountryIfEmpty(countryCode) {
-        if (!countryCode || countrySelect.value) {
+      function setCountrySelection(countryCode, onlyIfEmpty = false, triggerChange = true) {
+        if (!countryCode) {
+          return;
+        }
+
+        if (onlyIfEmpty && countrySelect.value) {
           return;
         }
 
@@ -227,7 +237,13 @@
           countrySelect.value = normalizedCountryCode;
         }
 
-        countrySelect.dispatchEvent(new Event("change", { bubbles: true }));
+        if (triggerChange) {
+          countrySelect.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      }
+
+      function fillCountryIfEmpty(countryCode) {
+        setCountrySelection(countryCode, true, false);
       }
 
       function selectMarkerLocation(latitude, longitude) {
@@ -252,6 +268,9 @@
       if (Number.isFinite(existingLatitude) && Number.isFinite(existingLongitude)) {
         marker.setLatLng([existingLatitude, existingLongitude]);
         map.setView([existingLatitude, existingLongitude], 16);
+        updateCoordinates(existingLatitude, existingLongitude);
+      } else {
+        updateCoordinates(defaultLatitude, defaultLongitude);
       }
 
       setStatus("Choose the map point by centering from address, dragging marker, or clicking map.");
@@ -269,14 +288,176 @@
         });
 
         countrySelectControl.on("change", function () {
-          queueGeocodeAddress();
+          queueAddressSuggestions();
         });
       } else {
-        countrySelect.addEventListener("change", queueGeocodeAddress);
+        countrySelect.addEventListener("change", queueAddressSuggestions);
       }
 
-      let previousQuery = "";
-      let geocodeTimeoutId = null;
+      let previousGeocodeQuery = "";
+      let previousSuggestionQuery = "";
+      let suggestionsTimeoutId = null;
+      let latestSuggestionsRequestId = 0;
+
+      function hideAddressSuggestions() {
+        suggestionsElement.classList.add("hidden");
+      }
+
+      function clearAddressSuggestions() {
+        suggestionsElement.innerHTML = "";
+        hideAddressSuggestions();
+      }
+
+      function getSuggestionAddress(properties) {
+        const street = String(properties.street || "").trim();
+        const houseNumber = String(properties.housenumber || "").trim();
+        if (street && houseNumber) {
+          return `${street} ${houseNumber}`;
+        }
+
+        if (street) {
+          return street;
+        }
+
+        return String(properties.name || "").trim();
+      }
+
+      function getSuggestionCity(properties) {
+        return String(
+          properties.city || properties.town || properties.village || properties.county || ""
+        ).trim();
+      }
+
+      function applyPhotonSuggestion(feature) {
+        const properties = feature?.properties || {};
+        const coordinates = feature?.geometry?.coordinates;
+        if (!Array.isArray(coordinates) || coordinates.length < 2) {
+          return;
+        }
+
+        const longitude = Number.parseFloat(coordinates[0]);
+        const latitude = Number.parseFloat(coordinates[1]);
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+          return;
+        }
+
+        const streetAddress = getSuggestionAddress(properties);
+        const cityName = getSuggestionCity(properties);
+        const postalCode = String(properties.postcode || "").trim();
+        const countryCode = String(properties.countrycode || "").trim();
+
+        if (streetAddress) {
+          addressInput.value = streetAddress;
+        }
+        if (cityName) {
+          cityInput.value = cityName;
+        }
+        postalCodeInput.value = postalCode;
+        if (countryCode) {
+          setCountrySelection(countryCode, false, false);
+        }
+
+        selectMarkerLocation(latitude, longitude);
+        clearAddressSuggestions();
+        setStatus("Suggestion selected. Marker centered from autocomplete; drag to refine if needed.");
+      }
+
+      function renderAddressSuggestions(features) {
+        suggestionsElement.innerHTML = "";
+
+        if (!Array.isArray(features) || features.length === 0) {
+          hideAddressSuggestions();
+          return;
+        }
+
+        features.slice(0, 6).forEach(function (feature) {
+          const properties = feature?.properties || {};
+          const addressPart = getSuggestionAddress(properties);
+          const cityPart = getSuggestionCity(properties);
+          const countryPart = String(properties.country || "").trim();
+          const label = [addressPart, cityPart, countryPart].filter(Boolean).join(", ");
+          if (!label) {
+            return;
+          }
+
+          const item = document.createElement("li");
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "justify-start text-left";
+          button.textContent = label;
+          button.addEventListener("click", function () {
+            applyPhotonSuggestion(feature);
+          });
+
+          item.appendChild(button);
+          suggestionsElement.appendChild(item);
+        });
+
+        if (suggestionsElement.children.length === 0) {
+          hideAddressSuggestions();
+          return;
+        }
+
+        suggestionsElement.classList.remove("hidden");
+      }
+
+      async function fetchAddressSuggestions() {
+        const selectedCountryText = countrySelect.value
+          ? countrySelect.options[countrySelect.selectedIndex]?.textContent?.trim() || ""
+          : "";
+        const queryParts = [
+          addressInput.value.trim(),
+          cityInput.value.trim(),
+          selectedCountryText,
+        ].filter(Boolean);
+        if (queryParts.length === 0 || queryParts[0].length < 3) {
+          clearAddressSuggestions();
+          return;
+        }
+
+        const query = queryParts.join(", ");
+        if (query === previousSuggestionQuery) {
+          return;
+        }
+        previousSuggestionQuery = query;
+
+        const requestId = latestSuggestionsRequestId + 1;
+        latestSuggestionsRequestId = requestId;
+
+        const endpoint = new URL("https://photon.komoot.io/api/");
+        endpoint.searchParams.set("q", query);
+        endpoint.searchParams.set("limit", "6");
+
+        try {
+          const response = await fetch(endpoint.toString(), {
+            headers: { Accept: "application/json" },
+          });
+          if (!response.ok) {
+            throw new Error("Suggestion lookup failed");
+          }
+
+          const payload = await response.json();
+          if (requestId !== latestSuggestionsRequestId) {
+            return;
+          }
+          renderAddressSuggestions(payload?.features || []);
+        } catch (error) {
+          if (requestId !== latestSuggestionsRequestId) {
+            return;
+          }
+          clearAddressSuggestions();
+        }
+      }
+
+      function queueAddressSuggestions() {
+        if (suggestionsTimeoutId !== null) {
+          window.clearTimeout(suggestionsTimeoutId);
+        }
+
+        suggestionsTimeoutId = window.setTimeout(function () {
+          void fetchAddressSuggestions();
+        }, 250);
+      }
 
       async function detectPhotoMetadata() {
         if (!photoInput || photoInput.files.length === 0) {
@@ -329,19 +510,23 @@
       }
 
       async function geocodeAddress() {
-        const selectedCountryText = countrySelect.options[countrySelect.selectedIndex]?.textContent?.trim() || "";
+        const selectedCountryText = countrySelect.value
+          ? countrySelect.options[countrySelect.selectedIndex]?.textContent?.trim() || ""
+          : "";
         const address = addressInput.value.trim();
         const city = cityInput.value.trim();
 
-        if (!countrySelect.value || !address || !city) {
+        if (!address) {
+          clearAddressSuggestions();
           return;
         }
 
-        const query = `${address}, ${city}, ${selectedCountryText}`;
-        if (query === previousQuery) {
+        const query = [address, city, selectedCountryText].filter(Boolean).join(", ");
+        if (!query || query === previousGeocodeQuery) {
           return;
         }
-        previousQuery = query;
+        previousGeocodeQuery = query;
+        clearAddressSuggestions();
 
         setStatus("Finding location from address...");
 
@@ -378,17 +563,13 @@
         }
       }
 
-      function queueGeocodeAddress() {
-        if (geocodeTimeoutId !== null) {
-          window.clearTimeout(geocodeTimeoutId);
+      addressInput.addEventListener("input", queueAddressSuggestions);
+      cityInput.addEventListener("input", queueAddressSuggestions);
+      document.addEventListener("click", function (event) {
+        if (!suggestionsElement.contains(event.target) && event.target !== addressInput) {
+          hideAddressSuggestions();
         }
-        geocodeTimeoutId = window.setTimeout(function () {
-          void geocodeAddress();
-        }, 600);
-      }
-
-      addressInput.addEventListener("input", queueGeocodeAddress);
-      cityInput.addEventListener("input", queueGeocodeAddress);
+      });
       if (photoInput) {
         photoInput.addEventListener("change", function () {
           void detectPhotoMetadata();
