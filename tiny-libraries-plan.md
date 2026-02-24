@@ -267,13 +267,13 @@ Everything else is server-rendered Django templates + HTMX.
 ### Phase 2 — Core Web Pages
 
 #### 2.1 — Registration and login pages
-- [ ] Create registration page with form (username, email, password, confirm password)
-- [ ] Wire up Django's `UserCreationForm` (or custom form for the custom user model)
-- [ ] Create login page with form (username/email, password)
-- [ ] Wire up Django's `AuthenticationForm` and `login()` view
-- [ ] Add logout view (POST-only, redirect to homepage)
-- [ ] Update navbar: show Login/Register when anonymous, show username + Logout when authenticated
-- [ ] Add a test for registration and login flows
+- [x] Create registration page with form (username, email, password, confirm password)
+- [x] Wire up Django's `UserCreationForm` (or custom form for the custom user model)
+- [x] Create login page with form (username/email, password)
+- [x] Wire up Django's `AuthenticationForm` and `login()` view
+- [x] Add logout view (POST-only, redirect to homepage)
+- [x] Update navbar: show Login/Register when anonymous, show username + Logout when authenticated
+- [x] Add a test for registration and login flows
 
 #### 2.2 — Homepage: hero section + latest entries
 - [ ] Create homepage view that fetches latest N approved libraries

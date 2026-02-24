@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Little Free Libraries{% endblock %}
+
+{% block content %}
+  <section class="mx-auto w-full max-w-md">
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h1 class="card-title text-2xl">Create an account</h1>
+        <p class="text-base-content/70">Join to submit libraries and help keep information up to date.</p>
+
+        <form method="post" class="mt-2 space-y-4" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-error text-sm">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <label class="form-control w-full">
+            <span class="label-text mb-1">Username</span>
+            {{ form.username }}
+            {% if form.username.errors %}<span class="mt-1 text-sm text-error">{{ form.username.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="form-control w-full">
+            <span class="label-text mb-1">Email</span>
+            {{ form.email }}
+            {% if form.email.errors %}<span class="mt-1 text-sm text-error">{{ form.email.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="form-control w-full">
+            <span class="label-text mb-1">Password</span>
+            {{ form.password1 }}
+            {% if form.password1.errors %}<span class="mt-1 text-sm text-error">{{ form.password1.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="form-control w-full">
+            <span class="label-text mb-1">Confirm password</span>
+            {{ form.password2 }}
+            {% if form.password2.errors %}<span class="mt-1 text-sm text-error">{{ form.password2.errors.0 }}</span>{% endif %}
+          </label>
+
+          <button type="submit" class="btn btn-primary w-full">Create account</button>
+        </form>
+
+        <p class="mt-2 text-center text-sm text-base-content/70">
+          Already have an account?
+          <a href="{% url 'login' %}" class="link link-primary">Log in</a>
+        </p>
+      </div>
+    </div>
+  </section>
+{% endblock %}
