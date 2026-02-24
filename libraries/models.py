@@ -40,11 +40,15 @@ class Library(models.Model):
         verbose_name_plural = "libraries"
 
     def __str__(self) -> str:
+        """Return a readable string representation.
+        Keeps output clear in logs and admin screens."""
         if self.name:
             return f"{self.name} ({self.city})"
         return f"{self.address}, {self.city}"
 
     def save(self, *args, **kwargs) -> None:
+        """Persist the model instance.
+        Applies model-specific rules before writing data."""
         if not self.slug:
             self.slug = self._generate_unique_slug()
         super().save(*args, **kwargs)
@@ -114,4 +118,6 @@ class Report(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self) -> str:
+        """Return a readable string representation.
+        Keeps output clear in logs and admin screens."""
         return f"Report: {self.get_reason_display()} - {self.library}"

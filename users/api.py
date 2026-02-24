@@ -45,6 +45,8 @@ class MeOut(Schema):
 
 
 def build_token_pair(*, user: AbstractBaseUser) -> TokenPairOut:
+    """Handle build token pair.
+    Supports the module workflow with a focused operation."""
     refresh = RefreshToken.for_user(user)
     return TokenPairOut(
         access=str(refresh.access_token),
@@ -54,6 +56,8 @@ def build_token_pair(*, user: AbstractBaseUser) -> TokenPairOut:
 
 @auth_router.post("/register", response={201: TokenPairOut, 400: ErrorOut}, auth=None)
 def register(request, payload: RegisterIn):
+    """Handle register.
+    Supports the module workflow with a focused operation."""
     if User.objects.filter(username=payload.username).exists():
         return 400, {"message": "Username already exists."}
 
@@ -67,6 +71,8 @@ def register(request, payload: RegisterIn):
 
 @auth_router.post("/login", response={200: TokenPairOut, 401: ErrorOut}, auth=None)
 def login(request, payload: LoginIn):
+    """Handle login.
+    Supports the module workflow with a focused operation."""
     user = authenticate(
         request,
         username=payload.username,
@@ -80,6 +86,8 @@ def login(request, payload: LoginIn):
 
 @auth_router.post("/refresh", response={200: AccessTokenOut, 401: ErrorOut}, auth=None)
 def refresh(request, payload: RefreshIn):
+    """Handle refresh.
+    Supports the module workflow with a focused operation."""
     try:
         refresh_token = RefreshToken(payload.refresh)
     except TokenError:
@@ -90,6 +98,8 @@ def refresh(request, payload: RefreshIn):
 
 @auth_router.get("/me", response=MeOut, auth=JWTAuth())
 def me(request):
+    """Handle me.
+    Supports the module workflow with a focused operation."""
     return MeOut(
         id=request.user.id,
         username=request.user.username,

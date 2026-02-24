@@ -8,6 +8,8 @@ from users.forms import RegistrationForm, UsernameOrEmailAuthenticationForm
 
 
 def _get_safe_next_url(*, request: HttpRequest) -> str:
+    """Handle get safe next url.
+    Keeps this module logic focused and reusable."""
     next_value = request.POST.get("next") or request.GET.get("next") or ""
     next_url = next_value if isinstance(next_value, str) else ""
     if not next_url:
@@ -24,6 +26,8 @@ def _get_safe_next_url(*, request: HttpRequest) -> str:
 
 
 def register_view(request: HttpRequest) -> HttpResponse:
+    """Handle register view.
+    Supports the module workflow with a focused operation."""
     user = getattr(request, "user", None)
     if user is not None and getattr(user, "is_authenticated", False):
         return redirect("home")
@@ -38,6 +42,8 @@ def register_view(request: HttpRequest) -> HttpResponse:
 
 
 def login_view(request: HttpRequest) -> HttpResponse:
+    """Handle login view.
+    Supports the module workflow with a focused operation."""
     user = getattr(request, "user", None)
     if user is not None and getattr(user, "is_authenticated", False):
         return redirect("home")
@@ -55,5 +61,7 @@ def login_view(request: HttpRequest) -> HttpResponse:
 
 @require_POST
 def logout_view(request: HttpRequest) -> HttpResponse:
+    """Handle logout view.
+    Supports the module workflow with a focused operation."""
     logout(request=request)
     return redirect("home")

@@ -8,6 +8,8 @@ User = get_user_model()
 @pytest.mark.django_db
 class TestAuthPages:
     def test_register_creates_user_and_logs_in(self, client):
+        """Verify register creates user and logs in.
+        Confirms the expected behavior stays stable."""
         response = client.post(
             reverse("register"),
             data={
@@ -24,6 +26,8 @@ class TestAuthPages:
         assert response.wsgi_request.user.is_authenticated
 
     def test_login_accepts_username_and_email(self, client, user):
+        """Verify login accepts username and email.
+        Confirms the expected behavior stays stable."""
         user.email = "testuser@example.com"
         user.save(update_fields=["email"])
 
@@ -54,6 +58,8 @@ class TestAuthPages:
         assert response_by_email.wsgi_request.user.is_authenticated
 
     def test_logout_requires_post_and_logs_user_out(self, client, user):
+        """Verify logout requires post and logs user out.
+        Confirms the expected behavior stays stable."""
         client.force_login(user)
 
         get_response = client.get(reverse("logout"))
@@ -67,6 +73,8 @@ class TestAuthPages:
 @pytest.mark.django_db
 class TestNavbarAuthState:
     def test_navbar_shows_login_and_register_for_anonymous_user(self, client):
+        """Verify navbar shows login and register for anonymous user.
+        Confirms the expected behavior stays stable."""
         response = client.get(reverse("home"))
 
         content = response.content.decode()
@@ -76,6 +84,8 @@ class TestNavbarAuthState:
         assert "action=\"/logout/\"" not in content
 
     def test_navbar_shows_username_and_logout_for_authenticated_user(self, client, user):
+        """Verify navbar shows username and logout for authenticated user.
+        Confirms the expected behavior stays stable."""
         client.force_login(user)
         response = client.get(reverse("home"))
 

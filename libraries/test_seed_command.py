@@ -8,12 +8,16 @@ from libraries.models import Library, Report
 
 
 def _write_seed_image(file_path: Path) -> None:
+    """Handle write seed image.
+    Keeps this module logic focused and reusable."""
     image = Image.new("RGB", (640, 480), color=(120, 145, 190))
     image.save(file_path, format="JPEG")
 
 
 @pytest.mark.django_db
 def test_seed_libraries_uses_local_images(tmp_path, settings):
+    """Verify seed libraries uses local images.
+    Confirms the expected behavior stays stable."""
     settings.MEDIA_ROOT = tmp_path / "media"
 
     images_dir = tmp_path / "seed_images"
@@ -36,6 +40,8 @@ def test_seed_libraries_uses_local_images(tmp_path, settings):
 
 @pytest.mark.django_db
 def test_seed_libraries_reset_cleans_reports_and_libraries(tmp_path, settings):
+    """Verify seed libraries reset cleans reports and libraries.
+    Confirms the expected behavior stays stable."""
     settings.MEDIA_ROOT = tmp_path / "media"
 
     images_dir = tmp_path / "seed_images"

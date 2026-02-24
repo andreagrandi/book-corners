@@ -40,6 +40,8 @@ class LibrarySubmissionForm(forms.ModelForm):
         }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the object state.
+        Sets up values required by later calls."""
         self.created_by = kwargs.pop("created_by", None)
         super().__init__(*args, **kwargs)
 
@@ -52,18 +54,24 @@ class LibrarySubmissionForm(forms.ModelForm):
         self.fields["postal_code"].widget.attrs["class"] = "input input-bordered w-full"
 
     def clean_latitude(self) -> float:
+        """Validate latitude input.
+        Rejects invalid values before save-time logic."""
         latitude = self.cleaned_data["latitude"]
         if latitude < -90 or latitude > 90:
             raise ValidationError("Latitude must be between -90 and 90.")
         return latitude
 
     def clean_longitude(self) -> float:
+        """Validate longitude input.
+        Rejects invalid values before save-time logic."""
         longitude = self.cleaned_data["longitude"]
         if longitude < -180 or longitude > 180:
             raise ValidationError("Longitude must be between -180 and 180.")
         return longitude
 
     def save(self, commit: bool = True) -> Library:
+        """Persist the model instance.
+        Applies model-specific rules before writing data."""
         if self.created_by is None:
             raise ValueError("created_by is required to save a library submission")
 
