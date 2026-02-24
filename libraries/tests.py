@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
 from django.test import TestCase
+from django.urls import reverse
 
 from libraries.models import Library, Report
 
@@ -201,3 +202,115 @@ class ReportModelTest(TestCase):
         )
 
         assert str(report) == "Report: Inappropriate - Test Library (Florence)"
+
+
+class LibraryAdminTest(TestCase):
+    """Tests for Library admin actions."""
+
+    def setUp(self) -> None:
+        self.admin_user = User.objects.create_superuser(
+            username="admin",
+            password="adminpass123",
+        )
+        self.client.force_login(self.admin_user)
+        self.library = Library.objects.create(
+            name="Pending Library",
+            photo="libraries/photos/2026/02/test.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            created_by=self.admin_user,
+        )
+
+    def test_approve_libraries_action(self) -> None:
+        url = reverse("admin:libraries_library_changelist")
+        response = self.client.post(url, {
+            "action": "approve_libraries",
+            "_selected_action": [self.library.pk],
+        })
+
+        assert response.status_code == 302
+        self.library.refresh_from_db()
+        assert self.library.status == Library.Status.APPROVED
+
+    def test_reject_libraries_action(self) -> None:
+        url = reverse("admin:libraries_library_changelist")
+        response = self.client.post(url, {
+            "action": "reject_libraries",
+            "_selected_action": [self.library.pk],
+        })
+
+        assert response.status_code == 302
+        self.library.refresh_from_db()
+        assert self.library.status == Library.Status.REJECTED
+
+    def test_bulk_approve_multiple_libraries(self) -> None:
+        library_2 = Library.objects.create(
+            photo="libraries/photos/2026/02/test2.jpg",
+            location=Point(x=11.2600, y=43.7700, srid=4326),
+            address="Via Roma 1",
+            city="Florence",
+            country="IT",
+            created_by=self.admin_user,
+        )
+
+        url = reverse("admin:libraries_library_changelist")
+        response = self.client.post(url, {
+            "action": "approve_libraries",
+            "_selected_action": [self.library.pk, library_2.pk],
+        })
+
+        assert response.status_code == 302
+        self.library.refresh_from_db()
+        library_2.refresh_from_db()
+        assert self.library.status == Library.Status.APPROVED
+        assert library_2.status == Library.Status.APPROVED
+
+
+class ReportAdminTest(TestCase):
+    """Tests for Report admin actions."""
+
+    def setUp(self) -> None:
+        self.admin_user = User.objects.create_superuser(
+            username="admin",
+            password="adminpass123",
+        )
+        self.client.force_login(self.admin_user)
+        self.library = Library.objects.create(
+            name="Test Library",
+            photo="libraries/photos/2026/02/test.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            created_by=self.admin_user,
+        )
+        self.report = Report.objects.create(
+            library=self.library,
+            created_by=self.admin_user,
+            reason=Report.Reason.DAMAGED,
+            details="The library box is broken.",
+        )
+
+    def test_resolve_reports_action(self) -> None:
+        url = reverse("admin:libraries_report_changelist")
+        response = self.client.post(url, {
+            "action": "resolve_reports",
+            "_selected_action": [self.report.pk],
+        })
+
+        assert response.status_code == 302
+        self.report.refresh_from_db()
+        assert self.report.status == Report.Status.RESOLVED
+
+    def test_dismiss_reports_action(self) -> None:
+        url = reverse("admin:libraries_report_changelist")
+        response = self.client.post(url, {
+            "action": "dismiss_reports",
+            "_selected_action": [self.report.pk],
+        })
+
+        assert response.status_code == 302
+        self.report.refresh_from_db()
+        assert self.report.status == Report.Status.DISMISSED
