@@ -222,12 +222,12 @@ Everything else is server-rendered Django templates + HTMX.
 - [x] Add a basic test that creates a Library and a Report in the DB
 
 #### 1.4 — Django admin for moderation
-- [ ] Register Library in admin with list_display (name, city, status, created_at)
-- [ ] Add list_filter on status, city, country
-- [ ] Add admin actions: approve, reject (bulk status change)
-- [ ] Register Report in admin with list_display (library, reason, status, created_at)
-- [ ] Add admin action: resolve, dismiss reports
-- [ ] Verify the admin workflow: create library → set pending → approve/reject
+- [x] Register Library in admin with list_display (name, city, status, created_at)
+- [x] Add list_filter on status, city, country
+- [x] Add admin actions: approve, reject (bulk status change)
+- [x] Register Report in admin with list_display (library, reason, status, created_at)
+- [x] Add admin action: resolve, dismiss reports
+- [x] Verify the admin workflow: create library → set pending → approve/reject
 
 #### 1.5 — Django Ninja API scaffold + JWT auth
 - [ ] Install `django-ninja` and `django-ninja-jwt`
