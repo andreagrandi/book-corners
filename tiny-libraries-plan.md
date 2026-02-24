@@ -230,13 +230,13 @@ Everything else is server-rendered Django templates + HTMX.
 - [x] Verify the admin workflow: create library → set pending → approve/reject
 
 #### 1.5 — Django Ninja API scaffold + JWT auth
-- [ ] Install `django-ninja` and `django-ninja-jwt`
-- [ ] Create API router at `/api/v1/`
-- [ ] Add `/auth/register` endpoint (create user, return JWT pair)
-- [ ] Add `/auth/login` endpoint (validate credentials, return JWT pair)
-- [ ] Add `/auth/refresh` endpoint (refresh token → new access token)
-- [ ] Add `/auth/me` endpoint (returns current user info, requires JWT)
-- [ ] Add a basic test for each auth endpoint
+- [x] Install `django-ninja` and `django-ninja-jwt`
+- [x] Create API router at `/api/v1/`
+- [x] Add `/auth/register` endpoint (create user, return JWT pair)
+- [x] Add `/auth/login` endpoint (validate credentials, return JWT pair)
+- [x] Add `/auth/refresh` endpoint (refresh token → new access token)
+- [x] Add `/auth/me` endpoint (returns current user info, requires JWT)
+- [x] Add a basic test for each auth endpoint
 
 #### 1.6 — TailwindCSS + daisyUI integration
 - [ ] Add Node/npm tooling: `package.json` with tailwindcss, daisyui, postcss, autoprefixer

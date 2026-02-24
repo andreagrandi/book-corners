@@ -11,11 +11,10 @@ docker compose up db -d
 # Run all tests
 nox -s tests
 
-# Run tests directly (faster, skips venv creation)
-pytest
+# Note: nox is configured to use uv for package installation
 
 # Run a single test
-pytest libraries/tests.py::TestLibraryModel::test_create_library_with_all_fields
+nox -s tests -- libraries/tests.py::TestLibraryModel::test_create_library_with_all_fields
 
 # Run tests with verbose output
 nox -s tests -- -v
@@ -48,3 +47,4 @@ URL routing currently only exposes the Django admin (`/admin/`). REST API via Dj
 ## Dependencies
 
 Python 3.14. PostGIS 17. Key packages: `django`, `psycopg2-binary`, `Pillow`, `dj-database-url`, `pytest`, `pytest-django`, `gunicorn`.
+ALWAYS use uv to install packages but do not use its lock system. Use simple requirements files instead.
