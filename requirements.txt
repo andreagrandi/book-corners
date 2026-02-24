@@ -4,4 +4,6 @@ django==6.0.2
 gunicorn==25.1.0
 Pillow==11.1.0
 psycopg2-binary==2.9.11
+pytest==8.3.5
+pytest-django==4.11.1
 sqlparse==0.5.5
