@@ -1,23 +1,51 @@
-from django.contrib.auth import get_user_model
+import pytest
 from django.contrib.gis.geos import Point
-from django.test import TestCase
 from django.urls import reverse
 
 from libraries.models import Library, Report
 
-User = get_user_model()
+
+@pytest.fixture
+def library(user):
+    return Library.objects.create(
+        name="Test Library",
+        photo="libraries/photos/2026/02/test.jpg",
+        location=Point(x=11.2558, y=43.7696, srid=4326),
+        address="Via Rosina 15",
+        city="Florence",
+        country="IT",
+        created_by=user,
+    )
 
 
-class LibraryModelTest(TestCase):
+@pytest.fixture
+def admin_library(admin_user):
+    return Library.objects.create(
+        name="Pending Library",
+        photo="libraries/photos/2026/02/test.jpg",
+        location=Point(x=11.2558, y=43.7696, srid=4326),
+        address="Via Rosina 15",
+        city="Florence",
+        country="IT",
+        created_by=admin_user,
+    )
+
+
+@pytest.fixture
+def admin_report(admin_library, admin_user):
+    return Report.objects.create(
+        library=admin_library,
+        created_by=admin_user,
+        reason=Report.Reason.DAMAGED,
+        details="The library box is broken.",
+    )
+
+
+@pytest.mark.django_db
+class TestLibraryModel:
     """Tests for the Library model."""
 
-    def setUp(self) -> None:
-        self.user = User.objects.create_user(
-            username="testuser",
-            password="testpass123",
-        )
-
-    def test_create_library_with_all_fields(self) -> None:
+    def test_create_library_with_all_fields(self, user):
         library = Library.objects.create(
             name="The Book Nook",
             description="A cozy little library on the corner.",
@@ -27,7 +55,7 @@ class LibraryModelTest(TestCase):
             city="Florence",
             country="IT",
             postal_code="50123",
-            created_by=self.user,
+            created_by=user,
         )
 
         assert library.pk is not None
@@ -37,28 +65,28 @@ class LibraryModelTest(TestCase):
         assert library.created_at is not None
         assert library.updated_at is not None
 
-    def test_create_library_without_name(self) -> None:
+    def test_create_library_without_name(self, user):
         library = Library.objects.create(
             photo="libraries/photos/2026/02/test.jpg",
             location=Point(x=11.2558, y=43.7696, srid=4326),
             address="Via Rosina 15",
             city="Florence",
             country="IT",
-            created_by=self.user,
+            created_by=user,
         )
 
         assert library.pk is not None
         assert library.name == ""
         assert library.slug == "florence-via-rosina-15"
 
-    def test_slug_uniqueness_adds_numeric_suffix(self) -> None:
+    def test_slug_uniqueness_adds_numeric_suffix(self, user):
         common_kwargs = {
             "photo": "libraries/photos/2026/02/test.jpg",
             "location": Point(x=11.2558, y=43.7696, srid=4326),
             "address": "Via Rosina 15",
             "city": "Florence",
             "country": "IT",
-            "created_by": self.user,
+            "created_by": user,
         }
 
         library_1 = Library.objects.create(**common_kwargs)
@@ -67,7 +95,7 @@ class LibraryModelTest(TestCase):
         assert library_1.slug == "florence-via-rosina-15"
         assert library_2.slug == "florence-via-rosina-15-2"
 
-    def test_library_str_with_name(self) -> None:
+    def test_library_str_with_name(self, user):
         library = Library.objects.create(
             name="The Book Nook",
             photo="libraries/photos/2026/02/test.jpg",
@@ -75,24 +103,24 @@ class LibraryModelTest(TestCase):
             address="Via Rosina 15",
             city="Florence",
             country="IT",
-            created_by=self.user,
+            created_by=user,
         )
 
         assert str(library) == "The Book Nook (Florence)"
 
-    def test_library_str_without_name(self) -> None:
+    def test_library_str_without_name(self, user):
         library = Library.objects.create(
             photo="libraries/photos/2026/02/test.jpg",
             location=Point(x=11.2558, y=43.7696, srid=4326),
             address="Via Rosina 15",
             city="Florence",
             country="IT",
-            created_by=self.user,
+            created_by=user,
         )
 
         assert str(library) == "Via Rosina 15, Florence"
 
-    def test_slug_truncated_for_long_inputs(self) -> None:
+    def test_slug_truncated_for_long_inputs(self, user):
         long_address = "A" * 255
         library = Library.objects.create(
             name="B" * 255,
@@ -101,13 +129,13 @@ class LibraryModelTest(TestCase):
             address=long_address,
             city="Florence",
             country="IT",
-            created_by=self.user,
+            created_by=user,
         )
 
         max_length = Library._meta.get_field("slug").max_length
         assert len(library.slug) <= max_length
 
-    def test_slug_truncation_still_allows_uniqueness(self) -> None:
+    def test_slug_truncation_still_allows_uniqueness(self, user):
         long_address = "A" * 255
         common_kwargs = {
             "photo": "libraries/photos/2026/02/test.jpg",
@@ -115,7 +143,7 @@ class LibraryModelTest(TestCase):
             "address": long_address,
             "city": "Florence",
             "country": "IT",
-            "created_by": self.user,
+            "created_by": user,
         }
 
         library_1 = Library.objects.create(**common_kwargs)
@@ -126,41 +154,27 @@ class LibraryModelTest(TestCase):
         assert len(library_1.slug) <= max_length
         assert len(library_2.slug) <= max_length
 
-    def test_default_status_is_pending(self) -> None:
+    def test_default_status_is_pending(self, user):
         library = Library.objects.create(
             photo="libraries/photos/2026/02/test.jpg",
             location=Point(x=11.2558, y=43.7696, srid=4326),
             address="Via Rosina 15",
             city="Florence",
             country="IT",
-            created_by=self.user,
+            created_by=user,
         )
 
         assert library.status == Library.Status.PENDING
 
 
-class ReportModelTest(TestCase):
+@pytest.mark.django_db
+class TestReportModel:
     """Tests for the Report model."""
 
-    def setUp(self) -> None:
-        self.user = User.objects.create_user(
-            username="testuser",
-            password="testpass123",
-        )
-        self.library = Library.objects.create(
-            name="Test Library",
-            photo="libraries/photos/2026/02/test.jpg",
-            location=Point(x=11.2558, y=43.7696, srid=4326),
-            address="Via Rosina 15",
-            city="Florence",
-            country="IT",
-            created_by=self.user,
-        )
-
-    def test_create_report(self) -> None:
+    def test_create_report(self, library, user):
         report = Report.objects.create(
-            library=self.library,
-            created_by=self.user,
+            library=library,
+            created_by=user,
             reason=Report.Reason.DAMAGED,
             details="The library box is broken and books are getting wet.",
         )
@@ -171,10 +185,10 @@ class ReportModelTest(TestCase):
         assert report.created_at is not None
         assert report.photo == ""
 
-    def test_create_report_with_photo(self) -> None:
+    def test_create_report_with_photo(self, library, user):
         report = Report.objects.create(
-            library=self.library,
-            created_by=self.user,
+            library=library,
+            created_by=user,
             reason=Report.Reason.MISSING,
             details="The library is no longer at this location.",
             photo="reports/photos/2026/02/evidence.jpg",
@@ -183,20 +197,20 @@ class ReportModelTest(TestCase):
         assert report.pk is not None
         assert report.photo == "reports/photos/2026/02/evidence.jpg"
 
-    def test_default_status_is_open(self) -> None:
+    def test_default_status_is_open(self, library, user):
         report = Report.objects.create(
-            library=self.library,
-            created_by=self.user,
+            library=library,
+            created_by=user,
             reason=Report.Reason.OTHER,
             details="Something else is wrong.",
         )
 
         assert report.status == Report.Status.OPEN
 
-    def test_report_str(self) -> None:
+    def test_report_str(self, library, user):
         report = Report.objects.create(
-            library=self.library,
-            created_by=self.user,
+            library=library,
+            created_by=user,
             reason=Report.Reason.INAPPROPRIATE,
             details="Inappropriate content found.",
         )
@@ -204,113 +218,77 @@ class ReportModelTest(TestCase):
         assert str(report) == "Report: Inappropriate - Test Library (Florence)"
 
 
-class LibraryAdminTest(TestCase):
+@pytest.mark.django_db
+class TestLibraryAdmin:
     """Tests for Library admin actions."""
 
-    def setUp(self) -> None:
-        self.admin_user = User.objects.create_superuser(
-            username="admin",
-            password="adminpass123",
-        )
-        self.client.force_login(self.admin_user)
-        self.library = Library.objects.create(
-            name="Pending Library",
-            photo="libraries/photos/2026/02/test.jpg",
-            location=Point(x=11.2558, y=43.7696, srid=4326),
-            address="Via Rosina 15",
-            city="Florence",
-            country="IT",
-            created_by=self.admin_user,
-        )
-
-    def test_approve_libraries_action(self) -> None:
+    def test_approve_libraries_action(self, admin_client, admin_library):
         url = reverse("admin:libraries_library_changelist")
-        response = self.client.post(url, {
+        response = admin_client.post(url, {
             "action": "approve_libraries",
-            "_selected_action": [self.library.pk],
+            "_selected_action": [admin_library.pk],
         })
 
         assert response.status_code == 302
-        self.library.refresh_from_db()
-        assert self.library.status == Library.Status.APPROVED
+        admin_library.refresh_from_db()
+        assert admin_library.status == Library.Status.APPROVED
 
-    def test_reject_libraries_action(self) -> None:
+    def test_reject_libraries_action(self, admin_client, admin_library):
         url = reverse("admin:libraries_library_changelist")
-        response = self.client.post(url, {
+        response = admin_client.post(url, {
             "action": "reject_libraries",
-            "_selected_action": [self.library.pk],
+            "_selected_action": [admin_library.pk],
         })
 
         assert response.status_code == 302
-        self.library.refresh_from_db()
-        assert self.library.status == Library.Status.REJECTED
+        admin_library.refresh_from_db()
+        assert admin_library.status == Library.Status.REJECTED
 
-    def test_bulk_approve_multiple_libraries(self) -> None:
+    def test_bulk_approve_multiple_libraries(self, admin_client, admin_library, admin_user):
         library_2 = Library.objects.create(
             photo="libraries/photos/2026/02/test2.jpg",
             location=Point(x=11.2600, y=43.7700, srid=4326),
             address="Via Roma 1",
             city="Florence",
             country="IT",
-            created_by=self.admin_user,
+            created_by=admin_user,
         )
 
         url = reverse("admin:libraries_library_changelist")
-        response = self.client.post(url, {
+        response = admin_client.post(url, {
             "action": "approve_libraries",
-            "_selected_action": [self.library.pk, library_2.pk],
+            "_selected_action": [admin_library.pk, library_2.pk],
         })
 
         assert response.status_code == 302
-        self.library.refresh_from_db()
+        admin_library.refresh_from_db()
         library_2.refresh_from_db()
-        assert self.library.status == Library.Status.APPROVED
+        assert admin_library.status == Library.Status.APPROVED
         assert library_2.status == Library.Status.APPROVED
 
 
-class ReportAdminTest(TestCase):
+@pytest.mark.django_db
+class TestReportAdmin:
     """Tests for Report admin actions."""
 
-    def setUp(self) -> None:
-        self.admin_user = User.objects.create_superuser(
-            username="admin",
-            password="adminpass123",
-        )
-        self.client.force_login(self.admin_user)
-        self.library = Library.objects.create(
-            name="Test Library",
-            photo="libraries/photos/2026/02/test.jpg",
-            location=Point(x=11.2558, y=43.7696, srid=4326),
-            address="Via Rosina 15",
-            city="Florence",
-            country="IT",
-            created_by=self.admin_user,
-        )
-        self.report = Report.objects.create(
-            library=self.library,
-            created_by=self.admin_user,
-            reason=Report.Reason.DAMAGED,
-            details="The library box is broken.",
-        )
-
-    def test_resolve_reports_action(self) -> None:
+    def test_resolve_reports_action(self, admin_client, admin_report):
         url = reverse("admin:libraries_report_changelist")
-        response = self.client.post(url, {
+        response = admin_client.post(url, {
             "action": "resolve_reports",
-            "_selected_action": [self.report.pk],
+            "_selected_action": [admin_report.pk],
         })
 
         assert response.status_code == 302
-        self.report.refresh_from_db()
-        assert self.report.status == Report.Status.RESOLVED
+        admin_report.refresh_from_db()
+        assert admin_report.status == Report.Status.RESOLVED
 
-    def test_dismiss_reports_action(self) -> None:
+    def test_dismiss_reports_action(self, admin_client, admin_report):
         url = reverse("admin:libraries_report_changelist")
-        response = self.client.post(url, {
+        response = admin_client.post(url, {
             "action": "dismiss_reports",
-            "_selected_action": [self.report.pk],
+            "_selected_action": [admin_report.pk],
         })
 
         assert response.status_code == 302
-        self.report.refresh_from_db()
-        assert self.report.status == Report.Status.DISMISSED
+        admin_report.refresh_from_db()
+        assert admin_report.status == Report.Status.DISMISSED
