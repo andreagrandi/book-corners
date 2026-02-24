@@ -313,11 +313,11 @@ Everything else is server-rendered Django templates + HTMX.
 - [x] Add a test with a sample geotagged image
 
 #### 2.6 — Submit form: Photon address autocomplete
-- [ ] Add address autocomplete input using Photon API (photon.komoot.io)
-- [ ] Implement as HTMX partial or minimal JS: debounced fetch on keystrokes, render suggestion list
-- [ ] On suggestion select: populate address, city, country, postal_code fields
-- [ ] On final form submit: forward geocode the address via Nominatim to get coordinates
-- [ ] Store both the PointField and human-readable address fields
+- [x] Add address autocomplete input using Photon API (photon.komoot.io)
+- [x] Implement as HTMX partial or minimal JS: debounced fetch on keystrokes, render suggestion list
+- [x] On suggestion select: populate address, city, country, postal_code fields
+- [x] Set coordinates before submit from autocomplete/map interactions so users can refine the marker
+- [x] Store both the PointField and human-readable address fields
 
 #### 2.7 — User dashboard
 - [ ] Create dashboard view (login required) listing the current user's submissions
