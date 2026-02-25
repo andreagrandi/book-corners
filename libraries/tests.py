@@ -449,6 +449,7 @@ class TestHomepageTemplate:
         content = response.content.decode()
         assert response.status_code == 200
         assert "Book Corners" in content
+        assert "href=\"/about/\"" in content
         assert "href=\"/map/\"" in content
         assert "href=\"/map/?view=list\"" in content
         assert "href=\"/submit/\"" in content
@@ -464,6 +465,26 @@ class TestHomepageTemplate:
         assert "https://github.com/andreagrandi" in content
         assert "https://github.com/andreagrandi/tiny-libraries" in content
         assert "Source code available on" in content
+
+
+@pytest.mark.django_db
+class TestAboutPageTemplate:
+    def test_about_page_renders_logo_content_and_actions(self, client):
+        """Verify about page renders logo, story cards, and call to actions.
+        Confirms visitors can quickly understand and navigate the project."""
+        response = client.get(reverse("about_page"))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "About Book Corners" in content
+        assert "Book Corners logo" in content
+        assert "How to contribute" in content
+        assert "About the creator" in content
+        assert "Andrea speaking at PyCon Italy" in content
+        assert "Add a new library in your neighborhood" in content
+        assert "href=\"/map/\"" in content
+        assert "href=\"/submit/\"" in content
+        assert "https://github.com/andreagrandi/tiny-libraries" in content
 
 
 @pytest.mark.django_db

@@ -21,6 +21,7 @@ from django.urls import include, path
 
 from config.api import api
 from libraries.views import (
+    about_page,
     dashboard,
     home,
     latest_entries,
@@ -38,6 +39,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("users.urls")),
     path("", home, name="home"),
+    path("about/", about_page, name="about_page"),
     path("map/", map_page, name="map_page"),
     path("map/libraries.geojson", map_libraries_geojson, name="map_libraries_geojson"),
     path("map/libraries/list/", map_libraries_list, name="map_libraries_list"),

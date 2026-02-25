@@ -22,6 +22,7 @@
           </div>
           <ul tabindex="0" class="menu menu-sm dropdown-content z-[1] mt-3 w-56 rounded-box bg-base-100 p-2 shadow">
             <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="{% url 'about_page' %}">About</a></li>
             <li><a href="/map/">Map</a></li>
             <li><a href="/submit/">Submit</a></li>
             {% if request.user.is_authenticated %}
@@ -51,6 +52,7 @@
       <div class="navbar-end hidden lg:flex">
         <ul class="menu menu-horizontal px-1">
           <li><a href="{% url 'home' %}">Home</a></li>
+          <li><a href="{% url 'about_page' %}">About</a></li>
           <li><a href="/map/">Map</a></li>
           <li><a href="/submit/">Submit</a></li>
           {% if request.user.is_authenticated %}
