@@ -1,0 +1,604 @@
+{% extends "base.html" %}
+
+{% block title %}Map - Book Corners{% endblock %}
+
+{% block extra_head %}
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  >
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+  >
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+  >
+{% endblock %}
+
+{% block content %}
+  <section class="space-y-6">
+    <article class="card border border-base-300 bg-base-100 shadow-sm">
+      <div class="card-body p-5">
+        <h1 class="text-3xl font-bold">Explore libraries</h1>
+        <p class="text-base-content/70">
+          Use one filter set and switch between map, list, or split view without reloading the page.
+        </p>
+
+        <form id="map-filters-form" method="get" action="{% url 'map_page' %}" class="mt-2 space-y-4" novalidate>
+          <div class="grid gap-4 lg:grid-cols-2">
+            <label class="form-control w-full">
+              <span class="label-text mb-1">Keywords</span>
+              {{ form.q }}
+            </label>
+
+            <label class="form-control w-full">
+              <span class="label-text mb-1">Near (place-like query)</span>
+              {{ form.near }}
+            </label>
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <label class="form-control w-full">
+              <span class="label-text mb-1">Radius (km)</span>
+              {{ form.radius_km }}
+            </label>
+
+            <label class="form-control w-full">
+              <span class="label-text mb-1">City filter</span>
+              {{ form.city }}
+            </label>
+
+            <label class="form-control w-full">
+              <span class="label-text mb-1">Country filter</span>
+              {{ form.country }}
+            </label>
+
+            <label class="form-control w-full">
+              <span class="label-text mb-1">Postal code filter</span>
+              {{ form.postal_code }}
+            </label>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <button type="submit" class="btn btn-primary">Apply filters</button>
+            <button id="map-filters-clear" type="button" class="btn btn-outline">Clear</button>
+          </div>
+        </form>
+
+        <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
+          <p id="map-results-summary" class="text-sm text-base-content/70"></p>
+          <div class="join" role="group" aria-label="Explore view mode">
+            <button type="button" class="btn btn-sm btn-outline join-item" data-view-mode="map">Map</button>
+            <button type="button" class="btn btn-sm btn-outline join-item" data-view-mode="list">List</button>
+            <button type="button" class="btn btn-sm btn-outline join-item" data-view-mode="split">Split</button>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <section id="explore-results-layout" class="grid gap-4 lg:grid-cols-3">
+      <article id="map-results-panel" class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm lg:col-span-2">
+        <div
+          id="libraries-map"
+          class="h-[68vh] w-full rounded-box border border-base-300"
+          data-map-data-url="{% url 'map_libraries_geojson' %}"
+          data-list-data-url="{% url 'map_libraries_list' %}"
+          data-initial-view="{{ map_view }}"
+          data-default-latitude="{{ map_default_latitude }}"
+          data-default-longitude="{{ map_default_longitude }}"
+          data-default-zoom="{{ map_default_zoom }}"
+        ></div>
+      </article>
+
+      <aside id="list-results-panel" class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm lg:col-span-1">
+        <div class="mb-3 flex items-center justify-between gap-2">
+          <h2 class="text-lg font-semibold">Libraries list</h2>
+          <span id="list-results-count" class="text-xs text-base-content/60"></span>
+        </div>
+
+        <div id="map-list-results" class="max-h-[68vh] overflow-y-auto pr-1">
+          <div class="text-sm text-base-content/70">Loading libraries...</div>
+        </div>
+      </aside>
+    </section>
+  </section>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const mapElement = document.getElementById("libraries-map");
+      const filtersForm = document.getElementById("map-filters-form");
+      const clearButton = document.getElementById("map-filters-clear");
+      const summaryElement = document.getElementById("map-results-summary");
+      const listCountElement = document.getElementById("list-results-count");
+      const listResultsContainer = document.getElementById("map-list-results");
+      const mapResultsPanel = document.getElementById("map-results-panel");
+      const listResultsPanel = document.getElementById("list-results-panel");
+      const viewModeButtons = Array.from(document.querySelectorAll("[data-view-mode]"));
+
+      if (
+        !mapElement ||
+        !filtersForm ||
+        !summaryElement ||
+        !listCountElement ||
+        !listResultsContainer ||
+        !mapResultsPanel ||
+        !listResultsPanel ||
+        typeof L === "undefined"
+      ) {
+        return;
+      }
+
+      const mapDataUrl = mapElement.dataset.mapDataUrl || "";
+      const listDataUrl = mapElement.dataset.listDataUrl || "";
+      if (!mapDataUrl || !listDataUrl) {
+        return;
+      }
+
+      const defaultLatitude = Number.parseFloat(mapElement.dataset.defaultLatitude || "50.1109");
+      const defaultLongitude = Number.parseFloat(mapElement.dataset.defaultLongitude || "8.6821");
+      const defaultZoom = Number.parseInt(mapElement.dataset.defaultZoom || "5", 10);
+      const searchParams = new URLSearchParams(window.location.search);
+      const initialView = mapElement.dataset.initialView || String(searchParams.get("view") || "");
+
+      function getDefaultViewForScreen() {
+        return window.matchMedia("(min-width: 1024px)").matches ? "split" : "map";
+      }
+
+      let currentView = ["map", "list", "split"].includes(initialView)
+        ? initialView
+        : getDefaultViewForScreen();
+
+      const initialPage = Number.parseInt(String(searchParams.get("page") || "1"), 10);
+      let currentListPage = Number.isInteger(initialPage) && initialPage > 0 ? initialPage : 1;
+
+      const map = L.map(mapElement).setView([defaultLatitude, defaultLongitude], defaultZoom);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
+
+      const markersCluster = L.markerClusterGroup();
+      map.addLayer(markersCluster);
+
+      let suppressNextBoundsRefresh = false;
+      let boundsRefreshTimeoutId = null;
+      let activeRequestId = 0;
+
+      function setViewButtonState(activeView) {
+        viewModeButtons.forEach(function (button) {
+          const buttonView = button.dataset.viewMode || "";
+          const isActive = buttonView === activeView;
+          button.classList.toggle("btn-primary", isActive);
+          button.classList.toggle("btn-outline", !isActive);
+        });
+      }
+
+      function setListScrollMode(enabled) {
+        listResultsContainer.classList.toggle("max-h-[68vh]", enabled);
+        listResultsContainer.classList.toggle("overflow-y-auto", enabled);
+        listResultsContainer.classList.toggle("pr-1", enabled);
+      }
+
+      function applyViewMode(viewMode) {
+        currentView = ["map", "list", "split"].includes(viewMode) ? viewMode : "split";
+
+        mapResultsPanel.classList.remove("hidden", "lg:col-span-3", "lg:col-span-2");
+        listResultsPanel.classList.remove("hidden", "lg:col-span-3", "lg:col-span-1");
+
+        if (currentView === "map") {
+          mapResultsPanel.classList.add("lg:col-span-3");
+          listResultsPanel.classList.add("hidden");
+          setListScrollMode(false);
+        } else if (currentView === "list") {
+          mapResultsPanel.classList.add("hidden");
+          listResultsPanel.classList.add("lg:col-span-3");
+          setListScrollMode(false);
+        } else {
+          mapResultsPanel.classList.add("lg:col-span-2");
+          listResultsPanel.classList.add("lg:col-span-1");
+          setListScrollMode(true);
+        }
+
+        setViewButtonState(currentView);
+        window.setTimeout(function () {
+          map.invalidateSize();
+        }, 0);
+      }
+
+      function setSummary(message, isError = false) {
+        summaryElement.textContent = message;
+        summaryElement.className = isError
+          ? "text-sm text-error"
+          : "text-sm text-base-content/70";
+      }
+
+      function syncListCountFromMarkup() {
+        const markerElement = listResultsContainer.querySelector("[data-list-total-count]");
+        const rawCount = markerElement?.dataset.listTotalCount || "";
+        const totalCount = Number.parseInt(rawCount, 10);
+        listCountElement.textContent = Number.isInteger(totalCount) ? `${totalCount} results` : "";
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function buildPopupHtml(properties) {
+        const name = escapeHtml(properties.name || "Neighborhood Library");
+        const city = escapeHtml(properties.city || "");
+        const country = escapeHtml(properties.country || "");
+        const photoUrl = escapeHtml(properties.photo_url || "");
+        const detailUrl = escapeHtml(properties.detail_url || "#");
+        const locationText = [city, country].filter(Boolean).join(", ");
+        const imageHtml = photoUrl
+          ? `<img src="${photoUrl}" alt="${name}" class="h-28 w-full rounded object-cover" loading="lazy">`
+          : "";
+        const locationHtml = locationText
+          ? `<p class="text-xs text-base-content/70">${locationText}</p>`
+          : "";
+
+        return `
+          <article class="space-y-2 min-w-52">
+            ${imageHtml}
+            <h3 class="text-sm font-semibold">${name}</h3>
+            ${locationHtml}
+            <a href="${detailUrl}" class="btn btn-xs btn-outline">View details</a>
+          </article>
+        `;
+      }
+
+      function buildBaseFilterParams() {
+        const params = new URLSearchParams(new FormData(filtersForm));
+        for (const [key, value] of Array.from(params.entries())) {
+          const normalizedValue = typeof value === "string" ? value.trim() : "";
+          if (!normalizedValue) {
+            params.delete(key);
+            continue;
+          }
+
+          if (normalizedValue !== value) {
+            params.set(key, normalizedValue);
+          }
+        }
+
+        const nearValue = params.get("near") || "";
+        const radiusValue = params.get("radius_km") || "";
+        if (!nearValue || radiusValue === "10") {
+          params.delete("radius_km");
+        }
+
+        params.set("view", currentView);
+        return params;
+      }
+
+      function buildListRequestParams() {
+        const params = buildBaseFilterParams();
+        if (currentListPage > 1) {
+          params.set("page", String(currentListPage));
+        }
+        return params;
+      }
+
+      function buildMapRequestParams() {
+        const params = buildBaseFilterParams();
+        const bounds = map.getBounds();
+        if (!bounds.isValid()) {
+          return params;
+        }
+
+        params.set("min_lat", bounds.getSouth().toFixed(6));
+        params.set("min_lng", bounds.getWest().toFixed(6));
+        params.set("max_lat", bounds.getNorth().toFixed(6));
+        params.set("max_lng", bounds.getEast().toFixed(6));
+        return params;
+      }
+
+      function updateAddressBar(params, pushHistory) {
+        const queryString = params.toString();
+        const nextUrl = queryString
+          ? `${window.location.pathname}?${queryString}`
+          : window.location.pathname;
+        if (pushHistory) {
+          window.history.pushState({}, "", nextUrl);
+        } else {
+          window.history.replaceState({}, "", nextUrl);
+        }
+      }
+
+      function applySummaryFromPayload(payload) {
+        const meta = payload.meta && typeof payload.meta === "object" ? payload.meta : {};
+        const count = Number.isFinite(meta.count) ? Number(meta.count) : 0;
+        const nearQuery = typeof meta.near_query === "string" ? meta.near_query : "";
+        const geocodingFailed = Boolean(meta.location_resolution_failed);
+
+        if (geocodingFailed && nearQuery) {
+          setSummary(
+            `Showing ${count} libraries. Could not resolve "${nearQuery}", so keyword matching was used instead.`
+          );
+          return;
+        }
+
+        setSummary(`Showing ${count} libraries on the map.`);
+      }
+
+      function applyMapViewFromPayload(payload, allowRecenter) {
+        if (!allowRecenter) {
+          return;
+        }
+
+        const meta = payload.meta && typeof payload.meta === "object" ? payload.meta : {};
+        const center = meta.center && typeof meta.center === "object" ? meta.center : null;
+        const centerLatitude = Number.parseFloat(center?.lat || "");
+        const centerLongitude = Number.parseFloat(center?.lng || "");
+        const hasCenter = Number.isFinite(centerLatitude) && Number.isFinite(centerLongitude);
+
+        if (hasCenter) {
+          suppressNextBoundsRefresh = true;
+          map.setView([centerLatitude, centerLongitude], 12);
+          return;
+        }
+
+        const hasMarkers = markersCluster.getLayers().length > 0;
+        if (hasMarkers) {
+          suppressNextBoundsRefresh = true;
+          map.fitBounds(markersCluster.getBounds(), {
+            padding: [32, 32],
+            maxZoom: 15,
+          });
+        }
+      }
+
+      function clearFilters() {
+        const fields = filtersForm.querySelectorAll("input, select");
+        fields.forEach(function (field) {
+          if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement)) {
+            return;
+          }
+
+          if (field.name === "radius_km") {
+            field.value = "10";
+            return;
+          }
+
+          field.value = "";
+        });
+      }
+
+      function renderMarkersFromPayload(payload) {
+        markersCluster.clearLayers();
+        const features = Array.isArray(payload.features) ? payload.features : [];
+        const markersLayer = L.geoJSON(
+          {
+            type: "FeatureCollection",
+            features,
+          },
+          {
+            pointToLayer: function (feature, latlng) {
+              return L.marker(latlng);
+            },
+            onEachFeature: function (feature, layer) {
+              const properties = feature && feature.properties ? feature.properties : {};
+              layer.bindPopup(buildPopupHtml(properties));
+            },
+          }
+        );
+        markersCluster.addLayer(markersLayer);
+      }
+
+      async function loadData({
+        pushHistory,
+        fetchMap,
+        fetchList,
+        allowRecenter,
+        showLoadingSummary,
+      }) {
+        const requestId = activeRequestId + 1;
+        activeRequestId = requestId;
+
+        const addressBarParams = buildListRequestParams();
+        updateAddressBar(addressBarParams, pushHistory);
+
+        if (showLoadingSummary && fetchMap) {
+          setSummary("Loading libraries on the map...");
+        }
+        if (fetchList) {
+          listResultsContainer.innerHTML = "<div class=\"text-sm text-base-content/70\">Loading libraries...</div>";
+        }
+
+        const requests = [];
+        if (fetchMap) {
+          const mapParams = buildMapRequestParams();
+          const mapQuery = mapParams.toString();
+          const mapEndpoint = mapQuery ? `${mapDataUrl}?${mapQuery}` : mapDataUrl;
+          requests.push(
+            fetch(mapEndpoint, { headers: { Accept: "application/json" } }).then(function (response) {
+              if (!response.ok) {
+                throw new Error("Map data request failed");
+              }
+              return response.json().then(function (payload) {
+                return { kind: "map", payload };
+              });
+            })
+          );
+        }
+
+        if (fetchList) {
+          const listParams = buildListRequestParams();
+          const listQuery = listParams.toString();
+          const listEndpoint = listQuery ? `${listDataUrl}?${listQuery}` : listDataUrl;
+          requests.push(
+            fetch(listEndpoint, { headers: { Accept: "text/html" } }).then(function (response) {
+              if (!response.ok) {
+                throw new Error("List data request failed");
+              }
+              return response.text().then(function (html) {
+                return { kind: "list", html };
+              });
+            })
+          );
+        }
+
+        try {
+          const results = await Promise.all(requests);
+          if (requestId !== activeRequestId) {
+            return;
+          }
+
+          const mapResult = results.find(function (item) {
+            return item.kind === "map";
+          });
+          if (mapResult && mapResult.payload) {
+            renderMarkersFromPayload(mapResult.payload);
+            applyMapViewFromPayload(mapResult.payload, allowRecenter);
+            applySummaryFromPayload(mapResult.payload);
+          }
+
+          const listResult = results.find(function (item) {
+            return item.kind === "list";
+          });
+          if (listResult && typeof listResult.html === "string") {
+            listResultsContainer.innerHTML = listResult.html;
+            syncListCountFromMarkup();
+          }
+        } catch (error) {
+          if (requestId !== activeRequestId) {
+            return;
+          }
+
+          if (fetchList) {
+            listResultsContainer.innerHTML = "<div class=\"text-sm text-error\">Could not load library list right now.</div>";
+            listCountElement.textContent = "";
+          }
+          if (fetchMap) {
+            setSummary("Could not load map markers right now. Please try again.", true);
+          }
+        }
+      }
+
+      function queueBoundsRefresh() {
+        if (currentView === "list") {
+          return;
+        }
+
+        if (boundsRefreshTimeoutId !== null) {
+          window.clearTimeout(boundsRefreshTimeoutId);
+        }
+
+        boundsRefreshTimeoutId = window.setTimeout(function () {
+          void loadData({
+            pushHistory: false,
+            fetchMap: true,
+            fetchList: false,
+            allowRecenter: false,
+            showLoadingSummary: false,
+          });
+        }, 250);
+      }
+
+      filtersForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        currentListPage = 1;
+        void loadData({
+          pushHistory: true,
+          fetchMap: true,
+          fetchList: true,
+          allowRecenter: true,
+          showLoadingSummary: true,
+        });
+      });
+
+      if (clearButton) {
+        clearButton.addEventListener("click", function () {
+          clearFilters();
+          currentListPage = 1;
+          void loadData({
+            pushHistory: true,
+            fetchMap: true,
+            fetchList: true,
+            allowRecenter: true,
+            showLoadingSummary: true,
+          });
+        });
+      }
+
+      listResultsContainer.addEventListener("click", function (event) {
+        const target = event.target;
+        if (!(target instanceof Element)) {
+          return;
+        }
+
+        const pageButton = target.closest("[data-list-page]");
+        if (!(pageButton instanceof HTMLButtonElement) || pageButton.disabled) {
+          return;
+        }
+
+        const nextPage = Number.parseInt(pageButton.dataset.listPage || "", 10);
+        if (!Number.isInteger(nextPage) || nextPage < 1 || nextPage === currentListPage) {
+          return;
+        }
+
+        event.preventDefault();
+        currentListPage = nextPage;
+        void loadData({
+          pushHistory: true,
+          fetchMap: false,
+          fetchList: true,
+          allowRecenter: false,
+          showLoadingSummary: false,
+        });
+      });
+
+      map.on("moveend", function () {
+        if (suppressNextBoundsRefresh) {
+          suppressNextBoundsRefresh = false;
+          return;
+        }
+        queueBoundsRefresh();
+      });
+
+      viewModeButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          const nextView = button.dataset.viewMode || "split";
+          applyViewMode(nextView);
+          updateAddressBar(buildListRequestParams(), true);
+
+          if (nextView === "map" || nextView === "split") {
+            void loadData({
+              pushHistory: false,
+              fetchMap: true,
+              fetchList: false,
+              allowRecenter: false,
+              showLoadingSummary: false,
+            });
+          }
+        });
+      });
+
+      applyViewMode(currentView);
+      void loadData({
+        pushHistory: false,
+        fetchMap: true,
+        fetchList: true,
+        allowRecenter: true,
+        showLoadingSummary: true,
+      });
+    });
+  </script>
+{% endblock %}
