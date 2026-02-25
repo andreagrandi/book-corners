@@ -548,6 +548,14 @@ Goal for this phase:
 - [ ] Run Django's `check --deploy` and address warnings
 - [ ] Verify `DEBUG=False` and secret key management for production
 
+#### 5.6 — First public deploy gate (single environment)
+- [ ] Confirm there is no staging environment and production is public from first deploy
+- [ ] Complete 5.4 (error pages) and 5.5 (security review) before DNS cutover
+- [ ] Test core flows locally with production-like settings (`DEBUG=False`): home, map, submit, login, admin
+- [ ] Define launch scope freeze for first deploy week (only bugfixes, no large feature work)
+- [ ] Decide email policy for MVP: keep welcome/reset email flows disabled until provider is configured
+- [ ] Create a one-page incident response note (who gets alerted, rollback steps, backup restore reference)
+
 ---
 
 ### Phase 6 — Deployment
@@ -575,6 +583,83 @@ Goal for this phase:
 #### 6.5 — Continuous deployment
 - [ ] Add deploy step to the existing GitHub Actions CI pipeline: push to Dokku remote on main branch merge
 - [ ] Verify full pipeline: push → tests → deploy
+
+#### 6.6 — Backups to BorgBase (no downtime)
+- [ ] Add nightly PostgreSQL dump job using `pg_dump -Fc` (transaction-safe, no service stop)
+- [ ] Add backup job for media files directory used by Dokku storage mount
+- [ ] Push DB dumps + media backups to BorgBase with `borg create`
+- [ ] Add retention policy with `borg prune` (daily / weekly / monthly)
+- [ ] Keep repository passphrase and backup credentials in secure env vars (not in git)
+
+#### 6.7 — Automated restore verification (separate DB)
+- [ ] Add periodic restore drill that restores latest dump into a temporary database
+- [ ] Run sanity checks on restored DB (schema, migrations table, sample counts, PostGIS query)
+- [ ] Drop temporary restore-check database after validation
+- [ ] Alert if restore verification fails
+- [ ] Document manual full restore procedure for emergency recovery
+
+#### 6.8 — Monitoring and alerting baseline
+- [ ] Add uptime monitoring for `/` and one authenticated-critical route
+- [ ] Add heartbeat monitoring for backup and restore-check jobs
+- [ ] Add error tracking (Sentry free tier or equivalent) with conservative quota settings
+- [ ] Configure alert delivery channel(s) (email, Telegram, or Slack)
+- [ ] Run one test incident to verify end-to-end alert delivery
+
+#### 6.9 — First production deploy runbook
+- [ ] Document exact deploy sequence (build, migrate, restart, smoke checks)
+- [ ] Document rollback sequence (previous release rollback + DB restore decision matrix)
+- [ ] Add post-deploy smoke checklist (home, static CSS, submit flow, admin login)
+- [ ] Define maintenance communication template for planned downtime or incidents
+
+---
+
+## Cost Sheet (single public VPS)
+
+Assumptions:
+- One public Hetzner VPS, Dokku-managed services on same host, no staging.
+- PostgreSQL/PostGIS, app, and reverse proxy run on the VPS.
+- Cloudflare for domain registration and DNS.
+
+### Baseline recurring costs
+
+| Item | Required now? | Est. monthly | Est. yearly | Notes |
+|------|----------------|--------------|-------------|-------|
+| Hetzner VPS (small instance) | Yes | $5–8 | $60–96 | App + DB + Dokku on one server |
+| Domain (Cloudflare Registrar) | Yes | $0.7–1.5 | $8–18 | Depends on TLD, billed yearly |
+| SSL (Let's Encrypt) | Yes | $0 | $0 | Free certs |
+| Dokku | Yes | $0 | $0 | Open source |
+| PostgreSQL + PostGIS (self-hosted) | Yes | $0 | $0 | Included in VPS cost |
+| BorgBase backup storage | Yes (recommended) | $0–8* | $0–96* | Reuse existing plan if possible |
+| Uptime monitoring (UptimeRobot free tier) | Recommended | $0 | $0 | Paid tier optional later |
+| Error tracking (Sentry developer plan) | Recommended | $0 | $0 | Quota-limited free usage |
+
+\* If you already have BorgBase capacity, incremental cost can be near zero.
+
+### Optional costs (only when needed)
+
+| Item | Est. monthly | Notes |
+|------|--------------|-------|
+| Transactional email provider | $0–20 | Keep disabled for MVP, enable later for password reset/welcome mail |
+| Paid uptime monitoring upgrade | $7–20+ | Only if free tier limits become restrictive |
+| Paid error monitoring upgrade | $26+ | Only if free Sentry quotas are consistently exceeded |
+
+### Practical budget ranges
+
+- **Lean MVP baseline:** ~$6–10/month (VPS + domain amortized, free monitoring, existing backup capacity).
+- **Safer baseline with paid backup headroom:** ~$10–18/month.
+- **With optional paid monitoring/email upgrades:** ~$20–45+/month.
+
+### Cost control rules
+
+- Keep Sentry on free plan and do not enable paid add-ons by default.
+- Use free-tier uptime monitoring until false positives or feature limits justify upgrades.
+- Keep email features disabled until there is a real product need.
+- Review storage growth monthly (DB dumps + media) to avoid surprise backup costs.
+
+### Quota behavior notes
+
+- Sentry free plan is quota-based: when quota is exhausted, new events are dropped/rejected.
+- Existing accepted events remain available according to plan retention window.
 
 ---
 
