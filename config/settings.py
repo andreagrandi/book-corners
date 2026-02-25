@@ -138,7 +138,7 @@ GDAL_LIBRARY_PATH = os.environ.get("GDAL_LIBRARY_PATH")
 GEOS_LIBRARY_PATH = os.environ.get("GEOS_LIBRARY_PATH")
 
 
-NOMINATIM_USER_AGENT = os.environ.get("NOMINATIM_USER_AGENT", "tiny-libraries/1.0")
+NOMINATIM_USER_AGENT = os.environ.get("NOMINATIM_USER_AGENT", "book-corners/1.0")
 try:
     NOMINATIM_TIMEOUT_SECONDS = int(os.environ.get("NOMINATIM_TIMEOUT_SECONDS", "5"))
 except ValueError:

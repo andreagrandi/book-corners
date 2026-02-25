@@ -1,4 +1,4 @@
-# tiny-libraries
+# Book Corners
 A community-driven directory of little free libraries
 
 ## Seed local data

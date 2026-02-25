@@ -1,4 +1,4 @@
-# Little Free Libraries — Project Plan
+# Book Corners — Project Plan
 
 > A community-driven directory of little free libraries: those small book exchange spots
 > found in public spaces where you can leave or take a book for free.
@@ -456,7 +456,7 @@ Everything else is server-rendered Django templates + HTMX.
 
 #### 6.1 — Dokku setup
 - [ ] Provision VPS and install Dokku
-- [ ] Create Dokku app (`dokku apps:create tiny-libraries`)
+- [ ] Create Dokku app (`dokku apps:create book-corners`)
 - [ ] Set environment variables (SECRET_KEY, DATABASE_URL, ALLOWED_HOSTS, DEBUG=False)
 
 #### 6.2 — Database
@@ -482,8 +482,8 @@ Everything else is server-rendered Django templates + HTMX.
 
 ### Phase 7 — Future Enhancements (out of scope for now)
 
-- [ ] Find a better name and rename the home page title
-- [ ] Find a logo for the project
+- [x] Find a better name and rename the home page title
+- [x] Find a logo for the project
 - [ ] Improve the footer (remove mention of Django, HTMX and add link to the GitHub repository)
 - [ ] "Report this library" should be "Report an issue with this library"
 - [ ] Multi language support with language selector (at least English and Italian)
