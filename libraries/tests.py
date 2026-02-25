@@ -460,7 +460,10 @@ class TestHomepageTemplate:
         assert "name=\"near\"" in content
         assert "Advanced search" in content
         assert "Latest entries" in content
-        assert "built with Django, HTMX, and OpenStreetMap data" in content
+        assert "Book Corners - made with ❤️ by" in content
+        assert "https://github.com/andreagrandi" in content
+        assert "https://github.com/andreagrandi/tiny-libraries" in content
+        assert "Source code available on" in content
 
 
 @pytest.mark.django_db
