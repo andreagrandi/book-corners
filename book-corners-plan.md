@@ -524,10 +524,10 @@ Goal for this phase:
 - [x] Add a test that verifies resizing/compression
 
 #### 5.2 — Report flow polish
-- [ ] Build report form as an HTMX inline form or modal on the detail page
-- [ ] Submit via HTMX, show success/error message without page reload
-- [ ] Ensure reports are visible and manageable in Django admin
-- [ ] Add a test for the full report submission flow
+- [x] Build report form as an HTMX inline form or modal on the detail page
+- [x] Submit via HTMX, show success/error message without page reload
+- [x] Ensure reports are visible and manageable in Django admin
+- [x] Add a test for the full report submission flow
 
 #### 5.3 — SEO basics
 - [ ] Add meta title and description to all pages (base template + per-page overrides)

@@ -58,9 +58,7 @@
   {% if request.user.is_authenticated %}
     <section id="report-form" class="mt-6 rounded-box border border-dashed border-base-300 bg-base-100 p-5">
       <h2 class="text-xl font-semibold">Report form</h2>
-      <p class="mt-2 text-base-content/70">
-        Reporting flow will be implemented in a later step. This is the destination of the report button.
-      </p>
+      {% include "libraries/_report_form.html" with library=library report_form=report_form report_submitted=False %}
     </section>
   {% endif %}
 {% endblock %}

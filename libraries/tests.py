@@ -1146,6 +1146,186 @@ class TestLibraryDetailView:
         assert authenticated_response.status_code == 200
         assert "Report this library" in authenticated_content
         assert "id=\"report-form\"" in authenticated_content
+        assert f'hx-post="{reverse("submit_library_report", kwargs={"slug": library.slug})}"' in authenticated_content
+        assert "name=\"reason\"" in authenticated_content
+        assert "name=\"details\"" in authenticated_content
+
+
+@pytest.mark.django_db
+class TestLibraryReportSubmission:
+    def test_inline_report_submission_creates_report_and_returns_success_partial(self, client, user):
+        """Verify inline report submissions persist and return a success partial.
+        Confirms HTMX report flow completes without a full page reload."""
+        reporter = User.objects.create_user(
+            username="reporteruser",
+            password="ReporterPass123!",
+        )
+        library = Library.objects.create(
+            name="Inline Report Shelf",
+            description="Library that can be reported.",
+            photo="libraries/photos/2026/02/report-inline.jpg",
+            location=Point(x=9.1900, y=45.4642, srid=4326),
+            address="Via Torino 10",
+            city="Milan",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        client.force_login(reporter)
+        response = client.post(
+            reverse("submit_library_report", kwargs={"slug": library.slug}),
+            data={
+                "reason": Report.Reason.DAMAGED,
+                "details": "The front door is broken and cannot close.",
+            },
+            HTTP_HX_REQUEST="true",
+        )
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "alert alert-success" in content
+        assert "pending moderation review" in content
+
+        report = Report.objects.get()
+        assert report.library == library
+        assert report.created_by == reporter
+        assert report.reason == Report.Reason.DAMAGED
+        assert report.status == Report.Status.OPEN
+
+    def test_inline_report_submission_returns_validation_errors_without_creating_report(
+        self,
+        client,
+        user,
+    ):
+        """Verify invalid report payloads return inline form errors.
+        Keeps users on the detail page while preserving validation feedback."""
+        library = Library.objects.create(
+            name="Validation Report Shelf",
+            description="Library used for report validation tests.",
+            photo="libraries/photos/2026/02/report-validation.jpg",
+            location=Point(x=12.4964, y=41.9028, srid=4326),
+            address="Via del Corso 20",
+            city="Rome",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        client.force_login(user)
+        response = client.post(
+            reverse("submit_library_report", kwargs={"slug": library.slug}),
+            data={
+                "reason": Report.Reason.OTHER,
+            },
+            HTTP_HX_REQUEST="true",
+        )
+
+        content = response.content.decode()
+        assert response.status_code == 422
+        assert "Please review the highlighted fields" in content
+        assert "This field is required." in content
+        assert Report.objects.count() == 0
+
+    def test_inline_report_submission_requires_authentication(self, client, user):
+        """Verify report submissions require authentication.
+        Prevents anonymous users from creating moderation reports."""
+        library = Library.objects.create(
+            name="Protected Report Shelf",
+            description="Requires login before reporting.",
+            photo="libraries/photos/2026/02/report-auth.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 5",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.post(
+            reverse("submit_library_report", kwargs={"slug": library.slug}),
+            data={
+                "reason": Report.Reason.INCORRECT_INFO,
+                "details": "Address and city do not match.",
+            },
+        )
+
+        assert response.status_code == 302
+        assert response.url.startswith(f"{reverse('login')}?next=")
+        assert Report.objects.count() == 0
+
+    def test_inline_report_submission_returns_404_for_unowned_pending_library(self, client, user):
+        """Verify report endpoint denies access to non-visible pending libraries.
+        Keeps private pending entries protected from unrelated users."""
+        owner = User.objects.create_user(
+            username="pendingowner",
+            password="PendingPass123!",
+        )
+        pending_library = Library.objects.create(
+            name="Pending Hidden Shelf",
+            description="Not visible to other users yet.",
+            photo="libraries/photos/2026/02/report-hidden.jpg",
+            location=Point(x=13.4050, y=52.5200, srid=4326),
+            address="Friedrichstrasse 7",
+            city="Berlin",
+            country="DE",
+            status=Library.Status.PENDING,
+            created_by=owner,
+        )
+
+        client.force_login(user)
+        response = client.post(
+            reverse("submit_library_report", kwargs={"slug": pending_library.slug}),
+            data={
+                "reason": Report.Reason.MISSING,
+                "details": "I cannot find this library anymore.",
+            },
+            HTTP_HX_REQUEST="true",
+        )
+
+        assert response.status_code == 404
+        assert Report.objects.count() == 0
+
+    def test_inline_report_submission_result_is_visible_in_admin_changelist(
+        self,
+        client,
+        admin_client,
+        admin_user,
+        user,
+    ):
+        """Verify reports submitted from detail pages are visible in admin.
+        Confirms moderation team can manage newly submitted reports."""
+        library = Library.objects.create(
+            name="Admin Visible Report Shelf",
+            description="Report entries should appear in the admin list.",
+            photo="libraries/photos/2026/02/report-admin.jpg",
+            location=Point(x=-0.1276, y=51.5072, srid=4326),
+            address="Baker Street 221B",
+            city="London",
+            country="GB",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        client.force_login(user)
+        submit_response = client.post(
+            reverse("submit_library_report", kwargs={"slug": library.slug}),
+            data={
+                "reason": Report.Reason.INAPPROPRIATE,
+                "details": "The description includes inappropriate content.",
+            },
+            HTTP_HX_REQUEST="true",
+        )
+
+        assert submit_response.status_code == 200
+        assert Report.objects.count() == 1
+
+        admin_client.force_login(admin_user)
+        admin_response = admin_client.get(reverse("admin:libraries_report_changelist"))
+        admin_content = admin_response.content.decode()
+        assert admin_response.status_code == 200
+        assert "Admin Visible Report Shelf" in admin_content
+        assert "Inappropriate" in admin_content
 
 
 @pytest.mark.django_db

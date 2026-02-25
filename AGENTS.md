@@ -42,6 +42,20 @@ docker compose exec app python manage.py seed_libraries --reset --count 36 --ima
 
 After UI/template/static changes, always run this check before considering the task done:
 
+### Migration safety check (required)
+
+Before restarting the app or running smoke checks after model changes, always apply migrations first.
+
+```bash
+# Local runtime
+python manage.py migrate
+
+# Docker runtime
+docker compose exec app python manage.py migrate
+```
+
+If you see errors like `column ... does not exist`, treat that as a migration mismatch and run migrations before any further debugging.
+
 1. Start the full stack and rebuild app image when needed:
 
 ```bash

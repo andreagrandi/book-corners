@@ -7,7 +7,7 @@ from django import forms
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
 
-from libraries.models import Library
+from libraries.models import Library, Report
 
 
 COUNTRY_CHOICES = [
@@ -93,6 +93,48 @@ class LibrarySubmissionForm(forms.ModelForm):
             library.save()
 
         return library
+
+
+class ReportSubmissionForm(forms.ModelForm):
+    class Meta:
+        model = Report
+        fields = (
+            "reason",
+            "details",
+            "photo",
+        )
+        widgets = {
+            "details": forms.Textarea(attrs={"rows": 4}),
+        }
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize report submission dependencies and widget styles.
+        Captures related objects needed to persist report ownership."""
+        self.created_by = kwargs.pop("created_by", None)
+        self.library = kwargs.pop("library", None)
+        super().__init__(*args, **kwargs)
+
+        self.fields["reason"].widget.attrs["class"] = "select select-bordered w-full"
+        self.fields["details"].widget.attrs["class"] = "textarea textarea-bordered w-full"
+        self.fields["photo"].widget.attrs["class"] = "file-input file-input-bordered w-full"
+
+    def save(self, commit: bool = True) -> Report:
+        """Persist the report bound to the authenticated user and library.
+        Ensures new reports always start in the open moderation state."""
+        if self.created_by is None:
+            raise ValueError("created_by is required to save a report")
+        if self.library is None:
+            raise ValueError("library is required to save a report")
+
+        report = super().save(commit=False)
+        report.created_by = self.created_by
+        report.library = self.library
+        report.status = Report.Status.OPEN
+
+        if commit:
+            report.save()
+
+        return report
 
 
 class LibrarySearchForm(forms.Form):
