@@ -22,35 +22,35 @@
           hx-push-url="true"
         >
           <div class="grid gap-4 lg:grid-cols-2">
-            <label class="form-control w-full">
-              <span class="label-text mb-1">Keywords</span>
+            <label class="flex w-full flex-col gap-1">
+              <span class="text-sm font-medium">Keywords</span>
               {{ form.q }}
             </label>
 
-            <label class="form-control w-full">
-              <span class="label-text mb-1">Near (place-like query)</span>
+            <label class="flex w-full flex-col gap-1">
+              <span class="text-sm font-medium">Near (place-like query)</span>
               {{ form.near }}
             </label>
           </div>
 
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <label class="form-control w-full">
-              <span class="label-text mb-1">Radius (km)</span>
+            <label class="flex w-full flex-col gap-1">
+              <span class="text-sm font-medium">Radius (km)</span>
               {{ form.radius_km }}
             </label>
 
-            <label class="form-control w-full">
-              <span class="label-text mb-1">City filter</span>
+            <label class="flex w-full flex-col gap-1">
+              <span class="text-sm font-medium">City filter</span>
               {{ form.city }}
             </label>
 
-            <label class="form-control w-full">
-              <span class="label-text mb-1">Country filter</span>
+            <label class="flex w-full flex-col gap-1">
+              <span class="text-sm font-medium">Country filter</span>
               {{ form.country }}
             </label>
 
-            <label class="form-control w-full">
-              <span class="label-text mb-1">Postal code filter</span>
+            <label class="flex w-full flex-col gap-1">
+              <span class="text-sm font-medium">Postal code filter</span>
               {{ form.postal_code }}
             </label>
           </div>

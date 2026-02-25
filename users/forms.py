@@ -13,7 +13,7 @@ def _apply_input_classes(*, form: forms.BaseForm) -> None:
     Keeps this module logic focused and reusable."""
     for field in form.fields.values():
         existing_classes = field.widget.attrs.get("class", "")
-        classes = f"{existing_classes} input input-bordered w-full".strip()
+        classes = f"{existing_classes} input w-full".strip()
         field.widget.attrs["class"] = classes
 
 
