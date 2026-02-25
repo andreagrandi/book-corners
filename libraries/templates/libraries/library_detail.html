@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 
 {% block title %}{{ library.name|default:library.address }} - Book Corners{% endblock %}
+{% block meta_description %}{% if library.description %}{{ library.description|truncatechars:150 }}{% else %}Visit this little free library at {{ library.address }}, {{ library.city }} on Book Corners.{% endif %}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ library.name|default:library.address }} - Book Corners{% endblock %}
+{% block og_description %}{% if library.description %}{{ library.description|truncatechars:150 }}{% else %}Visit this little free library at {{ library.address }}, {{ library.city }} on Book Corners.{% endif %}{% endblock %}
+{% block og_extra %}
+  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ library.photo.url }}">
+{% endblock %}
 
 {% block extra_head %}
   <link

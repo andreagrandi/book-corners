@@ -4,7 +4,13 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Community map of neighborhood book exchange spots.">
+    <meta name="description" content="{% block meta_description %}Community map of neighborhood book exchange spots.{% endblock %}">
+    <meta property="og:site_name" content="Book Corners">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}Book Corners{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Community map of neighborhood book exchange spots.{% endblock %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    {% block og_extra %}{% endblock %}
     <link rel="icon" href="{% static 'images/book-corners-logo-navbar.png' %}">
     <title>{% block title %}Book Corners{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/app.css' %}">

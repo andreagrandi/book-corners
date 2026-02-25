@@ -17,9 +17,12 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
+from django.views.generic import TemplateView
 
 from config.api import api
+from libraries.sitemaps import LibrarySitemap, StaticViewSitemap
 from libraries.views import (
     about_page,
     dashboard,
@@ -36,10 +39,21 @@ from libraries.views import (
     submit_library_photo_metadata,
 )
 
+sitemaps = {
+    "static": StaticViewSitemap,
+    "libraries": LibrarySitemap,
+}
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("users.urls")),
     path("", home, name="home"),
+    path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
+    path(
+        "robots.txt",
+        TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
+        name="robots_txt",
+    ),
     path("about/", about_page, name="about_page"),
     path("map/", map_page, name="map_page"),
     path("map/libraries.geojson", map_libraries_geojson, name="map_libraries_geojson"),
