@@ -1,5 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
+from django.test import override_settings
 from django.urls import reverse
 
 User = get_user_model()
@@ -68,6 +70,36 @@ class TestAuthPages:
         post_response = client.post(reverse("logout"), follow=True)
         assert post_response.status_code == 200
         assert not post_response.wsgi_request.user.is_authenticated
+
+    @override_settings(
+        AUTH_RATE_LIMIT_ENABLED=True,
+        AUTH_RATE_LIMIT_WINDOW_SECONDS=300,
+        AUTH_RATE_LIMIT_LOGIN_ATTEMPTS=1,
+    )
+    def test_login_rate_limit_blocks_excessive_attempts(self, client, user):
+        """Verify repeated login attempts trigger auth throttling.
+        Confirms brute-force protection returns HTTP 429 on excess attempts."""
+        cache.clear()
+
+        first_response = client.post(
+            reverse("login"),
+            data={
+                "username": user.username,
+                "password": "wrong-password",
+            },
+        )
+        second_response = client.post(
+            reverse("login"),
+            data={
+                "username": user.username,
+                "password": "wrong-password",
+            },
+        )
+
+        assert first_response.status_code == 200
+        assert second_response.status_code == 429
+        assert "Retry-After" in second_response.headers
+        assert "Too many login attempts" in second_response.content.decode()
 
 
 @pytest.mark.django_db

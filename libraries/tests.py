@@ -2,6 +2,7 @@ from io import BytesIO
 from unittest.mock import patch
 
 import pytest
+from django.conf import settings as django_settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -659,6 +660,48 @@ class TestErrorPages:
         assert "Something went wrong" in content
         assert "Back to homepage" in content
         assert "Explore map" in content
+
+
+class TestCsrfProtection:
+    def test_csrf_middleware_is_enabled(self):
+        """Verify CSRF middleware remains enabled in global middleware.
+        Protects state-changing form submissions from cross-site request forgery."""
+        assert "django.middleware.csrf.CsrfViewMiddleware" in django_settings.MIDDLEWARE
+
+    @pytest.mark.django_db
+    def test_post_forms_render_csrf_tokens(self, client, user):
+        """Verify user-facing POST forms include CSRF tokens in markup.
+        Ensures template-level CSRF protection is active across key flows."""
+        login_response = client.get(reverse("login"))
+        register_response = client.get(reverse("register"))
+
+        assert login_response.status_code == 200
+        assert register_response.status_code == 200
+        assert "csrfmiddlewaretoken" in login_response.content.decode()
+        assert "csrfmiddlewaretoken" in register_response.content.decode()
+
+        library = Library.objects.create(
+            name="CSRF Check Shelf",
+            photo="libraries/photos/2026/02/csrf-check.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 21",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        client.force_login(user)
+
+        home_response = client.get(reverse("home"))
+        submit_response = client.get(reverse("submit_library"))
+        detail_response = client.get(reverse("library_detail", kwargs={"slug": library.slug}))
+
+        assert home_response.status_code == 200
+        assert submit_response.status_code == 200
+        assert detail_response.status_code == 200
+        assert "csrfmiddlewaretoken" in home_response.content.decode()
+        assert "csrfmiddlewaretoken" in submit_response.content.decode()
+        assert "csrfmiddlewaretoken" in detail_response.content.decode()
 
 
 @pytest.mark.django_db
@@ -1380,6 +1423,72 @@ class TestLibraryReportSubmission:
         assert "This field is required." in content
         assert Report.objects.count() == 0
 
+    def test_inline_report_submission_rejects_non_image_photo_upload(self, client, user):
+        """Verify report flow rejects non-image uploads.
+        Prevents arbitrary files from entering report photo storage."""
+        library = Library.objects.create(
+            name="Invalid Report Upload Shelf",
+            description="Library used for invalid report upload checks.",
+            photo="libraries/photos/2026/02/report-invalid-upload.jpg",
+            location=Point(x=12.4964, y=41.9028, srid=4326),
+            address="Via del Corso 20",
+            city="Rome",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        invalid_photo = SimpleUploadedFile(
+            name="invalid-report-photo.txt",
+            content=b"not-an-image",
+            content_type="text/plain",
+        )
+
+        client.force_login(user)
+        response = client.post(
+            reverse("submit_library_report", kwargs={"slug": library.slug}),
+            data={
+                "reason": Report.Reason.OTHER,
+                "details": "This report should fail because photo is invalid.",
+                "photo": invalid_photo,
+            },
+            HTTP_HX_REQUEST="true",
+        )
+
+        content = response.content.decode()
+        assert response.status_code == 422
+        assert "Upload a valid image" in content
+        assert Report.objects.count() == 0
+
+    def test_inline_report_submission_rejects_details_longer_than_max_length(self, client, user):
+        """Verify report details are constrained by form-level length rules.
+        Ensures user-provided text fields remain bounded for moderation data."""
+        library = Library.objects.create(
+            name="Long Report Details Shelf",
+            description="Library used for report details length checks.",
+            photo="libraries/photos/2026/02/report-long-details.jpg",
+            location=Point(x=12.4964, y=41.9028, srid=4326),
+            address="Via del Corso 20",
+            city="Rome",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        client.force_login(user)
+        response = client.post(
+            reverse("submit_library_report", kwargs={"slug": library.slug}),
+            data={
+                "reason": Report.Reason.OTHER,
+                "details": "x" * 2001,
+            },
+            HTTP_HX_REQUEST="true",
+        )
+
+        content = response.content.decode()
+        assert response.status_code == 422
+        assert "Ensure this value has at most 2000 characters" in content
+        assert Report.objects.count() == 0
+
     def test_inline_report_submission_requires_authentication(self, client, user):
         """Verify report submissions require authentication.
         Prevents anonymous users from creating moderation reports."""
@@ -1675,6 +1784,88 @@ class TestSubmitLibraryView:
             assert thumbnail_image.width <= 400
             assert thumbnail_image.height >= 1
             assert thumbnail_image.format == "JPEG"
+
+    def test_submit_rejects_non_image_photo_upload(self, client, user):
+        """Verify submit flow rejects uploads that are not valid images.
+        Prevents arbitrary file types from being persisted as photo payloads."""
+        client.force_login(user)
+        invalid_photo = SimpleUploadedFile(
+            name="invalid-photo.txt",
+            content=b"not-an-image",
+            content_type="text/plain",
+        )
+
+        response = client.post(
+            reverse("submit_library"),
+            data={
+                "photo": invalid_photo,
+                "name": "Invalid Upload Shelf",
+                "description": "Should fail due to non-image upload.",
+                "address": "Via dei Banchi 3",
+                "city": "Florence",
+                "country": "IT",
+                "postal_code": "50123",
+                "latitude": "43.7696",
+                "longitude": "11.2558",
+            },
+        )
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Upload a valid image" in content
+        assert not Library.objects.filter(name="Invalid Upload Shelf").exists()
+
+    @override_settings(MAX_LIBRARY_PHOTO_UPLOAD_BYTES=1024)
+    def test_submit_rejects_photo_larger_than_max_size(self, client, user):
+        """Verify submit flow enforces the maximum configured photo size.
+        Protects the application from oversized upload payloads."""
+        client.force_login(user)
+
+        response = client.post(
+            reverse("submit_library"),
+            data={
+                "photo": _build_uploaded_photo(file_name="too-large.jpg"),
+                "name": "Too Large Upload Shelf",
+                "description": "Should fail due to size restrictions.",
+                "address": "Via dei Banchi 3",
+                "city": "Florence",
+                "country": "IT",
+                "postal_code": "50123",
+                "latitude": "43.7696",
+                "longitude": "11.2558",
+            },
+        )
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Photo must be at most 1024 bytes." in content
+        assert not Library.objects.filter(name="Too Large Upload Shelf").exists()
+
+    def test_submit_rejects_description_longer_than_max_length(self, client, user):
+        """Verify submit flow validates description length limits.
+        Ensures text inputs are bounded to prevent oversized payloads."""
+        client.force_login(user)
+        long_description = "x" * 2001
+
+        response = client.post(
+            reverse("submit_library"),
+            data={
+                "photo": _build_uploaded_photo(file_name="long-description.jpg"),
+                "name": "Long Description Shelf",
+                "description": long_description,
+                "address": "Via dei Banchi 3",
+                "city": "Florence",
+                "country": "IT",
+                "postal_code": "50123",
+                "latitude": "43.7696",
+                "longitude": "11.2558",
+            },
+        )
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Ensure this value has at most 2000 characters" in content
+        assert not Library.objects.filter(name="Long Description Shelf").exists()
 
     def test_photo_metadata_endpoint_requires_authentication(self, client):
         """Verify the photo metadata endpoint is protected by login.

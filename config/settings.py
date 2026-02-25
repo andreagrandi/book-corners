@@ -14,18 +14,70 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / "subdir".
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+def _env_bool(*, name: str, default: bool) -> bool:
+    """Parse an environment variable as a boolean setting.
+    Supports common true and false string representations."""
+    raw_value = os.environ.get(name)
+    if raw_value is None:
+        return default
+    return raw_value.lower() in ("true", "1", "yes", "on")
+
+
+def _env_int(*, name: str, default: int) -> int:
+    """Parse an environment variable as an integer setting.
+    Falls back to a safe default when parsing fails."""
+    raw_value = os.environ.get(name)
+    if raw_value is None:
+        return default
+
+    try:
+        return int(raw_value)
+    except ValueError:
+        return default
+
+
+DEBUG = _env_bool(name="DJANGO_DEBUG", default=True)
+
 SECRET_KEY = os.environ.get(
     "DJANGO_SECRET_KEY",
-    "django-insecure-^^2(jhlow=omlc$eqcndv&qz3*-r3!l^=9y7-^-q4ly^@o0hg(",
+    "django-insecure-^^2(jhlow=omlc$eqcndv&qz3*-r3!l^=9y7-^-q4ly^@o0hg(" if DEBUG else "",
 )
+if not SECRET_KEY:
+    raise ImproperlyConfigured("DJANGO_SECRET_KEY must be set.")
+if not DEBUG and SECRET_KEY.startswith("django-insecure-"):
+    raise ImproperlyConfigured("DJANGO_SECRET_KEY must be a secure production value.")
 
-DEBUG = os.environ.get("DJANGO_DEBUG", "true").lower() in ("true", "1", "yes")
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,[::1],testserver").split(",")
+    if host.strip()
+]
 
-ALLOWED_HOSTS = []
+SECURE_SSL_REDIRECT = _env_bool(name="DJANGO_SECURE_SSL_REDIRECT", default=not DEBUG)
+SESSION_COOKIE_SECURE = _env_bool(name="DJANGO_SESSION_COOKIE_SECURE", default=not DEBUG)
+CSRF_COOKIE_SECURE = _env_bool(name="DJANGO_CSRF_COOKIE_SECURE", default=not DEBUG)
+SECURE_HSTS_SECONDS = _env_int(name="DJANGO_SECURE_HSTS_SECONDS", default=31536000 if not DEBUG else 0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = _env_bool(
+    name="DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS",
+    default=not DEBUG,
+)
+SECURE_HSTS_PRELOAD = _env_bool(name="DJANGO_SECURE_HSTS_PRELOAD", default=not DEBUG)
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+AUTH_RATE_LIMIT_ENABLED = _env_bool(name="AUTH_RATE_LIMIT_ENABLED", default=not DEBUG)
+AUTH_RATE_LIMIT_WINDOW_SECONDS = _env_int(name="AUTH_RATE_LIMIT_WINDOW_SECONDS", default=300)
+AUTH_RATE_LIMIT_LOGIN_ATTEMPTS = _env_int(name="AUTH_RATE_LIMIT_LOGIN_ATTEMPTS", default=10)
+AUTH_RATE_LIMIT_REGISTER_ATTEMPTS = _env_int(name="AUTH_RATE_LIMIT_REGISTER_ATTEMPTS", default=5)
+AUTH_RATE_LIMIT_REFRESH_ATTEMPTS = _env_int(name="AUTH_RATE_LIMIT_REFRESH_ATTEMPTS", default=15)
+
+MAX_LIBRARY_PHOTO_UPLOAD_BYTES = _env_int(name="MAX_LIBRARY_PHOTO_UPLOAD_BYTES", default=8 * 1024 * 1024)
+MAX_REPORT_PHOTO_UPLOAD_BYTES = _env_int(name="MAX_REPORT_PHOTO_UPLOAD_BYTES", default=5 * 1024 * 1024)
 
 
 # Application definition

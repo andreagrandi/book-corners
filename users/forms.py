@@ -30,9 +30,21 @@ class RegistrationForm(UserCreationForm):
         super().__init__(*args, **kwargs)
         _apply_input_classes(form=self)
 
+    def clean_username(self) -> str:
+        """Normalize the username field before persistence.
+        Trims surrounding whitespace from user input values."""
+        username = self.cleaned_data.get("username", "")
+        return username.strip()
+
+    def clean_email(self) -> str:
+        """Normalize the registration email before persistence.
+        Trims whitespace and lowercases email values consistently."""
+        email = self.cleaned_data.get("email", "")
+        return email.strip().lower()
+
 
 class UsernameOrEmailAuthenticationForm(AuthenticationForm):
-    username = forms.CharField(label="Username or email")
+    username = forms.CharField(label="Username or email", max_length=254)
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the object state.
@@ -53,6 +65,7 @@ class UsernameOrEmailAuthenticationForm(AuthenticationForm):
         password = password_value if isinstance(password_value, str) else ""
 
         if username_or_email and password:
+            self.cleaned_data["username"] = username_or_email
             username = username_or_email
             if "@" in username_or_email:
                 matching_user = User.objects.filter(email__iexact=username_or_email).first()

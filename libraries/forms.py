@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Any
 
 import pycountry
+from PIL import Image, UnidentifiedImageError
+from django.conf import settings
 from django import forms
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
@@ -23,11 +25,53 @@ SEARCH_COUNTRY_CHOICES = [
     *COUNTRY_CHOICES[1:],
 ]
 
+ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "WEBP"}
+
+
+def _validate_uploaded_photo(*, uploaded_photo: Any, max_size_bytes: int) -> Any:
+    """Validate uploaded image files for size and format.
+    Rejects non-image payloads and files larger than configured limits."""
+    if uploaded_photo is None:
+        return uploaded_photo
+
+    if uploaded_photo.size > max_size_bytes:
+        max_size_mb = max_size_bytes / (1024 * 1024)
+        if max_size_mb >= 1:
+            raise ValidationError(f"Photo must be {max_size_mb:.0f}MB or smaller.")
+        raise ValidationError(f"Photo must be at most {max_size_bytes} bytes.")
+
+    start_position = None
+    if hasattr(uploaded_photo, "tell"):
+        try:
+            start_position = uploaded_photo.tell()
+        except (OSError, ValueError):
+            start_position = None
+
+    try:
+        if hasattr(uploaded_photo, "seek"):
+            uploaded_photo.seek(0)
+
+        with Image.open(uploaded_photo) as image:
+            image_format = (image.format or "").upper()
+            if image_format not in ALLOWED_IMAGE_FORMATS:
+                raise ValidationError("Upload a valid image in JPEG, PNG, or WEBP format.")
+    except (UnidentifiedImageError, OSError, ValueError):
+        raise ValidationError("Upload a valid image in JPEG, PNG, or WEBP format.")
+    finally:
+        if start_position is not None and hasattr(uploaded_photo, "seek"):
+            try:
+                uploaded_photo.seek(start_position)
+            except (OSError, ValueError):
+                pass
+
+    return uploaded_photo
+
 
 class LibrarySubmissionForm(forms.ModelForm):
     latitude = forms.FloatField(required=True, widget=forms.HiddenInput())
     longitude = forms.FloatField(required=True, widget=forms.HiddenInput())
     country = forms.ChoiceField(choices=COUNTRY_CHOICES)
+    description = forms.CharField(required=False, max_length=2000, widget=forms.Textarea(attrs={"rows": 4}))
 
     class Meta:
         model = Library
@@ -40,9 +84,6 @@ class LibrarySubmissionForm(forms.ModelForm):
             "country",
             "postal_code",
         )
-        widgets = {
-            "description": forms.Textarea(attrs={"rows": 4}),
-        }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the object state.
@@ -74,6 +115,15 @@ class LibrarySubmissionForm(forms.ModelForm):
             raise ValidationError("Longitude must be between -180 and 180.")
         return longitude
 
+    def clean_photo(self) -> Any:
+        """Validate the library photo before saving the submission.
+        Enforces file-type and max-size rules for uploaded images."""
+        photo = self.cleaned_data.get("photo")
+        return _validate_uploaded_photo(
+            uploaded_photo=photo,
+            max_size_bytes=settings.MAX_LIBRARY_PHOTO_UPLOAD_BYTES,
+        )
+
     def save(self, commit: bool = True) -> Library:
         """Persist the model instance.
         Applies model-specific rules before writing data."""
@@ -96,6 +146,8 @@ class LibrarySubmissionForm(forms.ModelForm):
 
 
 class ReportSubmissionForm(forms.ModelForm):
+    details = forms.CharField(max_length=2000, widget=forms.Textarea(attrs={"rows": 4}))
+
     class Meta:
         model = Report
         fields = (
@@ -103,9 +155,6 @@ class ReportSubmissionForm(forms.ModelForm):
             "details",
             "photo",
         )
-        widgets = {
-            "details": forms.Textarea(attrs={"rows": 4}),
-        }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize report submission dependencies and widget styles.
@@ -135,6 +184,15 @@ class ReportSubmissionForm(forms.ModelForm):
             report.save()
 
         return report
+
+    def clean_photo(self) -> Any:
+        """Validate the optional report photo before persisting data.
+        Enforces file-type and max-size checks for moderation uploads."""
+        photo = self.cleaned_data.get("photo")
+        return _validate_uploaded_photo(
+            uploaded_photo=photo,
+            max_size_bytes=settings.MAX_REPORT_PHOTO_UPLOAD_BYTES,
+        )
 
 
 class LibrarySearchForm(forms.Form):
