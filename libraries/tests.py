@@ -450,7 +450,7 @@ class TestHomepageTemplate:
         assert response.status_code == 200
         assert "Book Corners" in content
         assert "href=\"/map/\"" in content
-        assert "href=\"/search/\"" in content
+        assert "href=\"/map/?view=list\"" in content
         assert "href=\"/submit/\"" in content
         assert "href=\"/login/\"" in content
         assert "href=\"/register/\"" in content
@@ -533,10 +533,221 @@ class TestHomepageLatestEntries:
 
 
 @pytest.mark.django_db
-class TestLibrarySearchView:
-    def test_search_by_keywords_matches_approved_name_and_description(self, client, user):
-        """Verify keyword search matches approved libraries only.
-        Ensures full-text behavior excludes pending entries from results."""
+class TestMapPageView:
+    def test_map_page_renders_leaflet_cluster_and_filter_controls(self, client):
+        """Verify map page renders map shell, filters, and cluster assets.
+        Confirms the dedicated map interface is available to visitors."""
+        response = client.get(reverse("map_page"))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "id=\"map-filters-form\"" in content
+        assert "id=\"libraries-map\"" in content
+        assert "id=\"map-list-results\"" in content
+        assert "leaflet@1.9.4" in content
+        assert "leaflet.markercluster@1.5.3" in content
+        assert reverse("map_libraries_geojson") in content
+        assert reverse("map_libraries_list") in content
+        assert "data-view-mode=\"split\"" in content
+
+    def test_map_page_persists_explicit_view_mode_from_querystring(self, client):
+        """Verify map page preserves an explicit requested view mode.
+        Lets server-rendered links open directly in list or map focus."""
+        response = client.get(reverse("map_page"), {"view": "list"})
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert 'data-initial-view="list"' in content
+
+    def test_map_geojson_endpoint_returns_only_approved_libraries(self, client, user):
+        """Verify map GeoJSON endpoint excludes non-approved libraries.
+        Keeps public map markers limited to moderated approved entries."""
+        approved_library = Library.objects.create(
+            name="Approved on Map",
+            photo="libraries/photos/2026/02/map-approved.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        Library.objects.create(
+            name="Pending on Map",
+            photo="libraries/photos/2026/02/map-pending.jpg",
+            location=Point(x=12.4964, y=41.9028, srid=4326),
+            address="Via del Corso 1",
+            city="Rome",
+            country="IT",
+            status=Library.Status.PENDING,
+            created_by=user,
+        )
+
+        response = client.get(reverse("map_libraries_geojson"))
+
+        payload = response.json()
+        assert response.status_code == 200
+        assert payload["type"] == "FeatureCollection"
+        assert payload["meta"]["count"] == 1
+        assert len(payload["features"]) == 1
+
+        feature = payload["features"][0]
+        assert feature["type"] == "Feature"
+        assert feature["properties"]["id"] == approved_library.id
+        assert feature["properties"]["slug"] == approved_library.slug
+        assert feature["properties"]["name"] == "Approved on Map"
+        assert feature["properties"]["detail_url"] == reverse(
+            "library_detail",
+            kwargs={"slug": approved_library.slug},
+        )
+        assert feature["geometry"]["type"] == "Point"
+        assert feature["geometry"]["coordinates"] == pytest.approx([11.2558, 43.7696], abs=1e-6)
+
+    def test_map_geojson_endpoint_applies_structured_filters(self, client, user):
+        """Verify map GeoJSON endpoint filters by city and country fields.
+        Ensures live map filtering can narrow marker sets quickly."""
+        matching_library = Library.objects.create(
+            name="Florence Filtered Shelf",
+            photo="libraries/photos/2026/02/map-filter-match.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        Library.objects.create(
+            name="Berlin Filtered Shelf",
+            photo="libraries/photos/2026/02/map-filter-other.jpg",
+            location=Point(x=13.4050, y=52.5200, srid=4326),
+            address="Unter den Linden 1",
+            city="Berlin",
+            country="DE",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.get(
+            reverse("map_libraries_geojson"),
+            {
+                "city": "Flor",
+                "country": "IT",
+            },
+        )
+
+        payload = response.json()
+        assert response.status_code == 200
+        assert payload["meta"]["count"] == 1
+        assert len(payload["features"]) == 1
+        assert payload["features"][0]["properties"]["id"] == matching_library.id
+
+    @patch("libraries.views.forward_geocode_place")
+    def test_map_geojson_endpoint_filters_by_near_radius_without_full_page_reload(
+        self,
+        mocked_forward_geocode,
+        client,
+        user,
+    ):
+        """Verify map endpoint supports nearby filtering using geocoded centers.
+        Returns marker subsets and center metadata for dynamic map updates."""
+        mocked_forward_geocode.return_value = (51.5074, -0.1278)
+        Library.objects.create(
+            name="Central London Shelf",
+            photo="libraries/photos/2026/02/map-nearby-1.jpg",
+            location=Point(x=-0.1270, y=51.5070, srid=4326),
+            address="Whitehall",
+            city="London",
+            country="GB",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        Library.objects.create(
+            name="Westminster Shelf",
+            photo="libraries/photos/2026/02/map-nearby-2.jpg",
+            location=Point(x=-0.1410, y=51.5010, srid=4326),
+            address="Birdcage Walk",
+            city="Westminster",
+            country="GB",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        Library.objects.create(
+            name="Cambridge Shelf",
+            photo="libraries/photos/2026/02/map-nearby-3.jpg",
+            location=Point(x=0.1218, y=52.2053, srid=4326),
+            address="King's Parade",
+            city="Cambridge",
+            country="GB",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.get(
+            reverse("map_libraries_geojson"),
+            {
+                "near": "London",
+                "radius_km": "20",
+            },
+        )
+
+        payload = response.json()
+        names = {feature["properties"]["name"] for feature in payload["features"]}
+        assert response.status_code == 200
+        assert "Central London Shelf" in names
+        assert "Westminster Shelf" in names
+        assert "Cambridge Shelf" not in names
+        assert payload["meta"]["location_resolution_failed"] is False
+        assert payload["meta"]["near_query"] == "London"
+        assert payload["meta"]["center"] is not None
+        assert payload["meta"]["center"]["lat"] == pytest.approx(51.5074, abs=1e-6)
+        assert payload["meta"]["center"]["lng"] == pytest.approx(-0.1278, abs=1e-6)
+
+    def test_map_geojson_endpoint_applies_optional_bounds_filter(self, client, user):
+        """Verify map GeoJSON endpoint can restrict markers to viewport bounds.
+        Improves marker payload size when users pan or zoom around the map."""
+        inside_library = Library.objects.create(
+            name="Inside Bounds Shelf",
+            photo="libraries/photos/2026/02/map-bounds-inside.jpg",
+            location=Point(x=2.3522, y=48.8566, srid=4326),
+            address="Rue de Rivoli 1",
+            city="Paris",
+            country="FR",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        Library.objects.create(
+            name="Outside Bounds Shelf",
+            photo="libraries/photos/2026/02/map-bounds-outside.jpg",
+            location=Point(x=13.4050, y=52.5200, srid=4326),
+            address="Unter den Linden 3",
+            city="Berlin",
+            country="DE",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.get(
+            reverse("map_libraries_geojson"),
+            {
+                "min_lat": "48.5000",
+                "min_lng": "2.1000",
+                "max_lat": "49.1000",
+                "max_lng": "2.7000",
+            },
+        )
+
+        payload = response.json()
+        assert response.status_code == 200
+        assert payload["meta"]["bounds_applied"] is True
+        assert payload["meta"]["count"] == 1
+        assert payload["features"][0]["properties"]["id"] == inside_library.id
+
+
+@pytest.mark.django_db
+class TestMapListEndpointFilters:
+    def test_list_endpoint_search_by_keywords_matches_approved_name_and_description(self, client, user):
+        """Verify keyword filtering shows approved libraries in list mode.
+        Excludes pending entries while keeping keyword matching behavior."""
         matching_library = Library.objects.create(
             name="Canal Stories Shelf",
             description="Weekly fiction swaps by the water.",
@@ -571,7 +782,7 @@ class TestLibrarySearchView:
             created_by=user,
         )
 
-        response = client.get(reverse("search_libraries"), {"q": "Canal"})
+        response = client.get(reverse("map_libraries_list"), {"q": "Canal"})
 
         content = response.content.decode()
         assert response.status_code == 200
@@ -579,9 +790,9 @@ class TestLibrarySearchView:
         assert "Garden Exchange" not in content
         assert "Canal Hidden Shelf" not in content
 
-    def test_search_filters_city_country_and_postal_code(self, client, user):
-        """Verify structured filters can be combined in one request.
-        Confirms city, country, and postal code filters narrow results."""
+    def test_list_endpoint_filters_city_country_and_postal_code(self, client, user):
+        """Verify structured filters can be combined in list mode.
+        Narrows list cards by city, country, and postal code values."""
         matching_library = Library.objects.create(
             name="Florence Central Shelf",
             description="Community favorite.",
@@ -608,7 +819,7 @@ class TestLibrarySearchView:
         )
 
         response = client.get(
-            reverse("search_libraries"),
+            reverse("map_libraries_list"),
             {
                 "city": "Flor",
                 "country": "IT",
@@ -622,14 +833,14 @@ class TestLibrarySearchView:
         assert "Rome Shelf" not in content
 
     @patch("libraries.views.forward_geocode_place")
-    def test_search_by_place_returns_nearby_results_within_radius(
+    def test_list_endpoint_near_filter_returns_nearby_results_within_radius(
         self,
         mocked_forward_geocode,
         client,
         user,
     ):
         """Verify place-like search includes nearby non-matching city names.
-        Confirms radius filtering extends results beyond strict city-text matching."""
+        Confirms radius filtering extends results beyond strict city text."""
         mocked_forward_geocode.return_value = (51.5074, -0.1278)
         london_library = Library.objects.create(
             name="Central London Shelf",
@@ -666,7 +877,7 @@ class TestLibrarySearchView:
         )
 
         response = client.get(
-            reverse("search_libraries"),
+            reverse("map_libraries_list"),
             {"near": "London", "radius_km": "20"},
         )
 
@@ -677,14 +888,14 @@ class TestLibrarySearchView:
         assert far_library.name not in content
 
     @patch("libraries.views.forward_geocode_place")
-    def test_search_by_place_falls_back_to_keywords_when_geocoding_fails(
+    def test_list_endpoint_falls_back_to_keywords_when_geocoding_fails(
         self,
         mocked_forward_geocode,
         client,
         user,
     ):
         """Verify unresolved place searches still return keyword matches.
-        Keeps the simple home search useful even when geocoding fails."""
+        Preserves useful results when place geocoding fails."""
         mocked_forward_geocode.return_value = None
         matching_library = Library.objects.create(
             name="London Stories Library",
@@ -698,16 +909,16 @@ class TestLibrarySearchView:
             created_by=user,
         )
 
-        response = client.get(reverse("search_libraries"), {"near": "London"})
+        response = client.get(reverse("map_libraries_list"), {"near": "London"})
 
         content = response.content.decode()
         assert response.status_code == 200
         assert matching_library.name in content
         assert "Could not resolve \"London\"" in content
 
-    def test_search_page_shows_empty_state_when_no_results_match(self, client, user):
-        """Verify no-match searches render a clear empty state message.
-        Helps users understand they need to broaden their query."""
+    def test_list_endpoint_shows_empty_state_when_no_results_match(self, client, user):
+        """Verify no-match filter combinations render a clear empty state.
+        Helps users understand they need to broaden their filters."""
         Library.objects.create(
             name="Florence Shelf",
             description="Classic novels.",
@@ -720,11 +931,41 @@ class TestLibrarySearchView:
             created_by=user,
         )
 
-        response = client.get(reverse("search_libraries"), {"q": "nonexistent-search-term"})
+        response = client.get(reverse("map_libraries_list"), {"q": "nonexistent-search-term"})
 
         content = response.content.decode()
         assert response.status_code == 200
         assert "No libraries found" in content
+
+    def test_list_endpoint_paginates_results_with_explicit_page_selection(self, client, user):
+        """Verify list endpoint paginates large result sets with page controls.
+        Supports non-infinite navigation while preserving current filter state."""
+        for index in range(13):
+            Library.objects.create(
+                name=f"Paged List Shelf {index}",
+                photo="libraries/photos/2026/02/map-list-page.jpg",
+                location=Point(x=11.2558 + index * 0.0003, y=43.7696 + index * 0.0003, srid=4326),
+                address=f"Via Rosina {index + 1}",
+                city="Florence",
+                country="IT",
+                status=Library.Status.APPROVED,
+                created_by=user,
+            )
+
+        first_page_response = client.get(reverse("map_libraries_list"))
+        second_page_response = client.get(reverse("map_libraries_list"), {"page": "2"})
+
+        first_page_content = first_page_response.content.decode()
+        second_page_content = second_page_response.content.decode()
+
+        assert first_page_response.status_code == 200
+        assert "Page 1 of 2" in first_page_content
+        assert 'data-list-page="2"' in first_page_content
+
+        assert second_page_response.status_code == 200
+        assert "Page 2 of 2" in second_page_content
+        assert 'data-list-page="1"' in second_page_content
+        assert "Paged List Shelf 0" in second_page_content
 
 
 @pytest.mark.django_db

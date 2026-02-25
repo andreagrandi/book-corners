@@ -3,7 +3,7 @@ from __future__ import annotations
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.db.models.functions import Distance
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.measure import D
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.core.paginator import Page, Paginator
@@ -11,6 +11,7 @@ from django.db import connection
 from django.db.models import Q, QuerySet
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from libraries.forms import LibrarySearchForm, LibrarySubmissionForm
 from libraries.geolocation import (
@@ -23,6 +24,10 @@ from libraries.models import Library
 LATEST_ENTRIES_PAGE_SIZE = 9
 DEFAULT_SUBMIT_MAP_LATITUDE = 48.8566
 DEFAULT_SUBMIT_MAP_LONGITUDE = 2.3522
+DEFAULT_MAP_CENTER_LATITUDE = 50.1109
+DEFAULT_MAP_CENTER_LONGITUDE = 8.6821
+DEFAULT_MAP_ZOOM_LEVEL = 5
+MAP_LIST_PAGE_SIZE = 12
 DEFAULT_SEARCH_RADIUS_KM = 10
 
 
@@ -54,22 +59,6 @@ def _get_latest_entries_page(*, page_number: int) -> Page:
     return paginator.get_page(page_number)
 
 
-def _is_htmx_request(*, request: HttpRequest) -> bool:
-    """Check whether the current request originates from HTMX.
-    Allows one view to return either full pages or partial fragments."""
-    return request.headers.get("HX-Request", "").lower() == "true"
-
-
-def _has_active_search_criteria(*, cleaned_data: dict[str, object]) -> bool:
-    """Detect whether the user provided any meaningful search filters.
-    Prevents showing empty-state results before a real search is submitted."""
-    for key in ("q", "near", "city", "country", "postal_code"):
-        value = cleaned_data.get(key)
-        if isinstance(value, str) and value:
-            return True
-    return False
-
-
 def _apply_text_search(*, queryset: QuerySet[Library], query_text: str) -> QuerySet[Library]:
     """Filter approved libraries by text on name and description.
     Uses PostgreSQL full-text search with a safe fallback for non-Postgres DBs."""
@@ -88,9 +77,12 @@ def _apply_text_search(*, queryset: QuerySet[Library], query_text: str) -> Query
     )
 
 
-def _run_library_search(*, cleaned_data: dict[str, object]) -> tuple[QuerySet[Library], bool]:
+def _run_library_search(
+    *,
+    cleaned_data: dict[str, object],
+) -> tuple[QuerySet[Library], bool, tuple[float, float] | None]:
     """Execute combined text, field, and proximity search filters.
-    Returns a queryset plus a flag indicating unresolved place queries."""
+    Returns queryset, geocoding-failure flag, and optional resolved map center."""
     query_text = str(cleaned_data.get("q") or "")
     near_text = str(cleaned_data.get("near") or "")
     city = str(cleaned_data.get("city") or "")
@@ -113,6 +105,7 @@ def _run_library_search(*, cleaned_data: dict[str, object]) -> tuple[QuerySet[Li
         queryset = _apply_text_search(queryset=queryset, query_text=query_text)
 
     location_resolution_failed = False
+    resolved_center: tuple[float, float] | None = None
     if near_text:
         coordinates = forward_geocode_place(
             place_query=near_text,
@@ -126,6 +119,7 @@ def _run_library_search(*, cleaned_data: dict[str, object]) -> tuple[QuerySet[Li
                 queryset = _apply_text_search(queryset=queryset, query_text=near_text)
         else:
             latitude, longitude = coordinates
+            resolved_center = (latitude, longitude)
             center_point = Point(x=longitude, y=latitude, srid=4326)
             queryset = (
                 queryset
@@ -133,9 +127,74 @@ def _run_library_search(*, cleaned_data: dict[str, object]) -> tuple[QuerySet[Li
                 .filter(location__distance_lte=(center_point, D(km=radius_km)))
                 .order_by("distance", "-created_at")
             )
-            return queryset, location_resolution_failed
+            return queryset, location_resolution_failed, resolved_center
 
-    return queryset, location_resolution_failed
+    return queryset, location_resolution_failed, resolved_center
+
+
+def _serialize_library_geojson_feature(*, library: Library) -> dict[str, object]:
+    """Serialize one approved library into a GeoJSON feature.
+    Provides marker coordinates and popup metadata for the map page."""
+    photo_url = ""
+    try:
+        photo_url = library.photo.url
+    except ValueError:
+        photo_url = ""
+
+    return {
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "coordinates": [library.location.x, library.location.y],
+        },
+        "properties": {
+            "id": library.id,
+            "slug": library.slug,
+            "name": library.name or "Neighborhood Library",
+            "city": library.city,
+            "country": library.country,
+            "address": library.address,
+            "photo_url": photo_url,
+            "detail_url": reverse("library_detail", kwargs={"slug": library.slug}),
+        },
+    }
+
+
+def _parse_query_float(*, request: HttpRequest, key: str) -> float | None:
+    """Parse an optional float query parameter from the request.
+    Returns None for missing or invalid numeric inputs."""
+    raw_value = request.GET.get(key)
+    if not isinstance(raw_value, str) or raw_value == "":
+        return None
+
+    try:
+        return float(raw_value)
+    except ValueError:
+        return None
+
+
+def _get_map_bounds_polygon(*, request: HttpRequest) -> Polygon | None:
+    """Build a bounding-box polygon from query parameters.
+    Returns None when bounds are missing or outside valid ranges."""
+    min_lat = _parse_query_float(request=request, key="min_lat")
+    min_lng = _parse_query_float(request=request, key="min_lng")
+    max_lat = _parse_query_float(request=request, key="max_lat")
+    max_lng = _parse_query_float(request=request, key="max_lng")
+
+    if None in (min_lat, min_lng, max_lat, max_lng):
+        return None
+
+    if min_lat > max_lat or min_lng > max_lng:
+        return None
+
+    if not (-90 <= min_lat <= 90 and -90 <= max_lat <= 90):
+        return None
+    if not (-180 <= min_lng <= 180 and -180 <= max_lng <= 180):
+        return None
+
+    bounds_polygon = Polygon.from_bbox((min_lng, min_lat, max_lng, max_lat))
+    bounds_polygon.srid = 4326
+    return bounds_polygon
 
 
 def home(request: HttpRequest) -> HttpResponse:
@@ -168,42 +227,107 @@ def latest_entries(request: HttpRequest) -> HttpResponse:
     )
 
 
-def search_libraries(request: HttpRequest) -> HttpResponse:
-    """Render the search page and HTMX results fragment.
-    Supports keyword, structured filters, and radius-based place searches."""
-    form = LibrarySearchForm(request.GET or None)
-    has_submitted_search = False
-    location_resolution_failed = False
-    libraries = Library.objects.none()
+def _run_map_filters(
+    *,
+    form: LibrarySearchForm,
+) -> tuple[QuerySet[Library], bool, str, tuple[float, float] | None]:
+    """Apply shared filters for map markers and list results.
+    Keeps map and list views synchronized from one filtering source."""
     near_query = ""
+    location_resolution_failed = False
+    resolved_center: tuple[float, float] | None = None
 
     if form.is_valid():
         cleaned_data = form.cleaned_data
         near_query = str(cleaned_data.get("near") or "")
-        has_submitted_search = _has_active_search_criteria(cleaned_data=cleaned_data)
-        if has_submitted_search:
-            libraries, location_resolution_failed = _run_library_search(
-                cleaned_data=cleaned_data
-            )
-    elif request.GET:
-        has_submitted_search = True
-        near_value = request.GET.get("near", "")
-        near_query = near_value if isinstance(near_value, str) else ""
+        queryset, location_resolution_failed, resolved_center = _run_library_search(
+            cleaned_data=cleaned_data
+        )
+        return queryset, location_resolution_failed, near_query, resolved_center
 
-    context = {
-        "form": form,
-        "libraries": libraries,
-        "has_submitted_search": has_submitted_search,
-        "location_resolution_failed": location_resolution_failed,
-        "near_query": near_query,
-    }
+    queryset = Library.objects.filter(status=Library.Status.APPROVED).order_by("-created_at")
+    return queryset, location_resolution_failed, near_query, resolved_center
 
-    template_name = (
-        "libraries/_search_results.html"
-        if _is_htmx_request(request=request)
-        else "libraries/search.html"
+
+def map_page(request: HttpRequest) -> HttpResponse:
+    """Render the full map page and filter controls.
+    Loads the map shell while marker data is fetched asynchronously."""
+    requested_view = request.GET.get("view")
+    map_view = requested_view if requested_view in {"map", "list", "split"} else ""
+    form = LibrarySearchForm(request.GET or None)
+    return render(
+        request,
+        "libraries/map.html",
+        {
+            "form": form,
+            "map_view": map_view,
+            "map_default_latitude": DEFAULT_MAP_CENTER_LATITUDE,
+            "map_default_longitude": DEFAULT_MAP_CENTER_LONGITUDE,
+            "map_default_zoom": DEFAULT_MAP_ZOOM_LEVEL,
+        },
     )
-    return render(request, template_name, context)
+
+
+def map_libraries_geojson(request: HttpRequest) -> JsonResponse:
+    """Return approved libraries as a GeoJSON feature collection.
+    Applies optional search filters so map markers update without page reloads."""
+    form = LibrarySearchForm(request.GET or None)
+    queryset, location_resolution_failed, near_query, resolved_center = _run_map_filters(form=form)
+    map_bounds_polygon = _get_map_bounds_polygon(request=request)
+    if map_bounds_polygon is not None:
+        queryset = queryset.filter(location__within=map_bounds_polygon)
+
+    features = [
+        _serialize_library_geojson_feature(library=library)
+        for library in queryset
+    ]
+
+    center_payload: dict[str, float] | None = None
+    if resolved_center is not None:
+        center_payload = {
+            "lat": round(resolved_center[0], 6),
+            "lng": round(resolved_center[1], 6),
+        }
+
+    payload: dict[str, object] = {
+        "type": "FeatureCollection",
+        "features": features,
+        "meta": {
+            "count": len(features),
+            "near_query": near_query,
+            "location_resolution_failed": location_resolution_failed,
+            "center": center_payload,
+            "bounds_applied": map_bounds_polygon is not None,
+        },
+    }
+    if form.errors:
+        payload_meta = payload["meta"]
+        if isinstance(payload_meta, dict):
+            payload_meta["form_errors"] = form.errors.get_json_data()
+
+    return JsonResponse(payload)
+
+
+def map_libraries_list(request: HttpRequest) -> HttpResponse:
+    """Render filtered library cards for the map list panel.
+    Returns an HTML fragment so list updates without full page reloads."""
+    form = LibrarySearchForm(request.GET or None)
+    libraries, location_resolution_failed, near_query, _ = _run_map_filters(form=form)
+    page_value = request.GET.get("page")
+    page_number = _parse_page_number(page_value if isinstance(page_value, str) else None)
+    paginator = Paginator(libraries, MAP_LIST_PAGE_SIZE)
+    page_obj = paginator.get_page(page_number)
+
+    return render(
+        request,
+        "libraries/_map_results_list.html",
+        {
+            "page_obj": page_obj,
+            "location_resolution_failed": location_resolution_failed,
+            "near_query": near_query,
+            "form_errors": form.errors,
+        },
+    )
 
 
 def library_detail(request: HttpRequest, slug: str) -> HttpResponse:

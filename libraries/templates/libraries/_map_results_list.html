@@ -1,0 +1,67 @@
+<span class="hidden" data-list-total-count="{{ page_obj.paginator.count }}"></span>
+
+{% if form_errors %}
+  <div class="alert alert-error mb-4">
+    <span>Please review the filter fields and try again.</span>
+  </div>
+{% endif %}
+
+{% if location_resolution_failed and near_query %}
+  <div class="alert alert-warning mb-4">
+    <span>Could not resolve "{{ near_query }}" to a place, so keyword matching was used instead.</span>
+  </div>
+{% endif %}
+
+{% if page_obj.object_list %}
+  <div class="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm text-base-content/70">
+    <span>{{ page_obj.paginator.count }} libraries found.</span>
+    {% if page_obj.paginator.num_pages > 1 %}
+      <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% endif %}
+  </div>
+
+  <div class="grid gap-4" style="grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));">
+    {% for library in page_obj.object_list %}
+      {% include "libraries/_library_card.html" with library=library %}
+    {% endfor %}
+  </div>
+
+  {% if page_obj.paginator.num_pages > 1 %}
+    <div class="mt-4 flex items-center justify-between gap-3">
+      {% if page_obj.has_previous %}
+        <button
+          type="button"
+          class="btn btn-sm btn-outline"
+          data-list-page="{{ page_obj.previous_page_number }}"
+        >
+          Previous
+        </button>
+      {% else %}
+        <button type="button" class="btn btn-sm btn-outline" disabled>
+          Previous
+        </button>
+      {% endif %}
+
+      <span class="text-sm text-base-content/70">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+      {% if page_obj.has_next %}
+        <button
+          type="button"
+          class="btn btn-sm btn-outline"
+          data-list-page="{{ page_obj.next_page_number }}"
+        >
+          Next
+        </button>
+      {% else %}
+        <button type="button" class="btn btn-sm btn-outline" disabled>
+          Next
+        </button>
+      {% endif %}
+    </div>
+  {% endif %}
+{% else %}
+  <div class="rounded-box border border-dashed border-base-300 bg-base-100 p-8 text-center">
+    <h2 class="text-lg font-semibold">No libraries found</h2>
+    <p class="mt-2 text-base-content/70">Try broader keywords, increase the radius, or relax one of the filters.</p>
+  </div>
+{% endif %}

@@ -338,26 +338,26 @@ Everything else is server-rendered Django templates + HTMX.
 ### Phase 3 — Map Page
 
 #### 3.1 — Full map page with markers
-- [ ] Create a map page template and use OpenStreetMap (if API key is needed, tell me how to get it)
-- [ ] Create `/map/` view that returns the map page template
-- [ ] Add Leaflet CSS/JS to the template (CDN or local static)
-- [ ] Initialize Leaflet map centered on a sensible default (e.g. Europe or user's region)
-- [ ] Create a JSON endpoint (or Django Ninja endpoint) returning approved libraries as GeoJSON (id, name, lat, lng, photo thumbnail URL)
-- [ ] Fetch the GeoJSON on page load and add markers to the map
+- [x] Create a map page template and use OpenStreetMap (if API key is needed, tell me how to get it)
+- [x] Create `/map/` view that returns the map page template
+- [x] Add Leaflet CSS/JS to the template (CDN or local static)
+- [x] Initialize Leaflet map centered on a sensible default (e.g. Europe or user's region)
+- [x] Create a JSON endpoint (or Django Ninja endpoint) returning approved libraries as GeoJSON (id, name, lat, lng, photo thumbnail URL)
+- [x] Fetch the GeoJSON on page load and add markers to the map
 
 #### 3.2 — Marker clustering
-- [ ] Add Leaflet.markercluster plugin (CSS + JS)
-- [ ] Wrap markers in a MarkerClusterGroup
-- [ ] Verify clustering works with a batch of test data points
+- [x] Add Leaflet.markercluster plugin (CSS + JS)
+- [x] Wrap markers in a MarkerClusterGroup
+- [x] Verify clustering works with a batch of test data points
 
 #### 3.3 — Marker popups
-- [ ] On marker click: show a popup with library name, photo thumbnail, city
-- [ ] Add a "View details" link in the popup pointing to the detail page (`/library/<slug>/`)
+- [x] On marker click: show a popup with library name, photo thumbnail, city
+- [x] Add a "View details" link in the popup pointing to the detail page (`/library/<slug>/`)
 
 #### 3.4 — Small map on detail page
-- [ ] Add a small Leaflet map on the library detail page
-- [ ] Show a single pin at the library's coordinates
-- [ ] Set appropriate zoom level for a neighborhood view
+- [x] Add a small Leaflet map on the library detail page
+- [x] Show a single pin at the library's coordinates
+- [x] Set appropriate zoom level for a neighborhood view
 
 ---
 
