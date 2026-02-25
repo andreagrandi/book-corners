@@ -86,18 +86,22 @@ and migrate the existing photo field into it.
 - Use Django's built-in user model for both.
 - Login and register endpoints in the API return JWT tokens.
 
-### Phase 2 (iOS app / later)
-- **OAuth2 / Social auth:** Add `django-allauth` (supports Apple, Google, etc.).
+### Phase 2 (current next step)
+- **Google social auth (web):** Add `django-allauth` with Google provider.
   django-allauth integrates with Django's auth system, so existing sessions and
   JWT flows continue to work.
-- **Sign in with Apple:** Required for iOS apps with third-party login. django-allauth
-  has a provider for it.
+
+### Phase 3 (iOS app / later)
+- **Sign in with Apple:** Add when the iOS app starts and Apple Developer Program
+  enrollment is available.
+- **Mobile social auth extension:** Keep backend auth additive so iOS can later use
+  provider token exchange endpoints without reworking web auth.
 
 ### What this means in practice
 - Build all auth around Django's User model from day one.
 - The API always checks JWT; the web always checks session. Django Ninja supports
   multiple auth backends per endpoint, so a single view can accept either.
-- Adding OAuth later is an additive change — no rewrites needed.
+- Adding or extending OAuth providers later is an additive change — no rewrites needed.
 - Some API endpoints (list, search, detail) require no auth at all.
 
 ---
@@ -359,6 +363,99 @@ Everything else is server-rendered Django templates + HTMX.
 - [x] Show a single pin at the library's coordinates
 - [x] Set appropriate zoom level for a neighborhood view
 
+### Phase 3.5 — Google Auth (Web-first)
+
+Goal for this phase:
+- [ ] Add Google login for the web app now, without introducing Apple login yet.
+- [ ] Keep the existing username/email + password flow unchanged.
+- [ ] Implement this in a way that can be extended for iOS later (additive, no rewrite).
+
+#### 3.5.1 — Auth policy and constraints (before coding)
+- [ ] Confirm account policy: username unique + email unique (case-insensitive)
+- [ ] Keep login with username OR email + password for local auth
+- [ ] Keep email required for local registration
+- [ ] Define linking rule: same verified Google email must map to one existing local user
+- [ ] Define fallback behavior if provider email is missing or not verified
+
+#### 3.5.2 — User data hardening for unique email
+- [ ] Audit existing users for duplicate emails ignoring case
+- [ ] Normalize stored emails (trim + lowercase) via migration before constraint
+- [ ] Add database-level unique constraint for email (case-insensitive strategy)
+- [ ] Update forms/validation so duplicate emails fail with a clear error message
+- [ ] Add migration tests for normalization + uniqueness behavior
+
+#### 3.5.3 — Google Cloud setup (local first)
+- [ ] Create Google Cloud project (free tier, no billing required for basic sign-in)
+- [ ] Configure OAuth consent screen (External + Testing mode)
+- [ ] Create OAuth client type: Web application
+- [ ] Add local redirect URI: `http://localhost:8000/accounts/google/login/callback/`
+- [ ] Add local authorized origin: `http://localhost:8000`
+- [ ] Document production URI to add later: `https://<domain>/accounts/google/login/callback/`
+
+#### 3.5.4 — Django allauth integration (Google only)
+- [ ] Install `django-allauth`
+- [ ] Enable required apps in settings:
+  - [ ] `django.contrib.sites`
+  - [ ] `allauth`
+  - [ ] `allauth.account`
+  - [ ] `allauth.socialaccount`
+  - [ ] `allauth.socialaccount.providers.google`
+- [ ] Configure authentication backends to include model backend + allauth backend
+- [ ] Add and configure `SITE_ID`
+- [ ] Add allauth account settings (email, login, signup behavior aligned with current UX)
+- [ ] Add SocialApp/provider config via admin or settings-backed env values
+
+#### 3.5.5 — URL routing + web login UX
+- [ ] Include allauth URLs under `/accounts/`
+- [ ] Keep `/login/` and `/register/` as the main entry pages
+- [ ] Add "Continue with Google" button to login template
+- [ ] Add "Continue with Google" button to register template
+- [ ] Preserve safe `next` redirect behavior after social login
+- [ ] Keep logout as POST-only and unchanged
+
+#### 3.5.6 — Social account linking behavior
+- [ ] If Google verified email matches existing user email: attach social account, do not create new user
+- [ ] If no matching user exists: create user and generate unique username
+- [ ] Prevent duplicate users when the same Google account logs in repeatedly
+- [ ] Handle conflict edge cases deterministically (race conditions / simultaneous signups)
+- [ ] Ensure future profile fields remain independent from auth method
+
+#### 3.5.7 — Environment variables and secrets flow
+- [ ] Add placeholders to `.env.example`:
+  - [ ] `GOOGLE_OAUTH_CLIENT_ID`
+  - [ ] `GOOGLE_OAUTH_CLIENT_SECRET`
+- [ ] Local dev: set values in `.env` / `.envrc`
+- [ ] Production: configure Dokku env vars with `dokku config:set` (or GitHub Actions automation)
+- [ ] Keep code identical across environments; only env values and OAuth console URIs differ
+
+#### 3.5.8 — Test coverage
+- [ ] Keep current auth tests green (register/login/logout/navbar behavior)
+- [ ] Add tests for email uniqueness (including case-insensitive duplicates)
+- [ ] Add tests for Google-first signup (new user created)
+- [ ] Add tests for Google login linking to an existing local account by email
+- [ ] Add tests for provider denial/cancel callback handling
+- [ ] Add tests for invalid callback/state mismatch handling
+
+#### 3.5.9 — Manual QA (required before moving to API phase)
+- [ ] Local smoke test: login with Google from `http://localhost:8000/` end-to-end
+- [ ] Verify session is created and navbar switches to authenticated state
+- [ ] Verify logout works and returns to anonymous navbar state
+- [ ] Verify existing local account with same email is reused (no duplicate row)
+- [ ] Verify normal username/email + password flow still works exactly as before
+
+#### 3.5.10 — Documentation updates
+- [ ] Add setup guide for Google OAuth in local development
+- [ ] Document common OAuth errors and fixes (`redirect_uri_mismatch`, host mismatch, wrong callback path)
+- [ ] Document how to add production redirect URI when the domain is ready
+- [ ] Document secret management strategy for GitHub Actions + Dokku
+
+#### 3.5.11 — Definition of done
+- [ ] Google login works locally for web users
+- [ ] Existing auth flow remains backward-compatible
+- [ ] Email uniqueness is enforced safely at DB and form level
+- [ ] No Apple login work is introduced in this phase
+- [ ] The project is ready to add iOS support later as an extension, not a rewrite
+
 ---
 
 ### Phase 4 — API Completion
@@ -484,15 +581,14 @@ Everything else is server-rendered Django templates + HTMX.
 
 - [x] Find a better name and rename the home page title
 - [x] Find a logo for the project
-- [ ] Improve the footer (remove mention of Django, HTMX and add link to the GitHub repository)
+- [x] Improve the footer (remove mention of Django, HTMX and add link to the GitHub repository)
 - [ ] "Report this library" should be "Report an issue with this library"
 - [ ] Multi language support with language selector (at least English and Italian)
 - [ ] An About page which explain the project more in details
 - [ ] Multiple photos per library (LibraryPhoto model)
-- [ ] OAuth2 / Sign in with Apple (django-allauth)
+- [ ] Sign in with Apple (after Apple Developer Program enrollment)
 - [ ] Custom moderation dashboard (beyond Django admin)
 - [ ] User profiles (public page with contributions)
 - [ ] Favorites / bookmarks
 - [ ] "Library near me" geolocation prompt
-- [ ] Internationalization (i18n)
 - [ ] iOS app
