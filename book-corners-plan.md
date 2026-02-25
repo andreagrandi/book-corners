@@ -541,18 +541,17 @@ Goal for this phase:
 - [x] Wire up Django's handler404 and handler500
 
 #### 5.5 — Security review
-- [ ] Verify CSRF protection is active on all forms
-- [ ] Verify file upload validation (allowed types, max size)
-- [ ] Review rate limiting on auth endpoints (prevent brute force)
-- [ ] Review input validation on all user-facing fields
-- [ ] Run Django's `check --deploy` and address warnings
-- [ ] Verify `DEBUG=False` and secret key management for production
+- [x] Verify CSRF protection is active on all forms
+- [x] Verify file upload validation (allowed types, max size)
+- [x] Review rate limiting on auth endpoints (prevent brute force)
+- [x] Review input validation on all user-facing fields
+- [x] Run Django's `check --deploy` and address warnings
+- [x] Verify `DEBUG=False` and secret key management for production
 
 #### 5.6 — First public deploy gate (single environment)
 - [ ] Confirm there is no staging environment and production is public from first deploy
 - [ ] Complete 5.4 (error pages) and 5.5 (security review) before DNS cutover
 - [ ] Test core flows locally with production-like settings (`DEBUG=False`): home, map, submit, login, admin
-- [ ] Define launch scope freeze for first deploy week (only bugfixes, no large feature work)
 - [ ] Decide email policy for MVP: keep welcome/reset email flows disabled until provider is configured
 - [ ] Create a one-page incident response note (who gets alerted, rollback steps, backup restore reference)
 
@@ -665,12 +664,8 @@ Assumptions:
 
 ### Phase 7 — Future Enhancements (out of scope for now)
 
-- [x] Find a better name and rename the home page title
-- [x] Find a logo for the project
-- [x] Improve the footer (remove mention of Django, HTMX and add link to the GitHub repository)
 - [ ] "Report this library" should be "Report an issue with this library"
 - [ ] Multi language support with language selector (at least English and Italian)
-- [x] An About page which explain the project more in details
 - [ ] Multiple photos per library (LibraryPhoto model)
 - [ ] Sign in with Apple (after Apple Developer Program enrollment)
 - [ ] Custom moderation dashboard (beyond Django admin)
