@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 import dj_database_url
@@ -43,6 +44,7 @@ def _env_int(*, name: str, default: int) -> int:
 
 
 DEBUG = _env_bool(name="DJANGO_DEBUG", default=True)
+IS_TEST_ENVIRONMENT = any("pytest" in arg for arg in sys.argv) or "PYTEST_CURRENT_TEST" in os.environ
 
 SECRET_KEY = os.environ.get(
     "DJANGO_SECRET_KEY",
@@ -59,15 +61,30 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
-SECURE_SSL_REDIRECT = _env_bool(name="DJANGO_SECURE_SSL_REDIRECT", default=not DEBUG)
-SESSION_COOKIE_SECURE = _env_bool(name="DJANGO_SESSION_COOKIE_SECURE", default=not DEBUG)
-CSRF_COOKIE_SECURE = _env_bool(name="DJANGO_CSRF_COOKIE_SECURE", default=not DEBUG)
-SECURE_HSTS_SECONDS = _env_int(name="DJANGO_SECURE_HSTS_SECONDS", default=31536000 if not DEBUG else 0)
+SECURE_SSL_REDIRECT = _env_bool(
+    name="DJANGO_SECURE_SSL_REDIRECT",
+    default=not DEBUG and not IS_TEST_ENVIRONMENT,
+)
+SESSION_COOKIE_SECURE = _env_bool(
+    name="DJANGO_SESSION_COOKIE_SECURE",
+    default=not DEBUG and not IS_TEST_ENVIRONMENT,
+)
+CSRF_COOKIE_SECURE = _env_bool(
+    name="DJANGO_CSRF_COOKIE_SECURE",
+    default=not DEBUG and not IS_TEST_ENVIRONMENT,
+)
+SECURE_HSTS_SECONDS = _env_int(
+    name="DJANGO_SECURE_HSTS_SECONDS",
+    default=31536000 if not DEBUG and not IS_TEST_ENVIRONMENT else 0,
+)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = _env_bool(
     name="DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS",
-    default=not DEBUG,
+    default=not DEBUG and not IS_TEST_ENVIRONMENT,
 )
-SECURE_HSTS_PRELOAD = _env_bool(name="DJANGO_SECURE_HSTS_PRELOAD", default=not DEBUG)
+SECURE_HSTS_PRELOAD = _env_bool(
+    name="DJANGO_SECURE_HSTS_PRELOAD",
+    default=not DEBUG and not IS_TEST_ENVIRONMENT,
+)
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 AUTH_RATE_LIMIT_ENABLED = _env_bool(name="AUTH_RATE_LIMIT_ENABLED", default=not DEBUG)
