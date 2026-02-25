@@ -91,6 +91,40 @@ Expected:
 
 If the page looks unstyled in browser, treat it as a blocker and debug Docker static file serving before moving on.
 
+### CSS recovery playbook (unstyled page)
+
+If a page suddenly renders without styles, run this checklist before doing anything else:
+
+1. Rebuild CSS in the running stack:
+
+```bash
+docker compose up -d app db tailwind
+docker compose exec tailwind npm run build:css
+```
+
+2. Verify the stylesheet endpoint:
+
+```bash
+curl -I http://localhost:8000/static/css/app.css
+```
+
+Expected:
+- `200 OK`
+- non-trivial `Content-Length` (typically tens of KB, not a tiny fallback file)
+
+3. Hard refresh the browser (`Cmd+Shift+R`) to clear cached CSS.
+
+4. If still broken, restart and inspect logs:
+
+```bash
+docker compose restart app tailwind
+docker compose logs --no-color --tail=120 app tailwind
+```
+
+5. Treat repeated `Not Found: /static/css/app.css` or `500` responses for that path as blockers.
+
+Note: `static/css/app.css` is generated and gitignored. Regenerate it when needed, but do not commit it.
+
 ## Code style expectations
 
 - Add a docstring to every new function, method, and test function.

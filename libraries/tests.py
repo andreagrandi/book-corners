@@ -1334,14 +1334,17 @@ class TestLibraryDetailView:
         anonymous_response = client.get(detail_url)
         anonymous_content = anonymous_response.content.decode()
         assert anonymous_response.status_code == 200
-        assert "Report this library" not in anonymous_content
+        assert "Report an issue" not in anonymous_content
 
         client.force_login(user)
         authenticated_response = client.get(detail_url)
         authenticated_content = authenticated_response.content.decode()
         assert authenticated_response.status_code == 200
-        assert "Report this library" in authenticated_content
+        assert "Report an issue" in authenticated_content
+        assert "id=\"report-form-toggle\"" in authenticated_content
+        assert "aria-expanded=\"false\"" in authenticated_content
         assert "id=\"report-form\"" in authenticated_content
+        assert "class=\"mt-6 hidden rounded-box border border-dashed border-base-300 bg-base-100 p-5\"" in authenticated_content
         assert f'hx-post="{reverse("submit_library_report", kwargs={"slug": library.slug})}"' in authenticated_content
         assert "name=\"reason\"" in authenticated_content
         assert "name=\"details\"" in authenticated_content

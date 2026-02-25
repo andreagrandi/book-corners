@@ -44,7 +44,15 @@
 
         {% if request.user.is_authenticated %}
           <div class="mt-5">
-            <a href="#report-form" class="btn btn-outline btn-error">Report this library</a>
+            <button
+              id="report-form-toggle"
+              type="button"
+              class="btn btn-outline btn-error"
+              aria-controls="report-form"
+              aria-expanded="false"
+            >
+              Report an issue
+            </button>
           </div>
         {% endif %}
       </div>
@@ -63,8 +71,12 @@
   </section>
 
   {% if request.user.is_authenticated %}
-    <section id="report-form" class="mt-6 rounded-box border border-dashed border-base-300 bg-base-100 p-5">
-      <h2 class="text-xl font-semibold">Report form</h2>
+    <section
+      id="report-form"
+      class="mt-6 hidden rounded-box border border-dashed border-base-300 bg-base-100 p-5"
+      aria-hidden="true"
+    >
+      <h2 class="text-xl font-semibold">Report an issue with this library</h2>
       {% include "libraries/_report_form.html" with library=library report_form=report_form report_submitted=False %}
     </section>
   {% endif %}
@@ -78,6 +90,21 @@
   ></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
+      const reportFormToggle = document.getElementById("report-form-toggle");
+      const reportFormSection = document.getElementById("report-form");
+      if (reportFormToggle && reportFormSection) {
+        reportFormToggle.addEventListener("click", function () {
+          if (!reportFormSection.classList.contains("hidden")) {
+            return;
+          }
+
+          reportFormSection.classList.remove("hidden");
+          reportFormSection.setAttribute("aria-hidden", "false");
+          reportFormToggle.setAttribute("aria-expanded", "true");
+          reportFormSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+
       const mapElement = document.getElementById("library-detail-map");
       if (!mapElement || typeof L === "undefined") {
         return;
