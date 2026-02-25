@@ -91,13 +91,13 @@ class LibrarySubmissionForm(forms.ModelForm):
         self.created_by = kwargs.pop("created_by", None)
         super().__init__(*args, **kwargs)
 
-        self.fields["photo"].widget.attrs["class"] = "file-input file-input-bordered w-full"
-        self.fields["name"].widget.attrs["class"] = "input input-bordered w-full"
-        self.fields["description"].widget.attrs["class"] = "textarea textarea-bordered w-full"
-        self.fields["address"].widget.attrs["class"] = "input input-bordered w-full"
-        self.fields["city"].widget.attrs["class"] = "input input-bordered w-full"
+        self.fields["photo"].widget.attrs["class"] = "file-input w-full"
+        self.fields["name"].widget.attrs["class"] = "input w-full"
+        self.fields["description"].widget.attrs["class"] = "textarea w-full"
+        self.fields["address"].widget.attrs["class"] = "input w-full"
+        self.fields["city"].widget.attrs["class"] = "input w-full"
         self.fields["country"].widget.attrs["class"] = "w-full"
-        self.fields["postal_code"].widget.attrs["class"] = "input input-bordered w-full"
+        self.fields["postal_code"].widget.attrs["class"] = "input w-full"
 
     def clean_latitude(self) -> float:
         """Validate latitude input.
@@ -163,9 +163,9 @@ class ReportSubmissionForm(forms.ModelForm):
         self.library = kwargs.pop("library", None)
         super().__init__(*args, **kwargs)
 
-        self.fields["reason"].widget.attrs["class"] = "select select-bordered w-full"
-        self.fields["details"].widget.attrs["class"] = "textarea textarea-bordered w-full"
-        self.fields["photo"].widget.attrs["class"] = "file-input file-input-bordered w-full"
+        self.fields["reason"].widget.attrs["class"] = "select w-full"
+        self.fields["details"].widget.attrs["class"] = "textarea w-full"
+        self.fields["photo"].widget.attrs["class"] = "file-input w-full"
 
     def save(self, commit: bool = True) -> Report:
         """Persist the report bound to the authenticated user and library.
@@ -210,19 +210,19 @@ class LibrarySearchForm(forms.Form):
 
         self.fields["q"].widget.attrs.update(
             {
-                "class": "input input-bordered w-full",
+                "class": "input w-full",
                 "placeholder": "Keywords in name or description",
             }
         )
         self.fields["near"].widget.attrs.update(
             {
-                "class": "input input-bordered w-full",
+                "class": "input w-full",
                 "placeholder": "City, area, postcode, or address",
             }
         )
         self.fields["radius_km"].widget.attrs.update(
             {
-                "class": "input input-bordered w-full",
+                "class": "input w-full",
                 "min": "1",
                 "max": "100",
                 "step": "1",
@@ -230,18 +230,18 @@ class LibrarySearchForm(forms.Form):
         )
         self.fields["city"].widget.attrs.update(
             {
-                "class": "input input-bordered w-full",
+                "class": "input w-full",
                 "placeholder": "Filter by city",
             }
         )
         self.fields["country"].widget.attrs.update(
             {
-                "class": "select select-bordered w-full",
+                "class": "select w-full",
             }
         )
         self.fields["postal_code"].widget.attrs.update(
             {
-                "class": "input input-bordered w-full",
+                "class": "input w-full",
                 "placeholder": "Filter by postal code",
             }
         )

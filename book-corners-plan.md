@@ -245,7 +245,7 @@ Everything else is server-rendered Django templates + HTMX.
 
 #### 1.6 — TailwindCSS + daisyUI integration
 - [x] Add Node/npm tooling: `package.json` with tailwindcss, daisyui, postcss, autoprefixer
-- [x] Configure `tailwind.config.js` to scan Django templates
+- [x] Configure Tailwind content scanning for Django templates (`tailwind.config.js` in v3; `@source` in v4)
 - [x] Set up input CSS file with Tailwind directives and daisyUI plugin
 - [x] Add npm script to build CSS and a watch mode for development
 - [x] Add a Tailwind CSS watcher service to `docker-compose.yml` (or document the dev command)
