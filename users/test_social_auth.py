@@ -1,5 +1,6 @@
 import pytest
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError
 from django.urls import reverse
 
 User = get_user_model()
@@ -230,6 +231,88 @@ class TestCustomAdapters:
             )
 
         assert result.email == "test@example.com"
+
+
+class TestSocialSignupRaceConditions:
+    """Verify save_user handles concurrent signup race conditions."""
+
+    def test_save_user_wraps_in_transaction(self, db, rf):
+        """Partial user creation is rolled back when IntegrityError occurs.
+        Ensures no orphaned User rows are left behind on failure."""
+        from unittest.mock import MagicMock, patch
+
+        from users.adapters import SocialAccountAdapter
+
+        adapter = SocialAccountAdapter()
+        request = rf.get("/")
+
+        mock_sociallogin = MagicMock()
+        mock_sociallogin.user = User(username="ghost", email="")
+
+        initial_count = User.objects.count()
+
+        with patch(
+            "allauth.socialaccount.adapter.DefaultSocialAccountAdapter.save_user",
+            side_effect=IntegrityError("duplicate key"),
+        ):
+            with pytest.raises(IntegrityError):
+                adapter.save_user(
+                    request=request, sociallogin=mock_sociallogin, form=None
+                )
+
+        assert User.objects.count() == initial_count
+
+    def test_email_collision_connects_to_existing_user(self, db, rf):
+        """On email collision, the social account connects to the existing user.
+        Simulates losing a race where another request created the user first."""
+        from unittest.mock import MagicMock, patch
+
+        from users.adapters import SocialAccountAdapter
+
+        existing = User.objects.create_user(
+            username="alice", email="alice@example.com", password="pass123"
+        )
+
+        adapter = SocialAccountAdapter()
+        request = rf.get("/")
+
+        mock_sociallogin = MagicMock()
+        mock_sociallogin.user = User(username="alice2", email="alice@example.com")
+
+        with patch(
+            "allauth.socialaccount.adapter.DefaultSocialAccountAdapter.save_user",
+            side_effect=IntegrityError("duplicate key"),
+        ):
+            result = adapter.save_user(
+                request=request, sociallogin=mock_sociallogin, form=None
+            )
+
+        assert result.pk == existing.pk
+        mock_sociallogin.connect.assert_called_once_with(request, existing)
+
+    def test_unexpected_integrity_error_reraises(self, db, rf):
+        """IntegrityError without a matching email is re-raised.
+        Avoids silently swallowing unexpected constraint violations."""
+        from unittest.mock import MagicMock, patch
+
+        from users.adapters import SocialAccountAdapter
+
+        adapter = SocialAccountAdapter()
+        request = rf.get("/")
+
+        mock_sociallogin = MagicMock()
+        mock_sociallogin.user = User(
+            username="nomatch", email="nobody@example.com"
+        )
+
+        with patch(
+            "allauth.socialaccount.adapter.DefaultSocialAccountAdapter.save_user",
+            side_effect=IntegrityError("some other constraint"),
+        ):
+            with pytest.raises(IntegrityError, match="some other constraint"):
+                adapter.save_user(
+                    request=request, sociallogin=mock_sociallogin, form=None
+                )
 
 
 class TestContextProcessor:

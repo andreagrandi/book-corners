@@ -1,5 +1,10 @@
+from django.contrib.auth import get_user_model
+from django.db import IntegrityError, transaction
+
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+
+User = get_user_model()
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -24,3 +29,21 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         if user.email:
             user.email = user.email.lower()
         return user
+
+    def save_user(self, request, sociallogin, form=None):
+        """Save a new social signup inside a transaction.
+        Recovers from race conditions on email or username collisions."""
+        try:
+            with transaction.atomic():
+                return super().save_user(request, sociallogin, form=form)
+        except IntegrityError:
+            # Another request created the user between our check and insert.
+            # Look up the winner by email and connect to them instead.
+            email = sociallogin.user.email
+            if email:
+                existing_user = User.objects.filter(email=email).first()
+                if existing_user:
+                    sociallogin.connect(request, existing_user)
+                    return existing_user
+            # If no email match, re-raise — unexpected constraint violation.
+            raise
