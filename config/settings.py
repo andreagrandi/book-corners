@@ -61,6 +61,12 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
 SECURE_SSL_REDIRECT = _env_bool(
     name="DJANGO_SECURE_SSL_REDIRECT",
     default=not DEBUG and not IS_TEST_ENVIRONMENT,
@@ -156,6 +162,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": dj_database_url.config(
         conn_max_age=600,
+        engine="django.contrib.gis.db.backends.postgis",
     )
 }
 

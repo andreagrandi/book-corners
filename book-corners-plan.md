@@ -564,56 +564,498 @@ Goal for this phase:
 
 ### Phase 6 — Deployment
 
-#### 6.1 — Dokku setup
-- [ ] Provision VPS and install Dokku
-- [ ] Create Dokku app (`dokku apps:create book-corners`)
-- [ ] Set environment variables (SECRET_KEY, DATABASE_URL, ALLOWED_HOSTS, DEBUG=False)
+Prerequisites: VPS accessible via `ssh root@bookcorners.org`, domain `bookcorners.org` registered.
 
-#### 6.2 — Database
-- [ ] Install Dokku PostgreSQL plugin with PostGIS support
-- [ ] Create and link database to the app
-- [ ] Run migrations on first deploy
+#### 6.1 — Create deploy user
 
-#### 6.3 — Domain + SSL
-- [ ] Configure custom domain (`dokku domains:add`)
-- [ ] Install and configure Dokku letsencrypt plugin
-- [ ] Verify HTTPS works
+Dokku and day-to-day operations should run as a non-root user. Firewall is managed
+externally via Hetzner.
 
-#### 6.4 — Media storage
-- [ ] Set up persistent storage volume for media files (`dokku storage:mount`)
-- [ ] Configure Django `MEDIA_ROOT` to use the mounted volume
-- [ ] Document future migration path to S3-compatible storage
+- [ ] Create a non-root deploy user with sudo access
+  ```bash
+  ssh root@vps.bookcorners.org           # use vps. subdomain (DNS-only, not proxied)
+  adduser deploy                         # set a strong password (needed for sudo)
+  usermod -aG sudo deploy
+  ```
+- [ ] Copy the authorized SSH key to the deploy user
+  ```bash
+  # Still on the VPS as root:
+  mkdir -p /home/deploy/.ssh
+  cp /root/.ssh/authorized_keys /home/deploy/.ssh/authorized_keys
+  chown -R deploy:deploy /home/deploy/.ssh
+  chmod 700 /home/deploy/.ssh
+  chmod 600 /home/deploy/.ssh/authorized_keys
+  ```
+- [ ] Verify key-based login works for the deploy user
+  ```bash
+  # From your Mac (new terminal — use vps. subdomain since main domain is Cloudflare-proxied):
+  ssh deploy@vps.bookcorners.org
+  ```
 
-#### 6.5 — Continuous deployment
-- [ ] Add deploy step to the existing GitHub Actions CI pipeline: push to Dokku remote on main branch merge
-- [ ] Verify full pipeline: push → tests → deploy
+#### 6.2 — DNS setup (Cloudflare)
 
-#### 6.6 — Backups to BorgBase (no downtime)
-- [ ] Add nightly PostgreSQL dump job using `pg_dump -Fc` (transaction-safe, no service stop)
-- [ ] Add backup job for media files directory used by Dokku storage mount
-- [ ] Push DB dumps + media backups to BorgBase with `borg create`
-- [ ] Add retention policy with `borg prune` (daily / weekly / monthly)
-- [ ] Keep repository passphrase and backup credentials in secure env vars (not in git)
+DNS is managed via Cloudflare. Three A records, all pointing to the VPS IP.
 
-#### 6.7 — Automated restore verification (separate DB)
-- [ ] Add periodic restore drill that restores latest dump into a temporary database
-- [ ] Run sanity checks on restored DB (schema, migrations table, sample counts, PostGIS query)
-- [ ] Drop temporary restore-check database after validation
-- [ ] Alert if restore verification fails
-- [ ] Document manual full restore procedure for emergency recovery
+- [ ] Create three A records in Cloudflare DNS:
+  - `bookcorners.org` → `<VPS_IP>` — **Proxied** (orange cloud)
+  - `www.bookcorners.org` → `<VPS_IP>` — **Proxied** (orange cloud)
+  - `vps.bookcorners.org` → `<VPS_IP>` — **DNS only** (grey cloud, for SSH access)
+- [ ] Leave Cloudflare SSL/TLS mode at default for now. It will be set to
+  "Full (Strict)" after Let's Encrypt is configured in step 6.9.
+- [ ] Verify the DNS-only record works for SSH:
+  ```bash
+  ssh deploy@vps.bookcorners.org
+  ```
 
-#### 6.8 — Monitoring and alerting baseline
-- [ ] Add uptime monitoring for `/` and one authenticated-critical route
-- [ ] Add heartbeat monitoring for backup and restore-check jobs
-- [ ] Add error tracking (Sentry free tier or equivalent) with conservative quota settings
-- [ ] Configure alert delivery channel(s) (email, Telegram, or Slack)
-- [ ] Run one test incident to verify end-to-end alert delivery
+#### 6.3 — Install Dokku on the VPS
 
-#### 6.9 — First production deploy runbook
-- [ ] Document exact deploy sequence (build, migrate, restart, smoke checks)
-- [ ] Document rollback sequence (previous release rollback + DB restore decision matrix)
-- [ ] Add post-deploy smoke checklist (home, static CSS, submit flow, admin login)
-- [ ] Define maintenance communication template for planned downtime or incidents
+Dokku requires Ubuntu 22.04 or 24.04. All commands run on the VPS.
+
+- [ ] SSH into the VPS and install Dokku
+  ```bash
+  ssh deploy@vps.bookcorners.org
+
+  # Install Dokku (check https://dokku.com/docs/getting-started/installation/ for latest version)
+  wget -NP . https://dokku.com/install/v0.36.6/bootstrap.sh
+  sudo DOKKU_TAG=v0.36.6 bash bootstrap.sh
+  ```
+  This takes 5-10 minutes. It installs Dokku, nginx (as reverse proxy), and Docker.
+- [ ] Set the global domain so Dokku knows your hostname
+  ```bash
+  dokku domains:set-global bookcorners.org
+  ```
+- [ ] Add your SSH public key to Dokku (so you can `git push` to it)
+  ```bash
+  # On the VPS — use the same key you use for SSH:
+  cat ~/.ssh/authorized_keys | dokku ssh-keys:add deploy
+  ```
+- [ ] Verify Dokku is running:
+  ```bash
+  dokku version
+  ```
+
+#### 6.4 — Create the Dokku app and prepare the repository
+
+- [ ] Create the app on the VPS
+  ```bash
+  # On the VPS:
+  dokku apps:create book-corners
+  ```
+- [ ] Create a `Procfile` in the project root (on your Mac, in the repo).
+  Dokku reads this to know how to run the app.
+  ```
+  web: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+  ```
+  Note: Dokku sets `$PORT` automatically. Do not hardcode 8000.
+- [ ] Create `app.json` in the project root for pre-deploy hooks (migrations).
+  Dokku runs these automatically on every deploy.
+  ```json
+  {
+    "scripts": {
+      "dokku": {
+        "predeploy": "python manage.py migrate --noinput"
+      }
+    }
+  }
+  ```
+- [ ] Add the Dokku remote to your local git repo
+  ```bash
+  # From your Mac, in the book-corners directory:
+  git remote add dokku deploy@vps.bookcorners.org:book-corners
+  ```
+- [ ] Commit the Procfile and app.json (do not deploy yet — database and storage aren't ready)
+
+#### 6.5 — Database (PostGIS)
+
+Dokku uses plugins for services. The standard `dokku-postgres` plugin supports PostGIS
+via image configuration. All commands run on the VPS.
+
+- [ ] Install the Dokku Postgres plugin
+  ```bash
+  sudo dokku plugin:install https://github.com/dokku/dokku-postgres.git postgres
+  ```
+- [ ] Set the Docker image to PostGIS before creating the service
+  ```bash
+  export POSTGRES_IMAGE="postgis/postgis"
+  export POSTGRES_IMAGE_VERSION="17-3.5"
+  ```
+- [ ] Create the database service and link it to the app
+  ```bash
+  dokku postgres:create book-corners-db
+  dokku postgres:link book-corners-db book-corners
+  ```
+  This automatically sets `DATABASE_URL` as an env var on the app. Verify:
+  ```bash
+  dokku config:show book-corners | grep DATABASE_URL
+  ```
+  The URL should start with `postgres://`. Django's `dj-database-url` handles this,
+  but the PostGIS engine needs to be set. See env vars step below.
+
+#### 6.6 — Persistent storage for media uploads
+
+Dokku containers are ephemeral — files written inside them are lost on redeploy.
+Media uploads must be stored on a mounted host directory.
+
+- [ ] Create the host directory and set permissions
+  ```bash
+  # On the VPS:
+  sudo mkdir -p /var/lib/dokku/data/storage/book-corners/media
+  sudo chown -R 32767:32767 /var/lib/dokku/data/storage/book-corners/media
+  ```
+  (32767 is the default `herokuishuser` UID inside Dokku containers)
+- [ ] Mount it into the app container
+  ```bash
+  dokku storage:mount book-corners /var/lib/dokku/data/storage/book-corners/media:/app/media
+  ```
+- [ ] Verify:
+  ```bash
+  dokku storage:report book-corners
+  ```
+  Django's `MEDIA_ROOT = BASE_DIR / "media"` resolves to `/app/media` inside the
+  container, which now maps to persistent host storage. No settings change needed.
+
+#### 6.7 — Environment variables
+
+Set all production environment variables on the VPS. Do this before the first deploy.
+
+- [ ] Generate a secure SECRET_KEY
+  ```bash
+  python3 -c "import secrets; print(secrets.token_urlsafe(50))"
+  ```
+- [ ] Set all required env vars in one command (to avoid multiple restarts)
+  ```bash
+  dokku config:set --no-restart book-corners \
+    DJANGO_SECRET_KEY="<generated-secret-key>" \
+    DJANGO_DEBUG="false" \
+    DJANGO_ALLOWED_HOSTS="bookcorners.org,www.bookcorners.org" \
+    DJANGO_CSRF_TRUSTED_ORIGINS="https://bookcorners.org,https://www.bookcorners.org" \
+    DJANGO_SECURE_SSL_REDIRECT="true" \
+    DJANGO_SESSION_COOKIE_SECURE="true" \
+    DJANGO_CSRF_COOKIE_SECURE="true" \
+    DJANGO_SECURE_HSTS_SECONDS="31536000" \
+    NOMINATIM_USER_AGENT="bookcorners.org/1.0"
+  ```
+  Note: `--no-restart` prevents Dokku from trying to restart the app before the first
+  deploy. The vars will take effect on the next deploy/restart.
+- [ ] IMPORTANT: `DJANGO_CSRF_TRUSTED_ORIGINS` is not in your current settings.py —
+  you need to add it before deploying. Add this to `config/settings.py`:
+  ```python
+  CSRF_TRUSTED_ORIGINS = [
+      origin.strip()
+      for origin in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+      if origin.strip()
+  ]
+  ```
+- [ ] Optionally set Google OAuth vars (can also be added later):
+  ```bash
+  dokku config:set --no-restart book-corners \
+    GOOGLE_OAUTH_CLIENT_ID="<your-client-id>" \
+    GOOGLE_OAUTH_CLIENT_SECRET="<your-client-secret>"
+  ```
+  Remember to add the production redirect URI in Google Cloud Console:
+  - Authorized origin: `https://bookcorners.org`
+  - Redirect URI: `https://bookcorners.org/accounts/google/login/callback/`
+- [ ] Fix the DATABASE_URL engine: `dj-database-url` defaults to `django.db.backends.postgresql`,
+  but PostGIS needs `django.contrib.gis.db.backends.postgis`. The linked DATABASE_URL
+  starts with `postgres://`, so you need to tell dj-database-url to use the GIS engine.
+  Update `config/settings.py`:
+  ```python
+  DATABASES = {
+      "default": dj_database_url.config(
+          conn_max_age=600,
+          engine="django.contrib.gis.db.backends.postgis",
+      )
+  }
+  ```
+- [ ] Commit the settings.py changes (CSRF_TRUSTED_ORIGINS + database engine)
+
+#### 6.8 — Domain + SSL
+
+DNS should have propagated by now (from step 6.2).
+
+- [ ] Set the app domain on Dokku
+  ```bash
+  # On the VPS:
+  dokku domains:set book-corners bookcorners.org www.bookcorners.org
+  ```
+- [ ] Install the Let's Encrypt plugin
+  ```bash
+  sudo dokku plugin:install https://github.com/dokku/dokku-letsencrypt.git
+  ```
+- [ ] Configure the email for Let's Encrypt notifications
+  ```bash
+  dokku letsencrypt:set book-corners email your-email@example.com
+  ```
+- [ ] SSL certificates will be generated after the first deploy (the app must be running
+  for Let's Encrypt to verify the domain). Come back to this after step 6.9.
+
+#### 6.9 — First deploy
+
+This is the moment of truth. Everything above must be in place.
+
+- [ ] Pre-deploy checklist:
+  - [ ] `Procfile` committed
+  - [ ] `app.json` committed
+  - [ ] `CSRF_TRUSTED_ORIGINS` added to settings.py and committed
+  - [ ] Database engine set to `postgis` in settings.py and committed
+  - [ ] All env vars set on the VPS (`dokku config:show book-corners`)
+  - [ ] DNS is configured (`ssh deploy@vps.bookcorners.org` works)
+- [ ] Push to Dokku from your Mac
+  ```bash
+  git push dokku master
+  ```
+  Dokku will:
+  1. Detect the Dockerfile and build the image (multi-stage: CSS + Python)
+  2. Run `collectstatic` (inside the Dockerfile)
+  3. Run `python manage.py migrate --noinput` (from app.json predeploy)
+  4. Start the container with the Procfile command
+  5. Configure nginx to proxy to the container
+- [ ] Watch the build output for errors. Common issues:
+  - PostGIS extension not available → check the database image used
+  - `collectstatic` fails → check STATIC_ROOT and WhiteNoise config
+  - Migration fails → check DATABASE_URL is linked
+- [ ] Verify the app is running
+  ```bash
+  # On the VPS:
+  dokku ps:report book-corners
+  dokku logs book-corners --tail
+  ```
+- [ ] Test HTTP access (SSL not yet enabled):
+  ```bash
+  curl -I http://bookcorners.org
+  ```
+  Expected: `200 OK` (or `301` redirect if SSL redirect is on — temporarily set
+  `DJANGO_SECURE_SSL_REDIRECT=false` if needed for this check)
+- [ ] Now enable SSL (requires the app to be running):
+  ```bash
+  dokku letsencrypt:enable book-corners
+  ```
+- [ ] Set up automatic certificate renewal (cron job):
+  ```bash
+  dokku letsencrypt:cron-job --add
+  ```
+- [ ] Verify HTTPS:
+  ```bash
+  curl -I https://bookcorners.org
+  ```
+  Expected: `200 OK`, valid TLS certificate
+- [ ] Re-enable SSL redirect if you disabled it:
+  ```bash
+  dokku config:set book-corners DJANGO_SECURE_SSL_REDIRECT="true"
+  ```
+- [ ] Now set Cloudflare SSL/TLS mode to **"Full (Strict)"**
+  (Cloudflare dashboard → SSL/TLS → Overview). This ensures Cloudflare verifies
+  the Let's Encrypt certificate on your origin server.
+
+#### 6.10 — Post-deploy setup
+
+These are one-time tasks after the first successful deploy.
+
+- [ ] Create a superuser for the Django admin
+  ```bash
+  # On the VPS:
+  dokku run book-corners python manage.py createsuperuser
+  ```
+- [ ] Fix the Django Sites framework domain (allauth uses this).
+  The default Site object has `example.com`. Update it:
+  ```bash
+  dokku run book-corners python manage.py shell -c "
+  from django.contrib.sites.models import Site
+  site = Site.objects.get(id=1)
+  site.domain = 'bookcorners.org'
+  site.name = 'Book Corners'
+  site.save()
+  print(f'Site updated: {site.domain}')
+  "
+  ```
+- [ ] Smoke test all critical pages:
+  - [ ] Homepage: `https://bookcorners.org/`
+  - [ ] Static CSS loads: `https://bookcorners.org/static/css/app.css`
+  - [ ] Login page: `https://bookcorners.org/login/`
+  - [ ] Registration: `https://bookcorners.org/register/`
+  - [ ] Map page: `https://bookcorners.org/map/`
+  - [ ] Submit page (requires login): `https://bookcorners.org/submit/`
+  - [ ] Admin: `https://bookcorners.org/admin/`
+  - [ ] Sitemap: `https://bookcorners.org/sitemap.xml`
+- [ ] Verify Google OAuth works (if configured):
+  - [ ] "Continue with Google" button appears on login page
+  - [ ] Full OAuth flow completes and creates/links account
+
+#### 6.11 — Continuous deployment (GitHub Actions)
+
+Automate deploys so that every push to `master` that passes CI gets deployed.
+
+- [ ] Generate a dedicated SSH key pair for GitHub Actions (on your Mac):
+  ```bash
+  ssh-keygen -t ed25519 -f ~/.ssh/dokku_deploy -N "" -C "github-actions-deploy"
+  ```
+- [ ] Add the public key to Dokku on the VPS:
+  ```bash
+  cat ~/.ssh/dokku_deploy.pub | ssh deploy@vps.bookcorners.org "dokku ssh-keys:add github-actions"
+  ```
+- [ ] Add the private key as a GitHub Actions secret:
+  - Go to the repo → Settings → Secrets and variables → Actions
+  - Add secret `DOKKU_SSH_PRIVATE_KEY` with the contents of `~/.ssh/dokku_deploy`
+  - Add secret `DOKKU_HOST` with value `vps.bookcorners.org`
+- [ ] Add a deploy job to `.github/workflows/ci.yml` that runs after tests pass:
+  ```yaml
+  deploy:
+    needs: tests
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DOKKU_SSH_PRIVATE_KEY }}" > ~/.ssh/dokku_deploy
+          chmod 600 ~/.ssh/dokku_deploy
+          ssh-keyscan -H ${{ secrets.DOKKU_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Dokku
+        run: |
+          git remote add dokku dokku@${{ secrets.DOKKU_HOST }}:book-corners
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/dokku_deploy" git push dokku master
+  ```
+- [ ] Test the pipeline: push a small commit to master and verify it deploys automatically
+- [ ] Verify full pipeline: push → CI tests pass → deploy → app is running with new code
+
+#### 6.12 — Backups
+
+Backups are essential before the site has any real user data. Set up nightly database
+dumps and media backups. BorgBase is the planned offsite target.
+
+- [ ] Install borg on the VPS
+  ```bash
+  sudo apt-get update && sudo apt-get install -y borgbackup
+  ```
+- [ ] Set up a BorgBase repository (https://www.borgbase.com/):
+  - Create an account and a new repository
+  - Add the VPS SSH public key (`ssh-keygen` on the VPS if needed)
+  - Note the repository URL (e.g., `ssh://xxxxx@xxxxx.repo.borgbase.com/./repo`)
+- [ ] Initialize the borg repository from the VPS
+  ```bash
+  # Set a strong passphrase and save it securely
+  export BORG_PASSPHRASE="<your-passphrase>"
+  borg init --encryption=repokey ssh://xxxxx@xxxxx.repo.borgbase.com/./repo
+  ```
+- [ ] Create a backup script on the VPS at `/home/deploy/backup.sh`:
+  ```bash
+  #!/bin/bash
+  set -euo pipefail
+
+  BORG_REPO="ssh://xxxxx@xxxxx.repo.borgbase.com/./repo"
+  export BORG_PASSPHRASE="<your-passphrase>"
+
+  BACKUP_DIR="/tmp/book-corners-backup"
+  mkdir -p "$BACKUP_DIR"
+
+  # 1. Dump PostgreSQL (transaction-safe, no downtime)
+  dokku postgres:export book-corners-db > "$BACKUP_DIR/db.dump"
+
+  # 2. Create borg archive (DB dump + media files)
+  borg create --stats --compression lz4 \
+    "$BORG_REPO::book-corners-{now:%Y-%m-%d-%H%M%S}" \
+    "$BACKUP_DIR/db.dump" \
+    /var/lib/dokku/data/storage/book-corners/media
+
+  # 3. Prune old backups (keep 7 daily, 4 weekly, 6 monthly)
+  borg prune --stats \
+    --keep-daily=7 --keep-weekly=4 --keep-monthly=6 \
+    "$BORG_REPO"
+
+  # 4. Cleanup
+  rm -rf "$BACKUP_DIR"
+
+  echo "Backup completed: $(date)"
+  ```
+- [ ] Make it executable and test it:
+  ```bash
+  chmod +x /home/deploy/backup.sh
+  sudo /home/deploy/backup.sh
+  ```
+- [ ] Add a nightly cron job (e.g., 3 AM server time):
+  ```bash
+  sudo crontab -e
+  # Add:
+  0 3 * * * /home/deploy/backup.sh >> /var/log/book-corners-backup.log 2>&1
+  ```
+- [ ] Document the manual restore procedure:
+  ```bash
+  # List available archives:
+  borg list "$BORG_REPO"
+
+  # Extract a specific archive:
+  borg extract "$BORG_REPO::book-corners-2026-02-25-030000"
+
+  # Restore database:
+  dokku postgres:import book-corners-db < db.dump
+  ```
+
+#### 6.13 — Monitoring and alerting baseline
+
+- [ ] Set up uptime monitoring with UptimeRobot (free tier):
+  - Monitor `https://bookcorners.org/` (HTTP 200 check)
+  - Monitor `https://bookcorners.org/admin/login/` (HTTP 200 check)
+  - Set check interval to 5 minutes
+  - Configure alert contact (email or Telegram)
+- [ ] Set up error tracking with Sentry (free developer plan):
+  - Create a Sentry project for Django
+  - Install `sentry-sdk` and add to `requirements.txt`
+  - Add Sentry DSN to Dokku env vars:
+    ```bash
+    dokku config:set book-corners SENTRY_DSN="https://xxxxx@xxxxx.ingest.sentry.io/xxxxx"
+    ```
+  - Add Sentry initialization to `config/settings.py` (only when DSN is set)
+  - Keep on free plan — events are dropped when quota is exhausted, not billed
+- [ ] Add backup health monitoring:
+  - Add a heartbeat check (e.g., healthchecks.io free tier) that the backup script
+    pings on success. If no ping arrives by 6 AM, you get alerted.
+  - Add to the end of `backup.sh`:
+    ```bash
+    curl -fsS --retry 3 https://hc-ping.com/<your-check-uuid> > /dev/null
+    ```
+- [ ] Run one test incident: temporarily break something (e.g., wrong ALLOWED_HOSTS),
+  verify alerts fire, then fix it
+
+#### 6.14 — Deploy runbook (reference document)
+
+Write a brief runbook and keep it accessible (e.g., in a `docs/` directory or a wiki).
+It should cover:
+
+- [ ] **Manual deploy sequence** (when CI/CD is down or you need to deploy a hotfix):
+  ```bash
+  git push dokku master
+  # Watch output for errors
+  dokku ps:report book-corners
+  dokku logs book-corners --tail
+  ```
+- [ ] **Rollback to previous release**:
+  ```bash
+  # List recent deploys:
+  dokku ps:report book-corners
+
+  # Revert to the previous Docker image:
+  dokku ps:rebuild book-corners
+  # Or for a specific commit: git push the old commit to dokku
+  ```
+- [ ] **Database restore** (from backup):
+  ```bash
+  borg extract "$BORG_REPO::<archive-name>"
+  dokku postgres:import book-corners-db < db.dump
+  ```
+- [ ] **Post-deploy smoke checklist**:
+  - Homepage loads with styles
+  - Static CSS returns 200
+  - Login/register works
+  - Map page loads with markers
+  - Admin panel accessible
+  - Submit flow works (for logged-in user)
+- [ ] **Emergency contacts and escalation** — who gets alerted and how
 
 ---
 
