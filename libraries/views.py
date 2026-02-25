@@ -210,6 +210,12 @@ def home(request: HttpRequest) -> HttpResponse:
     )
 
 
+def about_page(request: HttpRequest) -> HttpResponse:
+    """Render the project about page with mission and contribution details.
+    Gives visitors clear context about goals, participation, and ownership."""
+    return render(request, "about.html")
+
+
 def latest_entries(request: HttpRequest) -> HttpResponse:
     """Render the HTMX partial for paginated latest entries.
     Supports incremental loading without a full page refresh."""

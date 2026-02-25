@@ -79,6 +79,7 @@ class TestNavbarAuthState:
 
         content = response.content.decode()
         assert response.status_code == 200
+        assert "href=\"/about/\"" in content
         assert "href=\"/login/\"" in content
         assert "href=\"/register/\"" in content
         assert "href=\"/dashboard/\"" not in content
@@ -92,6 +93,7 @@ class TestNavbarAuthState:
 
         content = response.content.decode()
         assert response.status_code == 200
+        assert "href=\"/about/\"" in content
         assert f'href="{reverse("dashboard")}"' in content
         assert f'>{user.username}<' in content
         assert ">Dashboard<" not in content

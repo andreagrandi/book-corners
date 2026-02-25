@@ -111,6 +111,7 @@ and migrate the existing photo field into it.
 | Page              | URL (indicative)       | Auth?  | Notes                                           |
 |-------------------|------------------------|--------|--------------------------------------------------|
 | Homepage          | `/`                    | No     | Hero/explainer, latest entries grid               |
+| About             | `/about/`              | No     | Project mission, contribution info, creator notes |
 | Map               | `/map/`                | No     | Dedicated full map with all approved libraries    |
 | Search            | `/search/`             | No     | Search form + results, HTMX live filtering       |
 | Library detail    | `/library/<slug>/`     | No     | Photo, info, small map pin, report button        |
@@ -584,7 +585,7 @@ Goal for this phase:
 - [x] Improve the footer (remove mention of Django, HTMX and add link to the GitHub repository)
 - [ ] "Report this library" should be "Report an issue with this library"
 - [ ] Multi language support with language selector (at least English and Italian)
-- [ ] An About page which explain the project more in details
+- [x] An About page which explain the project more in details
 - [ ] Multiple photos per library (LibraryPhoto model)
 - [ ] Sign in with Apple (after Apple Developer Program enrollment)
 - [ ] Custom moderation dashboard (beyond Django admin)
