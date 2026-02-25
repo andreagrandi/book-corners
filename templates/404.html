@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Page not found - Book Corners{% endblock %}
+{% block meta_description %}The page you requested could not be found. Explore the map or return to the homepage.{% endblock %}
+
+{% block content %}
+  <section class="mx-auto w-full max-w-2xl">
+    <article class="card border border-base-300 bg-base-100 shadow-sm">
+      <div class="card-body gap-4 p-6 text-center sm:p-8">
+        <p class="text-sm uppercase tracking-wide text-base-content/60">Error 404</p>
+        <h1 class="text-3xl font-bold">Page not found</h1>
+        <p class="text-base-content/75">
+          We could not find the page you requested. It may have moved or the URL may be incorrect.
+        </p>
+        <div class="card-actions justify-center gap-3">
+          <a href="{% url 'home' %}" class="btn btn-primary">Back to homepage</a>
+          <a href="{% url 'map_page' %}" class="btn btn-outline">Explore map</a>
+        </div>
+      </div>
+    </article>
+  </section>
+{% endblock %}

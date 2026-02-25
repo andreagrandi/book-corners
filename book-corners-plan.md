@@ -536,9 +536,9 @@ Goal for this phase:
 - [x] Add `robots.txt`
 
 #### 5.4 — Error pages
-- [ ] Create custom 404 template (friendly message, link to homepage/map)
-- [ ] Create custom 500 template (friendly message, apology)
-- [ ] Wire up Django's handler404 and handler500
+- [x] Create custom 404 template (friendly message, link to homepage/map)
+- [x] Create custom 500 template (friendly message, apology)
+- [x] Wire up Django's handler404 and handler500
 
 #### 5.5 — Security review
 - [ ] Verify CSRF protection is active on all forms

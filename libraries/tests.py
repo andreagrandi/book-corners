@@ -5,6 +5,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import RequestFactory, override_settings
 from django.urls import reverse
 from PIL import ExifTags, Image
 from PIL.TiffImagePlugin import IFDRational
@@ -620,6 +621,44 @@ class TestSeoMetadata:
         assert "User-agent: *" in content
         assert "Allow: /" in content
         assert "Sitemap: http://testserver/sitemap.xml" in content
+
+
+class TestErrorPages:
+    @override_settings(DEBUG=False, ALLOWED_HOSTS=["testserver"])
+    def test_custom_404_template_is_rendered_for_missing_page(self, client):
+        """Verify unknown URLs return the custom 404 template.
+        Ensures users receive a friendly fallback page with recovery links."""
+        response = client.get("/missing-page-for-404-test/")
+
+        content = response.content.decode()
+        assert response.status_code == 404
+        assert "Page not found" in content
+        assert "Back to homepage" in content
+        assert "Explore map" in content
+        assert f'href="{reverse("home")}"' in content
+        assert f'href="{reverse("map_page")}"' in content
+
+    def test_error_handlers_are_wired_to_custom_views(self):
+        """Verify project URL config references custom 404 and 500 handlers.
+        Confirms Django uses the dedicated error views in production mode."""
+        from config import urls as project_urls
+
+        assert project_urls.handler404 == "config.error_views.page_not_found"
+        assert project_urls.handler500 == "config.error_views.server_error"
+
+    def test_server_error_view_renders_custom_500_template(self):
+        """Verify custom 500 view returns the branded error page.
+        Confirms the server-error handler renders friendly recovery guidance."""
+        from config.error_views import server_error
+
+        request = RequestFactory().get("/trigger-server-error/")
+        response = server_error(request)
+
+        content = response.content.decode()
+        assert response.status_code == 500
+        assert "Something went wrong" in content
+        assert "Back to homepage" in content
+        assert "Explore map" in content
 
 
 @pytest.mark.django_db
