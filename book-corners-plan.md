@@ -673,3 +673,55 @@ Assumptions:
 - [ ] Favorites / bookmarks
 - [ ] "Library near me" geolocation prompt
 - [ ] iOS app
+
+---
+
+### Phase 8 — Advanced: Rolling Sandbox PR Deploy (single preview environment)
+
+#### 8.1 — Sandbox architecture and safety boundaries
+- [ ] Use one rolling preview environment at `sandbox.mywebsite.com` (latest eligible PR always wins)
+- [ ] Keep sandbox fully isolated from production app, DB, storage, and secrets
+- [ ] Add sandbox host settings (`ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`) for the sandbox domain
+- [ ] Protect sandbox with Basic Auth or IP allowlisting
+- [ ] Disable non-essential outbound side effects in sandbox (transactional email, payment/webhook side effects)
+
+#### 8.2 — Dokku sandbox app setup
+- [ ] Create dedicated Dokku app (`dokku apps:create book-corners-sandbox`)
+- [ ] Attach sandbox domain (`dokku domains:add book-corners-sandbox sandbox.mywebsite.com`)
+- [ ] Enable TLS for sandbox (Dokku letsencrypt plugin)
+- [ ] Configure sandbox-only env vars (`DEBUG=False`, unique `SECRET_KEY`, sandbox-safe settings)
+- [ ] Mount sandbox media storage separate from production
+
+#### 8.3 — GitHub Actions deploy gating (manual PRs only)
+- [ ] Add `.github/workflows/deploy-sandbox.yml` for `pull_request` events (`opened`, `synchronize`, `reopened`, `labeled`)
+- [ ] Restrict deploys to PRs authored by the project owner (`github.event.pull_request.user.login == <your-github-username>`)
+- [ ] Explicitly exclude bot authors (`dependabot[bot]` and other bots)
+- [ ] Require an opt-in PR label (e.g. `deploy-sandbox`) before deploying
+- [ ] Add workflow concurrency (`group: sandbox-deploy`, `cancel-in-progress: true`) so newest push overrides older runs
+
+#### 8.4 — Database refresh on every sandbox deploy
+- [ ] Decide and document one default mode: `recreate+seed` (recommended) or `clone sanitized baseline`
+- [ ] If `recreate+seed`: recreate sandbox DB service each deploy, link, run migrations, and load deterministic test seed
+- [ ] If `clone sanitized baseline`: clone from a sanitized baseline DB service, link, then run migrations
+- [ ] Never use unsanitized production data in sandbox
+- [ ] Add post-refresh sanity checks (DB connectivity, migration state, key table counts, PostGIS query)
+
+#### 8.5 — Deploy sequence and verification
+- [ ] Deploy PR head commit to `book-corners-sandbox` (never to production app)
+- [ ] Run `python manage.py migrate` in sandbox after deploy
+- [ ] Refresh sandbox data (seed or sanitized clone workflow)
+- [ ] Run smoke checks for critical routes and static assets (`/`, `/login/`, `/map/`, `/static/css/app.css`)
+- [ ] Post PR comment with sandbox URL, deployed commit SHA, and smoke-check result
+
+#### 8.6 — Rollback and operational controls
+- [ ] Add `workflow_dispatch` for manual sandbox redeploy by PR number or commit SHA
+- [ ] Define behavior on PR close (reset sandbox to `main` or leave latest deployed state) and document it
+- [ ] Keep last successful sandbox release reference for quick rollback
+- [ ] Document sandbox incident flow (failed deploy, failed migration, failed data refresh)
+
+#### 8.7 — Definition of done
+- [ ] Only owner-authored, manually opted-in PRs deploy to sandbox
+- [ ] Dependabot/bot PRs never override sandbox
+- [ ] Every sandbox deploy gets a fresh or sanitized DB refresh
+- [ ] `sandbox.mywebsite.com` consistently points to the latest eligible PR deploy
+- [ ] Deploy logs and smoke results are visible in Actions and linked from the PR
