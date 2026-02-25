@@ -28,20 +28,20 @@
         <div class="alert alert-error text-sm">{{ report_form.non_field_errors }}</div>
       {% endif %}
 
-      <label class="form-control w-full">
-        <span class="label-text mb-1">Reason</span>
+      <label class="flex w-full flex-col gap-1">
+        <span class="text-sm font-medium">Reason</span>
         {{ report_form.reason }}
         {% if report_form.reason.errors %}<span class="mt-1 text-sm text-error">{{ report_form.reason.errors.0 }}</span>{% endif %}
       </label>
 
-      <label class="form-control w-full">
-        <span class="label-text mb-1">Details</span>
+      <label class="flex w-full flex-col gap-1">
+        <span class="text-sm font-medium">Details</span>
         {{ report_form.details }}
         {% if report_form.details.errors %}<span class="mt-1 text-sm text-error">{{ report_form.details.errors.0 }}</span>{% endif %}
       </label>
 
-      <label class="form-control w-full">
-        <span class="label-text mb-1">Photo (optional)</span>
+      <label class="flex w-full flex-col gap-1">
+        <span class="text-sm font-medium">Photo (optional)</span>
         {{ report_form.photo }}
         {% if report_form.photo.errors %}<span class="mt-1 text-sm text-error">{{ report_form.photo.errors.0 }}</span>{% endif %}
       </label>

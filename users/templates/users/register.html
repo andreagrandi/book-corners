@@ -17,26 +17,26 @@
             <div class="alert alert-error text-sm">{{ form.non_field_errors }}</div>
           {% endif %}
 
-          <label class="form-control w-full">
-            <span class="label-text mb-1">Username</span>
+          <label class="flex w-full flex-col gap-1">
+            <span class="text-sm font-medium">Username</span>
             {{ form.username }}
             {% if form.username.errors %}<span class="mt-1 text-sm text-error">{{ form.username.errors.0 }}</span>{% endif %}
           </label>
 
-          <label class="form-control w-full">
-            <span class="label-text mb-1">Email</span>
+          <label class="flex w-full flex-col gap-1">
+            <span class="text-sm font-medium">Email</span>
             {{ form.email }}
             {% if form.email.errors %}<span class="mt-1 text-sm text-error">{{ form.email.errors.0 }}</span>{% endif %}
           </label>
 
-          <label class="form-control w-full">
-            <span class="label-text mb-1">Password</span>
+          <label class="flex w-full flex-col gap-1">
+            <span class="text-sm font-medium">Password</span>
             {{ form.password1 }}
             {% if form.password1.errors %}<span class="mt-1 text-sm text-error">{{ form.password1.errors.0 }}</span>{% endif %}
           </label>
 
-          <label class="form-control w-full">
-            <span class="label-text mb-1">Confirm password</span>
+          <label class="flex w-full flex-col gap-1">
+            <span class="text-sm font-medium">Confirm password</span>
             {{ form.password2 }}
             {% if form.password2.errors %}<span class="mt-1 text-sm text-error">{{ form.password2.errors.0 }}</span>{% endif %}
           </label>
