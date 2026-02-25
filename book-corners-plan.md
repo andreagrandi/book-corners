@@ -530,10 +530,10 @@ Goal for this phase:
 - [x] Add a test for the full report submission flow
 
 #### 5.3 — SEO basics
-- [ ] Add meta title and description to all pages (base template + per-page overrides)
-- [ ] Add Open Graph tags for library detail pages (photo, title, description)
-- [ ] Generate a `sitemap.xml` using Django's sitemap framework
-- [ ] Add `robots.txt`
+- [x] Add meta title and description to all pages (base template + per-page overrides)
+- [x] Add Open Graph tags for library detail pages (photo, title, description)
+- [x] Generate a `sitemap.xml` using Django's sitemap framework
+- [x] Add `robots.txt`
 
 #### 5.4 — Error pages
 - [ ] Create custom 404 template (friendly message, link to homepage/map)

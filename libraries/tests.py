@@ -509,6 +509,120 @@ class TestAboutPageTemplate:
 
 
 @pytest.mark.django_db
+class TestSeoMetadata:
+    def test_public_pages_render_custom_meta_descriptions(self, client):
+        """Verify public pages expose custom meta descriptions for SEO.
+        Ensures each page-level template override is visible in HTML output."""
+        expected_descriptions = {
+            reverse("home"): "Discover and share little free libraries in your neighborhood with Book Corners.",
+            reverse("about_page"): "Learn the mission behind Book Corners and how to contribute new neighborhood library entries.",
+            reverse("map_page"): "Explore the Book Corners map to find little free libraries near you and across nearby cities.",
+            reverse("login"): "Log in to Book Corners to submit libraries, report issues, and manage your contributions.",
+            reverse("register"): "Create a Book Corners account to add new libraries and keep local entries up to date.",
+            reverse("submit_library_confirmation"): "Your library submission was received and is now waiting for moderation approval on Book Corners.",
+        }
+
+        for url, description in expected_descriptions.items():
+            response = client.get(url)
+            content = response.content.decode()
+            assert response.status_code == 200
+            assert f'<meta name="description" content="{description}">' in content
+
+    def test_authenticated_pages_render_custom_meta_descriptions(self, client, user):
+        """Verify authenticated pages expose custom meta descriptions.
+        Keeps private user pages consistent with SEO metadata standards."""
+        client.force_login(user)
+        expected_descriptions = {
+            reverse("dashboard"): "Review your submitted libraries and track each moderation status from your dashboard.",
+            reverse("submit_library"): "Submit a little free library to Book Corners with a photo, location, and address details.",
+        }
+
+        for url, description in expected_descriptions.items():
+            response = client.get(url)
+            content = response.content.decode()
+            assert response.status_code == 200
+            assert f'<meta name="description" content="{description}">' in content
+
+    def test_library_detail_page_renders_open_graph_metadata(self, client, user):
+        """Verify library detail pages include Open Graph metadata tags.
+        Ensures social sharing cards can render title, description, and image."""
+        library = Library.objects.create(
+            name="Canal Shelf",
+            description="Waterproof little free library with family picks.",
+            photo="libraries/photos/2026/02/detail-og.jpg",
+            location=Point(x=4.9041, y=52.3676, srid=4326),
+            address="Prinsengracht 140",
+            city="Amsterdam",
+            country="NL",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.get(reverse("library_detail", kwargs={"slug": library.slug}))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert '<meta property="og:type" content="article">' in content
+        assert '<meta property="og:title" content="Canal Shelf - Book Corners">' in content
+        assert (
+            '<meta property="og:description" content="Waterproof little free library with family picks.">'
+            in content
+        )
+        assert '<meta property="og:image" content="http://testserver/' in content
+        assert "detail-og.jpg" in content
+
+    def test_sitemap_lists_public_pages_and_approved_library_details(self, client, user):
+        """Verify sitemap lists static pages and approved library detail URLs.
+        Prevents pending entries from being exposed to search engine crawlers."""
+        approved_library = Library.objects.create(
+            name="Indexed Shelf",
+            photo="libraries/photos/2026/02/indexed.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        pending_library = Library.objects.create(
+            name="Pending Shelf",
+            photo="libraries/photos/2026/02/pending-index.jpg",
+            location=Point(x=11.2658, y=43.7796, srid=4326),
+            address="Via dei Neri 3",
+            city="Florence",
+            country="IT",
+            status=Library.Status.PENDING,
+            created_by=user,
+        )
+
+        response = client.get(reverse("sitemap"))
+
+        content = response.content.decode()
+        approved_url = f"http://testserver{reverse('library_detail', kwargs={'slug': approved_library.slug})}"
+        pending_url = f"http://testserver{reverse('library_detail', kwargs={'slug': pending_library.slug})}"
+        assert response.status_code == 200
+        assert response["Content-Type"].startswith("application/xml")
+        assert "<urlset" in content
+        assert "http://testserver/" in content
+        assert "http://testserver/about/" in content
+        assert "http://testserver/map/" in content
+        assert approved_url in content
+        assert pending_url not in content
+
+    def test_robots_txt_includes_sitemap_location(self, client):
+        """Verify robots.txt allows crawling and points to the sitemap URL.
+        Helps crawlers discover indexed pages using a standard robots location."""
+        response = client.get(reverse("robots_txt"))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert response["Content-Type"].startswith("text/plain")
+        assert "User-agent: *" in content
+        assert "Allow: /" in content
+        assert "Sitemap: http://testserver/sitemap.xml" in content
+
+
+@pytest.mark.django_db
 class TestHomepageLatestEntries:
     def test_latest_entries_partial_includes_only_approved_libraries(self, client, user):
         """Verify latest entries partial includes only approved libraries.
