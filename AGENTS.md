@@ -102,8 +102,8 @@ If the page looks unstyled in browser, treat it as a blocker and debug Docker st
 
 - Do not tell the user to run cleanup commands that the agent can run directly.
 - If branch switching, pulling, or other git operations are blocked by generated local changes, resolve them automatically when safe.
-- Treat `static/css/app.css` as a generated asset that may be modified by the Tailwind watcher: if changes are unintended for the current task, run `git restore static/css/app.css` before continuing.
-- When frontend code is intentionally changed, regenerate CSS with `npm run build:css` and include the updated `static/css/app.css` in the same commit.
+- Treat `static/css/app.css` as a generated asset that is intentionally gitignored: regenerate it with `npm run build:css` when needed, but do not commit it.
+- When frontend code is intentionally changed, commit source changes only (`assets/`, templates, scripts) and verify styling with a fresh `npm run build:css` before finishing.
 
 ## Architecture
 

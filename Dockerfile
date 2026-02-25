@@ -1,3 +1,13 @@
+FROM node:22-alpine AS css-builder
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build:css
+
 FROM python:3.14-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -22,6 +32,7 @@ COPY requirements.txt .
 RUN uv pip install --system --no-cache -r requirements.txt
 
 COPY . .
+COPY --from=css-builder /app/static/css/app.css /app/static/css/app.css
 
 RUN python manage.py collectstatic --noinput
 
