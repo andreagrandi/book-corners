@@ -386,76 +386,81 @@ Goal for this phase:
 - [x] Add migration tests for normalization + uniqueness behavior
 
 #### 3.5.3 — Google Cloud setup (local first)
-- [ ] Create Google Cloud project (free tier, no billing required for basic sign-in)
-- [ ] Configure OAuth consent screen (External + Testing mode)
-- [ ] Create OAuth client type: Web application
-- [ ] Add local redirect URI: `http://localhost:8000/accounts/google/login/callback/`
-- [ ] Add local authorized origin: `http://localhost:8000`
-- [ ] Document production URI to add later: `https://<domain>/accounts/google/login/callback/`
+- [x] Create Google Cloud project (free tier, no billing required for basic sign-in)
+- [x] Configure OAuth consent screen (External + Testing mode)
+- [x] Create OAuth client type: Web application
+- [x] Add local redirect URI: `http://localhost:8000/accounts/google/login/callback/`
+- [x] Add local authorized origin: `http://localhost:8000`
+- [x] Document production URI to add later: `https://<domain>/accounts/google/login/callback/`
 
 #### 3.5.4 — Django allauth integration (Google only)
-- [ ] Install `django-allauth`
-- [ ] Enable required apps in settings:
-  - [ ] `django.contrib.sites`
-  - [ ] `allauth`
-  - [ ] `allauth.account`
-  - [ ] `allauth.socialaccount`
-  - [ ] `allauth.socialaccount.providers.google`
-- [ ] Configure authentication backends to include model backend + allauth backend
-- [ ] Add and configure `SITE_ID`
-- [ ] Add allauth account settings (email, login, signup behavior aligned with current UX)
-- [ ] Add SocialApp/provider config via admin or settings-backed env values
+- [x] Install `django-allauth`
+- [x] Enable required apps in settings:
+  - [x] `django.contrib.sites`
+  - [x] `allauth`
+  - [x] `allauth.account`
+  - [x] `allauth.socialaccount`
+  - [x] `allauth.socialaccount.providers.google`
+- [x] Configure authentication backends to include model backend + allauth backend
+- [x] Add and configure `SITE_ID`
+- [x] Add allauth account settings (email, login, signup behavior aligned with current UX)
+- [x] Add SocialApp/provider config via admin or settings-backed env values
 
 #### 3.5.5 — URL routing + web login UX
-- [ ] Include allauth URLs under `/accounts/`
-- [ ] Keep `/login/` and `/register/` as the main entry pages
-- [ ] Add "Continue with Google" button to login template
-- [ ] Add "Continue with Google" button to register template
-- [ ] Preserve safe `next` redirect behavior after social login
-- [ ] Keep logout as POST-only and unchanged
+- [x] Include allauth URLs under `/accounts/`
+- [x] Keep `/login/` and `/register/` as the main entry pages
+- [x] Add "Continue with Google" button to login template
+- [x] Add "Continue with Google" button to register template
+- [x] Preserve safe `next` redirect behavior after social login
+- [x] Keep logout as POST-only and unchanged
+- [x] Hide Google button when OAuth env vars are not configured
 
 #### 3.5.6 — Social account linking behavior
-- [ ] If Google verified email matches existing user email: attach social account, do not create new user
-- [ ] If no matching user exists: create user and generate unique username
-- [ ] Prevent duplicate users when the same Google account logs in repeatedly
-- [ ] Handle conflict edge cases deterministically (race conditions / simultaneous signups)
-- [ ] Ensure future profile fields remain independent from auth method
+- [x] If Google verified email matches existing user email: attach social account, do not create new user
+- [x] If no matching user exists: create user and generate unique username
+- [x] Prevent duplicate users when the same Google account logs in repeatedly
+- [x] Handle conflict edge cases deterministically (race conditions / simultaneous signups)
+- [x] Ensure future profile fields remain independent from auth method
 
 #### 3.5.7 — Environment variables and secrets flow
-- [ ] Add placeholders to `.env.example`:
-  - [ ] `GOOGLE_OAUTH_CLIENT_ID`
-  - [ ] `GOOGLE_OAUTH_CLIENT_SECRET`
-- [ ] Local dev: set values in `.env` / `.envrc`
+- [x] Add placeholders to `.env.example`:
+  - [x] `GOOGLE_OAUTH_CLIENT_ID`
+  - [x] `GOOGLE_OAUTH_CLIENT_SECRET`
+- [x] Local dev: set values in `.env` / `.envrc`
 - [ ] Production: configure Dokku env vars with `dokku config:set` (or GitHub Actions automation)
-- [ ] Keep code identical across environments; only env values and OAuth console URIs differ
+- [x] Keep code identical across environments; only env values and OAuth console URIs differ
+- [x] Add OAuth setup docs (origins, redirect URIs) to `.env.example`
 
 #### 3.5.8 — Test coverage
-- [ ] Keep current auth tests green (register/login/logout/navbar behavior)
-- [ ] Add tests for email uniqueness (including case-insensitive duplicates)
-- [ ] Add tests for Google-first signup (new user created)
-- [ ] Add tests for Google login linking to an existing local account by email
-- [ ] Add tests for provider denial/cancel callback handling
-- [ ] Add tests for invalid callback/state mismatch handling
+- [x] Keep current auth tests green (register/login/logout/navbar behavior)
+- [x] Add tests for email uniqueness (including case-insensitive duplicates)
+- [x] Add tests for Google-first signup (new user created)
+- [x] Add tests for Google login linking to an existing local account by email
+- [x] Add tests for provider denial/cancel callback handling
+- [x] Add tests for invalid callback/state mismatch handling
+- [x] Add tests for Google button visibility (enabled/disabled states)
+- [x] Add tests for custom adapters (signup permission, email normalization)
+- [x] Add tests for context processor
 
 #### 3.5.9 — Manual QA (required before moving to API phase)
-- [ ] Local smoke test: login with Google from `http://localhost:8000/` end-to-end
-- [ ] Verify session is created and navbar switches to authenticated state
-- [ ] Verify logout works and returns to anonymous navbar state
-- [ ] Verify existing local account with same email is reused (no duplicate row)
-- [ ] Verify normal username/email + password flow still works exactly as before
+- [x] Local smoke test: login with Google from `http://localhost:8000/` end-to-end
+- [x] Verify session is created and navbar switches to authenticated state
+- [x] Verify logout works and returns to anonymous navbar state
+- [x] Verify existing local account with same email is reused (no duplicate row)
+- [x] Verify normal username/email + password flow still works exactly as before
 
 #### 3.5.10 — Documentation updates
-- [ ] Add setup guide for Google OAuth in local development
-- [ ] Document common OAuth errors and fixes (`redirect_uri_mismatch`, host mismatch, wrong callback path)
-- [ ] Document how to add production redirect URI when the domain is ready
-- [ ] Document secret management strategy for GitHub Actions + Dokku
+- [x] Add setup guide for Google OAuth in local development
+- [x] Document common OAuth errors and fixes (`redirect_uri_mismatch`, host mismatch, wrong callback path)
+- [x] Document how to add production redirect URI when the domain is ready
+- [x] Document secret management strategy for GitHub Actions + Dokku
 
 #### 3.5.11 — Definition of done
-- [ ] Google login works locally for web users
-- [ ] Existing auth flow remains backward-compatible
-- [ ] Email uniqueness is enforced safely at DB and form level
-- [ ] No Apple login work is introduced in this phase
-- [ ] The project is ready to add iOS support later as an extension, not a rewrite
+- [x] Google login works locally for web users
+- [x] Existing auth flow remains backward-compatible
+- [x] Email uniqueness is enforced safely at DB and form level
+- [x] No Apple login work is introduced in this phase
+- [x] The project is ready to add iOS support later as an extension, not a rewrite
 
 ---
 
