@@ -12,7 +12,7 @@ jobs:
       db:
         image: postgis/postgis:17-3.5
         env:
-          POSTGRES_DB: tiny_libraries
+          POSTGRES_DB: book_corners
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
         ports:
@@ -24,7 +24,7 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: postgis://postgres:postgres@localhost:5432/tiny_libraries
+      DATABASE_URL: postgis://postgres:postgres@localhost:5432/book_corners
       DJANGO_SECRET_KEY: ci-secret-key
       DJANGO_DEBUG: "false"
 

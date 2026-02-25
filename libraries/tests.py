@@ -486,7 +486,7 @@ class TestHomepageTemplate:
         assert "Latest entries" in content
         assert "Book Corners - made with ❤️ by" in content
         assert "https://github.com/andreagrandi" in content
-        assert "https://github.com/andreagrandi/tiny-libraries" in content
+        assert "https://github.com/andreagrandi/book-corners" in content
         assert "Source code available on" in content
 
 
@@ -507,7 +507,7 @@ class TestAboutPageTemplate:
         assert "Add a new library in your neighborhood" in content
         assert "href=\"/map/\"" in content
         assert "href=\"/submit/\"" in content
-        assert "https://github.com/andreagrandi/tiny-libraries" in content
+        assert "https://github.com/andreagrandi/book-corners" in content
 
 
 @pytest.mark.django_db

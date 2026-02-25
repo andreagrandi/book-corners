@@ -1,3 +1,5 @@
+name: book-corners
+
 services:
   app:
     build: .
@@ -22,7 +24,7 @@ services:
   db:
     image: postgis/postgis:17-3.5
     environment:
-      POSTGRES_DB: tiny_libraries
+      POSTGRES_DB: book_corners
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
