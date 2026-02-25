@@ -66,38 +66,38 @@
             <div class="alert alert-error text-sm">{{ form.non_field_errors }}</div>
           {% endif %}
 
-          <label class="form-control w-full">
-            <span class="label-text mb-1">Photo</span>
+          <label class="flex w-full flex-col gap-1">
+            <span class="text-sm font-medium">Photo</span>
             {{ form.photo }}
             {% if form.photo.errors %}<span class="mt-1 text-sm text-error">{{ form.photo.errors.0 }}</span>{% endif %}
           </label>
 
-          <label class="form-control w-full">
-            <span class="label-text mb-1">Name (optional)</span>
+          <label class="flex w-full flex-col gap-1">
+            <span class="text-sm font-medium">Name (optional)</span>
             {{ form.name }}
             {% if form.name.errors %}<span class="mt-1 text-sm text-error">{{ form.name.errors.0 }}</span>{% endif %}
           </label>
 
-          <label class="form-control w-full">
-            <span class="label-text mb-1">Description (optional)</span>
+          <label class="flex w-full flex-col gap-1">
+            <span class="text-sm font-medium">Description (optional)</span>
             {{ form.description }}
             {% if form.description.errors %}<span class="mt-1 text-sm text-error">{{ form.description.errors.0 }}</span>{% endif %}
           </label>
 
-          <label class="form-control w-full">
-            <span class="label-text mb-1">Country</span>
+          <label class="flex w-full flex-col gap-1">
+            <span class="text-sm font-medium">Country</span>
             {{ form.country }}
             {% if form.country.errors %}<span class="mt-1 text-sm text-error">{{ form.country.errors.0 }}</span>{% endif %}
           </label>
 
-          <label class="form-control w-full">
-            <span class="label-text mb-1">City</span>
+          <label class="flex w-full flex-col gap-1">
+            <span class="text-sm font-medium">City</span>
             {{ form.city }}
             {% if form.city.errors %}<span class="mt-1 text-sm text-error">{{ form.city.errors.0 }}</span>{% endif %}
           </label>
 
-          <label class="form-control w-full">
-            <span class="label-text mb-1">Address</span>
+          <label class="flex w-full flex-col gap-1">
+            <span class="text-sm font-medium">Address</span>
             {{ form.address }}
             <ul
               id="address-suggestions"
@@ -106,8 +106,8 @@
             {% if form.address.errors %}<span class="mt-1 text-sm text-error">{{ form.address.errors.0 }}</span>{% endif %}
           </label>
 
-          <label class="form-control w-full">
-            <span class="label-text mb-1">Postal code (optional)</span>
+          <label class="flex w-full flex-col gap-1">
+            <span class="text-sm font-medium">Postal code (optional)</span>
             {{ form.postal_code }}
             {% if form.postal_code.errors %}<span class="mt-1 text-sm text-error">{{ form.postal_code.errors.0 }}</span>{% endif %}
           </label>

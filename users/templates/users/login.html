@@ -18,14 +18,14 @@
             <div class="alert alert-error text-sm">{{ form.non_field_errors }}</div>
           {% endif %}
 
-          <label class="form-control w-full">
-            <span class="label-text mb-1">Username or email</span>
+          <label class="flex w-full flex-col gap-1">
+            <span class="text-sm font-medium">Username or email</span>
             {{ form.username }}
             {% if form.username.errors %}<span class="mt-1 text-sm text-error">{{ form.username.errors.0 }}</span>{% endif %}
           </label>
 
-          <label class="form-control w-full">
-            <span class="label-text mb-1">Password</span>
+          <label class="flex w-full flex-col gap-1">
+            <span class="text-sm font-medium">Password</span>
             {{ form.password }}
             {% if form.password.errors %}<span class="mt-1 text-sm text-error">{{ form.password.errors.0 }}</span>{% endif %}
           </label>
