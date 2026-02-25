@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Complete Sign Up - Book Corners{% endblock %}
+{% block meta_description %}Complete your Book Corners account setup after signing in with Google.{% endblock %}
+
+{% block content %}
+  <section class="mx-auto w-full max-w-md">
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h1 class="card-title text-2xl">Complete your account</h1>
+        <p class="text-base-content/70">Just one more step — pick a username to finish signing up.</p>
+
+        <form method="post" class="mt-2 space-y-4" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-error text-sm">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          {% for field in form %}
+            <label class="flex w-full flex-col gap-1">
+              <span class="text-sm font-medium">{{ field.label }}</span>
+              {{ field }}
+              {% if field.errors %}<span class="mt-1 text-sm text-error">{{ field.errors.0 }}</span>{% endif %}
+            </label>
+          {% endfor %}
+
+          <button type="submit" class="btn btn-primary w-full">Complete sign up</button>
+        </form>
+      </div>
+    </div>
+  </section>
+{% endblock %}

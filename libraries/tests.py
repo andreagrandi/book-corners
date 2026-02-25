@@ -576,6 +576,9 @@ class TestSeoMetadata:
     def test_sitemap_lists_public_pages_and_approved_library_details(self, client, user):
         """Verify sitemap lists static pages and approved library detail URLs.
         Prevents pending entries from being exposed to search engine crawlers."""
+        from django.contrib.sites.models import Site
+
+        Site.objects.update_or_create(id=1, defaults={"domain": "testserver", "name": "testserver"})
         approved_library = Library.objects.create(
             name="Indexed Shelf",
             photo="libraries/photos/2026/02/indexed.jpg",

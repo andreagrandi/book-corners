@@ -68,7 +68,7 @@ def register_view(request: HttpRequest) -> HttpResponse:
 
     if request.method == "POST" and form.is_valid():
         user = form.save()
-        login(request=request, user=user)
+        login(request=request, user=user, backend="django.contrib.auth.backends.ModelBackend")
         return redirect("home")
 
     return render(request, "users/register.html", {"form": form})

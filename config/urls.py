@@ -49,6 +49,7 @@ handler500 = "config.error_views.server_error"
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("accounts/", include("allauth.urls")),
     path("", include("users.urls")),
     path("", home, name="home"),
     path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
