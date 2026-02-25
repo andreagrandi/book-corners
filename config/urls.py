@@ -44,6 +44,9 @@ sitemaps = {
     "libraries": LibrarySitemap,
 }
 
+handler404 = "config.error_views.page_not_found"
+handler500 = "config.error_views.server_error"
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("users.urls")),
