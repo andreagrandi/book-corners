@@ -135,12 +135,6 @@ def _run_library_search(
 def _serialize_library_geojson_feature(*, library: Library) -> dict[str, object]:
     """Serialize one approved library into a GeoJSON feature.
     Provides marker coordinates and popup metadata for the map page."""
-    photo_url = ""
-    try:
-        photo_url = library.photo.url
-    except ValueError:
-        photo_url = ""
-
     return {
         "type": "Feature",
         "geometry": {
@@ -154,7 +148,7 @@ def _serialize_library_geojson_feature(*, library: Library) -> dict[str, object]
             "city": library.city,
             "country": library.country,
             "address": library.address,
-            "photo_url": photo_url,
+            "photo_url": library.card_photo_url,
             "detail_url": reverse("library_detail", kwargs={"slug": library.slug}),
         },
     }

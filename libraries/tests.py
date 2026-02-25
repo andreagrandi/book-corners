@@ -15,12 +15,18 @@ from libraries.models import Library, Report
 User = get_user_model()
 
 
-def _build_uploaded_photo(*, file_name: str = "library.jpg") -> SimpleUploadedFile:
+def _build_uploaded_photo(
+    *,
+    file_name: str = "library.jpg",
+    width: int = 640,
+    height: int = 480,
+    quality: int = 95,
+) -> SimpleUploadedFile:
     """Build an in-memory JPEG upload for form and endpoint tests.
     Keeps image fixtures deterministic without touching disk."""
     image_bytes = BytesIO()
-    image = Image.new("RGB", (640, 480), color=(140, 165, 210))
-    image.save(image_bytes, format="JPEG")
+    image = Image.new("RGB", (width, height), color=(140, 165, 210))
+    image.save(image_bytes, format="JPEG", quality=quality)
     image_bytes.seek(0)
 
     return SimpleUploadedFile(
@@ -181,6 +187,21 @@ class TestLibraryModel:
         assert library.pk is not None
         assert library.name == ""
         assert library.slug == "florence-via-rosina-15"
+
+    def test_card_photo_url_falls_back_to_main_photo_without_thumbnail(self, user):
+        """Verify card image URL falls back to the main photo when needed.
+        Preserves rendering compatibility for existing rows without thumbnails."""
+        library = Library.objects.create(
+            photo="libraries/photos/2026/02/test.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            created_by=user,
+        )
+
+        assert library.photo_thumbnail == ""
+        assert library.card_photo_url.endswith("/libraries/photos/2026/02/test.jpg")
 
     def test_slug_uniqueness_adds_numeric_suffix(self, user):
         """Verify slug uniqueness adds numeric suffix.
@@ -1268,6 +1289,59 @@ class TestSubmitLibraryView:
         assert library.location.y == pytest.approx(52.3676, abs=1e-6)
         assert library.location.x == pytest.approx(4.9041, abs=1e-6)
         assert library.photo.name
+        assert library.photo_thumbnail.name
+
+    def test_submit_upload_resizes_photo_compresses_and_generates_thumbnail(
+        self,
+        client,
+        user,
+        settings,
+        tmp_path,
+    ):
+        """Verify uploaded photos are resized and compressed before storage.
+        Ensures submit flow stores both optimized main and thumbnail images."""
+        settings.MEDIA_ROOT = tmp_path / "media"
+        client.force_login(user)
+
+        uploaded_photo = _build_uploaded_photo(
+            file_name="large-upload.jpg",
+            width=3600,
+            height=2400,
+            quality=98,
+        )
+        original_payload_size = uploaded_photo.size
+
+        response = client.post(
+            reverse("submit_library"),
+            data={
+                "photo": uploaded_photo,
+                "name": "Optimized Shelf",
+                "description": "Large upload that should be optimized.",
+                "address": "Via dei Banchi 3",
+                "city": "Florence",
+                "country": "IT",
+                "postal_code": "50123",
+                "latitude": "43.7696",
+                "longitude": "11.2558",
+            },
+        )
+
+        assert response.status_code == 302
+        assert response.url == reverse("submit_library_confirmation")
+
+        library = Library.objects.get(name="Optimized Shelf")
+        assert library.photo.name
+        assert library.photo_thumbnail.name
+        assert library.photo.size < original_payload_size
+
+        with Image.open(library.photo.path) as optimized_image:
+            assert max(optimized_image.size) <= 1600
+            assert optimized_image.format == "JPEG"
+
+        with Image.open(library.photo_thumbnail.path) as thumbnail_image:
+            assert thumbnail_image.width <= 400
+            assert thumbnail_image.height >= 1
+            assert thumbnail_image.format == "JPEG"
 
     def test_photo_metadata_endpoint_requires_authentication(self, client):
         """Verify the photo metadata endpoint is protected by login.

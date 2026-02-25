@@ -517,11 +517,11 @@ Goal for this phase:
 ### Phase 5 — Polish & Hardening
 
 #### 5.1 — Photo optimization
-- [ ] On upload: resize photo to a max dimension (e.g. 1600px wide)
-- [ ] Compress JPEG quality (e.g. 85%)
-- [ ] Generate a thumbnail version (e.g. 400px wide) for card grids and popups
-- [ ] Store both original (resized) and thumbnail
-- [ ] Add a test that verifies resizing/compression
+- [x] On upload: resize photo to a max dimension (e.g. 1600px wide)
+- [x] Compress JPEG quality (e.g. 85%)
+- [x] Generate a thumbnail version (e.g. 400px wide) for card grids and popups
+- [x] Store both original (resized) and thumbnail
+- [x] Add a test that verifies resizing/compression
 
 #### 5.2 — Report flow polish
 - [ ] Build report form as an HTMX inline form or modal on the detail page
