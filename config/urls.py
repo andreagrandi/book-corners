@@ -32,6 +32,7 @@ from libraries.views import (
     style_preview,
     submit_library,
     submit_library_confirmation,
+    submit_library_report,
     submit_library_photo_metadata,
 )
 
@@ -46,6 +47,7 @@ urlpatterns = [
     path("dashboard/", dashboard, name="dashboard"),
     path("latest-entries/", latest_entries, name="latest_entries"),
     path("library/<slug:slug>/", library_detail, name="library_detail"),
+    path("library/<slug:slug>/report/", submit_library_report, name="submit_library_report"),
     path("submit/", submit_library, name="submit_library"),
     path(
         "submit/confirmation/",

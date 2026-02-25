@@ -13,7 +13,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
-from libraries.forms import LibrarySearchForm, LibrarySubmissionForm
+from libraries.forms import LibrarySearchForm, LibrarySubmissionForm, ReportSubmissionForm
 from libraries.geolocation import (
     extract_gps_coordinates,
     forward_geocode_place,
@@ -330,25 +330,77 @@ def map_libraries_list(request: HttpRequest) -> HttpResponse:
     )
 
 
-def library_detail(request: HttpRequest, slug: str) -> HttpResponse:
-    """Render one public library detail or the creator's own submission.
-    Keeps non-approved entries private while allowing author review."""
+def _get_detail_visible_library(*, request: HttpRequest, slug: str) -> Library:
+    """Fetch a library that is visible from the detail page context.
+    Allows approved entries publicly and pending entries only for their owners."""
     visibility_filter = Q(status=Library.Status.APPROVED)
     user = getattr(request, "user", None)
     if user is not None and user.is_authenticated:
         visibility_filter |= Q(created_by=user)
 
-    library = get_object_or_404(
+    return get_object_or_404(
         Library,
         visibility_filter,
         slug=slug,
     )
+
+
+def library_detail(request: HttpRequest, slug: str) -> HttpResponse:
+    """Render one public library detail or the creator's own submission.
+    Keeps non-approved entries private while allowing author review."""
+    library = _get_detail_visible_library(request=request, slug=slug)
+    report_form: ReportSubmissionForm | None = None
+    user = getattr(request, "user", None)
+    if user is not None and user.is_authenticated:
+        report_form = ReportSubmissionForm(created_by=user, library=library)
+
     return render(
         request,
         "libraries/library_detail.html",
         {
             "library": library,
+            "report_form": report_form,
         },
+    )
+
+
+@login_required(login_url="login")
+def submit_library_report(request: HttpRequest, slug: str) -> HttpResponse:
+    """Process inline report submissions from the library detail page.
+    Returns HTMX-ready partial content for success or validation errors."""
+    if request.method != "POST":
+        return HttpResponse("Method not allowed.", status=405)
+
+    library = _get_detail_visible_library(request=request, slug=slug)
+    current_user = getattr(request, "user", None)
+    report_form = ReportSubmissionForm(
+        data=request.POST or None,
+        files=request.FILES or None,
+        created_by=current_user,
+        library=library,
+    )
+
+    if report_form.is_valid():
+        report_form.save()
+        return render(
+            request,
+            "libraries/_report_form.html",
+            {
+                "library": library,
+                "report_submitted": True,
+                "report_form": ReportSubmissionForm(created_by=current_user, library=library),
+            },
+        )
+
+    return render(
+        request,
+        "libraries/_report_form.html",
+        {
+            "library": library,
+            "report_submitted": False,
+            "report_form": report_form,
+        },
+        status=422,
     )
 
 
