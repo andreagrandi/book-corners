@@ -1,9 +1,89 @@
+import time
+
 import pytest
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.messages.middleware import MessageMiddleware
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.db import IntegrityError
 from django.urls import reverse
 
+from allauth.account.models import EmailAddress
+from allauth.core.context import request_context
+from allauth.socialaccount.helpers import complete_social_login
+from allauth.socialaccount.models import SocialAccount, SocialLogin
+
 User = get_user_model()
+
+
+def _sociallogin_request(rf):
+    """Build a request with session and message middleware.
+    Required by complete_social_login for authentication flows."""
+    request = rf.get("/")
+    SessionMiddleware(lambda r: None).process_request(request)
+    MessageMiddleware(lambda r: None).process_request(request)
+    request.session.save()
+    request.user = AnonymousUser()
+    return request
+
+
+def _google_sociallogin(request, email, uid, extra_data=None):
+    """Build a SocialLogin for a Google OAuth user.
+    Simulates what allauth constructs from Google's API response."""
+    from allauth.socialaccount.adapter import get_adapter as get_social_adapter
+
+    provider = get_social_adapter(request).get_provider(
+        request, provider="google"
+    )
+    user = User(email=email, username="")
+    account = SocialAccount(
+        provider="google",
+        uid=uid,
+        extra_data=extra_data or {"email": email},
+    )
+    email_obj = EmailAddress(
+        email=email,
+        verified=True,
+        primary=True,
+    )
+    return SocialLogin(
+        user=user,
+        account=account,
+        email_addresses=[email_obj],
+        provider=provider,
+    )
+
+
+def _stash_callback_state(client):
+    """Stash a valid OAuth state in the test client's session.
+    Returns the state ID for use in callback URL parameters."""
+    session = client.session
+    state_id = "test-state-id"
+    session["socialaccount_states"] = {
+        state_id: ({"process": "login", "redirect_url": "/"}, time.time())
+    }
+    session.save()
+    return state_id
+
+
+@pytest.fixture
+def _google_provider_settings(settings):
+    """Configure Google provider with test credentials.
+    Required for the provider to be available during tests."""
+    settings.SOCIALACCOUNT_PROVIDERS = {
+        "google": {
+            "APPS": [
+                {
+                    "client_id": "test-id",
+                    "secret": "test-secret",
+                    "key": "",
+                },
+            ],
+            "SCOPE": ["profile", "email"],
+            "AUTH_PARAMS": {"access_type": "online"},
+            "OAUTH_PKCE_ENABLED": True,
+        },
+    }
 
 
 class TestGoogleOAuthEnabledSetting:
@@ -335,3 +415,133 @@ class TestContextProcessor:
         settings.GOOGLE_OAUTH_ENABLED = False
         result = google_oauth(rf.get("/"))
         assert result == {"google_oauth_enabled": False}
+
+
+@pytest.mark.django_db
+@pytest.mark.usefixtures("_google_provider_settings")
+class TestGoogleFirstSignup:
+    """Verify first-time Google OAuth signup creates a new user."""
+
+    def test_new_user_created_on_first_google_login(self, rf):
+        """A new user row is created when no matching account exists.
+        Confirms the auto-signup flow works end-to-end."""
+        request = _sociallogin_request(rf)
+        initial_count = User.objects.count()
+        sociallogin = _google_sociallogin(
+            request, email="newgoogle@example.com", uid="google-uid-001"
+        )
+        with request_context(request):
+            complete_social_login(request, sociallogin)
+
+        assert User.objects.count() == initial_count + 1
+        new_user = User.objects.get(email="newgoogle@example.com")
+        assert SocialAccount.objects.filter(
+            user=new_user, provider="google", uid="google-uid-001"
+        ).exists()
+
+    def test_new_user_is_authenticated_after_signup(self, rf):
+        """The request user is authenticated after completing signup.
+        Users should be logged in immediately after Google OAuth."""
+        request = _sociallogin_request(rf)
+        sociallogin = _google_sociallogin(
+            request, email="authcheck@example.com", uid="google-uid-002"
+        )
+        with request_context(request):
+            complete_social_login(request, sociallogin)
+
+        assert request.user.is_authenticated
+
+
+@pytest.mark.django_db
+@pytest.mark.usefixtures("_google_provider_settings")
+class TestGoogleLoginLinkingExistingAccount:
+    """Verify Google login links to existing local accounts by email."""
+
+    def test_existing_user_linked_no_duplicate_created(self, rf):
+        """No duplicate user row is created when email matches.
+        The existing account gets a SocialAccount linked to it instead."""
+        existing = User.objects.create_user(
+            username="localuser",
+            email="shared@example.com",
+            password="pass123",
+        )
+        initial_count = User.objects.count()
+
+        request = _sociallogin_request(rf)
+        sociallogin = _google_sociallogin(
+            request, email="shared@example.com", uid="google-uid-link-001"
+        )
+        with request_context(request):
+            complete_social_login(request, sociallogin)
+
+        assert User.objects.count() == initial_count
+        assert SocialAccount.objects.filter(
+            user=existing, provider="google", uid="google-uid-link-001"
+        ).exists()
+
+    def test_existing_user_is_authenticated_after_linking(self, rf):
+        """The request user is the existing local user after linking.
+        Confirms identity merge works correctly via email match."""
+        existing = User.objects.create_user(
+            username="localuser2",
+            email="linked@example.com",
+            password="pass123",
+        )
+        request = _sociallogin_request(rf)
+        sociallogin = _google_sociallogin(
+            request, email="linked@example.com", uid="google-uid-link-002"
+        )
+        with request_context(request):
+            complete_social_login(request, sociallogin)
+
+        assert request.user.is_authenticated
+        assert request.user.pk == existing.pk
+
+
+@pytest.mark.django_db
+@pytest.mark.usefixtures("_google_provider_settings")
+class TestCallbackDenialHandling:
+    """Verify OAuth callback handles provider denial gracefully."""
+
+    def test_access_denied_redirects_to_cancelled_page(self, client):
+        """User cancelling Google consent redirects to login-cancelled page.
+        No 500 error should occur on normal OAuth denial."""
+        state_id = _stash_callback_state(client)
+        url = reverse("google_callback")
+        response = client.get(url, {"state": state_id, "error": "access_denied"})
+
+        assert response.status_code == 302
+        assert reverse("socialaccount_login_cancelled") in response["Location"]
+
+    def test_generic_error_renders_error_page(self, client):
+        """A non-cancel OAuth error renders the authentication error template.
+        The error page uses 401 status, not 500."""
+        state_id = _stash_callback_state(client)
+        url = reverse("google_callback")
+        response = client.get(url, {"state": state_id, "error": "server_error"})
+
+        assert response.status_code == 401
+
+
+@pytest.mark.django_db
+@pytest.mark.usefixtures("_google_provider_settings")
+class TestCallbackStateMismatch:
+    """Verify OAuth callback handles invalid or missing state gracefully."""
+
+    def test_invalid_state_returns_error_not_500(self, client):
+        """An invalid state parameter returns an error page, not a 500.
+        Protects against CSRF attacks and session expiry."""
+        url = reverse("google_callback")
+        response = client.get(url, {"state": "invalid-state-xyz", "code": "some-code"})
+
+        assert response.status_code != 500
+        assert response.status_code == 401
+
+    def test_missing_state_and_code_returns_error_not_500(self, client):
+        """A callback with no state and no code returns an error, not 500.
+        Handles direct URL access or mangled redirects."""
+        url = reverse("google_callback")
+        response = client.get(url)
+
+        assert response.status_code != 500
+        assert response.status_code == 401
