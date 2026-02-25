@@ -372,18 +372,18 @@ Goal for this phase:
 - [ ] Implement this in a way that can be extended for iOS later (additive, no rewrite).
 
 #### 3.5.1 — Auth policy and constraints (before coding)
-- [ ] Confirm account policy: username unique + email unique (case-insensitive)
-- [ ] Keep login with username OR email + password for local auth
-- [ ] Keep email required for local registration
-- [ ] Define linking rule: same verified Google email must map to one existing local user
-- [ ] Define fallback behavior if provider email is missing or not verified
+- [x] Confirm account policy: username unique + email unique (case-insensitive)
+- [x] Keep login with username OR email + password for local auth
+- [x] Keep email required for local registration
+- [x] Define linking rule: same verified Google email must map to one existing local user
+- [x] Define fallback behavior if provider email is missing or not verified
 
 #### 3.5.2 — User data hardening for unique email
-- [ ] Audit existing users for duplicate emails ignoring case
-- [ ] Normalize stored emails (trim + lowercase) via migration before constraint
-- [ ] Add database-level unique constraint for email (case-insensitive strategy)
-- [ ] Update forms/validation so duplicate emails fail with a clear error message
-- [ ] Add migration tests for normalization + uniqueness behavior
+- [x] Audit existing users for duplicate emails ignoring case
+- [x] Normalize stored emails (trim + lowercase) via migration before constraint
+- [x] Add database-level unique constraint for email (case-insensitive strategy)
+- [x] Update forms/validation so duplicate emails fail with a clear error message
+- [x] Add migration tests for normalization + uniqueness behavior
 
 #### 3.5.3 — Google Cloud setup (local first)
 - [ ] Create Google Cloud project (free tier, no billing required for basic sign-in)

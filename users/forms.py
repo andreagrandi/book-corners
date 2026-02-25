@@ -37,10 +37,12 @@ class RegistrationForm(UserCreationForm):
         return username.strip()
 
     def clean_email(self) -> str:
-        """Normalize the registration email before persistence.
-        Trims whitespace and lowercases email values consistently."""
-        email = self.cleaned_data.get("email", "")
-        return email.strip().lower()
+        """Normalize email and reject duplicates before persistence.
+        Ensures case-insensitive uniqueness at the form level."""
+        email = self.cleaned_data.get("email", "").strip().lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("A user with this email already exists.")
+        return email
 
 
 class UsernameOrEmailAuthenticationForm(AuthenticationForm):
