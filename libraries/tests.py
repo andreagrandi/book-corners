@@ -665,6 +665,17 @@ class TestErrorPages:
         assert "Explore map" in content
 
 
+@pytest.mark.django_db
+class TestHealthEndpoint:
+    def test_health_returns_ok_when_database_is_reachable(self, client):
+        """Verify health endpoint confirms app and database are responsive.
+        Used by Dokku zero-downtime checks and uptime monitoring."""
+        response = client.get("/health/")
+
+        assert response.status_code == 200
+        assert response.json() == {"status": "ok"}
+
+
 class TestCsrfProtection:
     def test_csrf_middleware_is_enabled(self):
         """Verify CSRF middleware remains enabled in global middleware.

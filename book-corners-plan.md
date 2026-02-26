@@ -912,8 +912,20 @@ dumps and media backups. BorgBase is the planned offsite target.
   sudo apt-get update && sudo apt-get install -y borgbackup
   ```
 - [ ] Set up a BorgBase repository (https://www.borgbase.com/):
-  - Create an account and a new repository
-  - Add the VPS SSH public key (`ssh-keygen` on the VPS if needed)
+  - Ensure the VPS has an SSH key pair (borg needs it to authenticate with BorgBase):
+    ```bash
+    # Check if a key already exists
+    ssh -t deploy@vps.bookcorners.org "ls -la ~/.ssh/id_*.pub"
+
+    # If no key exists, generate one
+    ssh -t deploy@vps.bookcorners.org "ssh-keygen -t ed25519 -N '' -C 'deploy@vps.bookcorners.org'"
+
+    # Print the public key to copy into BorgBase
+    ssh -t deploy@vps.bookcorners.org "cat ~/.ssh/id_ed25519.pub"
+    ```
+  - Create a BorgBase account and go to **Account → SSH Keys**
+  - Paste the VPS public key and save it
+  - Create a new repository in BorgBase
   - Note the repository URL (e.g., `ssh://xxxxx@xxxxx.repo.borgbase.com/./repo`)
 - [ ] Initialize the borg repository from the VPS
   ```bash
@@ -921,40 +933,28 @@ dumps and media backups. BorgBase is the planned offsite target.
   export BORG_PASSPHRASE="<your-passphrase>"
   borg init --encryption=repokey ssh://xxxxx@xxxxx.repo.borgbase.com/./repo
   ```
-- [ ] Create a backup script on the VPS at `/home/deploy/backup.sh`:
+- [ ] Version the backup and restore scripts in the repo under `scripts/`:
+  - `scripts/backup.sh` — nightly backup script
+  - `scripts/restore.sh` — restore script with selective restore support
+  - See the actual script files in the repo for contents
+- [ ] Deploy scripts to the VPS and make them executable:
   ```bash
-  #!/bin/bash
-  set -euo pipefail
+  # Dokku stores the app source at /home/dokku/book-corners/ (as a bare git repo).
+  # The repo is checked out on each deploy but is not a convenient working tree.
+  #
+  # For ops scripts, clone the repo to the deploy user's home instead:
+  ssh -t deploy@vps.bookcorners.org "git clone https://github.com/andreagrandi/book-corners.git ~/book-corners"
 
-  BORG_REPO="ssh://xxxxx@xxxxx.repo.borgbase.com/./repo"
-  export BORG_PASSPHRASE="<your-passphrase>"
+  # To update scripts later after pushing changes to GitHub:
+  ssh -t deploy@vps.bookcorners.org "cd ~/book-corners && git pull"
 
-  BACKUP_DIR="/tmp/book-corners-backup"
-  mkdir -p "$BACKUP_DIR"
-
-  # 1. Dump PostgreSQL (transaction-safe, no downtime)
-  sudo dokku postgres:export book-corners-db > "$BACKUP_DIR/db.dump"
-
-  # 2. Create borg archive (DB dump + media files)
-  borg create --stats --compression lz4 \
-    "$BORG_REPO::book-corners-{now:%Y-%m-%d-%H%M%S}" \
-    "$BACKUP_DIR/db.dump" \
-    /var/lib/dokku/data/storage/book-corners/media
-
-  # 3. Prune old backups (keep 7 daily, 4 weekly, 6 monthly)
-  borg prune --stats \
-    --keep-daily=7 --keep-weekly=4 --keep-monthly=6 \
-    "$BORG_REPO"
-
-  # 4. Cleanup
-  rm -rf "$BACKUP_DIR"
-
-  echo "Backup completed: $(date)"
+  # Symlink scripts to a convenient location:
+  ssh -t deploy@vps.bookcorners.org "ln -sf ~/book-corners/scripts/backup.sh ~/backup.sh"
+  ssh -t deploy@vps.bookcorners.org "ln -sf ~/book-corners/scripts/restore.sh ~/restore.sh"
   ```
-- [ ] Make it executable and test it:
+- [ ] Test the backup script:
   ```bash
-  chmod +x /home/deploy/backup.sh
-  sudo /home/deploy/backup.sh
+  ssh -t deploy@vps.bookcorners.org "sudo ~/backup.sh"
   ```
 - [ ] Add a nightly cron job (e.g., 3 AM server time):
   ```bash
@@ -962,16 +962,53 @@ dumps and media backups. BorgBase is the planned offsite target.
   # Add:
   0 3 * * * /home/deploy/backup.sh >> /var/log/book-corners-backup.log 2>&1
   ```
-- [ ] Document the manual restore procedure:
+- [ ] Test backup restore (verify backups actually work):
+  - **Database**: restore to a temporary Dokku Postgres service to avoid touching production:
+    ```bash
+    # Create a throwaway DB service
+    sudo dokku postgres:create book-corners-db-test
+
+    # Extract the dump from the latest archive
+    mkdir -p /tmp/restore-test && cd /tmp/restore-test
+    export BORG_PASSPHRASE="<your-passphrase>"
+    borg extract "$BORG_REPO::<latest-archive>" tmp/book-corners-backup/db.dump
+
+    # Import into the test service
+    sudo dokku postgres:import book-corners-db-test < tmp/book-corners-backup/db.dump
+
+    # Verify: connect and spot-check a table
+    sudo dokku postgres:connect book-corners-db-test
+    # In psql: SELECT count(*) FROM libraries_library; then \q
+
+    # Tear down
+    sudo dokku postgres:destroy book-corners-db-test --force
+    rm -rf /tmp/restore-test
+    ```
+  - **Media**: restore a small subset to a temp folder (avoids filling disk):
+    ```bash
+    mkdir -p /tmp/restore-test && cd /tmp/restore-test
+    export BORG_PASSPHRASE="<your-passphrase>"
+
+    # List media paths inside the archive to pick a small subset
+    borg list "$BORG_REPO::<latest-archive>" | grep media | head -20
+
+    # Extract only a few files (e.g., one subfolder or date prefix)
+    borg extract "$BORG_REPO::<latest-archive>" \
+      var/lib/dokku/data/storage/book-corners/media/library_photos/2026 \
+      --strip-components 7
+
+    # Verify files are intact
+    ls -la
+    file *.jpg  # should report valid image files
+
+    # Cleanup
+    rm -rf /tmp/restore-test
+    ```
+  - Mark this step done only after both DB and media restores succeed
+- [ ] Add a monthly restore-test reminder (calendar or cron that logs a warning):
   ```bash
-  # List available archives:
-  borg list "$BORG_REPO"
-
-  # Extract a specific archive:
-  borg extract "$BORG_REPO::book-corners-2026-02-25-030000"
-
-  # Restore database:
-  sudo dokku postgres:import book-corners-db < db.dump
+  # Add to deploy user's crontab:
+  0 9 1 * * echo "[REMINDER] Test backup restore for book-corners" | logger -t backup-reminder
   ```
 
 #### 6.13 — Monitoring and alerting baseline
@@ -999,6 +1036,25 @@ dumps and media backups. BorgBase is the planned offsite target.
     ```
 - [ ] Run one test incident: temporarily break something (e.g., wrong ALLOWED_HOSTS),
   verify alerts fire, then fix it
+
+#### 6.13b — VPS paths reference
+
+Key paths on the VPS for quick reference:
+
+| What | Path |
+|------|------|
+| Dokku app (bare git repo) | `/home/dokku/book-corners/` |
+| App source checkout (for ops scripts) | `/home/deploy/book-corners/` |
+| Backup/restore scripts (symlinks) | `/home/deploy/backup.sh`, `/home/deploy/restore.sh` |
+| Media files (mounted into container) | `/var/lib/dokku/data/storage/book-corners/media/` |
+| Postgres data (managed by Dokku plugin) | `/var/lib/dokku/services/postgres/book-corners-db/` |
+| App logs | `sudo dokku logs book-corners --tail` |
+| Backup log | `/var/log/book-corners-backup.log` |
+
+To update ops scripts after a push to GitHub:
+```bash
+ssh -t deploy@vps.bookcorners.org "cd ~/book-corners && git pull"
+```
 
 #### 6.14 — Deploy runbook (reference document)
 

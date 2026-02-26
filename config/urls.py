@@ -22,6 +22,7 @@ from django.urls import include, path
 from django.views.generic import TemplateView
 
 from config.api import api
+from config.views import health
 from libraries.sitemaps import LibrarySitemap, StaticViewSitemap
 from libraries.views import (
     about_page,
@@ -48,6 +49,7 @@ handler404 = "config.error_views.page_not_found"
 handler500 = "config.error_views.server_error"
 
 urlpatterns = [
+    path("health/", health, name="health"),
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
     path("", include("users.urls")),
