@@ -484,7 +484,8 @@ class TestHomepageTemplate:
         assert "name=\"near\"" in content
         assert "Advanced search" in content
         assert "Latest entries" in content
-        assert "Made with ❤️ by Andrea Grandi" in content
+        assert "Made with ❤️ by" in content
+        assert "https://www.andreagrandi.it" in content
         assert "https://github.com/andreagrandi/book-corners" in content
         assert "href=\"/privacy/\"" in content
         assert "https://developers.bookcorners.org/" in content
