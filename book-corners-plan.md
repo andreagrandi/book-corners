@@ -504,14 +504,14 @@ Establish shared foundations so all subsequent endpoints are consistent from the
 
 #### 4.2 — Library list + detail endpoints (public, read-only)
 
-- [ ] Create `libraries/api.py` with `library_router = Router(tags=["libraries"])`
-- [ ] `GET /api/v1/libraries` — paginated list of approved libraries using `LibraryListOut`
-- [ ] `GET /api/v1/libraries/{slug}` — single library detail, 404 for non-approved
+- [x] Create `libraries/api.py` with `library_router = Router(tags=["libraries"])`
+- [x] `GET /api/v1/libraries` — paginated list of approved libraries using `LibraryListOut`
+- [x] `GET /api/v1/libraries/{slug}` — single library detail, 404 for non-approved
   (except: owner can see their own pending entry via JWT)
-- [ ] Register router in `config/api.py`: `api.add_router("/libraries/", library_router)`
-- [ ] Reuse queryset from `_get_latest_entries_page()` and visibility logic from
+- [x] Register router in `config/api.py`: `api.add_router("/libraries/", library_router)`
+- [x] Reuse queryset from `_get_latest_entries_page()` and visibility logic from
   `_get_detail_visible_library()` in `libraries/views.py`
-- [ ] Add tests in `libraries/test_api_libraries.py`:
+- [x] Add tests in `libraries/test_api_libraries.py`:
   list pagination, status filtering, detail by slug, 404s, owner visibility of pending
 
 #### 4.3 — Search, filtering, proximity + latest endpoint
