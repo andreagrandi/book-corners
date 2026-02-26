@@ -466,56 +466,172 @@ Goal for this phase:
 
 ### Phase 4 — API Completion
 
-#### 4.1 — Library list + detail endpoints
-- [ ] `GET /api/v1/libraries` — return paginated list of approved libraries
-- [ ] Define response schema (LibraryOut) with all public fields
-- [ ] `GET /api/v1/libraries/{id}` — return a single library by ID
-- [ ] Handle 404 for non-existent or non-approved libraries
-- [ ] Add tests for both endpoints
+**Auth model note:** The API uses JWT tokens but the **same Django User model** as the web app.
+A user who registers on the web can call `/api/v1/auth/login` with the same credentials to get
+a JWT token, and vice versa. Google OAuth users work too — they have a regular Django user
+under the hood. When the iOS app comes, it will use the same auth endpoints and the same
+accounts. There is no separate "API user" concept.
 
-#### 4.2 — Library search + filtering
-- [ ] Add query params: `q` (full-text), `city`, `country`, `postal_code`
-- [ ] Add proximity params: `lat`, `lng`, `radius` — use PostGIS `ST_DWithin`
-- [ ] Combine filters (text + location + field filters)
-- [ ] Add tests for each filter type and combinations
+**Restructuring rationale:** Cross-cutting concerns (error handling, pagination, rate limiting)
+are built first (4.1) so every endpoint is consistent from the start. Read-only endpoints are
+grouped together (4.2–4.3), then write endpoints (4.4–4.5). Search logic is extracted into a
+shared module so views and API reuse the same code. Library detail uses `{slug}` (not `{id}`)
+to match the existing web URL convention. Developer documentation gets its own substantial
+step (4.7) as a full portal at `developers.bookcorners.org`.
 
-#### 4.3 — Latest libraries endpoint
-- [ ] `GET /api/v1/libraries/latest` — return N most recent approved libraries
-- [ ] Parameterize N with a query param (default 10, max 50)
-- [ ] Add test
+#### 4.1 — API infrastructure: errors, pagination, rate limiting
 
-#### 4.4 — Submit library endpoint
-- [ ] `POST /api/v1/libraries` — create a new library (requires JWT)
-- [ ] Define request schema (LibraryIn) with validation
-- [ ] Handle photo upload via multipart form data
-- [ ] Set status=pending, created_by from JWT
-- [ ] Geocode address → coordinates if not provided
-- [ ] Add tests (authenticated, unauthenticated, validation errors)
+Establish shared foundations so all subsequent endpoints are consistent from the start.
 
-#### 4.5 — Report endpoint
-- [ ] `POST /api/v1/libraries/{id}/report` — create a report (requires JWT)
-- [ ] Define request schema (ReportIn) with reason choices and details
-- [ ] Handle optional photo upload
-- [ ] Set status=open, created_by from JWT
-- [ ] Add tests (valid report, missing library, unauthenticated)
+- [ ] Create `libraries/api_schemas.py` with Pydantic schemas:
+  - `LibraryOut` — id, slug, name, description, photo_url, thumbnail_url, lat, lng, address,
+    city, country, postal_code, created_at
+  - `LibraryListOut` — list of `LibraryOut` + pagination metadata
+  - `LibrarySearchParams` — q, city, country, postal_code, lat, lng, radius_km, page, page_size
+  - `LibrarySubmitIn` — name, description, address, city, country, postal_code, latitude, longitude
+  - `ReportIn` — reason (enum), details
+  - `ReportOut` — confirmation after creation
+  - `PaginationMeta` — page, page_size, total, total_pages, has_next, has_previous
+- [ ] Create `libraries/api_pagination.py`:
+  - `paginate_queryset(qs, page, page_size, max_page_size=50)` → (items, PaginationMeta)
+  - Reuse clamping pattern from `_parse_page_number()` in `libraries/views.py`
+- [ ] Create `libraries/api_security.py` — generalize `users/security.py` pattern for public endpoints:
+  - Settings: `API_RATE_LIMIT_READ_REQUESTS` (default 60/window), `API_RATE_LIMIT_WRITE_REQUESTS` (default 10/window)
+- [ ] Modify `config/api.py` — add exception handlers (400/404/422/500) producing
+  `{"message": "...", "details": {...}}`, extending existing `ErrorOut` from `users/api.py`
+- [ ] Add settings to `config/settings.py` for public API rate limits
+- [ ] Add tests: `libraries/test_api_pagination.py`, `libraries/test_api_errors.py`
 
-#### 4.6 — Consistent error responses + validation
-- [ ] Define a standard error response schema (code, message, details)
-- [ ] Add exception handlers in Django Ninja for 400, 401, 403, 404, 422
-- [ ] Ensure all endpoints return consistent error shapes
-- [ ] Add tests for error cases
+#### 4.2 — Library list + detail endpoints (public, read-only)
 
-#### 4.7 — Pagination
-- [ ] Implement cursor or offset pagination on list/search endpoints
-- [ ] Add `page` and `page_size` query params
-- [ ] Return pagination metadata (total, next, previous)
-- [ ] Add tests for pagination boundaries
+- [ ] Create `libraries/api.py` with `library_router = Router(tags=["libraries"])`
+- [ ] `GET /api/v1/libraries` — paginated list of approved libraries using `LibraryListOut`
+- [ ] `GET /api/v1/libraries/{slug}` — single library detail, 404 for non-approved
+  (except: owner can see their own pending entry via JWT)
+- [ ] Register router in `config/api.py`: `api.add_router("/libraries/", library_router)`
+- [ ] Reuse queryset from `_get_latest_entries_page()` and visibility logic from
+  `_get_detail_visible_library()` in `libraries/views.py`
+- [ ] Add tests in `libraries/test_api_libraries.py`:
+  list pagination, status filtering, detail by slug, 404s, owner visibility of pending
 
-#### 4.8 — API docs + rate limiting
-- [ ] Verify Django Ninja auto-generates OpenAPI schema at `/api/v1/docs`
-- [ ] Review and annotate schemas for clarity (descriptions, examples)
-- [ ] Add rate limiting on public endpoints (django-ratelimit or middleware)
-- [ ] Add test that rate limiting triggers on excessive requests
+#### 4.3 — Search, filtering, proximity + latest endpoint
+
+- [ ] Create `libraries/search.py` — extract search logic into framework-agnostic functions:
+  - `apply_text_search(qs, q)` — from `_apply_text_search()` in `libraries/views.py`
+  - `run_library_search(q, city, country, postal_code, lat, lng, radius_km)` — from
+    `_run_library_search()` in `libraries/views.py`
+- [ ] Refactor `libraries/views.py` to import from `libraries/search.py` (no duplication)
+- [ ] Extend `GET /api/v1/libraries` to accept `LibrarySearchParams` query parameters:
+  `q` (full-text), `city`, `country`, `postal_code`, `lat`, `lng`, `radius_km`
+- [ ] Add `GET /api/v1/libraries/latest` — most recent approved (default 10, max 50, query param `limit`)
+- [ ] Add tests: text search, field filters, proximity (mocked geocoding), combined filters,
+  latest with limit clamping
+
+#### 4.4 — Submit library endpoint (authenticated, write)
+
+- [ ] `POST /api/v1/libraries` — multipart with photo + fields, JWT required
+- [ ] Response: `{201: LibraryOut, 400: ErrorOut, 401: ErrorOut, 413: ErrorOut, 429: ErrorOut}`
+- [ ] Reuse photo validation from `_validate_uploaded_photo()` in `libraries/forms.py`
+- [ ] Reuse lat/lng validation from `LibrarySubmissionForm` in `libraries/forms.py`
+- [ ] `Library.save()` handles slug generation + photo optimization automatically
+- [ ] Set status=pending, created_by from JWT user
+- [ ] Rate limited with write-tier limits
+- [ ] Add tests: auth required, valid submission, photo validation, lat/lng range checks
+
+#### 4.5 — Report endpoint (authenticated, write)
+
+- [ ] `POST /api/v1/libraries/{slug}/report` — reason (enum), details, optional photo. JWT required
+- [ ] Response: `{201: ReportOut, 400: ErrorOut, 401: ErrorOut, 404: ErrorOut, 429: ErrorOut}`
+- [ ] Reuse `Report.Reason` choices from `libraries/models.py`
+- [ ] Validate target library exists and is approved
+- [ ] Rate limited with write-tier limits
+- [ ] Add tests: auth required, valid report, 404 for missing library, reason validation
+
+#### 4.6 — OpenAPI schema polish + export command
+
+Ensure the auto-generated schema is documentation-quality, then create a management command
+to export it for the docs pipeline.
+
+- [ ] Enhance `NinjaAPI()` in `config/api.py`: add `description`, `version="1.0.0"`, `servers` list
+- [ ] Add `Field(description=..., examples=[...])` to all schema fields in `libraries/api_schemas.py`
+- [ ] Add descriptions to auth schemas and endpoints in `users/api.py`
+- [ ] Add `summary`/`description` to each endpoint decorator in `libraries/api.py`
+- [ ] Create `libraries/management/commands/export_openapi_schema.py`:
+  `python manage.py export_openapi_schema > docs/openapi.json`
+- [ ] Verify: `/api/v1/docs` shows descriptions, examples, proper response schemas
+
+#### 4.7 — Developer documentation portal (developers.bookcorners.org)
+
+**Tooling:** MkDocs Material + OpenAPI rendering plugin. Python-native (matches project),
+supports prose docs alongside auto-generated API reference, builds to static HTML for
+GitHub Pages. Better than Redoc alone (no prose docs) or Docusaurus (Node-based, heavier).
+
+**Content structure:**
+```
+docs/
+  index.md                     # Welcome, what is Book Corners API
+  getting-started.md           # Register → get token → first request (curl + Python examples)
+  authentication.md            # JWT flow, token lifecycle, refresh, Bearer header usage
+  libraries/
+    list-and-search.md         # GET /libraries with query params, curl + Python examples
+    detail.md                  # GET /libraries/{slug}
+    submit.md                  # POST /libraries (multipart photo upload examples)
+    report.md                  # POST /libraries/{slug}/report
+  reference/
+    openapi.md                 # Embedded Swagger/Redoc rendering from openapi.json
+  rate-limiting.md             # Rate limit policy, Retry-After, error handling
+  errors.md                    # Error response format, common status codes
+  changelog.md                 # API changelog
+```
+
+- [ ] Create `docs/` directory with all markdown content above
+- [ ] Create `mkdocs.yml` — MkDocs Material config (site_name, theme with teal primary,
+  nav structure, search + render_swagger plugins)
+- [ ] Create `requirements-docs.txt` — `mkdocs-material`, `mkdocs-render-swagger-plugin`
+- [ ] Write prose docs with curl + Python code examples for every endpoint
+- [ ] Each page covers: endpoint URL/method, auth requirements, parameters, code examples,
+  response examples, error scenarios
+
+**CI/CD pipeline:**
+
+- [ ] Create `.github/workflows/docs.yml`:
+  - Triggers on push to master when `docs/`, `mkdocs.yml`, or API code files change
+  - Spins up PostGIS service (needed for Django to load and export schema)
+  - Runs `python manage.py export_openapi_schema > docs/openapi.json`
+  - Builds with `mkdocs build --strict`
+  - Deploys to `gh-pages` branch via `peaceiris/actions-gh-pages` with
+    `cname: developers.bookcorners.org`
+- [ ] Enable GitHub Pages in repo settings (source: `gh-pages` branch)
+- [ ] Add custom domain `developers.bookcorners.org` in repo Settings → Pages
+
+**DNS + GitHub Pages setup:**
+
+- [ ] In the `book-corners` repo Settings → Pages, set source to `gh-pages` branch
+- [ ] In the `book-corners` repo Settings → Pages, set custom domain to `developers.bookcorners.org`
+  (GitHub associates this domain with the book-corners repo specifically — it routes by
+  matching the incoming Host header to the repo that claims that custom domain)
+- [ ] In Cloudflare (bookcorners.org zone): add CNAME record
+  `developers` → `andreagrandi.github.io` (DNS only, grey cloud)
+  Note: this is the same target as all GitHub Pages under the `andreagrandi` account.
+  GitHub disambiguates by custom domain, not by CNAME target. This does not conflict
+  with the personal site because each repo registers its own custom domain.
+- [ ] GitHub Pages handles TLS via its own Let's Encrypt integration
+
+**Freshness guarantee:** The CI workflow re-exports the OpenAPI schema from the live Django
+app on every relevant push, so API changes automatically propagate to docs. No manual step.
+
+- [ ] Verify: `mkdocs serve` locally previews the docs site
+- [ ] Verify: push to master triggers docs CI → `developers.bookcorners.org` is live
+
+#### 4.8 — Integration verification
+
+- [ ] Add schema validation: `openapi-spec-validator` check in CI or nox session
+- [ ] Create `libraries/test_api_integration.py` — full workflow:
+  register → login → submit library → list → search → detail → report
+- [ ] Verify pagination consistency across pages (no duplicates, correct totals)
+- [ ] Verify error response consistency across all endpoints
+- [ ] Update `CLAUDE.md` with new commands:
+  `python manage.py export_openapi_schema`, `mkdocs serve`
 
 ---
 
@@ -1013,9 +1129,8 @@ dumps and media backups. BorgBase is the planned offsite target.
 
 #### 6.13 — Monitoring and alerting baseline
 
-- [ ] Set up uptime monitoring with UptimeRobot (free tier):
-  - Monitor `https://bookcorners.org/` (HTTP 200 check)
-  - Monitor `https://bookcorners.org/admin/login/` (HTTP 200 check)
+- [x] Set up uptime monitoring with UptimeRobot (free tier):
+  - Monitor `https://bookcorners.org/health` (HTTP 200 check)
   - Set check interval to 5 minutes
   - Configure alert contact (email or Telegram)
 - [ ] Set up error tracking with Sentry (free developer plan):
