@@ -64,7 +64,7 @@
           {% if request.user.is_authenticated %}
             <li><a href="{% url 'dashboard' %}">{{ request.user.username }}</a></li>
             <li>
-              <form method="post" action="{% url 'logout' %}" class="px-3 py-2">
+              <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button type="submit">Logout</button>
               </form>
