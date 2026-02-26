@@ -670,18 +670,16 @@ Dokku requires Ubuntu 22.04 or 24.04. All commands run on the VPS.
 Dokku uses plugins for services. The standard `dokku-postgres` plugin supports PostGIS
 via image configuration. All commands run on the VPS.
 
-- [ ] Install the Dokku Postgres plugin
+Note: The official `postgis/postgis` image is amd64-only. Since the VPS is ARM64
+(Hetzner Ampere), use `imresamu/postgis` which provides multi-arch builds (amd64 + arm64).
+
+- [x] Install the Dokku Postgres plugin
   ```bash
   sudo dokku plugin:install https://github.com/dokku/dokku-postgres.git postgres
   ```
-- [ ] Set the Docker image to PostGIS before creating the service
+- [x] Create the database service using the PostGIS image and link it to the app
   ```bash
-  export POSTGRES_IMAGE="postgis/postgis"
-  export POSTGRES_IMAGE_VERSION="17-3.5"
-  ```
-- [ ] Create the database service and link it to the app
-  ```bash
-  sudo dokku postgres:create book-corners-db
+  sudo POSTGRES_IMAGE="imresamu/postgis" POSTGRES_IMAGE_VERSION="17-3.6-bookworm" dokku postgres:create book-corners-db
   sudo dokku postgres:link book-corners-db book-corners
   ```
   This automatically sets `DATABASE_URL` as an env var on the app. Verify:
@@ -696,18 +694,18 @@ via image configuration. All commands run on the VPS.
 Dokku containers are ephemeral — files written inside them are lost on redeploy.
 Media uploads must be stored on a mounted host directory.
 
-- [ ] Create the host directory and set permissions
+- [x] Create the host directory and set permissions
   ```bash
   # On the VPS:
   sudo mkdir -p /var/lib/dokku/data/storage/book-corners/media
   sudo chown -R 32767:32767 /var/lib/dokku/data/storage/book-corners/media
   ```
   (32767 is the default `herokuishuser` UID inside Dokku containers)
-- [ ] Mount it into the app container
+- [x] Mount it into the app container
   ```bash
   sudo dokku storage:mount book-corners /var/lib/dokku/data/storage/book-corners/media:/app/media
   ```
-- [ ] Verify:
+- [x] Verify:
   ```bash
   sudo dokku storage:report book-corners
   ```
@@ -718,11 +716,11 @@ Media uploads must be stored on a mounted host directory.
 
 Set all production environment variables on the VPS. Do this before the first deploy.
 
-- [ ] Generate a secure SECRET_KEY
+- [x] Generate a secure SECRET_KEY
   ```bash
   python3 -c "import secrets; print(secrets.token_urlsafe(50))"
   ```
-- [ ] Set all required env vars in one command (to avoid multiple restarts)
+- [x] Set all required env vars in one command (to avoid multiple restarts)
   ```bash
   sudo dokku config:set --no-restart book-corners \
     DJANGO_SECRET_KEY="<generated-secret-key>" \
@@ -737,16 +735,8 @@ Set all production environment variables on the VPS. Do this before the first de
   ```
   Note: `--no-restart` prevents Dokku from trying to restart the app before the first
   deploy. The vars will take effect on the next deploy/restart.
-- [ ] IMPORTANT: `DJANGO_CSRF_TRUSTED_ORIGINS` is not in your current settings.py —
-  you need to add it before deploying. Add this to `config/settings.py`:
-  ```python
-  CSRF_TRUSTED_ORIGINS = [
-      origin.strip()
-      for origin in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
-      if origin.strip()
-  ]
-  ```
-- [ ] Optionally set Google OAuth vars (can also be added later):
+- [x] `CSRF_TRUSTED_ORIGINS` — already in `config/settings.py` (line 64)
+- [x] Optionally set Google OAuth vars (can also be added later):
   ```bash
   sudo dokku config:set --no-restart book-corners \
     GOOGLE_OAUTH_CLIENT_ID="<your-client-id>" \
@@ -755,19 +745,7 @@ Set all production environment variables on the VPS. Do this before the first de
   Remember to add the production redirect URI in Google Cloud Console:
   - Authorized origin: `https://bookcorners.org`
   - Redirect URI: `https://bookcorners.org/accounts/google/login/callback/`
-- [ ] Fix the DATABASE_URL engine: `dj-database-url` defaults to `django.db.backends.postgresql`,
-  but PostGIS needs `django.contrib.gis.db.backends.postgis`. The linked DATABASE_URL
-  starts with `postgres://`, so you need to tell dj-database-url to use the GIS engine.
-  Update `config/settings.py`:
-  ```python
-  DATABASES = {
-      "default": dj_database_url.config(
-          conn_max_age=600,
-          engine="django.contrib.gis.db.backends.postgis",
-      )
-  }
-  ```
-- [ ] Commit the settings.py changes (CSRF_TRUSTED_ORIGINS + database engine)
+- [x] Database engine set to `postgis` — already in `config/settings.py` (line 162)
 
 #### 6.8 — Domain + SSL
 
