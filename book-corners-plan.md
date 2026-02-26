@@ -661,7 +661,7 @@ Dokku requires Ubuntu 22.04 or 24.04. All commands run on the VPS.
 - [x] Add the Dokku remote to your local git repo
   ```bash
   # From your Mac, in the book-corners directory:
-  git remote add dokku deploy@vps.bookcorners.org:book-corners
+  git remote add dokku dokku@vps.bookcorners.org:book-corners
   ```
 - [x] Commit the Procfile and app.json (do not deploy yet — database and storage aren't ready)
 
@@ -751,34 +751,34 @@ Set all production environment variables on the VPS. Do this before the first de
 
 DNS should have propagated by now (from step 6.2).
 
-- [ ] Set the app domain on Dokku
+- [x] Set the app domain on Dokku
   ```bash
   # On the VPS:
   sudo dokku domains:set book-corners bookcorners.org www.bookcorners.org
   ```
-- [ ] Install the Let's Encrypt plugin
+- [x] Install the Let's Encrypt plugin
   ```bash
   sudo dokku plugin:install https://github.com/dokku/dokku-letsencrypt.git
   ```
-- [ ] Configure the email for Let's Encrypt notifications
+- [x] Configure the email for Let's Encrypt notifications
   ```bash
   sudo dokku letsencrypt:set book-corners email your-email@example.com
   ```
-- [ ] SSL certificates will be generated after the first deploy (the app must be running
+- [x] SSL certificates will be generated after the first deploy (the app must be running
   for Let's Encrypt to verify the domain). Come back to this after step 6.9.
 
 #### 6.9 — First deploy
 
 This is the moment of truth. Everything above must be in place.
 
-- [ ] Pre-deploy checklist:
-  - [ ] `Procfile` committed
-  - [ ] `app.json` committed
-  - [ ] `CSRF_TRUSTED_ORIGINS` added to settings.py and committed
-  - [ ] Database engine set to `postgis` in settings.py and committed
-  - [ ] All env vars set on the VPS (`sudo dokku config:show book-corners`)
-  - [ ] DNS is configured (`ssh deploy@vps.bookcorners.org` works)
-- [ ] Push to Dokku from your Mac
+- [x] Pre-deploy checklist:
+  - [x] `Procfile` committed
+  - [x] `app.json` committed
+  - [x] `CSRF_TRUSTED_ORIGINS` added to settings.py and committed
+  - [x] Database engine set to `postgis` in settings.py and committed
+  - [x] All env vars set on the VPS (`sudo dokku config:show book-corners`)
+  - [x] DNS is configured (`ssh deploy@vps.bookcorners.org` works)
+- [x] Push to Dokku from your Mac
   ```bash
   git push dokku master
   ```
@@ -788,40 +788,40 @@ This is the moment of truth. Everything above must be in place.
   3. Run `python manage.py migrate --noinput` (from app.json predeploy)
   4. Start the container with the Procfile command
   5. Configure nginx to proxy to the container
-- [ ] Watch the build output for errors. Common issues:
+- [x] Watch the build output for errors. Common issues:
   - PostGIS extension not available → check the database image used
   - `collectstatic` fails → check STATIC_ROOT and WhiteNoise config
   - Migration fails → check DATABASE_URL is linked
-- [ ] Verify the app is running
+- [x] Verify the app is running
   ```bash
   # On the VPS:
   sudo dokku ps:report book-corners
   sudo dokku logs book-corners --tail
   ```
-- [ ] Test HTTP access (SSL not yet enabled):
+- [x] Test HTTP access (SSL not yet enabled):
   ```bash
   curl -I http://bookcorners.org
   ```
   Expected: `200 OK` (or `301` redirect if SSL redirect is on — temporarily set
   `DJANGO_SECURE_SSL_REDIRECT=false` if needed for this check)
-- [ ] Now enable SSL (requires the app to be running):
+- [x] Now enable SSL (requires the app to be running):
   ```bash
   sudo dokku letsencrypt:enable book-corners
   ```
-- [ ] Set up automatic certificate renewal (cron job):
+- [x] Set up automatic certificate renewal (cron job):
   ```bash
   sudo dokku letsencrypt:cron-job --add
   ```
-- [ ] Verify HTTPS:
+- [x] Verify HTTPS:
   ```bash
   curl -I https://bookcorners.org
   ```
   Expected: `200 OK`, valid TLS certificate
-- [ ] Re-enable SSL redirect if you disabled it:
+- [x] Re-enable SSL redirect if you disabled it:
   ```bash
   sudo dokku config:set book-corners DJANGO_SECURE_SSL_REDIRECT="true"
   ```
-- [ ] Now set Cloudflare SSL/TLS mode to **"Full (Strict)"**
+- [x] Now set Cloudflare SSL/TLS mode to **"Full (Strict)"**
   (Cloudflare dashboard → SSL/TLS → Overview). This ensures Cloudflare verifies
   the Let's Encrypt certificate on your origin server.
 
@@ -829,12 +829,12 @@ This is the moment of truth. Everything above must be in place.
 
 These are one-time tasks after the first successful deploy.
 
-- [ ] Create a superuser for the Django admin
+- [x] Create a superuser for the Django admin
   ```bash
   # On the VPS:
   sudo dokku run book-corners python manage.py createsuperuser
   ```
-- [ ] Fix the Django Sites framework domain (allauth uses this).
+- [x] Fix the Django Sites framework domain (allauth uses this).
   The default Site object has `example.com`. Update it:
   ```bash
   sudo dokku run book-corners python manage.py shell -c "
@@ -846,18 +846,18 @@ These are one-time tasks after the first successful deploy.
   print(f'Site updated: {site.domain}')
   "
   ```
-- [ ] Smoke test all critical pages:
-  - [ ] Homepage: `https://bookcorners.org/`
-  - [ ] Static CSS loads: `https://bookcorners.org/static/css/app.css`
-  - [ ] Login page: `https://bookcorners.org/login/`
-  - [ ] Registration: `https://bookcorners.org/register/`
-  - [ ] Map page: `https://bookcorners.org/map/`
-  - [ ] Submit page (requires login): `https://bookcorners.org/submit/`
-  - [ ] Admin: `https://bookcorners.org/admin/`
-  - [ ] Sitemap: `https://bookcorners.org/sitemap.xml`
-- [ ] Verify Google OAuth works (if configured):
-  - [ ] "Continue with Google" button appears on login page
-  - [ ] Full OAuth flow completes and creates/links account
+- [x] Smoke test all critical pages:
+  - [x] Homepage: `https://bookcorners.org/`
+  - [x] Static CSS loads: `https://bookcorners.org/static/css/app.css`
+  - [x] Login page: `https://bookcorners.org/login/`
+  - [x] Registration: `https://bookcorners.org/register/`
+  - [x] Map page: `https://bookcorners.org/map/`
+  - [x] Submit page (requires login): `https://bookcorners.org/submit/`
+  - [x] Admin: `https://bookcorners.org/admin/`
+  - [x] Sitemap: `https://bookcorners.org/sitemap.xml`
+- [x] Verify Google OAuth works (if configured):
+  - [x] "Continue with Google" button appears on login page
+  - [x] Full OAuth flow completes and creates/links account
 
 #### 6.11 — Continuous deployment (GitHub Actions)
 
