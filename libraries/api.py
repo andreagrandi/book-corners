@@ -18,10 +18,12 @@ from libraries.api_schemas import (
     LibraryOut,
     LibrarySearchParams,
     LibrarySubmitIn,
+    ReportIn,
+    ReportOut,
 )
 from libraries.api_security import is_api_rate_limited
 from libraries.forms import _validate_uploaded_photo
-from libraries.models import Library
+from libraries.models import Library, Report
 from libraries.search import run_library_search
 
 library_router = Router(tags=["libraries"])
@@ -143,3 +145,51 @@ def submit_library(request, payload: Form[LibrarySubmitIn], photo: UploadedFile 
     )
     library.save()
     return 201, library
+
+
+@library_router.post(
+    "/{slug}/report",
+    response={201: ReportOut, 400: ErrorOut, 404: ErrorOut, 413: ErrorOut, 429: ErrorOut},
+    auth=JWTAuth(),
+)
+def submit_library_report(
+    request,
+    slug: str,
+    payload: Form[ReportIn],
+    photo: UploadedFile = File(None),
+):
+    """Create a report about an approved library from an authenticated user.
+    Validates optional photo and persists the report as open for moderation."""
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-library-report",
+        max_requests=settings.API_RATE_LIMIT_WRITE_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    library = get_object_or_404(Library, slug=slug, status=Library.Status.APPROVED)
+
+    if photo:
+        try:
+            _validate_uploaded_photo(
+                uploaded_photo=photo,
+                max_size_bytes=settings.MAX_REPORT_PHOTO_UPLOAD_BYTES,
+            )
+        except ValidationError as exc:
+            message = exc.message if hasattr(exc, "message") else str(exc)
+            status_code = 413 if ("MB or smaller" in str(message) or "at most" in str(message)) else 400
+            return status_code, ErrorOut(message=str(message))
+
+    report = Report.objects.create(
+        library=library,
+        created_by=request.user,
+        reason=payload.reason.value,
+        details=payload.details,
+        photo=photo or "",
+        status=Report.Status.OPEN,
+    )
+    return 201, report

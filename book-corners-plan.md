@@ -540,12 +540,12 @@ Establish shared foundations so all subsequent endpoints are consistent from the
 
 #### 4.5 — Report endpoint (authenticated, write)
 
-- [ ] `POST /api/v1/libraries/{slug}/report` — reason (enum), details, optional photo. JWT required
-- [ ] Response: `{201: ReportOut, 400: ErrorOut, 401: ErrorOut, 404: ErrorOut, 429: ErrorOut}`
-- [ ] Reuse `Report.Reason` choices from `libraries/models.py`
-- [ ] Validate target library exists and is approved
-- [ ] Rate limited with write-tier limits
-- [ ] Add tests: auth required, valid report, 404 for missing library, reason validation
+- [x] `POST /api/v1/libraries/{slug}/report` — reason (enum), details, optional photo. JWT required
+- [x] Response: `{201: ReportOut, 400: ErrorOut, 401: ErrorOut, 404: ErrorOut, 429: ErrorOut}`
+- [x] Reuse `Report.Reason` choices from `libraries/models.py`
+- [x] Validate target library exists and is approved
+- [x] Rate limited with write-tier limits
+- [x] Add tests: auth required, valid report, 404 for missing library, reason validation
 
 #### 4.6 — OpenAPI schema polish + export command
 
