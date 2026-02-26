@@ -81,4 +81,4 @@ jobs:
       - name: Push to Dokku
         run: |
           git remote add dokku dokku@${{ secrets.DOKKU_HOST }}:book-corners
-          GIT_SSH_COMMAND="ssh -i ~/.ssh/deploy_key" git push dokku master
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/deploy_key" git push --force dokku master
