@@ -3,5 +3,17 @@
       "dokku": {
         "predeploy": "python manage.py migrate --noinput"
       }
+    },
+    "healthchecks": {
+      "web": [
+        {
+          "type": "startup",
+          "name": "web check",
+          "path": "/health/",
+          "attempts": 3,
+          "timeout": 5,
+          "wait": 5
+        }
+      ]
     }
 }
