@@ -529,14 +529,14 @@ Establish shared foundations so all subsequent endpoints are consistent from the
 
 #### 4.4 — Submit library endpoint (authenticated, write)
 
-- [ ] `POST /api/v1/libraries` — multipart with photo + fields, JWT required
-- [ ] Response: `{201: LibraryOut, 400: ErrorOut, 401: ErrorOut, 413: ErrorOut, 429: ErrorOut}`
-- [ ] Reuse photo validation from `_validate_uploaded_photo()` in `libraries/forms.py`
-- [ ] Reuse lat/lng validation from `LibrarySubmissionForm` in `libraries/forms.py`
-- [ ] `Library.save()` handles slug generation + photo optimization automatically
-- [ ] Set status=pending, created_by from JWT user
-- [ ] Rate limited with write-tier limits
-- [ ] Add tests: auth required, valid submission, photo validation, lat/lng range checks
+- [x] `POST /api/v1/libraries` — multipart with photo + fields, JWT required
+- [x] Response: `{201: LibraryOut, 400: ErrorOut, 401: ErrorOut, 413: ErrorOut, 429: ErrorOut}`
+- [x] Reuse photo validation from `_validate_uploaded_photo()` in `libraries/forms.py`
+- [x] Reuse lat/lng validation from `LibrarySubmissionForm` in `libraries/forms.py`
+- [x] `Library.save()` handles slug generation + photo optimization automatically
+- [x] Set status=pending, created_by from JWT user
+- [x] Rate limited with write-tier limits
+- [x] Add tests: auth required, valid submission, photo validation, lat/lng range checks
 
 #### 4.5 — Report endpoint (authenticated, write)
 
