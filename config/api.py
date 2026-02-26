@@ -6,12 +6,14 @@ from ninja import NinjaAPI
 from ninja.errors import HttpError, ValidationError as NinjaValidationError
 
 from config.api_schemas import ErrorOut
+from libraries.api import library_router
 from users.api import auth_router
 
 logger = logging.getLogger(__name__)
 
 api = NinjaAPI(title="Book Corners API")
 api.add_router("/auth/", auth_router)
+api.add_router("/libraries/", library_router)
 
 
 @api.exception_handler(Http404)

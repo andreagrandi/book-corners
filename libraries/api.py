@@ -1,0 +1,68 @@
+from __future__ import annotations
+
+from django.conf import settings
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
+from ninja import Query, Router
+
+from config.api_schemas import ErrorOut
+from libraries.api_auth import get_optional_jwt_user
+from libraries.api_pagination import paginate_queryset
+from libraries.api_schemas import LibraryListOut, LibraryOut
+from libraries.api_security import is_api_rate_limited
+from libraries.models import Library
+
+library_router = Router(tags=["libraries"])
+
+
+@library_router.get("/", response={200: LibraryListOut, 429: ErrorOut}, auth=None)
+def list_libraries(
+    request,
+    page: int = Query(default=1, ge=1, le=1000),
+    page_size: int = Query(default=20, ge=1),
+):
+    """Return a paginated list of approved libraries.
+    Ordered by newest first with configurable page size."""
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-library-list",
+        max_requests=settings.API_RATE_LIMIT_READ_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    queryset = (
+        Library.objects.filter(status=Library.Status.APPROVED)
+        .order_by("-created_at")
+    )
+    items, pagination = paginate_queryset(
+        queryset=queryset, page=page, page_size=page_size,
+    )
+    return 200, {"items": items, "pagination": pagination}
+
+
+@library_router.get("/{slug}", response={200: LibraryOut, 404: ErrorOut, 429: ErrorOut}, auth=None)
+def get_library(request, slug: str):
+    """Return a single library by its slug.
+    Pending libraries are visible only to their authenticated owner."""
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-library-detail",
+        max_requests=settings.API_RATE_LIMIT_READ_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    visibility_filter = Q(status=Library.Status.APPROVED)
+    jwt_user = get_optional_jwt_user(request=request)
+    if jwt_user is not None:
+        visibility_filter |= Q(status=Library.Status.PENDING, created_by=jwt_user)
+
+    library = get_object_or_404(Library, visibility_filter, slug=slug)
+    return 200, library
