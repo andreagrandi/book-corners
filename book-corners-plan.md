@@ -571,13 +571,13 @@ Prerequisites: VPS accessible via `ssh root@bookcorners.org`, domain `bookcorner
 Dokku and day-to-day operations should run as a non-root user. Firewall is managed
 externally via Hetzner.
 
-- [ ] Create a non-root deploy user with sudo access
+- [x] Create a non-root deploy user with sudo access
   ```bash
   ssh root@vps.bookcorners.org           # use vps. subdomain (DNS-only, not proxied)
   adduser deploy                         # set a strong password (needed for sudo)
   usermod -aG sudo deploy
   ```
-- [ ] Copy the authorized SSH key to the deploy user
+- [x] Copy the authorized SSH key to the deploy user
   ```bash
   # Still on the VPS as root:
   mkdir -p /home/deploy/.ssh
@@ -586,7 +586,7 @@ externally via Hetzner.
   chmod 700 /home/deploy/.ssh
   chmod 600 /home/deploy/.ssh/authorized_keys
   ```
-- [ ] Verify key-based login works for the deploy user
+- [x] Verify key-based login works for the deploy user
   ```bash
   # From your Mac (new terminal — use vps. subdomain since main domain is Cloudflare-proxied):
   ssh deploy@vps.bookcorners.org
@@ -596,13 +596,13 @@ externally via Hetzner.
 
 DNS is managed via Cloudflare. Three A records, all pointing to the VPS IP.
 
-- [ ] Create three A records in Cloudflare DNS:
+- [x] Create three A records in Cloudflare DNS:
   - `bookcorners.org` → `<VPS_IP>` — **Proxied** (orange cloud)
   - `www.bookcorners.org` → `<VPS_IP>` — **Proxied** (orange cloud)
   - `vps.bookcorners.org` → `<VPS_IP>` — **DNS only** (grey cloud, for SSH access)
-- [ ] Leave Cloudflare SSL/TLS mode at default for now. It will be set to
+- [x] Leave Cloudflare SSL/TLS mode at default for now. It will be set to
   "Full (Strict)" after Let's Encrypt is configured in step 6.9.
-- [ ] Verify the DNS-only record works for SSH:
+- [x] Verify the DNS-only record works for SSH:
   ```bash
   ssh deploy@vps.bookcorners.org
   ```
@@ -611,7 +611,7 @@ DNS is managed via Cloudflare. Three A records, all pointing to the VPS IP.
 
 Dokku requires Ubuntu 22.04 or 24.04. All commands run on the VPS.
 
-- [ ] SSH into the VPS and install Dokku
+- [x] SSH into the VPS and install Dokku
   ```bash
   ssh deploy@vps.bookcorners.org
 
@@ -620,18 +620,18 @@ Dokku requires Ubuntu 22.04 or 24.04. All commands run on the VPS.
   sudo DOKKU_TAG=v0.36.6 bash bootstrap.sh
   ```
   This takes 5-10 minutes. It installs Dokku, nginx (as reverse proxy), and Docker.
-- [ ] Set the global domain so Dokku knows your hostname
+- [x] Set the global domain so Dokku knows your hostname
   ```bash
-  dokku domains:set-global bookcorners.org
+  sudo dokku domains:set-global bookcorners.org
   ```
-- [ ] Add your SSH public key to Dokku (so you can `git push` to it)
+- [x] Add your SSH public key to Dokku (so you can `git push` to it)
   ```bash
   # On the VPS — use the same key you use for SSH:
-  cat ~/.ssh/authorized_keys | dokku ssh-keys:add deploy
+  cat ~/.ssh/authorized_keys | sudo dokku ssh-keys:add admin
   ```
-- [ ] Verify Dokku is running:
+- [x] Verify Dokku is running:
   ```bash
-  dokku version
+  sudo dokku version
   ```
 
 #### 6.4 — Create the Dokku app and prepare the repository
@@ -639,7 +639,7 @@ Dokku requires Ubuntu 22.04 or 24.04. All commands run on the VPS.
 - [ ] Create the app on the VPS
   ```bash
   # On the VPS:
-  dokku apps:create book-corners
+  sudo dokku apps:create book-corners
   ```
 - [ ] Create a `Procfile` in the project root (on your Mac, in the repo).
   Dokku reads this to know how to run the app.
@@ -681,12 +681,12 @@ via image configuration. All commands run on the VPS.
   ```
 - [ ] Create the database service and link it to the app
   ```bash
-  dokku postgres:create book-corners-db
-  dokku postgres:link book-corners-db book-corners
+  sudo dokku postgres:create book-corners-db
+  sudo dokku postgres:link book-corners-db book-corners
   ```
   This automatically sets `DATABASE_URL` as an env var on the app. Verify:
   ```bash
-  dokku config:show book-corners | grep DATABASE_URL
+  sudo dokku config:show book-corners | grep DATABASE_URL
   ```
   The URL should start with `postgres://`. Django's `dj-database-url` handles this,
   but the PostGIS engine needs to be set. See env vars step below.
@@ -705,11 +705,11 @@ Media uploads must be stored on a mounted host directory.
   (32767 is the default `herokuishuser` UID inside Dokku containers)
 - [ ] Mount it into the app container
   ```bash
-  dokku storage:mount book-corners /var/lib/dokku/data/storage/book-corners/media:/app/media
+  sudo dokku storage:mount book-corners /var/lib/dokku/data/storage/book-corners/media:/app/media
   ```
 - [ ] Verify:
   ```bash
-  dokku storage:report book-corners
+  sudo dokku storage:report book-corners
   ```
   Django's `MEDIA_ROOT = BASE_DIR / "media"` resolves to `/app/media` inside the
   container, which now maps to persistent host storage. No settings change needed.
@@ -724,7 +724,7 @@ Set all production environment variables on the VPS. Do this before the first de
   ```
 - [ ] Set all required env vars in one command (to avoid multiple restarts)
   ```bash
-  dokku config:set --no-restart book-corners \
+  sudo dokku config:set --no-restart book-corners \
     DJANGO_SECRET_KEY="<generated-secret-key>" \
     DJANGO_DEBUG="false" \
     DJANGO_ALLOWED_HOSTS="bookcorners.org,www.bookcorners.org" \
@@ -748,7 +748,7 @@ Set all production environment variables on the VPS. Do this before the first de
   ```
 - [ ] Optionally set Google OAuth vars (can also be added later):
   ```bash
-  dokku config:set --no-restart book-corners \
+  sudo dokku config:set --no-restart book-corners \
     GOOGLE_OAUTH_CLIENT_ID="<your-client-id>" \
     GOOGLE_OAUTH_CLIENT_SECRET="<your-client-secret>"
   ```
@@ -776,7 +776,7 @@ DNS should have propagated by now (from step 6.2).
 - [ ] Set the app domain on Dokku
   ```bash
   # On the VPS:
-  dokku domains:set book-corners bookcorners.org www.bookcorners.org
+  sudo dokku domains:set book-corners bookcorners.org www.bookcorners.org
   ```
 - [ ] Install the Let's Encrypt plugin
   ```bash
@@ -784,7 +784,7 @@ DNS should have propagated by now (from step 6.2).
   ```
 - [ ] Configure the email for Let's Encrypt notifications
   ```bash
-  dokku letsencrypt:set book-corners email your-email@example.com
+  sudo dokku letsencrypt:set book-corners email your-email@example.com
   ```
 - [ ] SSL certificates will be generated after the first deploy (the app must be running
   for Let's Encrypt to verify the domain). Come back to this after step 6.9.
@@ -798,7 +798,7 @@ This is the moment of truth. Everything above must be in place.
   - [ ] `app.json` committed
   - [ ] `CSRF_TRUSTED_ORIGINS` added to settings.py and committed
   - [ ] Database engine set to `postgis` in settings.py and committed
-  - [ ] All env vars set on the VPS (`dokku config:show book-corners`)
+  - [ ] All env vars set on the VPS (`sudo dokku config:show book-corners`)
   - [ ] DNS is configured (`ssh deploy@vps.bookcorners.org` works)
 - [ ] Push to Dokku from your Mac
   ```bash
@@ -817,8 +817,8 @@ This is the moment of truth. Everything above must be in place.
 - [ ] Verify the app is running
   ```bash
   # On the VPS:
-  dokku ps:report book-corners
-  dokku logs book-corners --tail
+  sudo dokku ps:report book-corners
+  sudo dokku logs book-corners --tail
   ```
 - [ ] Test HTTP access (SSL not yet enabled):
   ```bash
@@ -828,11 +828,11 @@ This is the moment of truth. Everything above must be in place.
   `DJANGO_SECURE_SSL_REDIRECT=false` if needed for this check)
 - [ ] Now enable SSL (requires the app to be running):
   ```bash
-  dokku letsencrypt:enable book-corners
+  sudo dokku letsencrypt:enable book-corners
   ```
 - [ ] Set up automatic certificate renewal (cron job):
   ```bash
-  dokku letsencrypt:cron-job --add
+  sudo dokku letsencrypt:cron-job --add
   ```
 - [ ] Verify HTTPS:
   ```bash
@@ -841,7 +841,7 @@ This is the moment of truth. Everything above must be in place.
   Expected: `200 OK`, valid TLS certificate
 - [ ] Re-enable SSL redirect if you disabled it:
   ```bash
-  dokku config:set book-corners DJANGO_SECURE_SSL_REDIRECT="true"
+  sudo dokku config:set book-corners DJANGO_SECURE_SSL_REDIRECT="true"
   ```
 - [ ] Now set Cloudflare SSL/TLS mode to **"Full (Strict)"**
   (Cloudflare dashboard → SSL/TLS → Overview). This ensures Cloudflare verifies
@@ -854,12 +854,12 @@ These are one-time tasks after the first successful deploy.
 - [ ] Create a superuser for the Django admin
   ```bash
   # On the VPS:
-  dokku run book-corners python manage.py createsuperuser
+  sudo dokku run book-corners python manage.py createsuperuser
   ```
 - [ ] Fix the Django Sites framework domain (allauth uses this).
   The default Site object has `example.com`. Update it:
   ```bash
-  dokku run book-corners python manage.py shell -c "
+  sudo dokku run book-corners python manage.py shell -c "
   from django.contrib.sites.models import Site
   site = Site.objects.get(id=1)
   site.domain = 'bookcorners.org'
@@ -891,7 +891,7 @@ Automate deploys so that every push to `master` that passes CI gets deployed.
   ```
 - [ ] Add the public key to Dokku on the VPS:
   ```bash
-  cat ~/.ssh/dokku_deploy.pub | ssh deploy@vps.bookcorners.org "dokku ssh-keys:add github-actions"
+  cat ~/.ssh/dokku_deploy.pub | ssh deploy@vps.bookcorners.org "sudo dokku ssh-keys:add github-actions"
   ```
 - [ ] Add the private key as a GitHub Actions secret:
   - Go to the repo → Settings → Secrets and variables → Actions
@@ -955,7 +955,7 @@ dumps and media backups. BorgBase is the planned offsite target.
   mkdir -p "$BACKUP_DIR"
 
   # 1. Dump PostgreSQL (transaction-safe, no downtime)
-  dokku postgres:export book-corners-db > "$BACKUP_DIR/db.dump"
+  sudo dokku postgres:export book-corners-db > "$BACKUP_DIR/db.dump"
 
   # 2. Create borg archive (DB dump + media files)
   borg create --stats --compression lz4 \
@@ -993,7 +993,7 @@ dumps and media backups. BorgBase is the planned offsite target.
   borg extract "$BORG_REPO::book-corners-2026-02-25-030000"
 
   # Restore database:
-  dokku postgres:import book-corners-db < db.dump
+  sudo dokku postgres:import book-corners-db < db.dump
   ```
 
 #### 6.13 — Monitoring and alerting baseline
@@ -1008,7 +1008,7 @@ dumps and media backups. BorgBase is the planned offsite target.
   - Install `sentry-sdk` and add to `requirements.txt`
   - Add Sentry DSN to Dokku env vars:
     ```bash
-    dokku config:set book-corners SENTRY_DSN="https://xxxxx@xxxxx.ingest.sentry.io/xxxxx"
+    sudo dokku config:set book-corners SENTRY_DSN="https://xxxxx@xxxxx.ingest.sentry.io/xxxxx"
     ```
   - Add Sentry initialization to `config/settings.py` (only when DSN is set)
   - Keep on free plan — events are dropped when quota is exhausted, not billed
@@ -1031,22 +1031,22 @@ It should cover:
   ```bash
   git push dokku master
   # Watch output for errors
-  dokku ps:report book-corners
-  dokku logs book-corners --tail
+  sudo dokku ps:report book-corners
+  sudo dokku logs book-corners --tail
   ```
 - [ ] **Rollback to previous release**:
   ```bash
   # List recent deploys:
-  dokku ps:report book-corners
+  sudo dokku ps:report book-corners
 
   # Revert to the previous Docker image:
-  dokku ps:rebuild book-corners
+  sudo dokku ps:rebuild book-corners
   # Or for a specific commit: git push the old commit to dokku
   ```
 - [ ] **Database restore** (from backup):
   ```bash
   borg extract "$BORG_REPO::<archive-name>"
-  dokku postgres:import book-corners-db < db.dump
+  sudo dokku postgres:import book-corners-db < db.dump
   ```
 - [ ] **Post-deploy smoke checklist**:
   - Homepage loads with styles
