@@ -13,6 +13,9 @@ FROM python:3.14-slim
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
+ARG SOURCE_VERSION=""
+ENV GIT_REV=${SOURCE_VERSION}
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libc6-dev \

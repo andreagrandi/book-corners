@@ -271,3 +271,20 @@ try:
     NOMINATIM_TIMEOUT_SECONDS = int(os.environ.get("NOMINATIM_TIMEOUT_SECONDS", "5"))
 except ValueError:
     NOMINATIM_TIMEOUT_SECONDS = 5
+
+
+# Sentry error tracking
+# Enabled automatically when SENTRY_DSN is set. No-op otherwise.
+
+SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
+
+if SENTRY_DSN:
+    import sentry_sdk
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        release=os.environ.get("GIT_REV", ""),
+        environment="production" if not DEBUG else "development",
+        traces_sample_rate=0.1,
+        send_default_pii=False,
+    )

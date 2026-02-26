@@ -248,7 +248,7 @@ print(f'Site updated: {site.domain}')
 ## Monitoring
 
 - **UptimeRobot** monitors `https://bookcorners.org/health/` every 5 minutes
-- **Sentry** error tracking is planned (free developer plan)
+- **Sentry** error tracking (free developer plan) — reports unhandled exceptions and API 500s
 
 ## Cost estimate
 

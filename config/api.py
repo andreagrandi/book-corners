@@ -60,7 +60,13 @@ def handle_http_error(request: HttpRequest, exc: HttpError) -> JsonResponse:
 @api.exception_handler(Exception)
 def handle_internal_error(request: HttpRequest, exc: Exception) -> JsonResponse:
     """Return a structured 500 response for unhandled exceptions.
-    Logs the real error but hides internals from clients in production."""
+    Logs the real error and reports to Sentry when configured."""
     logger.exception("Unhandled API exception: %s", exc)
+
+    if settings.SENTRY_DSN:
+        import sentry_sdk
+
+        sentry_sdk.capture_exception(exc)
+
     message = str(exc) if settings.DEBUG else "Internal server error."
     return JsonResponse(ErrorOut(message=message).dict(), status=500)
