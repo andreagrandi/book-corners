@@ -8,21 +8,23 @@ from ninja import Query, Router
 from config.api_schemas import ErrorOut
 from libraries.api_auth import get_optional_jwt_user
 from libraries.api_pagination import paginate_queryset
-from libraries.api_schemas import LibraryListOut, LibraryOut
+from libraries.api_schemas import (
+    LatestLibrariesOut,
+    LibraryListOut,
+    LibraryOut,
+    LibrarySearchParams,
+)
 from libraries.api_security import is_api_rate_limited
 from libraries.models import Library
+from libraries.search import run_library_search
 
 library_router = Router(tags=["libraries"])
 
 
 @library_router.get("/", response={200: LibraryListOut, 429: ErrorOut}, auth=None)
-def list_libraries(
-    request,
-    page: int = Query(default=1, ge=1, le=1000),
-    page_size: int = Query(default=20, ge=1),
-):
-    """Return a paginated list of approved libraries.
-    Ordered by newest first with configurable page size."""
+def list_libraries(request, filters: Query[LibrarySearchParams]):
+    """Return a paginated list of approved libraries with optional search filters.
+    Supports text, field, and proximity filtering with configurable pagination."""
     limited, retry_after = is_api_rate_limited(
         request=request,
         scope="api-library-list",
@@ -34,14 +36,38 @@ def list_libraries(
             details={"retry_after": retry_after},
         )
 
-    queryset = (
-        Library.objects.filter(status=Library.Status.APPROVED)
-        .order_by("-created_at")
+    queryset = run_library_search(
+        q=filters.q or "",
+        city=filters.city or "",
+        country=filters.country or "",
+        postal_code=filters.postal_code or "",
+        lat=filters.lat,
+        lng=filters.lng,
+        radius_km=filters.radius_km,
     )
     items, pagination = paginate_queryset(
-        queryset=queryset, page=page, page_size=page_size,
+        queryset=queryset, page=filters.page, page_size=filters.page_size,
     )
     return 200, {"items": items, "pagination": pagination}
+
+
+@library_router.get("/latest", response={200: LatestLibrariesOut, 429: ErrorOut}, auth=None)
+def latest_libraries(request, limit: int = Query(default=10, ge=1, le=50)):
+    """Return the most recent approved libraries as a flat list.
+    Provides a lightweight endpoint for newest-first results without pagination."""
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-library-latest",
+        max_requests=settings.API_RATE_LIMIT_READ_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    queryset = Library.objects.filter(status=Library.Status.APPROVED).order_by("-created_at")[:limit]
+    return 200, {"items": list(queryset)}
 
 
 @library_router.get("/{slug}", response={200: LibraryOut, 404: ErrorOut, 429: ErrorOut}, auth=None)

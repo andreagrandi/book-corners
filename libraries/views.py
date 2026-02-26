@@ -5,9 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.measure import D
-from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.core.paginator import Page, Paginator
-from django.db import connection
 from django.db.models import Q, QuerySet
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -20,6 +18,7 @@ from libraries.geolocation import (
     reverse_geocode_coordinates,
 )
 from libraries.models import Library
+from libraries.search import DEFAULT_SEARCH_RADIUS_KM, apply_text_search, run_library_search
 
 LATEST_ENTRIES_PAGE_SIZE = 9
 DEFAULT_SUBMIT_MAP_LATITUDE = 48.8566
@@ -28,7 +27,6 @@ DEFAULT_MAP_CENTER_LATITUDE = 50.1109
 DEFAULT_MAP_CENTER_LONGITUDE = 8.6821
 DEFAULT_MAP_ZOOM_LEVEL = 5
 MAP_LIST_PAGE_SIZE = 12
-DEFAULT_SEARCH_RADIUS_KM = 10
 
 
 def _parse_page_number(value: str | None) -> int:
@@ -59,24 +57,6 @@ def _get_latest_entries_page(*, page_number: int) -> Page:
     return paginator.get_page(page_number)
 
 
-def _apply_text_search(*, queryset: QuerySet[Library], query_text: str) -> QuerySet[Library]:
-    """Filter approved libraries by text on name and description.
-    Uses PostgreSQL full-text search with a safe fallback for non-Postgres DBs."""
-    if connection.vendor != "postgresql":
-        return queryset.filter(
-            Q(name__icontains=query_text) | Q(description__icontains=query_text)
-        )
-
-    search_vector = SearchVector("name", weight="A") + SearchVector("description", weight="B")
-    search_query = SearchQuery(query_text, search_type="plain")
-    return (
-        queryset
-        .annotate(search=search_vector, rank=SearchRank(search_vector, search_query))
-        .filter(search=search_query)
-        .order_by("-rank", "-created_at")
-    )
-
-
 def _run_library_search(
     *,
     cleaned_data: dict[str, object],
@@ -92,44 +72,42 @@ def _run_library_search(
     radius_km_value = cleaned_data.get("radius_km")
     radius_km = radius_km_value if isinstance(radius_km_value, int) else DEFAULT_SEARCH_RADIUS_KM
 
-    queryset = Library.objects.filter(status=Library.Status.APPROVED).order_by("-created_at")
-
-    if city:
-        queryset = queryset.filter(city__icontains=city)
-    if country:
-        queryset = queryset.filter(country__iexact=country)
-    if postal_code:
-        queryset = queryset.filter(postal_code__icontains=postal_code)
-
-    if query_text:
-        queryset = _apply_text_search(queryset=queryset, query_text=query_text)
-
-    location_resolution_failed = False
-    resolved_center: tuple[float, float] | None = None
-    if near_text:
-        coordinates = forward_geocode_place(
-            place_query=near_text,
-            user_agent=settings.NOMINATIM_USER_AGENT,
-            timeout_seconds=settings.NOMINATIM_TIMEOUT_SECONDS,
-            country_code=country or None,
+    if not near_text:
+        queryset = run_library_search(
+            q=query_text,
+            city=city,
+            country=country,
+            postal_code=postal_code,
         )
-        if coordinates is None:
-            location_resolution_failed = True
-            if not query_text:
-                queryset = _apply_text_search(queryset=queryset, query_text=near_text)
-        else:
-            latitude, longitude = coordinates
-            resolved_center = (latitude, longitude)
-            center_point = Point(x=longitude, y=latitude, srid=4326)
-            queryset = (
-                queryset
-                .annotate(distance=Distance("location", center_point))
-                .filter(location__distance_lte=(center_point, D(km=radius_km)))
-                .order_by("distance", "-created_at")
-            )
-            return queryset, location_resolution_failed, resolved_center
+        return queryset, False, None
 
-    return queryset, location_resolution_failed, resolved_center
+    queryset = run_library_search(
+        q=query_text,
+        city=city,
+        country=country,
+        postal_code=postal_code,
+    )
+
+    coordinates = forward_geocode_place(
+        place_query=near_text,
+        user_agent=settings.NOMINATIM_USER_AGENT,
+        timeout_seconds=settings.NOMINATIM_TIMEOUT_SECONDS,
+        country_code=country or None,
+    )
+    if coordinates is None:
+        if not query_text:
+            queryset = apply_text_search(queryset=queryset, query_text=near_text)
+        return queryset, True, None
+
+    latitude, longitude = coordinates
+    center_point = Point(x=longitude, y=latitude, srid=4326)
+    queryset = (
+        queryset
+        .annotate(distance=Distance("location", center_point))
+        .filter(location__distance_lte=(center_point, D(km=radius_km)))
+        .order_by("distance", "-created_at")
+    )
+    return queryset, False, (latitude, longitude)
 
 
 def _serialize_library_geojson_feature(*, library: Library) -> dict[str, object]:

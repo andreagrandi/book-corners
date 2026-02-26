@@ -82,6 +82,13 @@ class LibraryListOut(Schema):
     pagination: PaginationMeta
 
 
+class LatestLibrariesOut(Schema):
+    """Flat list of latest approved libraries without pagination.
+    Used by the /latest endpoint for lightweight newest-first results."""
+
+    items: list[LibraryOut]
+
+
 class LibrarySearchParams(Schema):
     """Query parameters for searching and filtering libraries.
     Validates bounds and defaults for pagination and geospatial queries."""

@@ -516,15 +516,15 @@ Establish shared foundations so all subsequent endpoints are consistent from the
 
 #### 4.3 — Search, filtering, proximity + latest endpoint
 
-- [ ] Create `libraries/search.py` — extract search logic into framework-agnostic functions:
+- [x] Create `libraries/search.py` — extract search logic into framework-agnostic functions:
   - `apply_text_search(qs, q)` — from `_apply_text_search()` in `libraries/views.py`
   - `run_library_search(q, city, country, postal_code, lat, lng, radius_km)` — from
     `_run_library_search()` in `libraries/views.py`
-- [ ] Refactor `libraries/views.py` to import from `libraries/search.py` (no duplication)
-- [ ] Extend `GET /api/v1/libraries` to accept `LibrarySearchParams` query parameters:
+- [x] Refactor `libraries/views.py` to import from `libraries/search.py` (no duplication)
+- [x] Extend `GET /api/v1/libraries` to accept `LibrarySearchParams` query parameters:
   `q` (full-text), `city`, `country`, `postal_code`, `lat`, `lng`, `radius_km`
-- [ ] Add `GET /api/v1/libraries/latest` — most recent approved (default 10, max 50, query param `limit`)
-- [ ] Add tests: text search, field filters, proximity (mocked geocoding), combined filters,
+- [x] Add `GET /api/v1/libraries/latest` — most recent approved (default 10, max 50, query param `limit`)
+- [x] Add tests: text search, field filters, proximity (mocked geocoding), combined filters,
   latest with limit clamping
 
 #### 4.4 — Submit library endpoint (authenticated, write)

@@ -155,13 +155,12 @@ class TestLibraryListEndpoint:
         assert body["pagination"]["page_size"] == 2
         assert body["pagination"]["total"] == 5
 
-    def test_page_size_clamped_to_50(self, client, approved_library):
-        """Verify page_size exceeding 50 is clamped to the maximum.
-        Prevents clients from requesting excessively large result sets."""
+    def test_page_size_above_50_returns_422(self, client, approved_library):
+        """Verify page_size exceeding 50 is rejected with 422.
+        Ninja validates the schema upper bound before reaching the handler."""
         response = client.get("/api/v1/libraries/?page_size=100")
 
-        body = response.json()
-        assert body["pagination"]["page_size"] == 50
+        assert response.status_code == 422
 
     def test_ordered_newest_first(self, client, user):
         """Verify libraries are ordered by created_at descending.
