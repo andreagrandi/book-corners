@@ -82,3 +82,11 @@ jobs:
         run: |
           git remote add dokku dokku@${{ secrets.DOKKU_HOST }}:book-corners
           GIT_SSH_COMMAND="ssh -i ~/.ssh/deploy_key" git push --force dokku master
+
+      - name: Purge Cloudflare cache
+        run: |
+          curl -sf -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
