@@ -552,13 +552,13 @@ Establish shared foundations so all subsequent endpoints are consistent from the
 Ensure the auto-generated schema is documentation-quality, then create a management command
 to export it for the docs pipeline.
 
-- [ ] Enhance `NinjaAPI()` in `config/api.py`: add `description`, `version="1.0.0"`, `servers` list
-- [ ] Add `Field(description=..., examples=[...])` to all schema fields in `libraries/api_schemas.py`
-- [ ] Add descriptions to auth schemas and endpoints in `users/api.py`
-- [ ] Add `summary`/`description` to each endpoint decorator in `libraries/api.py`
-- [ ] Create `libraries/management/commands/export_openapi_schema.py`:
+- [x] Enhance `NinjaAPI()` in `config/api.py`: add `description`, `version="1.0.0"`, `servers` list
+- [x] Add `Field(description=..., examples=[...])` to all schema fields in `libraries/api_schemas.py`
+- [x] Add descriptions to auth schemas and endpoints in `users/api.py`
+- [x] Add `summary`/`description` to each endpoint decorator in `libraries/api.py`
+- [x] Create `libraries/management/commands/export_openapi_schema.py`:
   `python manage.py export_openapi_schema > docs/openapi.json`
-- [ ] Verify: `/api/v1/docs` shows descriptions, examples, proper response schemas
+- [x] Verify: `/api/v1/docs` shows descriptions, examples, proper response schemas
 
 #### 4.7 — Developer documentation portal (developers.bookcorners.org)
 

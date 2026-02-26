@@ -13,31 +13,31 @@ class PaginationMeta(Schema):
     """Pagination metadata for paginated list responses.
     Provides page navigation context alongside result items."""
 
-    page: int
-    page_size: int
-    total: int
-    total_pages: int
-    has_next: bool
-    has_previous: bool
+    page: int = Field(description="Current page number (1-indexed).", examples=[1])
+    page_size: int = Field(description="Number of items per page.", examples=[20])
+    total: int = Field(description="Total number of matching items.", examples=[142])
+    total_pages: int = Field(description="Total number of pages.", examples=[8])
+    has_next: bool = Field(description="Whether a next page exists.", examples=[True])
+    has_previous: bool = Field(description="Whether a previous page exists.", examples=[False])
 
 
 class LibraryOut(Schema):
     """Serialized representation of an approved library.
     Resolves geospatial and media fields into flat JSON values."""
 
-    id: int
-    slug: str
-    name: str
-    description: str
-    photo_url: str
-    thumbnail_url: str
-    lat: float
-    lng: float
-    address: str
-    city: str
-    country: str
-    postal_code: str
-    created_at: datetime
+    id: int = Field(description="Unique library identifier.", examples=[42])
+    slug: str = Field(description="URL-friendly unique slug.", examples=["berlin-friedrichstr-12-corner-books"])
+    name: str = Field(description="Display name of the library.", examples=["Corner Books"])
+    description: str = Field(description="Free-text description of the library.", examples=["A cozy little free library near the park entrance."])
+    photo_url: str = Field(description="Full-size photo URL, or empty string if unavailable.", examples=["/media/libraries/photos/corner-books.jpg"])
+    thumbnail_url: str = Field(description="Thumbnail photo URL, or empty string if unavailable.", examples=["/media/libraries/thumbnails/corner-books.jpg"])
+    lat: float = Field(description="Latitude of the library location (WGS 84).", examples=[52.5200])
+    lng: float = Field(description="Longitude of the library location (WGS 84).", examples=[13.4050])
+    address: str = Field(description="Street address.", examples=["Friedrichstr. 12"])
+    city: str = Field(description="City name.", examples=["Berlin"])
+    country: str = Field(description="ISO 3166-1 alpha-2 country code.", examples=["DE"])
+    postal_code: str = Field(description="Postal or ZIP code.", examples=["10117"])
+    created_at: datetime = Field(description="Timestamp when the library was created (UTC).", examples=["2025-06-15T14:30:00Z"])
 
     @staticmethod
     def resolve_photo_url(obj: Library) -> str:
@@ -78,44 +78,44 @@ class LibraryListOut(Schema):
     """Paginated list of libraries with navigation metadata.
     Wraps items and pagination in a single response envelope."""
 
-    items: list[LibraryOut]
-    pagination: PaginationMeta
+    items: list[LibraryOut] = Field(description="List of library objects for the current page.")
+    pagination: PaginationMeta = Field(description="Pagination metadata for navigating the result set.")
 
 
 class LatestLibrariesOut(Schema):
     """Flat list of latest approved libraries without pagination.
     Used by the /latest endpoint for lightweight newest-first results."""
 
-    items: list[LibraryOut]
+    items: list[LibraryOut] = Field(description="List of the most recently approved libraries.")
 
 
 class LibrarySearchParams(Schema):
     """Query parameters for searching and filtering libraries.
     Validates bounds and defaults for pagination and geospatial queries."""
 
-    q: str | None = Field(default=None, max_length=200)
-    city: str | None = Field(default=None, max_length=100)
-    country: str | None = Field(default=None, max_length=2)
-    postal_code: str | None = Field(default=None, max_length=20)
-    lat: float | None = Field(default=None, ge=-90, le=90)
-    lng: float | None = Field(default=None, ge=-180, le=180)
-    radius_km: int | None = Field(default=None, ge=1, le=100)
-    page: int = Field(default=1, ge=1, le=1000)
-    page_size: int = Field(default=20, ge=1, le=50)
+    q: str | None = Field(default=None, max_length=200, description="Free-text search query matched against name, description, and address.", examples=["corner books"])
+    city: str | None = Field(default=None, max_length=100, description="Filter by exact city name (case-insensitive).", examples=["Berlin"])
+    country: str | None = Field(default=None, max_length=2, description="Filter by ISO 3166-1 alpha-2 country code.", examples=["DE"])
+    postal_code: str | None = Field(default=None, max_length=20, description="Filter by postal or ZIP code.", examples=["10117"])
+    lat: float | None = Field(default=None, ge=-90, le=90, description="Latitude for proximity search (requires lng and radius_km).", examples=[52.5200])
+    lng: float | None = Field(default=None, ge=-180, le=180, description="Longitude for proximity search (requires lat and radius_km).", examples=[13.4050])
+    radius_km: int | None = Field(default=None, ge=1, le=100, description="Search radius in kilometres (requires lat and lng).", examples=[5])
+    page: int = Field(default=1, ge=1, le=1000, description="Page number to retrieve (1-indexed).", examples=[1])
+    page_size: int = Field(default=20, ge=1, le=50, description="Number of items per page.", examples=[20])
 
 
 class LibrarySubmitIn(Schema):
     """Input schema for submitting a new library.
     Captures location and descriptive fields from authenticated users."""
 
-    name: str = Field(default="", max_length=255)
-    description: str = Field(default="", max_length=2000)
-    address: str = Field(max_length=255)
-    city: str = Field(max_length=100)
-    country: str = Field(max_length=2)
-    postal_code: str = Field(default="", max_length=20)
-    latitude: float = Field(ge=-90, le=90)
-    longitude: float = Field(ge=-180, le=180)
+    name: str = Field(default="", max_length=255, description="Display name of the library.", examples=["Corner Books"])
+    description: str = Field(default="", max_length=2000, description="Free-text description of the library.", examples=["A cozy little free library near the park entrance."])
+    address: str = Field(max_length=255, description="Street address of the library.", examples=["Friedrichstr. 12"])
+    city: str = Field(max_length=100, description="City where the library is located.", examples=["Berlin"])
+    country: str = Field(max_length=2, description="ISO 3166-1 alpha-2 country code.", examples=["DE"])
+    postal_code: str = Field(default="", max_length=20, description="Postal or ZIP code.", examples=["10117"])
+    latitude: float = Field(ge=-90, le=90, description="Latitude of the library (WGS 84).", examples=[52.5200])
+    longitude: float = Field(ge=-180, le=180, description="Longitude of the library (WGS 84).", examples=[13.4050])
 
 
 class ReportReasonEnum(str, Enum):
@@ -133,14 +133,14 @@ class ReportIn(Schema):
     """Input schema for submitting a report about a library.
     Requires a reason category and optional narrative details."""
 
-    reason: ReportReasonEnum
-    details: str = Field(default="", max_length=2000)
+    reason: ReportReasonEnum = Field(description="Category of the issue being reported.", examples=["damaged"])
+    details: str = Field(default="", max_length=2000, description="Optional free-text details about the issue.", examples=["The door hinge is broken and books are getting wet."])
 
 
 class ReportOut(Schema):
     """Serialized representation of a submitted report.
     Returns confirmation data after successful report creation."""
 
-    id: int
-    reason: str
-    created_at: datetime
+    id: int = Field(description="Unique report identifier.", examples=[7])
+    reason: str = Field(description="Reason category of the report.", examples=["damaged"])
+    created_at: datetime = Field(description="Timestamp when the report was created (UTC).", examples=["2025-06-15T14:30:00Z"])

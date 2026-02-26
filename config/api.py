@@ -11,7 +11,18 @@ from users.api import auth_router
 
 logger = logging.getLogger(__name__)
 
-api = NinjaAPI(title="Book Corners API")
+api = NinjaAPI(
+    title="Book Corners API",
+    version="1.0.0",
+    description=(
+        "REST API for discovering, submitting, and reporting little free libraries. "
+        "Provides geospatial search, user authentication, and community moderation workflows."
+    ),
+    servers=[
+        {"url": "https://bookcorners.org/api/v1/", "description": "Production"},
+        {"url": "http://localhost:8000/api/v1/", "description": "Local development"},
+    ],
+)
 api.add_router("/auth/", auth_router)
 api.add_router("/libraries/", library_router)
 

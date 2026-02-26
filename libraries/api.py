@@ -29,7 +29,7 @@ from libraries.search import run_library_search
 library_router = Router(tags=["libraries"])
 
 
-@library_router.get("/", response={200: LibraryListOut, 429: ErrorOut}, auth=None)
+@library_router.get("/", response={200: LibraryListOut, 429: ErrorOut}, auth=None, summary="List and search libraries")
 def list_libraries(request, filters: Query[LibrarySearchParams]):
     """Return a paginated list of approved libraries with optional search filters.
     Supports text, field, and proximity filtering with configurable pagination."""
@@ -59,7 +59,7 @@ def list_libraries(request, filters: Query[LibrarySearchParams]):
     return 200, {"items": items, "pagination": pagination}
 
 
-@library_router.get("/latest", response={200: LatestLibrariesOut, 429: ErrorOut}, auth=None)
+@library_router.get("/latest", response={200: LatestLibrariesOut, 429: ErrorOut}, auth=None, summary="Get latest libraries")
 def latest_libraries(request, limit: int = Query(default=10, ge=1, le=50)):
     """Return the most recent approved libraries as a flat list.
     Provides a lightweight endpoint for newest-first results without pagination."""
@@ -78,7 +78,7 @@ def latest_libraries(request, limit: int = Query(default=10, ge=1, le=50)):
     return 200, {"items": list(queryset)}
 
 
-@library_router.get("/{slug}", response={200: LibraryOut, 404: ErrorOut, 429: ErrorOut}, auth=None)
+@library_router.get("/{slug}", response={200: LibraryOut, 404: ErrorOut, 429: ErrorOut}, auth=None, summary="Get a library by slug")
 def get_library(request, slug: str):
     """Return a single library by its slug.
     Pending libraries are visible only to their authenticated owner."""
@@ -106,6 +106,7 @@ def get_library(request, slug: str):
     "/",
     response={201: LibraryOut, 400: ErrorOut, 413: ErrorOut, 429: ErrorOut},
     auth=JWTAuth(),
+    summary="Submit a new library",
 )
 def submit_library(request, payload: Form[LibrarySubmitIn], photo: UploadedFile = File(...)):
     """Create a new library submission from an authenticated user.
@@ -151,6 +152,7 @@ def submit_library(request, payload: Form[LibrarySubmitIn], photo: UploadedFile 
     "/{slug}/report",
     response={201: ReportOut, 400: ErrorOut, 404: ErrorOut, 413: ErrorOut, 429: ErrorOut},
     auth=JWTAuth(),
+    summary="Report an issue with a library",
 )
 def submit_library_report(
     request,

@@ -19,38 +19,56 @@ auth_router = Router(tags=["auth"])
 
 
 class TokenPairOut(Schema):
-    access: str
-    refresh: str
+    """JWT access and refresh token pair.
+    Returned on successful registration or login."""
+
+    access: str = Field(description="Short-lived JWT access token.", examples=["eyJhbGciOiJIUzI1NiIs..."])
+    refresh: str = Field(description="Long-lived JWT refresh token.", examples=["eyJhbGciOiJIUzI1NiIs..."])
 
 
 class AccessTokenOut(Schema):
-    access: str
+    """Single JWT access token.
+    Returned when refreshing an expired access token."""
+
+    access: str = Field(description="Short-lived JWT access token.", examples=["eyJhbGciOiJIUzI1NiIs..."])
 
 
 class RegisterIn(Schema):
-    username: str = Field(min_length=3, max_length=150)
-    password: str = Field(min_length=8, max_length=128)
-    email: str = Field(min_length=3, max_length=254)
+    """Registration payload for creating a new user account.
+    All fields are required and validated server-side."""
+
+    username: str = Field(min_length=3, max_length=150, description="Unique username (3-150 characters).", examples=["janedoe"])
+    password: str = Field(min_length=8, max_length=128, description="Password (8-128 characters, validated against Django password policies).", examples=["s3cure!Pass"])
+    email: str = Field(min_length=3, max_length=254, description="Email address.", examples=["jane@example.com"])
 
 
 class LoginIn(Schema):
-    username: str = Field(min_length=1, max_length=254)
-    password: str = Field(min_length=1, max_length=128)
+    """Login payload for authenticating with credentials.
+    Accepts username and password."""
+
+    username: str = Field(min_length=1, max_length=254, description="Username or email used during registration.", examples=["janedoe"])
+    password: str = Field(min_length=1, max_length=128, description="Account password.", examples=["s3cure!Pass"])
 
 
 class RefreshIn(Schema):
-    refresh: str = Field(min_length=20)
+    """Token refresh payload containing the refresh token.
+    Used to obtain a new access token without re-authenticating."""
+
+    refresh: str = Field(min_length=20, description="Refresh token obtained from login or registration.", examples=["eyJhbGciOiJIUzI1NiIs..."])
 
 
 class MeOut(Schema):
-    id: int
-    username: str
-    email: str
+    """Current authenticated user profile.
+    Returns basic account information."""
+
+    id: int = Field(description="Unique user identifier.", examples=[1])
+    username: str = Field(description="Username.", examples=["janedoe"])
+    email: str = Field(description="Email address.", examples=["jane@example.com"])
 
 
 def build_token_pair(*, user: AbstractBaseUser) -> TokenPairOut:
-    """Handle build token pair.
-    Supports the module workflow with a focused operation."""
+    """Create a JWT access/refresh token pair for a user.
+    Wraps ninja-jwt's RefreshToken into the API response schema."""
     refresh = RefreshToken.for_user(user)
     return TokenPairOut(
         access=str(refresh.access_token),
@@ -58,10 +76,10 @@ def build_token_pair(*, user: AbstractBaseUser) -> TokenPairOut:
     )
 
 
-@auth_router.post("/register", response={201: TokenPairOut, 400: ErrorOut, 429: ErrorOut}, auth=None)
+@auth_router.post("/register", response={201: TokenPairOut, 400: ErrorOut, 429: ErrorOut}, auth=None, summary="Register a new user")
 def register(request, payload: RegisterIn):
-    """Handle register.
-    Supports the module workflow with a focused operation."""
+    """Create a new user account and return a JWT token pair.
+    Validates username uniqueness, email format, and password strength."""
     limited, _ = is_auth_rate_limited(
         request=request,
         scope="api-register",
@@ -98,10 +116,10 @@ def register(request, payload: RegisterIn):
     return 201, build_token_pair(user=user)
 
 
-@auth_router.post("/login", response={200: TokenPairOut, 401: ErrorOut, 429: ErrorOut}, auth=None)
+@auth_router.post("/login", response={200: TokenPairOut, 401: ErrorOut, 429: ErrorOut}, auth=None, summary="Log in with credentials")
 def login(request, payload: LoginIn):
-    """Handle login.
-    Supports the module workflow with a focused operation."""
+    """Authenticate with username and password and return a JWT token pair.
+    Returns 401 for invalid credentials or 429 when rate-limited."""
     limited, _ = is_auth_rate_limited(
         request=request,
         scope="api-login",
@@ -122,10 +140,10 @@ def login(request, payload: LoginIn):
     return 200, build_token_pair(user=user)
 
 
-@auth_router.post("/refresh", response={200: AccessTokenOut, 401: ErrorOut, 429: ErrorOut}, auth=None)
+@auth_router.post("/refresh", response={200: AccessTokenOut, 401: ErrorOut, 429: ErrorOut}, auth=None, summary="Refresh an access token")
 def refresh(request, payload: RefreshIn):
-    """Handle refresh.
-    Supports the module workflow with a focused operation."""
+    """Exchange a valid refresh token for a new access token.
+    Returns 401 if the refresh token is invalid or expired."""
     limited, _ = is_auth_rate_limited(
         request=request,
         scope="api-refresh",
@@ -142,10 +160,10 @@ def refresh(request, payload: RefreshIn):
     return 200, AccessTokenOut(access=str(refresh_token.access_token))
 
 
-@auth_router.get("/me", response=MeOut, auth=JWTAuth())
+@auth_router.get("/me", response=MeOut, auth=JWTAuth(), summary="Get current user profile")
 def me(request):
-    """Handle me.
-    Supports the module workflow with a focused operation."""
+    """Return the profile of the currently authenticated user.
+    Requires a valid JWT access token in the Authorization header."""
     return MeOut(
         id=request.user.id,
         username=request.user.username,
