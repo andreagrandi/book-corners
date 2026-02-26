@@ -636,18 +636,18 @@ Dokku requires Ubuntu 22.04 or 24.04. All commands run on the VPS.
 
 #### 6.4 — Create the Dokku app and prepare the repository
 
-- [ ] Create the app on the VPS
+- [x] Create the app on the VPS
   ```bash
   # On the VPS:
   sudo dokku apps:create book-corners
   ```
-- [ ] Create a `Procfile` in the project root (on your Mac, in the repo).
+- [x] Create a `Procfile` in the project root (on your Mac, in the repo).
   Dokku reads this to know how to run the app.
   ```
   web: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
   ```
   Note: Dokku sets `$PORT` automatically. Do not hardcode 8000.
-- [ ] Create `app.json` in the project root for pre-deploy hooks (migrations).
+- [x] Create `app.json` in the project root for pre-deploy hooks (migrations).
   Dokku runs these automatically on every deploy.
   ```json
   {
@@ -658,12 +658,12 @@ Dokku requires Ubuntu 22.04 or 24.04. All commands run on the VPS.
     }
   }
   ```
-- [ ] Add the Dokku remote to your local git repo
+- [x] Add the Dokku remote to your local git repo
   ```bash
   # From your Mac, in the book-corners directory:
   git remote add dokku deploy@vps.bookcorners.org:book-corners
   ```
-- [ ] Commit the Procfile and app.json (do not deploy yet — database and storage aren't ready)
+- [x] Commit the Procfile and app.json (do not deploy yet — database and storage aren't ready)
 
 #### 6.5 — Database (PostGIS)
 
