@@ -367,9 +367,9 @@ Everything else is server-rendered Django templates + HTMX.
 ### Phase 3.5 — Google Auth (Web-first)
 
 Goal for this phase:
-- [ ] Add Google login for the web app now, without introducing Apple login yet.
-- [ ] Keep the existing username/email + password flow unchanged.
-- [ ] Implement this in a way that can be extended for iOS later (additive, no rewrite).
+- [x] Add Google login for the web app now, without introducing Apple login yet.
+- [x] Keep the existing username/email + password flow unchanged.
+- [x] Implement this in a way that can be extended for iOS later (additive, no rewrite).
 
 #### 3.5.1 — Auth policy and constraints (before coding)
 - [x] Confirm account policy: username unique + email unique (case-insensitive)
@@ -603,27 +603,27 @@ docs/
   - Builds with `zensical build`
   - Deploys to `gh-pages` branch via `peaceiris/actions-gh-pages` with
     `cname: developers.bookcorners.org`
-- [ ] Enable GitHub Pages in repo settings (source: `gh-pages` branch)
-- [ ] Add custom domain `developers.bookcorners.org` in repo Settings → Pages
+- [x] Enable GitHub Pages in repo settings (source: `gh-pages` branch)
+- [x] Add custom domain `developers.bookcorners.org` in repo Settings → Pages
 
 **DNS + GitHub Pages setup:**
 
-- [ ] In the `book-corners` repo Settings → Pages, set source to `gh-pages` branch
-- [ ] In the `book-corners` repo Settings → Pages, set custom domain to `developers.bookcorners.org`
+- [x] In the `book-corners` repo Settings → Pages, set source to `gh-pages` branch
+- [x] In the `book-corners` repo Settings → Pages, set custom domain to `developers.bookcorners.org`
   (GitHub associates this domain with the book-corners repo specifically — it routes by
   matching the incoming Host header to the repo that claims that custom domain)
-- [ ] In Cloudflare (bookcorners.org zone): add CNAME record
+- [x] In Cloudflare (bookcorners.org zone): add CNAME record
   `developers` → `andreagrandi.github.io` (DNS only, grey cloud)
   Note: this is the same target as all GitHub Pages under the `andreagrandi` account.
   GitHub disambiguates by custom domain, not by CNAME target. This does not conflict
   with the personal site because each repo registers its own custom domain.
-- [ ] GitHub Pages handles TLS via its own Let's Encrypt integration
+- [x] GitHub Pages handles TLS via its own Let's Encrypt integration
 
 **Freshness guarantee:** The CI workflow re-exports the OpenAPI schema from the live Django
 app on every relevant push, so API changes automatically propagate to docs. No manual step.
 
 - [x] Verify: `zensical serve` locally previews the docs site
-- [ ] Verify: push to master triggers docs CI → `developers.bookcorners.org` is live
+- [x] Verify: push to master triggers docs CI → `developers.bookcorners.org` is live
 
 #### 4.8 — Integration verification
 
@@ -1135,7 +1135,7 @@ dumps and media backups. BorgBase is the planned offsite target.
   - Monitor `https://bookcorners.org/health` (HTTP 200 check)
   - Set check interval to 5 minutes
   - Configure alert contact (email or Telegram)
-- [ ] Set up error tracking with Sentry (free developer plan):
+- [x] Set up error tracking with Sentry (free developer plan):
   - Create a Sentry project for Django
   - Install `sentry-sdk` and add to `requirements.txt`
   - Add Sentry DSN to Dokku env vars:
