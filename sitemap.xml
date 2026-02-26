@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      <url>
+        <loc>https://developers.bookcorners.org/</loc>
+      </url>
+      <url>
+        <loc>https://developers.bookcorners.org/getting-started/</loc>
+      </url>
+      <url>
+        <loc>https://developers.bookcorners.org/authentication/</loc>
+      </url>
+      <url>
+        <loc>https://developers.bookcorners.org/libraries/list-and-search/</loc>
+      </url>
+      <url>
+        <loc>https://developers.bookcorners.org/libraries/detail/</loc>
+      </url>
+      <url>
+        <loc>https://developers.bookcorners.org/libraries/submit/</loc>
+      </url>
+      <url>
+        <loc>https://developers.bookcorners.org/libraries/report/</loc>
+      </url>
+      <url>
+        <loc>https://developers.bookcorners.org/errors/</loc>
+      </url>
+      <url>
+        <loc>https://developers.bookcorners.org/rate-limiting/</loc>
+      </url>
+      <url>
+        <loc>https://developers.bookcorners.org/reference/openapi/</loc>
+      </url>
+      <url>
+        <loc>https://developers.bookcorners.org/changelog/</loc>
+      </url>
+</urlset>

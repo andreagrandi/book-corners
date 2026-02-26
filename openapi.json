@@ -1,0 +1,1608 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Book Corners API",
+    "version": "1.0.0",
+    "description": "REST API for discovering, submitting, and reporting little free libraries. Provides geospatial search, user authentication, and community moderation workflows."
+  },
+  "paths": {
+    "/api/v1/auth/register": {
+      "post": {
+        "operationId": "users_api_register",
+        "summary": "Register a new user",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenPairOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Create a new user account and return a JWT token pair.\nValidates username uniqueness, email format, and password strength.",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterIn"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "users_api_login",
+        "summary": "Log in with credentials",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenPairOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Authenticate with username and password and return a JWT token pair.\nReturns 401 for invalid credentials or 429 when rate-limited.",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginIn"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "operationId": "users_api_refresh",
+        "summary": "Refresh an access token",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessTokenOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Exchange a valid refresh token for a new access token.\nReturns 401 if the refresh token is invalid or expired.",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshIn"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "operationId": "users_api_me",
+        "summary": "Get current user profile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return the profile of the currently authenticated user.\nRequires a valid JWT access token in the Authorization header.",
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/libraries/": {
+      "get": {
+        "operationId": "libraries_api_list_libraries",
+        "summary": "List and search libraries",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Free-text search query matched against name, description, and address.",
+              "examples": [
+                "corner books"
+              ],
+              "title": "Q"
+            },
+            "required": false,
+            "description": "Free-text search query matched against name, description, and address.",
+            "examples": [
+              "corner books"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "city",
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by exact city name (case-insensitive).",
+              "examples": [
+                "Berlin"
+              ],
+              "title": "City"
+            },
+            "required": false,
+            "description": "Filter by exact city name (case-insensitive).",
+            "examples": [
+              "Berlin"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "country",
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by ISO 3166-1 alpha-2 country code.",
+              "examples": [
+                "DE"
+              ],
+              "title": "Country"
+            },
+            "required": false,
+            "description": "Filter by ISO 3166-1 alpha-2 country code.",
+            "examples": [
+              "DE"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "postal_code",
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 20,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by postal or ZIP code.",
+              "examples": [
+                "10117"
+              ],
+              "title": "Postal Code"
+            },
+            "required": false,
+            "description": "Filter by postal or ZIP code.",
+            "examples": [
+              "10117"
+            ]
+          },
+          {
+            "in": "query",
+            "name": "lat",
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 90,
+                  "minimum": -90,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Latitude for proximity search (requires lng and radius_km).",
+              "examples": [
+                52.52
+              ],
+              "title": "Lat"
+            },
+            "required": false,
+            "description": "Latitude for proximity search (requires lng and radius_km).",
+            "examples": [
+              52.52
+            ]
+          },
+          {
+            "in": "query",
+            "name": "lng",
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 180,
+                  "minimum": -180,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Longitude for proximity search (requires lat and radius_km).",
+              "examples": [
+                13.405
+              ],
+              "title": "Lng"
+            },
+            "required": false,
+            "description": "Longitude for proximity search (requires lat and radius_km).",
+            "examples": [
+              13.405
+            ]
+          },
+          {
+            "in": "query",
+            "name": "radius_km",
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 100,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search radius in kilometres (requires lat and lng).",
+              "examples": [
+                5
+              ],
+              "title": "Radius Km"
+            },
+            "required": false,
+            "description": "Search radius in kilometres (requires lat and lng).",
+            "examples": [
+              5
+            ]
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "default": 1,
+              "description": "Page number to retrieve (1-indexed).",
+              "examples": [
+                1
+              ],
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Page number to retrieve (1-indexed).",
+            "examples": [
+              1
+            ]
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "schema": {
+              "default": 20,
+              "description": "Number of items per page.",
+              "examples": [
+                20
+              ],
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Number of items per page.",
+            "examples": [
+              20
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryListOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return a paginated list of approved libraries with optional search filters.\nSupports text, field, and proximity filtering with configurable pagination.",
+        "tags": [
+          "libraries"
+        ]
+      },
+      "post": {
+        "operationId": "libraries_api_submit_library",
+        "summary": "Submit a new library",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Content Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Create a new library submission from an authenticated user.\nValidates the photo and fields, then persists as pending for moderation.",
+        "tags": [
+          "libraries"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "title": "MultiPartBodyParams",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "default": "",
+                    "description": "Display name of the library.",
+                    "examples": [
+                      "Corner Books"
+                    ],
+                    "maxLength": 255,
+                    "title": "Name",
+                    "type": "string"
+                  },
+                  "description": {
+                    "default": "",
+                    "description": "Free-text description of the library.",
+                    "examples": [
+                      "A cozy little free library near the park entrance."
+                    ],
+                    "maxLength": 2000,
+                    "title": "Description",
+                    "type": "string"
+                  },
+                  "address": {
+                    "description": "Street address of the library.",
+                    "examples": [
+                      "Friedrichstr. 12"
+                    ],
+                    "maxLength": 255,
+                    "title": "Address",
+                    "type": "string"
+                  },
+                  "city": {
+                    "description": "City where the library is located.",
+                    "examples": [
+                      "Berlin"
+                    ],
+                    "maxLength": 100,
+                    "title": "City",
+                    "type": "string"
+                  },
+                  "country": {
+                    "description": "ISO 3166-1 alpha-2 country code.",
+                    "examples": [
+                      "DE"
+                    ],
+                    "maxLength": 2,
+                    "title": "Country",
+                    "type": "string"
+                  },
+                  "postal_code": {
+                    "default": "",
+                    "description": "Postal or ZIP code.",
+                    "examples": [
+                      "10117"
+                    ],
+                    "maxLength": 20,
+                    "title": "Postal Code",
+                    "type": "string"
+                  },
+                  "latitude": {
+                    "description": "Latitude of the library (WGS 84).",
+                    "examples": [
+                      52.52
+                    ],
+                    "maximum": 90,
+                    "minimum": -90,
+                    "title": "Latitude",
+                    "type": "number"
+                  },
+                  "longitude": {
+                    "description": "Longitude of the library (WGS 84).",
+                    "examples": [
+                      13.405
+                    ],
+                    "maximum": 180,
+                    "minimum": -180,
+                    "title": "Longitude",
+                    "type": "number"
+                  },
+                  "photo": {
+                    "format": "binary",
+                    "title": "Photo",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "address",
+                  "city",
+                  "country",
+                  "latitude",
+                  "longitude",
+                  "photo"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/libraries/latest": {
+      "get": {
+        "operationId": "libraries_api_latest_libraries",
+        "summary": "Get latest libraries",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 10,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LatestLibrariesOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return the most recent approved libraries as a flat list.\nProvides a lightweight endpoint for newest-first results without pagination.",
+        "tags": [
+          "libraries"
+        ]
+      }
+    },
+    "/api/v1/libraries/{slug}": {
+      "get": {
+        "operationId": "libraries_api_get_library",
+        "summary": "Get a library by slug",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return a single library by its slug.\nPending libraries are visible only to their authenticated owner.",
+        "tags": [
+          "libraries"
+        ]
+      }
+    },
+    "/api/v1/libraries/{slug}/report": {
+      "post": {
+        "operationId": "libraries_api_submit_library_report",
+        "summary": "Report an issue with a library",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Content Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Create a report about an approved library from an authenticated user.\nValidates optional photo and persists the report as open for moderation.",
+        "tags": [
+          "libraries"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "title": "MultiPartBodyParams",
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "description": "Enumeration of valid report reasons matching model choices.\nKeeps API and database reason values in sync.",
+                    "enum": [
+                      "damaged",
+                      "missing",
+                      "incorrect_info",
+                      "inappropriate",
+                      "other"
+                    ],
+                    "title": "ReportReasonEnum",
+                    "type": "string"
+                  },
+                  "details": {
+                    "default": "",
+                    "description": "Optional free-text details about the issue.",
+                    "examples": [
+                      "The door hinge is broken and books are getting wet."
+                    ],
+                    "maxLength": 2000,
+                    "title": "Details",
+                    "type": "string"
+                  },
+                  "photo": {
+                    "format": "binary",
+                    "title": "Photo",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reason"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TokenPairOut": {
+        "description": "JWT access and refresh token pair.\nReturned on successful registration or login.",
+        "properties": {
+          "access": {
+            "description": "Short-lived JWT access token.",
+            "examples": [
+              "eyJhbGciOiJIUzI1NiIs..."
+            ],
+            "title": "Access",
+            "type": "string"
+          },
+          "refresh": {
+            "description": "Long-lived JWT refresh token.",
+            "examples": [
+              "eyJhbGciOiJIUzI1NiIs..."
+            ],
+            "title": "Refresh",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access",
+          "refresh"
+        ],
+        "title": "TokenPairOut",
+        "type": "object"
+      },
+      "ErrorOut": {
+        "description": "Shared error response schema for all API endpoints.\nProvides a consistent error shape with optional structured details.",
+        "properties": {
+          "message": {
+            "description": "Human-readable error message.",
+            "examples": [
+              "Not found."
+            ],
+            "title": "Message",
+            "type": "string"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional structured details about the error, such as field-level validation failures.",
+            "examples": [
+              {
+                "errors": [
+                  {
+                    "loc": [
+                      "body",
+                      "name"
+                    ],
+                    "msg": "field required",
+                    "type": "missing"
+                  }
+                ]
+              }
+            ],
+            "title": "Details"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "ErrorOut",
+        "type": "object"
+      },
+      "RegisterIn": {
+        "description": "Registration payload for creating a new user account.\nAll fields are required and validated server-side.",
+        "properties": {
+          "username": {
+            "description": "Unique username (3-150 characters).",
+            "examples": [
+              "janedoe"
+            ],
+            "maxLength": 150,
+            "minLength": 3,
+            "title": "Username",
+            "type": "string"
+          },
+          "password": {
+            "description": "Password (8-128 characters, validated against Django password policies).",
+            "examples": [
+              "s3cure!Pass"
+            ],
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password",
+            "type": "string"
+          },
+          "email": {
+            "description": "Email address.",
+            "examples": [
+              "jane@example.com"
+            ],
+            "maxLength": 254,
+            "minLength": 3,
+            "title": "Email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password",
+          "email"
+        ],
+        "title": "RegisterIn",
+        "type": "object"
+      },
+      "LoginIn": {
+        "description": "Login payload for authenticating with credentials.\nAccepts username and password.",
+        "properties": {
+          "username": {
+            "description": "Username or email used during registration.",
+            "examples": [
+              "janedoe"
+            ],
+            "maxLength": 254,
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          },
+          "password": {
+            "description": "Account password.",
+            "examples": [
+              "s3cure!Pass"
+            ],
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginIn",
+        "type": "object"
+      },
+      "AccessTokenOut": {
+        "description": "Single JWT access token.\nReturned when refreshing an expired access token.",
+        "properties": {
+          "access": {
+            "description": "Short-lived JWT access token.",
+            "examples": [
+              "eyJhbGciOiJIUzI1NiIs..."
+            ],
+            "title": "Access",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access"
+        ],
+        "title": "AccessTokenOut",
+        "type": "object"
+      },
+      "RefreshIn": {
+        "description": "Token refresh payload containing the refresh token.\nUsed to obtain a new access token without re-authenticating.",
+        "properties": {
+          "refresh": {
+            "description": "Refresh token obtained from login or registration.",
+            "examples": [
+              "eyJhbGciOiJIUzI1NiIs..."
+            ],
+            "minLength": 20,
+            "title": "Refresh",
+            "type": "string"
+          }
+        },
+        "required": [
+          "refresh"
+        ],
+        "title": "RefreshIn",
+        "type": "object"
+      },
+      "MeOut": {
+        "description": "Current authenticated user profile.\nReturns basic account information.",
+        "properties": {
+          "id": {
+            "description": "Unique user identifier.",
+            "examples": [
+              1
+            ],
+            "title": "Id",
+            "type": "integer"
+          },
+          "username": {
+            "description": "Username.",
+            "examples": [
+              "janedoe"
+            ],
+            "title": "Username",
+            "type": "string"
+          },
+          "email": {
+            "description": "Email address.",
+            "examples": [
+              "jane@example.com"
+            ],
+            "title": "Email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "email"
+        ],
+        "title": "MeOut",
+        "type": "object"
+      },
+      "LibrarySearchParams": {
+        "description": "Query parameters for searching and filtering libraries.\nValidates bounds and defaults for pagination and geospatial queries.",
+        "properties": {
+          "q": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Free-text search query matched against name, description, and address.",
+            "examples": [
+              "corner books"
+            ],
+            "title": "Q"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by exact city name (case-insensitive).",
+            "examples": [
+              "Berlin"
+            ],
+            "title": "City"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "maxLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by ISO 3166-1 alpha-2 country code.",
+            "examples": [
+              "DE"
+            ],
+            "title": "Country"
+          },
+          "postal_code": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by postal or ZIP code.",
+            "examples": [
+              "10117"
+            ],
+            "title": "Postal Code"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "maximum": 90,
+                "minimum": -90,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Latitude for proximity search (requires lng and radius_km).",
+            "examples": [
+              52.52
+            ],
+            "title": "Lat"
+          },
+          "lng": {
+            "anyOf": [
+              {
+                "maximum": 180,
+                "minimum": -180,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Longitude for proximity search (requires lat and radius_km).",
+            "examples": [
+              13.405
+            ],
+            "title": "Lng"
+          },
+          "radius_km": {
+            "anyOf": [
+              {
+                "maximum": 100,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Search radius in kilometres (requires lat and lng).",
+            "examples": [
+              5
+            ],
+            "title": "Radius Km"
+          },
+          "page": {
+            "default": 1,
+            "description": "Page number to retrieve (1-indexed).",
+            "examples": [
+              1
+            ],
+            "maximum": 1000,
+            "minimum": 1,
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "default": 20,
+            "description": "Number of items per page.",
+            "examples": [
+              20
+            ],
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "title": "LibrarySearchParams",
+        "type": "object"
+      },
+      "LibraryListOut": {
+        "description": "Paginated list of libraries with navigation metadata.\nWraps items and pagination in a single response envelope.",
+        "properties": {
+          "items": {
+            "description": "List of library objects for the current page.",
+            "items": {
+              "$ref": "#/components/schemas/LibraryOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMeta",
+            "description": "Pagination metadata for navigating the result set."
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "LibraryListOut",
+        "type": "object"
+      },
+      "LibraryOut": {
+        "description": "Serialized representation of an approved library.\nResolves geospatial and media fields into flat JSON values.",
+        "properties": {
+          "id": {
+            "description": "Unique library identifier.",
+            "examples": [
+              42
+            ],
+            "title": "Id",
+            "type": "integer"
+          },
+          "slug": {
+            "description": "URL-friendly unique slug.",
+            "examples": [
+              "berlin-friedrichstr-12-corner-books"
+            ],
+            "title": "Slug",
+            "type": "string"
+          },
+          "name": {
+            "description": "Display name of the library.",
+            "examples": [
+              "Corner Books"
+            ],
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "description": "Free-text description of the library.",
+            "examples": [
+              "A cozy little free library near the park entrance."
+            ],
+            "title": "Description",
+            "type": "string"
+          },
+          "photo_url": {
+            "description": "Full-size photo URL, or empty string if unavailable.",
+            "examples": [
+              "/media/libraries/photos/corner-books.jpg"
+            ],
+            "title": "Photo Url",
+            "type": "string"
+          },
+          "thumbnail_url": {
+            "description": "Thumbnail photo URL, or empty string if unavailable.",
+            "examples": [
+              "/media/libraries/thumbnails/corner-books.jpg"
+            ],
+            "title": "Thumbnail Url",
+            "type": "string"
+          },
+          "lat": {
+            "description": "Latitude of the library location (WGS 84).",
+            "examples": [
+              52.52
+            ],
+            "title": "Lat",
+            "type": "number"
+          },
+          "lng": {
+            "description": "Longitude of the library location (WGS 84).",
+            "examples": [
+              13.405
+            ],
+            "title": "Lng",
+            "type": "number"
+          },
+          "address": {
+            "description": "Street address.",
+            "examples": [
+              "Friedrichstr. 12"
+            ],
+            "title": "Address",
+            "type": "string"
+          },
+          "city": {
+            "description": "City name.",
+            "examples": [
+              "Berlin"
+            ],
+            "title": "City",
+            "type": "string"
+          },
+          "country": {
+            "description": "ISO 3166-1 alpha-2 country code.",
+            "examples": [
+              "DE"
+            ],
+            "title": "Country",
+            "type": "string"
+          },
+          "postal_code": {
+            "description": "Postal or ZIP code.",
+            "examples": [
+              "10117"
+            ],
+            "title": "Postal Code",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "Timestamp when the library was created (UTC).",
+            "examples": [
+              "2025-06-15T14:30:00Z"
+            ],
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "description",
+          "photo_url",
+          "thumbnail_url",
+          "lat",
+          "lng",
+          "address",
+          "city",
+          "country",
+          "postal_code",
+          "created_at"
+        ],
+        "title": "LibraryOut",
+        "type": "object"
+      },
+      "PaginationMeta": {
+        "description": "Pagination metadata for paginated list responses.\nProvides page navigation context alongside result items.",
+        "properties": {
+          "page": {
+            "description": "Current page number (1-indexed).",
+            "examples": [
+              1
+            ],
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "description": "Number of items per page.",
+            "examples": [
+              20
+            ],
+            "title": "Page Size",
+            "type": "integer"
+          },
+          "total": {
+            "description": "Total number of matching items.",
+            "examples": [
+              142
+            ],
+            "title": "Total",
+            "type": "integer"
+          },
+          "total_pages": {
+            "description": "Total number of pages.",
+            "examples": [
+              8
+            ],
+            "title": "Total Pages",
+            "type": "integer"
+          },
+          "has_next": {
+            "description": "Whether a next page exists.",
+            "examples": [
+              true
+            ],
+            "title": "Has Next",
+            "type": "boolean"
+          },
+          "has_previous": {
+            "description": "Whether a previous page exists.",
+            "examples": [
+              false
+            ],
+            "title": "Has Previous",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "page",
+          "page_size",
+          "total",
+          "total_pages",
+          "has_next",
+          "has_previous"
+        ],
+        "title": "PaginationMeta",
+        "type": "object"
+      },
+      "LibrarySubmitIn": {
+        "description": "Input schema for submitting a new library.\nCaptures location and descriptive fields from authenticated users.",
+        "properties": {
+          "name": {
+            "default": "",
+            "description": "Display name of the library.",
+            "examples": [
+              "Corner Books"
+            ],
+            "maxLength": 255,
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "default": "",
+            "description": "Free-text description of the library.",
+            "examples": [
+              "A cozy little free library near the park entrance."
+            ],
+            "maxLength": 2000,
+            "title": "Description",
+            "type": "string"
+          },
+          "address": {
+            "description": "Street address of the library.",
+            "examples": [
+              "Friedrichstr. 12"
+            ],
+            "maxLength": 255,
+            "title": "Address",
+            "type": "string"
+          },
+          "city": {
+            "description": "City where the library is located.",
+            "examples": [
+              "Berlin"
+            ],
+            "maxLength": 100,
+            "title": "City",
+            "type": "string"
+          },
+          "country": {
+            "description": "ISO 3166-1 alpha-2 country code.",
+            "examples": [
+              "DE"
+            ],
+            "maxLength": 2,
+            "title": "Country",
+            "type": "string"
+          },
+          "postal_code": {
+            "default": "",
+            "description": "Postal or ZIP code.",
+            "examples": [
+              "10117"
+            ],
+            "maxLength": 20,
+            "title": "Postal Code",
+            "type": "string"
+          },
+          "latitude": {
+            "description": "Latitude of the library (WGS 84).",
+            "examples": [
+              52.52
+            ],
+            "maximum": 90,
+            "minimum": -90,
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "description": "Longitude of the library (WGS 84).",
+            "examples": [
+              13.405
+            ],
+            "maximum": 180,
+            "minimum": -180,
+            "title": "Longitude",
+            "type": "number"
+          }
+        },
+        "required": [
+          "address",
+          "city",
+          "country",
+          "latitude",
+          "longitude"
+        ],
+        "title": "LibrarySubmitIn",
+        "type": "object"
+      },
+      "LatestLibrariesOut": {
+        "description": "Flat list of latest approved libraries without pagination.\nUsed by the /latest endpoint for lightweight newest-first results.",
+        "properties": {
+          "items": {
+            "description": "List of the most recently approved libraries.",
+            "items": {
+              "$ref": "#/components/schemas/LibraryOut"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "LatestLibrariesOut",
+        "type": "object"
+      },
+      "ReportOut": {
+        "description": "Serialized representation of a submitted report.\nReturns confirmation data after successful report creation.",
+        "properties": {
+          "id": {
+            "description": "Unique report identifier.",
+            "examples": [
+              7
+            ],
+            "title": "Id",
+            "type": "integer"
+          },
+          "reason": {
+            "description": "Reason category of the report.",
+            "examples": [
+              "damaged"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "Timestamp when the report was created (UTC).",
+            "examples": [
+              "2025-06-15T14:30:00Z"
+            ],
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "reason",
+          "created_at"
+        ],
+        "title": "ReportOut",
+        "type": "object"
+      },
+      "ReportIn": {
+        "description": "Input schema for submitting a report about a library.\nRequires a reason category and optional narrative details.",
+        "properties": {
+          "reason": {
+            "$ref": "#/components/schemas/ReportReasonEnum",
+            "description": "Category of the issue being reported.",
+            "examples": [
+              "damaged"
+            ]
+          },
+          "details": {
+            "default": "",
+            "description": "Optional free-text details about the issue.",
+            "examples": [
+              "The door hinge is broken and books are getting wet."
+            ],
+            "maxLength": 2000,
+            "title": "Details",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "ReportIn",
+        "type": "object"
+      },
+      "ReportReasonEnum": {
+        "description": "Enumeration of valid report reasons matching model choices.\nKeeps API and database reason values in sync.",
+        "enum": [
+          "damaged",
+          "missing",
+          "incorrect_info",
+          "inappropriate",
+          "other"
+        ],
+        "title": "ReportReasonEnum",
+        "type": "string"
+      }
+    },
+    "securitySchemes": {
+      "JWTAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://bookcorners.org/api/v1/",
+      "description": "Production"
+    },
+    {
+      "url": "http://localhost:8000/api/v1/",
+      "description": "Local development"
+    }
+  ]
+}
