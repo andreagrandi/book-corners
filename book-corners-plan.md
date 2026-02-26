@@ -562,9 +562,11 @@ to export it for the docs pipeline.
 
 #### 4.7 — Developer documentation portal (developers.bookcorners.org)
 
-**Tooling:** MkDocs Material + OpenAPI rendering plugin. Python-native (matches project),
-supports prose docs alongside auto-generated API reference, builds to static HTML for
-GitHub Pages. Better than Redoc alone (no prose docs) or Docusaurus (Node-based, heavier).
+**Tooling:** Zensical (successor to MkDocs Material, same team, MIT licensed). Drop-in
+compatible with `mkdocs.yml` config and Material theme. Python-native (matches project),
+supports prose docs alongside Swagger UI (embedded via CDN), builds to static HTML for
+GitHub Pages. MkDocs Material entered maintenance mode in Feb 2026 due to MkDocs 2.0
+incompatibility; Zensical is the forward path.
 
 **Content structure:**
 ```
@@ -584,21 +586,21 @@ docs/
   changelog.md                 # API changelog
 ```
 
-- [ ] Create `docs/` directory with all markdown content above
-- [ ] Create `mkdocs.yml` — MkDocs Material config (site_name, theme with teal primary,
-  nav structure, search + render_swagger plugins)
-- [ ] Create `requirements-docs.txt` — `mkdocs-material`, `mkdocs-render-swagger-plugin`
-- [ ] Write prose docs with curl + Python code examples for every endpoint
-- [ ] Each page covers: endpoint URL/method, auth requirements, parameters, code examples,
+- [x] Create `docs/` directory with all markdown content above
+- [x] Create `mkdocs.yml` — Zensical/Material config (site_name, theme with teal primary,
+  nav structure, search plugin, Swagger UI embedded via CDN)
+- [x] Create `requirements-docs.txt` — `zensical`
+- [x] Write prose docs with curl + Python code examples for every endpoint
+- [x] Each page covers: endpoint URL/method, auth requirements, parameters, code examples,
   response examples, error scenarios
 
 **CI/CD pipeline:**
 
-- [ ] Create `.github/workflows/docs.yml`:
+- [x] Create `.github/workflows/docs.yml`:
   - Triggers on push to master when `docs/`, `mkdocs.yml`, or API code files change
   - Spins up PostGIS service (needed for Django to load and export schema)
   - Runs `python manage.py export_openapi_schema > docs/openapi.json`
-  - Builds with `mkdocs build --strict`
+  - Builds with `zensical build`
   - Deploys to `gh-pages` branch via `peaceiris/actions-gh-pages` with
     `cname: developers.bookcorners.org`
 - [ ] Enable GitHub Pages in repo settings (source: `gh-pages` branch)
@@ -620,7 +622,7 @@ docs/
 **Freshness guarantee:** The CI workflow re-exports the OpenAPI schema from the live Django
 app on every relevant push, so API changes automatically propagate to docs. No manual step.
 
-- [ ] Verify: `mkdocs serve` locally previews the docs site
+- [x] Verify: `zensical serve` locally previews the docs site
 - [ ] Verify: push to master triggers docs CI → `developers.bookcorners.org` is live
 
 #### 4.8 — Integration verification

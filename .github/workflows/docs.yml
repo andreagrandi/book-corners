@@ -1,0 +1,78 @@
+name: Docs
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "requirements-docs.txt"
+      - "config/api.py"
+      - "config/api_schemas.py"
+      - "libraries/api.py"
+      - "libraries/api_schemas.py"
+      - "users/api.py"
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_DB: book_corners
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgis://postgres:postgres@localhost:5432/book_corners
+      DJANGO_SECRET_KEY: ci-docs-key
+      DJANGO_DEBUG: "false"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install GIS dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gdal-bin libgdal-dev libgeos-dev libproj-dev
+          sudo rm -rf /var/lib/apt/lists/*
+
+      - name: Install Python packages
+        run: uv pip install --system -r requirements.txt -r requirements-docs.txt
+
+      - name: Run migrations
+        run: python manage.py migrate
+
+      - name: Generate OpenAPI schema
+        run: python manage.py export_openapi_schema > docs/openapi.json
+
+      - name: Build docs
+        run: zensical build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          cname: developers.bookcorners.org

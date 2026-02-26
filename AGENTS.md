@@ -36,6 +36,13 @@ python manage.py seed_libraries --reset --count 36 --images-dir libraries_exampl
 
 # Same seed command inside Docker app container
 docker compose exec app python manage.py seed_libraries --reset --count 36 --images-dir libraries_examples --seed 42
+
+# Build and preview docs locally
+python manage.py export_openapi_schema > docs/openapi.json
+zensical serve
+
+# Build docs
+zensical build
 ```
 
 ## End-to-end smoke test (Docker + browser)

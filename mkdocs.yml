@@ -1,0 +1,50 @@
+site_name: Book Corners API
+site_url: https://developers.bookcorners.org/
+site_description: REST API documentation for the Book Corners little free library platform.
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - content.code.copy
+    - content.tabs.link
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Authentication: authentication.md
+  - Libraries:
+      - List & Search: libraries/list-and-search.md
+      - Detail: libraries/detail.md
+      - Submit: libraries/submit.md
+      - Report: libraries/report.md
+  - Errors: errors.md
+  - Rate Limiting: rate-limiting.md
+  - API Reference: reference/openapi.md
+  - Changelog: changelog.md
