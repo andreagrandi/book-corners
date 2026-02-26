@@ -17,7 +17,7 @@
     <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
     {% block extra_head %}{% endblock %}
   </head>
-  <body class="min-h-screen bg-base-200">
+  <body class="flex min-h-screen flex-col bg-base-200">
     <div class="navbar border-b border-base-300 bg-base-100 px-4">
       <div class="navbar-start">
         <div class="dropdown">
@@ -77,7 +77,7 @@
       </div>
     </div>
 
-    <main class="mx-auto w-full max-w-6xl p-4 lg:p-8">
+    <main class="mx-auto w-full max-w-6xl flex-1 p-4 lg:p-8">
       {% block content %}{% endblock %}
     </main>
 
@@ -88,6 +88,8 @@
             <img
               src="{% static 'images/book-corners-logo-navbar.png' %}"
               alt=""
+              width="32"
+              height="32"
               class="h-8 w-8 object-contain"
               aria-hidden="true"
             >
@@ -98,7 +100,7 @@
         </aside>
         <nav class="flex flex-col gap-2">
           <h6 class="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-base-content">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
             </svg>
             Explore
@@ -110,7 +112,7 @@
         </nav>
         <nav class="flex flex-col gap-2">
           <h6 class="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-base-content">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
             </svg>
             Resources
@@ -121,7 +123,7 @@
         </nav>
         <nav class="flex flex-col gap-2">
           <h6 class="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-base-content">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
             </svg>
             Legal
