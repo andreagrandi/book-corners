@@ -875,7 +875,7 @@ Automate deploys so that every push to `master` that passes CI gets deployed.
   - Go to the repo → Settings → Secrets and variables → Actions
   - Add secret `DOKKU_SSH_PRIVATE_KEY` with the contents of `~/.ssh/dokku_deploy`
   - Add secret `DOKKU_HOST` with value `vps.bookcorners.org`
-- [ ] Add a deploy job to `.github/workflows/ci.yml` that runs after tests pass:
+- [x] Add a deploy job to `.github/workflows/ci.yml` that runs after tests pass:
   ```yaml
   deploy:
     needs: tests
@@ -899,8 +899,8 @@ Automate deploys so that every push to `master` that passes CI gets deployed.
           git remote add dokku dokku@${{ secrets.DOKKU_HOST }}:book-corners
           GIT_SSH_COMMAND="ssh -i ~/.ssh/dokku_deploy" git push dokku master
   ```
-- [ ] Test the pipeline: push a small commit to master and verify it deploys automatically
-- [ ] Verify full pipeline: push → CI tests pass → deploy → app is running with new code
+- [x] Test the pipeline: push a small commit to master and verify it deploys automatically
+- [x] Verify full pipeline: push → CI tests pass → deploy → app is running with new code
 
 #### 6.12 — Backups
 
