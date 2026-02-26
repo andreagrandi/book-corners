@@ -10,15 +10,12 @@ from ninja_jwt.exceptions import TokenError
 from ninja_jwt.tokens import RefreshToken
 from pydantic import Field
 
+from config.api_schemas import ErrorOut
 from users.security import is_auth_rate_limited
 
 User = get_user_model()
 
 auth_router = Router(tags=["auth"])
-
-
-class ErrorOut(Schema):
-    message: str
 
 
 class TokenPairOut(Schema):
