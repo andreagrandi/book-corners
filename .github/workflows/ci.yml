@@ -59,3 +59,26 @@ jobs:
 
       - name: Run test suite
         run: uvx nox -s tests
+
+  deploy:
+    needs: tests
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DOKKU_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.DOKKU_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Push to Dokku
+        run: |
+          git remote add dokku dokku@${{ secrets.DOKKU_HOST }}:book-corners
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/deploy_key" git push dokku master

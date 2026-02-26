@@ -863,15 +863,15 @@ These are one-time tasks after the first successful deploy.
 
 Automate deploys so that every push to `master` that passes CI gets deployed.
 
-- [ ] Generate a dedicated SSH key pair for GitHub Actions (on your Mac):
+- [x] Generate a dedicated SSH key pair for GitHub Actions (on your Mac):
   ```bash
   ssh-keygen -t ed25519 -f ~/.ssh/dokku_deploy -N "" -C "github-actions-deploy"
   ```
-- [ ] Add the public key to Dokku on the VPS:
+- [x] Add the public key to Dokku on the VPS:
   ```bash
   cat ~/.ssh/dokku_deploy.pub | ssh deploy@vps.bookcorners.org "sudo dokku ssh-keys:add github-actions"
   ```
-- [ ] Add the private key as a GitHub Actions secret:
+- [x] Add the private key as a GitHub Actions secret:
   - Go to the repo → Settings → Secrets and variables → Actions
   - Add secret `DOKKU_SSH_PRIVATE_KEY` with the contents of `~/.ssh/dokku_deploy`
   - Add secret `DOKKU_HOST` with value `vps.bookcorners.org`
