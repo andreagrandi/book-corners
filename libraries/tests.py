@@ -484,10 +484,11 @@ class TestHomepageTemplate:
         assert "name=\"near\"" in content
         assert "Advanced search" in content
         assert "Latest entries" in content
-        assert "Book Corners - made with ❤️ by" in content
-        assert "https://github.com/andreagrandi" in content
+        assert "Made with ❤️ by Andrea Grandi" in content
         assert "https://github.com/andreagrandi/book-corners" in content
-        assert "Source code available on" in content
+        assert "href=\"/privacy/\"" in content
+        assert "https://developers.bookcorners.org/" in content
+        assert "https://stats.uptimerobot.com/y3eynRaqP2" in content
 
 
 @pytest.mark.django_db

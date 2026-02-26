@@ -20,6 +20,7 @@ class StaticViewSitemap(Sitemap):
             "home",
             "about_page",
             "map_page",
+            "privacy_page",
         ]
 
     def location(self, item: str) -> str:

@@ -81,15 +81,54 @@
       {% block content %}{% endblock %}
     </main>
 
-    <footer class="footer border-t border-base-300 bg-base-100 p-6 text-base-content">
-      <aside>
-        <p>
-          Book Corners - made with ❤️ by
-          <a class="link link-hover" href="https://github.com/andreagrandi">Andrea Grandi</a>
-          - Source code available on
-          <a class="link link-hover" href="https://github.com/andreagrandi/book-corners">GitHub</a>
-        </p>
-      </aside>
+    <footer class="border-t border-base-300 bg-base-100 text-base-content">
+      <div class="mx-auto grid w-full max-w-6xl gap-10 p-10 sm:grid-cols-2 lg:grid-cols-5">
+        <aside class="sm:col-span-2">
+          <a href="{% url 'home' %}" class="flex items-center gap-2">
+            <img
+              src="{% static 'images/book-corners-logo-navbar.png' %}"
+              alt=""
+              class="h-8 w-8 object-contain"
+              aria-hidden="true"
+            >
+            <span class="text-lg font-bold">Book Corners</span>
+          </a>
+          <p class="mt-2">Community map of neighborhood book exchange spots.</p>
+          <p class="mt-1 text-base-content/60">Made with ❤️ by <a href="https://www.andreagrandi.it" class="link link-hover" target="_blank" rel="noopener noreferrer">Andrea Grandi</a></p>
+        </aside>
+        <nav class="flex flex-col gap-2">
+          <h6 class="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-base-content">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            Explore
+          </h6>
+          <a href="{% url 'home' %}" class="link link-hover text-base-content/70">Home</a>
+          <a href="{% url 'map_page' %}" class="link link-hover text-base-content/70">Map</a>
+          <a href="{% url 'submit_library' %}" class="link link-hover text-base-content/70">Submit a Library</a>
+          <a href="{% url 'about_page' %}" class="link link-hover text-base-content/70">About</a>
+        </nav>
+        <nav class="flex flex-col gap-2">
+          <h6 class="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-base-content">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+            </svg>
+            Resources
+          </h6>
+          <a href="https://developers.bookcorners.org/" class="link link-hover text-base-content/70" target="_blank" rel="noopener noreferrer">Developers API</a>
+          <a href="https://stats.uptimerobot.com/y3eynRaqP2" class="link link-hover text-base-content/70" target="_blank" rel="noopener noreferrer">Status</a>
+          <a href="https://github.com/andreagrandi/book-corners" class="link link-hover text-base-content/70" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </nav>
+        <nav class="flex flex-col gap-2">
+          <h6 class="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-base-content">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+            </svg>
+            Legal
+          </h6>
+          <a href="{% url 'privacy_page' %}" class="link link-hover text-base-content/70">Privacy</a>
+        </nav>
+      </div>
     </footer>
 
     {% block extra_scripts %}{% endblock %}

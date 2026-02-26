@@ -467,6 +467,12 @@ def submit_library_photo_metadata(request: HttpRequest) -> JsonResponse:
     return JsonResponse(response_data)
 
 
+def privacy_page(request: HttpRequest) -> HttpResponse:
+    """Render the privacy policy page.
+    Provides a dedicated route for legal and data-handling disclosures."""
+    return render(request, "privacy.html")
+
+
 def style_preview(request: HttpRequest) -> HttpResponse:
     """Render a dedicated Tailwind and daisyUI preview page.
     Provides a stable endpoint for CSS smoke and integration checks."""
