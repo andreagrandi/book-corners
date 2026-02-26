@@ -483,7 +483,7 @@ step (4.7) as a full portal at `developers.bookcorners.org`.
 
 Establish shared foundations so all subsequent endpoints are consistent from the start.
 
-- [ ] Create `libraries/api_schemas.py` with Pydantic schemas:
+- [x] Create `libraries/api_schemas.py` with Pydantic schemas:
   - `LibraryOut` — id, slug, name, description, photo_url, thumbnail_url, lat, lng, address,
     city, country, postal_code, created_at
   - `LibraryListOut` — list of `LibraryOut` + pagination metadata
@@ -492,15 +492,15 @@ Establish shared foundations so all subsequent endpoints are consistent from the
   - `ReportIn` — reason (enum), details
   - `ReportOut` — confirmation after creation
   - `PaginationMeta` — page, page_size, total, total_pages, has_next, has_previous
-- [ ] Create `libraries/api_pagination.py`:
+- [x] Create `libraries/api_pagination.py`:
   - `paginate_queryset(qs, page, page_size, max_page_size=50)` → (items, PaginationMeta)
   - Reuse clamping pattern from `_parse_page_number()` in `libraries/views.py`
-- [ ] Create `libraries/api_security.py` — generalize `users/security.py` pattern for public endpoints:
+- [x] Create `libraries/api_security.py` — generalize `users/security.py` pattern for public endpoints:
   - Settings: `API_RATE_LIMIT_READ_REQUESTS` (default 60/window), `API_RATE_LIMIT_WRITE_REQUESTS` (default 10/window)
-- [ ] Modify `config/api.py` — add exception handlers (400/404/422/500) producing
+- [x] Modify `config/api.py` — add exception handlers (400/404/422/500) producing
   `{"message": "...", "details": {...}}`, extending existing `ErrorOut` from `users/api.py`
-- [ ] Add settings to `config/settings.py` for public API rate limits
-- [ ] Add tests: `libraries/test_api_pagination.py`, `libraries/test_api_errors.py`
+- [x] Add settings to `config/settings.py` for public API rate limits
+- [x] Add tests: `libraries/test_api_pagination.py`, `libraries/test_api_errors.py`
 
 #### 4.2 — Library list + detail endpoints (public, read-only)
 
