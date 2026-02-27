@@ -378,6 +378,24 @@
           },
           {
             "in": "query",
+            "name": "has_photo",
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by photo presence: true for libraries with a photo, false for those without.",
+              "title": "Has Photo"
+            },
+            "required": false,
+            "description": "Filter by photo presence: true for libraries with a photo, false for those without."
+          },
+          {
+            "in": "query",
             "name": "page",
             "schema": {
               "default": 1,
@@ -620,6 +638,22 @@
               "type": "integer"
             },
             "required": false
+          },
+          {
+            "in": "query",
+            "name": "has_photo",
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Has Photo"
+            },
+            "required": false
           }
         ],
         "responses": {
@@ -811,6 +845,115 @@
                 },
                 "required": [
                   "reason"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/libraries/{slug}/photo": {
+      "post": {
+        "operationId": "libraries_api_submit_library_photo",
+        "summary": "Submit a community photo for a library",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryPhotoOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Content Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Submit a community photo for an approved library.\nValidates the photo and enforces per-user limits before persisting.",
+        "tags": [
+          "libraries"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "title": "MultiPartBodyParams",
+                "type": "object",
+                "properties": {
+                  "caption": {
+                    "default": "",
+                    "description": "Optional caption for the photo.",
+                    "examples": [
+                      "A sunny day at the library."
+                    ],
+                    "maxLength": 200,
+                    "title": "Caption",
+                    "type": "string"
+                  },
+                  "photo": {
+                    "format": "binary",
+                    "title": "Photo",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "photo"
                 ]
               }
             }
@@ -1162,6 +1305,18 @@
               5
             ],
             "title": "Radius Km"
+          },
+          "has_photo": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by photo presence: true for libraries with a photo, false for those without.",
+            "title": "Has Photo"
           },
           "page": {
             "default": 1,
@@ -1586,6 +1741,69 @@
         ],
         "title": "ReportReasonEnum",
         "type": "string"
+      },
+      "LibraryPhotoOut": {
+        "description": "Serialized representation of a submitted community photo.\nReturns confirmation data after successful photo submission.",
+        "properties": {
+          "id": {
+            "description": "Unique photo identifier.",
+            "examples": [
+              12
+            ],
+            "title": "Id",
+            "type": "integer"
+          },
+          "caption": {
+            "description": "Caption for the photo.",
+            "examples": [
+              "A sunny day at the library."
+            ],
+            "title": "Caption",
+            "type": "string"
+          },
+          "status": {
+            "description": "Moderation status of the photo.",
+            "examples": [
+              "pending"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "Timestamp when the photo was submitted (UTC).",
+            "examples": [
+              "2025-06-15T14:30:00Z"
+            ],
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "caption",
+          "status",
+          "created_at"
+        ],
+        "title": "LibraryPhotoOut",
+        "type": "object"
+      },
+      "LibraryPhotoIn": {
+        "description": "Input schema for submitting a community photo to a library.\nCaptures an optional caption alongside the uploaded image file.",
+        "properties": {
+          "caption": {
+            "default": "",
+            "description": "Optional caption for the photo.",
+            "examples": [
+              "A sunny day at the library."
+            ],
+            "maxLength": 200,
+            "title": "Caption",
+            "type": "string"
+          }
+        },
+        "title": "LibraryPhotoIn",
+        "type": "object"
       }
     },
     "securitySchemes": {
