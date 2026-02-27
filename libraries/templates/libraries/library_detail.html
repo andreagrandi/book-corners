@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ library.name|default:library.address }} - Book Corners{% endblock %}
 {% block meta_description %}{% if library.description %}{{ library.description|truncatechars:150 }}{% else %}Visit this little free library at {{ library.address }}, {{ library.city }} on Book Corners.{% endif %}{% endblock %}
@@ -6,7 +7,7 @@
 {% block og_title %}{{ library.name|default:library.address }} - Book Corners{% endblock %}
 {% block og_description %}{% if library.description %}{{ library.description|truncatechars:150 }}{% else %}Visit this little free library at {{ library.address }}, {{ library.city }} on Book Corners.{% endif %}{% endblock %}
 {% block og_extra %}
-  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ library.photo.url }}">
+  {% if library.photo %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ library.photo.url }}">{% endif %}
 {% endblock %}
 
 {% block extra_head %}
@@ -23,7 +24,7 @@
     <article class="card overflow-hidden border border-base-300 bg-base-100 shadow-sm">
       <figure class="max-h-[560px] overflow-hidden rounded-box bg-base-200">
         <img
-          src="{{ library.photo.url }}"
+          src="{% if library.photo %}{{ library.photo.url }}{% else %}{% static 'images/library-placeholder.png' %}{% endif %}"
           alt="{{ library.name|default:library.address }}"
           class="h-full w-full object-cover"
         >
@@ -43,7 +44,18 @@
         </div>
 
         {% if request.user.is_authenticated %}
-          <div class="mt-5">
+          <div class="mt-5 flex flex-wrap gap-2">
+            {% if photo_form %}
+              <button
+                id="photo-form-toggle"
+                type="button"
+                class="btn btn-outline btn-primary"
+                aria-controls="photo-form"
+                aria-expanded="false"
+              >
+                Add a photo
+              </button>
+            {% endif %}
             <button
               id="report-form-toggle"
               type="button"
@@ -70,6 +82,19 @@
     </div>
   </section>
 
+  {% include "libraries/_photo_gallery.html" with approved_photos=approved_photos %}
+
+  {% if photo_form %}
+    <section
+      id="photo-form"
+      class="mt-6 hidden rounded-box border border-dashed border-base-300 bg-base-100 p-5"
+      aria-hidden="true"
+    >
+      <h2 class="text-xl font-semibold">Add a photo of this library</h2>
+      {% include "libraries/_photo_submission_form.html" with library=library photo_form=photo_form photo_submitted=False %}
+    </section>
+  {% endif %}
+
   {% if request.user.is_authenticated %}
     <section
       id="report-form"
@@ -90,6 +115,21 @@
   ></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
+      const photoFormToggle = document.getElementById("photo-form-toggle");
+      const photoFormSection = document.getElementById("photo-form");
+      if (photoFormToggle && photoFormSection) {
+        photoFormToggle.addEventListener("click", function () {
+          if (!photoFormSection.classList.contains("hidden")) {
+            return;
+          }
+
+          photoFormSection.classList.remove("hidden");
+          photoFormSection.setAttribute("aria-hidden", "false");
+          photoFormToggle.setAttribute("aria-expanded", "true");
+          photoFormSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+
       const reportFormToggle = document.getElementById("report-form-toggle");
       const reportFormSection = document.getElementById("report-form");
       if (reportFormToggle && reportFormSection) {

@@ -1,0 +1,46 @@
+<div id="photo-form-panel" class="mt-3 space-y-4">
+  {% if photo_submitted %}
+    <div class="alert alert-success">
+      <span>Thank you, your photo was submitted and is now pending moderation review.</span>
+    </div>
+  {% else %}
+    <p class="text-sm text-base-content/70">
+      Share a photo of this library with the community. Photos are reviewed by moderators before appearing.
+    </p>
+
+    {% if photo_form.errors %}
+      <div class="alert alert-error">
+        <span>Please review the highlighted fields and try again.</span>
+      </div>
+    {% endif %}
+
+    <form
+      method="post"
+      enctype="multipart/form-data"
+      class="space-y-4"
+      hx-post="{% url 'submit_library_photo' slug=library.slug %}"
+      hx-target="#photo-form-panel"
+      hx-swap="outerHTML"
+    >
+      {% csrf_token %}
+
+      {% if photo_form.non_field_errors %}
+        <div class="alert alert-error text-sm">{{ photo_form.non_field_errors }}</div>
+      {% endif %}
+
+      <label class="flex w-full flex-col gap-1">
+        <span class="text-sm font-medium">Photo</span>
+        {{ photo_form.photo }}
+        {% if photo_form.photo.errors %}<span class="mt-1 text-sm text-error">{{ photo_form.photo.errors.0 }}</span>{% endif %}
+      </label>
+
+      <label class="flex w-full flex-col gap-1">
+        <span class="text-sm font-medium">Caption (optional)</span>
+        {{ photo_form.caption }}
+        {% if photo_form.caption.errors %}<span class="mt-1 text-sm text-error">{{ photo_form.caption.errors.0 }}</span>{% endif %}
+      </label>
+
+      <button type="submit" class="btn btn-primary">Submit photo</button>
+    </form>
+  {% endif %}
+</div>

@@ -11,13 +11,13 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
-from libraries.forms import LibrarySearchForm, LibrarySubmissionForm, ReportSubmissionForm
+from libraries.forms import LibraryPhotoSubmissionForm, LibrarySearchForm, LibrarySubmissionForm, ReportSubmissionForm
 from libraries.geolocation import (
     extract_gps_coordinates,
     forward_geocode_place,
     reverse_geocode_coordinates,
 )
-from libraries.models import Library
+from libraries.models import Library, LibraryPhoto
 from libraries.search import DEFAULT_SEARCH_RADIUS_KM, apply_text_search, run_library_search
 
 LATEST_ENTRIES_PAGE_SIZE = 9
@@ -51,6 +51,7 @@ def _get_latest_entries_page(*, page_number: int) -> Page:
     Keeps homepage and HTMX pagination behavior consistent."""
     queryset = (
         Library.objects.filter(status=Library.Status.APPROVED)
+        .exclude(photo="")
         .order_by("-created_at")
     )
     paginator = Paginator(queryset, LATEST_ENTRIES_PAGE_SIZE)
@@ -328,9 +329,16 @@ def library_detail(request: HttpRequest, slug: str) -> HttpResponse:
     Keeps non-approved entries private while allowing author review."""
     library = _get_detail_visible_library(request=request, slug=slug)
     report_form: ReportSubmissionForm | None = None
+    photo_form: LibraryPhotoSubmissionForm | None = None
     user = getattr(request, "user", None)
     if user is not None and user.is_authenticated:
         report_form = ReportSubmissionForm(created_by=user, library=library)
+        if library.status == Library.Status.APPROVED:
+            photo_form = LibraryPhotoSubmissionForm(created_by=user, library=library)
+
+    approved_photos = library.user_photos.filter(
+        status=LibraryPhoto.Status.APPROVED,
+    )
 
     return render(
         request,
@@ -338,6 +346,8 @@ def library_detail(request: HttpRequest, slug: str) -> HttpResponse:
         {
             "library": library,
             "report_form": report_form,
+            "photo_form": photo_form,
+            "approved_photos": approved_photos,
         },
     )
 
@@ -377,6 +387,46 @@ def submit_library_report(request: HttpRequest, slug: str) -> HttpResponse:
             "library": library,
             "report_submitted": False,
             "report_form": report_form,
+        },
+        status=422,
+    )
+
+
+@login_required(login_url="login")
+def submit_library_photo(request: HttpRequest, slug: str) -> HttpResponse:
+    """Process inline photo submissions from the library detail page.
+    Returns HTMX-ready partial content for success or validation errors."""
+    if request.method != "POST":
+        return HttpResponse("Method not allowed.", status=405)
+
+    library = get_object_or_404(Library, slug=slug, status=Library.Status.APPROVED)
+    current_user = getattr(request, "user", None)
+    photo_form = LibraryPhotoSubmissionForm(
+        data=request.POST or None,
+        files=request.FILES or None,
+        created_by=current_user,
+        library=library,
+    )
+
+    if photo_form.is_valid():
+        photo_form.save()
+        return render(
+            request,
+            "libraries/_photo_submission_form.html",
+            {
+                "library": library,
+                "photo_submitted": True,
+                "photo_form": LibraryPhotoSubmissionForm(created_by=current_user, library=library),
+            },
+        )
+
+    return render(
+        request,
+        "libraries/_photo_submission_form.html",
+        {
+            "library": library,
+            "photo_submitted": False,
+            "photo_form": photo_form,
         },
         status=422,
     )

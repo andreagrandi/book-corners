@@ -39,10 +39,16 @@ def run_library_search(
     lat: float | None = None,
     lng: float | None = None,
     radius_km: int | None = None,
+    has_photo: bool | None = None,
 ) -> QuerySet[Library]:
     """Execute combined text, field, and proximity search on approved libraries.
     Returns a queryset filtered by the given parameters without geocoding."""
     queryset = Library.objects.filter(status=Library.Status.APPROVED).order_by("-created_at")
+
+    if has_photo is True:
+        queryset = queryset.exclude(photo="")
+    elif has_photo is False:
+        queryset = queryset.filter(photo="")
 
     if city:
         queryset = queryset.filter(city__icontains=city)

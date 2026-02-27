@@ -132,6 +132,22 @@ docker compose logs --no-color --tail=120 app tailwind
 
 Note: `static/css/app.css` is generated and gitignored. Regenerate it when needed, but do not commit it.
 
+## API documentation (required)
+
+When any change touches API endpoints (`libraries/api.py`, `libraries/api_schemas.py`, `libraries/search.py`, or URL routing), always regenerate the OpenAPI spec and update the corresponding docs before finishing:
+
+1. Update the relevant markdown file under `docs/` (e.g., `docs/libraries/list-and-search.md`) to reflect new, changed, or removed parameters, endpoints, or response shapes.
+2. Regenerate the OpenAPI spec: `python manage.py export_openapi_schema > docs/openapi.json`
+3. Commit both the docs markdown changes and the regenerated `docs/openapi.json` alongside the code changes.
+
+## Website / API feature parity
+
+When adding or removing a user-facing feature on the website (views, templates, forms), always ask the user whether the same change should also be reflected in the API. Features that exist in one surface but not the other can cause confusion for consumers. Examples:
+
+- Adding a new filter to a web page listing — ask if the API list endpoint should support the same filter.
+- Removing a field from a web form — ask if the corresponding API input schema should also drop the field.
+- Adding a new web page for a resource — ask if a matching API endpoint is needed.
+
 ## Code style expectations
 
 - Add a docstring to every new function, method, and test function.

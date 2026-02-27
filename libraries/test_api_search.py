@@ -186,6 +186,83 @@ class TestLibrarySearchFieldFilters:
 
 
 @pytest.mark.django_db
+class TestLibrarySearchPhotoFilter:
+    """Tests for the has_photo query parameter."""
+
+    def setup_method(self):
+        """Clear the cache before each test.
+        Prevents rate limit state from leaking between tests."""
+        cache.clear()
+
+    def test_has_photo_true_returns_only_with_photo(self, client, make_library):
+        """Verify has_photo=true returns only libraries with photos.
+        Confirms libraries without photos are excluded."""
+        make_library(name="With Photo")
+        Library.objects.create(
+            name="Without Photo",
+            photo="",
+            location=Point(x=2.3522, y=48.8566, srid=4326),
+            address="1 Rue Test",
+            city="Paris",
+            country="FR",
+            postal_code="75001",
+            status=Library.Status.APPROVED,
+            created_by=Library.objects.first().created_by,
+        )
+
+        response = client.get("/api/v1/libraries/?has_photo=true")
+
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert len(items) == 1
+        assert items[0]["name"] == "With Photo"
+
+    def test_has_photo_false_returns_only_without_photo(self, client, make_library):
+        """Verify has_photo=false returns only libraries without photos.
+        Confirms libraries with photos are excluded."""
+        make_library(name="With Photo")
+        Library.objects.create(
+            name="Without Photo",
+            photo="",
+            location=Point(x=2.3522, y=48.8566, srid=4326),
+            address="1 Rue Test",
+            city="Paris",
+            country="FR",
+            postal_code="75001",
+            status=Library.Status.APPROVED,
+            created_by=Library.objects.first().created_by,
+        )
+
+        response = client.get("/api/v1/libraries/?has_photo=false")
+
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert len(items) == 1
+        assert items[0]["name"] == "Without Photo"
+
+    def test_has_photo_omitted_returns_all(self, client, make_library):
+        """Verify omitting has_photo returns all approved libraries.
+        Confirms the filter is a no-op when not specified."""
+        make_library(name="With Photo")
+        Library.objects.create(
+            name="Without Photo",
+            photo="",
+            location=Point(x=2.3522, y=48.8566, srid=4326),
+            address="1 Rue Test",
+            city="Paris",
+            country="FR",
+            postal_code="75001",
+            status=Library.Status.APPROVED,
+            created_by=Library.objects.first().created_by,
+        )
+
+        response = client.get("/api/v1/libraries/")
+
+        assert response.status_code == 200
+        assert len(response.json()["items"]) == 2
+
+
+@pytest.mark.django_db
 class TestLibrarySearchProximity:
     """Tests for lat/lng proximity search parameters."""
 
@@ -398,6 +475,29 @@ class TestLatestLibrariesEndpoint:
         assert response.status_code == 429
         body = response.json()
         assert "Too many requests" in body["message"]
+
+    def test_has_photo_true_excludes_photoless(self, client, make_library):
+        """Verify has_photo=true on latest excludes libraries without photos.
+        Confirms the filter works on the latest endpoint."""
+        make_library(name="With Photo")
+        Library.objects.create(
+            name="Without Photo",
+            photo="",
+            location=Point(x=2.3522, y=48.8566, srid=4326),
+            address="1 Rue Test",
+            city="Paris",
+            country="FR",
+            postal_code="75001",
+            status=Library.Status.APPROVED,
+            created_by=Library.objects.first().created_by,
+        )
+
+        response = client.get("/api/v1/libraries/latest?has_photo=true")
+
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert len(items) == 1
+        assert items[0]["name"] == "With Photo"
 
     def test_no_pagination_metadata(self, client, make_library):
         """Verify the latest response has no pagination metadata.
