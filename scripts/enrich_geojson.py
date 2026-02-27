@@ -110,7 +110,12 @@ def enrich(input_path: str) -> None:
 
     for idx, feature in enumerate(features, start=1):
         properties = feature.get("properties", {})
-        feature_id = properties.get("id", "unknown")
+        feature_id = (
+            properties.get("@id")
+            or feature.get("id")
+            or properties.get("id")
+            or "unknown"
+        )
 
         if not _needs_enrichment(properties):
             skipped_count += 1

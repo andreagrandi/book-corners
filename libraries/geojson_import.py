@@ -140,8 +140,15 @@ def parse_geojson(geojson_data: dict[str, Any]) -> list[ImportCandidate]:
         country_raw = str(properties.get("addr:country") or "").strip()
         country = country_raw.upper()[:2] if country_raw else ""
 
+        external_id_raw = (
+            properties.get("@id")
+            or feature.get("id")
+            or properties.get("id")
+            or ""
+        )
+
         candidate = ImportCandidate(
-            external_id=str(properties.get("id") or "").strip(),
+            external_id=str(external_id_raw).strip(),
             name=str(properties.get("name") or "").strip(),
             description=str(properties.get("description") or "").strip(),
             longitude=longitude,

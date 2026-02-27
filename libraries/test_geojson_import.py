@@ -53,7 +53,7 @@ def _build_feature(
     """Build a GeoJSON feature dict with configurable properties.
     Provides sensible defaults for all fields to simplify test setup."""
     properties = {
-        "id": feature_id,
+        "@id": feature_id,
         "amenity": "public_bookcase",
         "name": name,
         "description": description,
@@ -77,6 +77,7 @@ def _build_feature(
         properties.update(extra_properties)
     return {
         "type": "Feature",
+        "id": feature_id,
         "geometry": {"type": "Point", "coordinates": [lon, lat]},
         "properties": properties,
     }
@@ -178,7 +179,7 @@ class TestParseGeoJSON:
     def test_parse_skips_feature_without_coordinates(self):
         """Verify features with missing geometry are skipped.
         Prevents crashes on malformed GeoJSON entries."""
-        feature = {"type": "Feature", "geometry": {"type": "Point", "coordinates": []}, "properties": {"id": "node/1"}}
+        feature = {"type": "Feature", "id": "node/1", "geometry": {"type": "Point", "coordinates": []}, "properties": {"@id": "node/1"}}
         geojson = _build_geojson(feature)
 
         candidates = parse_geojson(geojson)
@@ -203,6 +204,17 @@ class TestParseGeoJSON:
         candidates = parse_geojson(geojson)
 
         assert candidates == []
+
+    def test_parse_feature_level_id_fallback(self):
+        """Verify feature-level id is used when @id is absent in properties.
+        Handles GeoJSON exports that place the ID outside properties."""
+        feature = _build_feature(feature_id="node/99")
+        del feature["properties"]["@id"]
+        geojson = _build_geojson(feature)
+
+        candidates = parse_geojson(geojson)
+
+        assert candidates[0].external_id == "node/99"
 
     def test_parse_invalid_capacity_returns_none(self):
         """Verify non-numeric capacity is parsed as None.
