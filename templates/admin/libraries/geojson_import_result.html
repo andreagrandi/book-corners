@@ -1,0 +1,70 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Import Results" %} | {{ site_title|default:_("Django site admin") }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans "Home" %}</a>
+    &rsaquo; <a href="{% url 'admin:libraries_library_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; {% trans "Import Results" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="module">
+    <h2>{% trans "Import Summary" %}</h2>
+    <table>
+        <tbody>
+            <tr>
+                <th>{% trans "Total features in file" %}</th>
+                <td>{{ total_features }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Created" %}</th>
+                <td>{{ result.created }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Skipped (duplicate)" %}</th>
+                <td>{{ result.skipped_duplicate }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Skipped (missing address)" %}</th>
+                <td>{{ result.skipped_missing_address }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Errors" %}</th>
+                <td>{{ result.total_errors }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+{% if result.errors %}
+<div class="module">
+    <h2>{% trans "Errors" %}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>{% trans "External ID" %}</th>
+                <th>{% trans "Reason" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for error in result.errors %}
+            <tr>
+                <td>{{ error.external_id }}</td>
+                <td>{{ error.reason }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div class="submit-row">
+    <a href="{% url 'admin:libraries_library_changelist' %}">{% trans "Back to library list" %}</a>
+    &nbsp;|&nbsp;
+    <a href="{% url 'admin:libraries_library_import_geojson' %}">{% trans "Import another file" %}</a>
+</div>
+{% endblock %}

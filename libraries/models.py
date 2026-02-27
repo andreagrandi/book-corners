@@ -51,6 +51,7 @@ class Library(models.Model):
     source = models.CharField(max_length=100, blank=True, default="")
     operator = models.CharField(max_length=255, blank=True, default="")
     brand = models.CharField(max_length=255, blank=True, default="")
+    external_id = models.CharField(max_length=100, blank=True, default="", db_index=True)
     status = models.CharField(
         max_length=10,
         choices=Status.choices,

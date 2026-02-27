@@ -1,8 +1,14 @@
+import json
+
+from django.contrib import messages
 from django.contrib.gis import admin
 from django.db.models import QuerySet
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import render
+from django.urls import path
 from django.utils.html import format_html
 
+from libraries.geojson_import import GeoJSONImporter, parse_geojson
 from libraries.models import Library, LibraryPhoto, Report
 
 
@@ -27,6 +33,7 @@ class LibraryPhotoInline(admin.TabularInline):
 class LibraryAdmin(admin.GISModelAdmin):
     """Admin configuration for Library model."""
 
+    change_list_template = "admin/libraries/library_changelist.html"
     list_display = ["name", "city", "country", "status", "created_at"]
     list_filter = [
         "status",
@@ -44,6 +51,74 @@ class LibraryAdmin(admin.GISModelAdmin):
     readonly_fields = ["slug", "created_at", "updated_at"]
     actions = ["approve_libraries", "reject_libraries"]
     inlines = [LibraryPhotoInline]
+
+    def get_urls(self):
+        """Extend admin URLs with the GeoJSON import endpoint.
+        Adds a custom view accessible from the library changelist."""
+        custom_urls = [
+            path(
+                "import-geojson/",
+                self.admin_site.admin_view(self.import_geojson_view),
+                name="libraries_library_import_geojson",
+            ),
+        ]
+        return custom_urls + super().get_urls()
+
+    def import_geojson_view(self, request: HttpRequest) -> HttpResponse:
+        """Handle GeoJSON file upload and import into Library records.
+        Renders a form on GET and processes the upload on POST."""
+        if request.method != "POST":
+            context = {
+                **self.admin_site.each_context(request),
+                "title": "Import GeoJSON",
+                "opts": self.model._meta,
+            }
+            return render(request, "admin/libraries/geojson_import_form.html", context)
+
+        uploaded_file = request.FILES.get("geojson_file")
+        if not uploaded_file:
+            messages.error(request, "Please select a GeoJSON file to upload.")
+            context = {
+                **self.admin_site.each_context(request),
+                "title": "Import GeoJSON",
+                "opts": self.model._meta,
+            }
+            return render(request, "admin/libraries/geojson_import_form.html", context)
+
+        try:
+            raw_data = uploaded_file.read().decode("utf-8")
+            geojson_data = json.loads(raw_data)
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            messages.error(request, f"Invalid GeoJSON file: {exc}")
+            context = {
+                **self.admin_site.each_context(request),
+                "title": "Import GeoJSON",
+                "opts": self.model._meta,
+            }
+            return render(request, "admin/libraries/geojson_import_form.html", context)
+
+        source = request.POST.get("source", "").strip()
+        status = request.POST.get("status", Library.Status.PENDING)
+
+        if status not in (Library.Status.APPROVED, Library.Status.PENDING):
+            status = Library.Status.PENDING
+
+        candidates = parse_geojson(geojson_data)
+        importer = GeoJSONImporter(
+            source=source,
+            status=status,
+            created_by=request.user,
+        )
+        result = importer.run(candidates)
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Import Results",
+            "opts": self.model._meta,
+            "result": result,
+            "total_features": len(candidates),
+        }
+        return render(request, "admin/libraries/geojson_import_result.html", context)
 
     @admin.action(description="Approve selected libraries")
     def approve_libraries(

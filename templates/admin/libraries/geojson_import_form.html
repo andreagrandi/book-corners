@@ -1,0 +1,48 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Import GeoJSON" %} | {{ site_title|default:_("Django site admin") }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans "Home" %}</a>
+    &rsaquo; <a href="{% url 'admin:libraries_library_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; {% trans "Import GeoJSON" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <fieldset class="module aligned">
+        <h2>{% trans "Upload GeoJSON File" %}</h2>
+
+        <div class="form-row">
+            <label for="id_geojson_file">{% trans "GeoJSON file:" %}</label>
+            <input type="file" name="geojson_file" id="id_geojson_file" accept=".geojson,.json" required>
+            <p class="help">{% trans "Upload an enriched GeoJSON file with addr:street, addr:city, and addr:country properties." %}</p>
+        </div>
+
+        <div class="form-row">
+            <label for="id_source">{% trans "Source:" %}</label>
+            <input type="text" name="source" id="id_source" maxlength="100" placeholder="e.g. OpenStreetMap / MapComplete">
+            <p class="help">{% trans "Applied to all imported libraries. Leave blank if not needed." %}</p>
+        </div>
+
+        <div class="form-row">
+            <label for="id_status">{% trans "Status:" %}</label>
+            <select name="status" id="id_status">
+                <option value="approved">{% trans "Approved" %}</option>
+                <option value="pending">{% trans "Pending" %}</option>
+            </select>
+            <p class="help">{% trans "Status applied to all imported libraries." %}</p>
+        </div>
+    </fieldset>
+
+    <div class="submit-row">
+        <input type="submit" value="{% trans 'Import' %}" class="default">
+        <a href="{% url 'admin:libraries_library_changelist' %}">{% trans "Cancel" %}</a>
+    </div>
+</form>
+{% endblock %}
