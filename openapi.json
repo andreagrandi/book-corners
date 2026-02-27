@@ -576,6 +576,102 @@
                     "title": "Postal Code",
                     "type": "string"
                   },
+                  "wheelchair_accessible": {
+                    "default": "",
+                    "description": "Wheelchair accessibility: yes, no, or limited.",
+                    "examples": [
+                      "yes"
+                    ],
+                    "maxLength": 10,
+                    "title": "Wheelchair Accessible",
+                    "type": "string"
+                  },
+                  "capacity": {
+                    "anyOf": [
+                      {
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Approximate book capacity.",
+                    "examples": [
+                      50
+                    ],
+                    "title": "Capacity"
+                  },
+                  "is_indoor": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Whether the library is inside a building.",
+                    "examples": [
+                      false
+                    ],
+                    "title": "Is Indoor"
+                  },
+                  "is_lit": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Whether the library is illuminated at night.",
+                    "examples": [
+                      true
+                    ],
+                    "title": "Is Lit"
+                  },
+                  "website": {
+                    "default": "",
+                    "description": "External website link.",
+                    "examples": [
+                      "https://littlefreelibrary.org/charter/12345"
+                    ],
+                    "maxLength": 500,
+                    "title": "Website",
+                    "type": "string"
+                  },
+                  "contact": {
+                    "default": "",
+                    "description": "Contact information (email, phone, etc.).",
+                    "examples": [
+                      "info@example.org"
+                    ],
+                    "maxLength": 255,
+                    "title": "Contact",
+                    "type": "string"
+                  },
+                  "operator": {
+                    "default": "",
+                    "description": "Organisation that maintains the library.",
+                    "examples": [
+                      "City Library Association"
+                    ],
+                    "maxLength": 255,
+                    "title": "Operator",
+                    "type": "string"
+                  },
+                  "brand": {
+                    "default": "",
+                    "description": "Network or brand name.",
+                    "examples": [
+                      "Little Free Library"
+                    ],
+                    "maxLength": 255,
+                    "title": "Brand",
+                    "type": "string"
+                  },
                   "latitude": {
                     "description": "Latitude of the library (WGS 84).",
                     "examples": [
@@ -1466,6 +1562,99 @@
             "title": "Postal Code",
             "type": "string"
           },
+          "wheelchair_accessible": {
+            "description": "Wheelchair accessibility: yes, no, limited, or empty.",
+            "examples": [
+              "yes"
+            ],
+            "title": "Wheelchair Accessible",
+            "type": "string"
+          },
+          "capacity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Approximate book capacity.",
+            "examples": [
+              50
+            ],
+            "title": "Capacity"
+          },
+          "is_indoor": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Whether the library is inside a building.",
+            "examples": [
+              false
+            ],
+            "title": "Is Indoor"
+          },
+          "is_lit": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Whether the library is illuminated at night.",
+            "examples": [
+              true
+            ],
+            "title": "Is Lit"
+          },
+          "website": {
+            "description": "External website link.",
+            "examples": [
+              "https://littlefreelibrary.org/charter/12345"
+            ],
+            "title": "Website",
+            "type": "string"
+          },
+          "contact": {
+            "description": "Contact information (email, phone, etc.).",
+            "examples": [
+              "info@example.org"
+            ],
+            "title": "Contact",
+            "type": "string"
+          },
+          "source": {
+            "description": "Data origin, e.g. OpenStreetMap.",
+            "examples": [
+              "OpenStreetMap"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "operator": {
+            "description": "Organisation that maintains the library.",
+            "examples": [
+              "City Library Association"
+            ],
+            "title": "Operator",
+            "type": "string"
+          },
+          "brand": {
+            "description": "Network or brand name.",
+            "examples": [
+              "Little Free Library"
+            ],
+            "title": "Brand",
+            "type": "string"
+          },
           "created_at": {
             "description": "Timestamp when the library was created (UTC).",
             "examples": [
@@ -1489,6 +1678,15 @@
           "city",
           "country",
           "postal_code",
+          "wheelchair_accessible",
+          "capacity",
+          "is_indoor",
+          "is_lit",
+          "website",
+          "contact",
+          "source",
+          "operator",
+          "brand",
           "created_at"
         ],
         "title": "LibraryOut",
@@ -1615,6 +1813,102 @@
             ],
             "maxLength": 20,
             "title": "Postal Code",
+            "type": "string"
+          },
+          "wheelchair_accessible": {
+            "default": "",
+            "description": "Wheelchair accessibility: yes, no, or limited.",
+            "examples": [
+              "yes"
+            ],
+            "maxLength": 10,
+            "title": "Wheelchair Accessible",
+            "type": "string"
+          },
+          "capacity": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Approximate book capacity.",
+            "examples": [
+              50
+            ],
+            "title": "Capacity"
+          },
+          "is_indoor": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Whether the library is inside a building.",
+            "examples": [
+              false
+            ],
+            "title": "Is Indoor"
+          },
+          "is_lit": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Whether the library is illuminated at night.",
+            "examples": [
+              true
+            ],
+            "title": "Is Lit"
+          },
+          "website": {
+            "default": "",
+            "description": "External website link.",
+            "examples": [
+              "https://littlefreelibrary.org/charter/12345"
+            ],
+            "maxLength": 500,
+            "title": "Website",
+            "type": "string"
+          },
+          "contact": {
+            "default": "",
+            "description": "Contact information (email, phone, etc.).",
+            "examples": [
+              "info@example.org"
+            ],
+            "maxLength": 255,
+            "title": "Contact",
+            "type": "string"
+          },
+          "operator": {
+            "default": "",
+            "description": "Organisation that maintains the library.",
+            "examples": [
+              "City Library Association"
+            ],
+            "maxLength": 255,
+            "title": "Operator",
+            "type": "string"
+          },
+          "brand": {
+            "default": "",
+            "description": "Network or brand name.",
+            "examples": [
+              "Little Free Library"
+            ],
+            "maxLength": 255,
+            "title": "Brand",
             "type": "string"
           },
           "latitude": {
