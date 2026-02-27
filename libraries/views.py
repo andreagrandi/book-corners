@@ -175,11 +175,13 @@ def home(request: HttpRequest) -> HttpResponse:
     """Render the homepage with the first latest-entries page.
     Loads approved libraries for the initial full-page response."""
     page_obj = _get_latest_entries_page(page_number=1)
+    total_libraries = Library.objects.filter(status=Library.Status.APPROVED).count()
     return render(
         request,
         "home.html",
         {
             "latest_entries_page": page_obj,
+            "total_libraries": total_libraries,
         },
     )
 
@@ -269,11 +271,14 @@ def map_libraries_geojson(request: HttpRequest) -> JsonResponse:
             "lng": round(resolved_center[1], 6),
         }
 
+    total_count = Library.objects.filter(status=Library.Status.APPROVED).count()
+
     payload: dict[str, object] = {
         "type": "FeatureCollection",
         "features": features,
         "meta": {
             "count": len(features),
+            "total_count": total_count,
             "near_query": near_query,
             "location_resolution_failed": location_resolution_failed,
             "center": center_payload,

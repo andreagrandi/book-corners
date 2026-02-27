@@ -326,17 +326,22 @@
       function applySummaryFromPayload(payload) {
         const meta = payload.meta && typeof payload.meta === "object" ? payload.meta : {};
         const count = Number.isFinite(meta.count) ? Number(meta.count) : 0;
+        const total = Number.isFinite(meta.total_count) ? Number(meta.total_count) : 0;
         const nearQuery = typeof meta.near_query === "string" ? meta.near_query : "";
         const geocodingFailed = Boolean(meta.location_resolution_failed);
 
+        const countText = count === total
+          ? `Showing ${total} libraries`
+          : `Showing ${count} of ${total} libraries`;
+
         if (geocodingFailed && nearQuery) {
           setSummary(
-            `Showing ${count} libraries. Could not resolve "${nearQuery}", so keyword matching was used instead.`
+            `${countText}. Could not resolve "${nearQuery}", so keyword matching was used instead.`
           );
           return;
         }
 
-        setSummary(`Showing ${count} libraries on the map.`);
+        setSummary(`${countText} on the map.`);
       }
 
       function applyMapViewFromPayload(payload, allowRecenter) {
