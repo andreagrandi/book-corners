@@ -41,6 +41,14 @@
           <p><span class="font-semibold">City:</span> {{ library.city }}</p>
           <p><span class="font-semibold">Country:</span> {{ library.country }}</p>
           {% if library.postal_code %}<p><span class="font-semibold">Postal code:</span> {{ library.postal_code }}</p>{% endif %}
+          {% if library.wheelchair_accessible %}<p><span class="font-semibold">Wheelchair accessible:</span> {{ library.get_wheelchair_accessible_display }}</p>{% endif %}
+          {% if library.capacity %}<p><span class="font-semibold">Capacity:</span> {{ library.capacity }} books</p>{% endif %}
+          {% if library.is_indoor is not None %}<p><span class="font-semibold">Indoor:</span> {{ library.is_indoor|yesno:"Yes,No" }}</p>{% endif %}
+          {% if library.is_lit is not None %}<p><span class="font-semibold">Lit at night:</span> {{ library.is_lit|yesno:"Yes,No" }}</p>{% endif %}
+          {% if library.website %}<p><span class="font-semibold">Website:</span> <a href="{{ library.website }}" target="_blank" rel="noopener noreferrer" class="link link-primary">{{ library.website|truncatechars:50 }}</a></p>{% endif %}
+          {% if library.contact %}<p><span class="font-semibold">Contact:</span> {{ library.contact }}</p>{% endif %}
+          {% if library.operator %}<p><span class="font-semibold">Operator:</span> {{ library.operator }}</p>{% endif %}
+          {% if library.brand %}<p><span class="font-semibold">Brand:</span> {{ library.brand }}</p>{% endif %}
           <p><span class="font-semibold">Submitted by:</span> {{ library.created_by.username }}</p>
         </div>
 

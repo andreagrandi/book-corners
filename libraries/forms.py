@@ -83,6 +83,14 @@ class LibrarySubmissionForm(forms.ModelForm):
             "city",
             "country",
             "postal_code",
+            "wheelchair_accessible",
+            "capacity",
+            "is_indoor",
+            "is_lit",
+            "website",
+            "contact",
+            "operator",
+            "brand",
         )
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -98,6 +106,27 @@ class LibrarySubmissionForm(forms.ModelForm):
         self.fields["city"].widget.attrs["class"] = "input w-full"
         self.fields["country"].widget.attrs["class"] = "w-full"
         self.fields["postal_code"].widget.attrs["class"] = "input w-full"
+        self.fields["wheelchair_accessible"].widget.attrs["class"] = "select w-full"
+        self.fields["capacity"].widget.attrs.update({
+            "class": "input w-full",
+            "placeholder": "Approximate book capacity",
+        })
+        self.fields["website"].widget.attrs.update({
+            "class": "input w-full",
+            "placeholder": "https://...",
+        })
+        self.fields["contact"].widget.attrs.update({
+            "class": "input w-full",
+            "placeholder": "Email, phone, etc.",
+        })
+        self.fields["operator"].widget.attrs.update({
+            "class": "input w-full",
+            "placeholder": "Organisation managing this library",
+        })
+        self.fields["brand"].widget.attrs.update({
+            "class": "input w-full",
+            "placeholder": "e.g. Little Free Library",
+        })
 
     def clean_latitude(self) -> float:
         """Validate latitude input.

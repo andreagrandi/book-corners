@@ -164,6 +164,15 @@ class TestLibraryModel:
             city="Florence",
             country="IT",
             postal_code="50123",
+            wheelchair_accessible=Library.WheelchairAccess.YES,
+            capacity=30,
+            is_indoor=False,
+            is_lit=True,
+            website="https://example.org/nook",
+            contact="info@example.org",
+            source="OpenStreetMap",
+            operator="City Library Association",
+            brand="Little Free Library",
             created_by=user,
         )
 
@@ -173,6 +182,52 @@ class TestLibraryModel:
         assert library.slug == "florence-via-rosina-15-the-book-nook"
         assert library.created_at is not None
         assert library.updated_at is not None
+        assert library.wheelchair_accessible == "yes"
+        assert library.capacity == 30
+        assert library.is_indoor is False
+        assert library.is_lit is True
+        assert library.website == "https://example.org/nook"
+        assert library.contact == "info@example.org"
+        assert library.source == "OpenStreetMap"
+        assert library.operator == "City Library Association"
+        assert library.brand == "Little Free Library"
+
+    def test_wheelchair_accessible_choices_validation(self, user):
+        """Verify wheelchair_accessible accepts only valid choices.
+        Rejects arbitrary strings that fall outside the defined enum."""
+        library = Library(
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            wheelchair_accessible="invalid",
+            created_by=user,
+        )
+        from django.core.exceptions import ValidationError
+
+        with pytest.raises(ValidationError):
+            library.full_clean()
+
+    def test_new_metadata_fields_default_to_blank_or_null(self, user):
+        """Verify new metadata fields default correctly.
+        Ensures existing rows are unaffected by the migration."""
+        library = Library.objects.create(
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            created_by=user,
+        )
+
+        assert library.wheelchair_accessible == ""
+        assert library.capacity is None
+        assert library.is_indoor is None
+        assert library.is_lit is None
+        assert library.website == ""
+        assert library.contact == ""
+        assert library.source == ""
+        assert library.operator == ""
+        assert library.brand == ""
 
     def test_create_library_without_name(self, user):
         """Verify create library without name.

@@ -88,7 +88,10 @@ class TestSubmitLibraryEndpoint:
         body = response.json()
         expected_fields = {
             "id", "slug", "name", "description", "photo_url", "thumbnail_url",
-            "lat", "lng", "address", "city", "country", "postal_code", "created_at",
+            "lat", "lng", "address", "city", "country", "postal_code",
+            "wheelchair_accessible", "capacity", "is_indoor", "is_lit",
+            "website", "contact", "source", "operator", "brand",
+            "created_at",
         }
         assert set(body.keys()) == expected_fields
 

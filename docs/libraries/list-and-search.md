@@ -99,6 +99,15 @@ Find libraries within 5 km of a point:
       "city": "Berlin",
       "country": "DE",
       "postal_code": "10117",
+      "wheelchair_accessible": "yes",
+      "capacity": 50,
+      "is_indoor": false,
+      "is_lit": true,
+      "website": "",
+      "contact": "",
+      "source": "",
+      "operator": "",
+      "brand": "Little Free Library",
       "created_at": "2025-06-15T14:30:00Z"
     }
   ],
@@ -167,6 +176,15 @@ Return the most recently approved libraries as a flat list (no pagination).
       "city": "Berlin",
       "country": "DE",
       "postal_code": "10117",
+      "wheelchair_accessible": "yes",
+      "capacity": 50,
+      "is_indoor": false,
+      "is_lit": true,
+      "website": "",
+      "contact": "",
+      "source": "",
+      "operator": "",
+      "brand": "Little Free Library",
       "created_at": "2025-06-15T14:30:00Z"
     }
   ]

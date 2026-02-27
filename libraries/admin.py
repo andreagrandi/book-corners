@@ -28,7 +28,18 @@ class LibraryAdmin(admin.GISModelAdmin):
     """Admin configuration for Library model."""
 
     list_display = ["name", "city", "country", "status", "created_at"]
-    list_filter = ["status", "city", "country"]
+    list_filter = [
+        "status",
+        "city",
+        "country",
+        "wheelchair_accessible",
+        "capacity",
+        "is_indoor",
+        "is_lit",
+        "source",
+        "operator",
+        "brand",
+    ]
     search_fields = ["name", "address", "city"]
     readonly_fields = ["slug", "created_at", "updated_at"]
     actions = ["approve_libraries", "reject_libraries"]

@@ -18,6 +18,11 @@ class Library(models.Model):
         APPROVED = "approved", "Approved"
         REJECTED = "rejected", "Rejected"
 
+    class WheelchairAccess(models.TextChoices):
+        YES = "yes", "Yes"
+        NO = "no", "No"
+        LIMITED = "limited", "Limited"
+
     name = models.CharField(max_length=255, blank=True, default="")
     slug = models.SlugField(max_length=280, unique=True, editable=False)
     description = models.TextField(blank=True, default="")
@@ -32,6 +37,20 @@ class Library(models.Model):
     city = models.CharField(max_length=100)
     country = models.CharField(max_length=2)
     postal_code = models.CharField(max_length=20, blank=True, default="")
+    wheelchair_accessible = models.CharField(
+        max_length=10,
+        choices=WheelchairAccess.choices,
+        blank=True,
+        default="",
+    )
+    capacity = models.PositiveIntegerField(null=True, blank=True)
+    is_indoor = models.BooleanField(null=True, blank=True)
+    is_lit = models.BooleanField(null=True, blank=True)
+    website = models.URLField(max_length=500, blank=True, default="")
+    contact = models.CharField(max_length=255, blank=True, default="")
+    source = models.CharField(max_length=100, blank=True, default="")
+    operator = models.CharField(max_length=255, blank=True, default="")
+    brand = models.CharField(max_length=255, blank=True, default="")
     status = models.CharField(
         max_length=10,
         choices=Status.choices,

@@ -73,6 +73,15 @@ If you're the owner of a pending library, include your `Authorization: Bearer` h
   "city": "Berlin",
   "country": "DE",
   "postal_code": "10117",
+  "wheelchair_accessible": "yes",
+  "capacity": 50,
+  "is_indoor": false,
+  "is_lit": true,
+  "website": "https://littlefreelibrary.org/charter/12345",
+  "contact": "info@example.org",
+  "source": "OpenStreetMap",
+  "operator": "City Library Association",
+  "brand": "Little Free Library",
   "created_at": "2025-06-15T14:30:00Z"
 }
 ```
