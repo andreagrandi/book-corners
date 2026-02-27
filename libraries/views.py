@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from libraries.forms import LibraryPhotoSubmissionForm, LibrarySearchForm, LibrarySubmissionForm, ReportSubmissionForm
+from libraries.notifications import notify_new_library, notify_new_photo, notify_new_report
 from libraries.geolocation import (
     extract_gps_coordinates,
     forward_geocode_place,
@@ -369,7 +370,8 @@ def submit_library_report(request: HttpRequest, slug: str) -> HttpResponse:
     )
 
     if report_form.is_valid():
-        report_form.save()
+        report = report_form.save()
+        notify_new_report(report)
         return render(
             request,
             "libraries/_report_form.html",
@@ -409,7 +411,8 @@ def submit_library_photo(request: HttpRequest, slug: str) -> HttpResponse:
     )
 
     if photo_form.is_valid():
-        photo_form.save()
+        photo = photo_form.save()
+        notify_new_photo(photo)
         return render(
             request,
             "libraries/_photo_submission_form.html",
@@ -458,7 +461,8 @@ def submit_library(request: HttpRequest) -> HttpResponse:
     )
 
     if request.method == "POST" and form.is_valid():
-        form.save()
+        library = form.save()
+        notify_new_library(library)
         return redirect("submit_library_confirmation")
 
     return render(

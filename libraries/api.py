@@ -26,6 +26,7 @@ from libraries.api_schemas import (
 from libraries.api_security import is_api_rate_limited
 from libraries.forms import _validate_uploaded_photo
 from libraries.models import Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
+from libraries.notifications import notify_new_library, notify_new_photo, notify_new_report
 from libraries.search import run_library_search
 
 library_router = Router(tags=["libraries"])
@@ -157,6 +158,7 @@ def submit_library(request, payload: Form[LibrarySubmitIn], photo: UploadedFile 
         created_by=request.user,
     )
     library.save()
+    notify_new_library(library)
     return 201, library
 
 
@@ -206,6 +208,7 @@ def submit_library_report(
         photo=photo or "",
         status=Report.Status.OPEN,
     )
+    notify_new_report(report)
     return 201, report
 
 
@@ -265,4 +268,5 @@ def submit_library_photo(
         status=LibraryPhoto.Status.PENDING,
     )
     library_photo.save()
+    notify_new_photo(library_photo)
     return 201, library_photo

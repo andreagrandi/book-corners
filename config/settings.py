@@ -277,6 +277,20 @@ except ValueError:
 # Sentry error tracking
 # Enabled automatically when SENTRY_DSN is set. No-op otherwise.
 
+# Email notifications (Resend)
+ADMIN_NOTIFICATION_EMAIL = os.environ.get("ADMIN_NOTIFICATION_EMAIL", "")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Book Corners <noreply@bookcorners.org>")
+SITE_URL = os.environ.get("SITE_URL", "http://localhost:8000")
+
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+if RESEND_API_KEY:
+    INSTALLED_APPS += ["anymail"]  # noqa: F811
+    ANYMAIL = {"RESEND_API_KEY": RESEND_API_KEY}
+    EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+
 SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
 
 if SENTRY_DSN:
