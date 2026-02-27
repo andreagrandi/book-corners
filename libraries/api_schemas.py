@@ -100,6 +100,7 @@ class LibrarySearchParams(Schema):
     lat: float | None = Field(default=None, ge=-90, le=90, description="Latitude for proximity search (requires lng and radius_km).", examples=[52.5200])
     lng: float | None = Field(default=None, ge=-180, le=180, description="Longitude for proximity search (requires lat and radius_km).", examples=[13.4050])
     radius_km: int | None = Field(default=None, ge=1, le=100, description="Search radius in kilometres (requires lat and lng).", examples=[5])
+    has_photo: bool | None = Field(default=None, description="Filter by photo presence: true for libraries with a photo, false for those without.")
     page: int = Field(default=1, ge=1, le=1000, description="Page number to retrieve (1-indexed).", examples=[1])
     page_size: int = Field(default=20, ge=1, le=50, description="Number of items per page.", examples=[20])
 
@@ -144,3 +145,20 @@ class ReportOut(Schema):
     id: int = Field(description="Unique report identifier.", examples=[7])
     reason: str = Field(description="Reason category of the report.", examples=["damaged"])
     created_at: datetime = Field(description="Timestamp when the report was created (UTC).", examples=["2025-06-15T14:30:00Z"])
+
+
+class LibraryPhotoIn(Schema):
+    """Input schema for submitting a community photo to a library.
+    Captures an optional caption alongside the uploaded image file."""
+
+    caption: str = Field(default="", max_length=200, description="Optional caption for the photo.", examples=["A sunny day at the library."])
+
+
+class LibraryPhotoOut(Schema):
+    """Serialized representation of a submitted community photo.
+    Returns confirmation data after successful photo submission."""
+
+    id: int = Field(description="Unique photo identifier.", examples=[12])
+    caption: str = Field(description="Caption for the photo.", examples=["A sunny day at the library."])
+    status: str = Field(description="Moderation status of the photo.", examples=["pending"])
+    created_at: datetime = Field(description="Timestamp when the photo was submitted (UTC).", examples=["2025-06-15T14:30:00Z"])

@@ -12,7 +12,7 @@ from PIL import ExifTags, Image
 from PIL.TiffImagePlugin import IFDRational
 
 from libraries.geolocation import extract_gps_coordinates
-from libraries.models import Library, Report
+from libraries.models import Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
 
 User = get_user_model()
 
@@ -757,6 +757,36 @@ class TestHomepageLatestEntries:
         assert "Pending Library" not in content
         assert "id=\"latest-entries-grid\"" in content
         assert f"href=\"{detail_url}\"" in content
+
+    def test_latest_entries_excludes_libraries_without_photo(self, client, user):
+        """Verify approved libraries without a photo are excluded from latest entries.
+        Confirms only libraries with real images appear on the homepage."""
+        Library.objects.create(
+            name="Has Photo",
+            photo="libraries/photos/2026/02/real.jpg",
+            location=Point(x=2.3522, y=48.8566, srid=4326),
+            address="Rue de Rivoli 5",
+            city="Paris",
+            country="FR",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        Library.objects.create(
+            name="No Photo",
+            location=Point(x=2.3400, y=48.8500, srid=4326),
+            address="Rue Oberkampf 3",
+            city="Paris",
+            country="FR",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.get(reverse("latest_entries"))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Has Photo" in content
+        assert "No Photo" not in content
 
     def test_latest_entries_partial_renders_load_more_when_next_page_exists(self, client, user):
         """Verify latest entries partial renders load more when next page exists.
@@ -1971,3 +2001,454 @@ class TestSubmitLibraryView:
         assert "reviewed and approved as soon as possible" in content
         assert f"href=\"{reverse('home')}\"" in content
         assert "Continue" in content
+
+
+@pytest.fixture
+def approved_library(user):
+    """Create an approved library fixture for photo submission tests.
+    Provides an approved library that accepts community photo uploads."""
+    return Library.objects.create(
+        name="Approved Library",
+        photo="libraries/photos/2026/02/test.jpg",
+        location=Point(x=11.2558, y=43.7696, srid=4326),
+        address="Via Rosina 15",
+        city="Florence",
+        country="IT",
+        status=Library.Status.APPROVED,
+        created_by=user,
+    )
+
+
+@pytest.fixture
+def admin_library_photo(admin_library, admin_user):
+    """Create a pending library photo fixture for moderation tests.
+    Provides a photo attached to the admin library for admin action tests."""
+    return LibraryPhoto.objects.create(
+        library=admin_library,
+        created_by=admin_user,
+        photo="libraries/user_photos/2026/02/community.jpg",
+        caption="A nice photo",
+    )
+
+
+@pytest.mark.django_db
+class TestLibraryPhotoModel:
+    """Tests for the LibraryPhoto model."""
+
+    def test_create_library_photo(self, approved_library, user):
+        """Verify creating a library photo persists all fields.
+        Confirms the model stores photo, caption, and relationships correctly."""
+        library_photo = LibraryPhoto.objects.create(
+            library=approved_library,
+            created_by=user,
+            photo="libraries/user_photos/2026/02/test.jpg",
+            caption="Great library",
+        )
+
+        assert library_photo.pk is not None
+        assert library_photo.library == approved_library
+        assert library_photo.created_by == user
+        assert library_photo.caption == "Great library"
+        assert library_photo.created_at is not None
+
+    def test_default_status_is_pending(self, approved_library, user):
+        """Verify new library photos default to pending status.
+        Ensures all community photos go through moderation first."""
+        library_photo = LibraryPhoto.objects.create(
+            library=approved_library,
+            created_by=user,
+            photo="libraries/user_photos/2026/02/test.jpg",
+        )
+
+        assert library_photo.status == LibraryPhoto.Status.PENDING
+
+    def test_str_with_caption(self, approved_library, user):
+        """Verify string representation uses caption when available.
+        Keeps admin and log output descriptive for captioned photos."""
+        library_photo = LibraryPhoto.objects.create(
+            library=approved_library,
+            created_by=user,
+            photo="libraries/user_photos/2026/02/test.jpg",
+            caption="Summer view",
+        )
+
+        assert str(library_photo) == f"Summer view - {approved_library}"
+
+    def test_str_without_caption(self, approved_library, user):
+        """Verify string representation falls back to generic label.
+        Keeps admin output clear for photos without captions."""
+        library_photo = LibraryPhoto.objects.create(
+            library=approved_library,
+            created_by=user,
+            photo="libraries/user_photos/2026/02/test.jpg",
+        )
+
+        assert str(library_photo) == f"Photo - {approved_library}"
+
+    def test_card_photo_url_falls_back_to_main_photo(self, approved_library, user):
+        """Verify card photo URL falls back to main photo without thumbnail.
+        Preserves rendering compatibility for photos without thumbnails."""
+        library_photo = LibraryPhoto.objects.create(
+            library=approved_library,
+            created_by=user,
+            photo="libraries/user_photos/2026/02/test.jpg",
+        )
+
+        assert library_photo.photo_thumbnail == ""
+        assert library_photo.card_photo_url.endswith("/libraries/user_photos/2026/02/test.jpg")
+
+    def test_card_photo_url_returns_empty_string_without_photo(self, approved_library, user):
+        """Verify card photo URL returns empty string when no photo is set.
+        Prevents template rendering errors for edge-case records."""
+        library_photo = LibraryPhoto(
+            library=approved_library,
+            created_by=user,
+        )
+
+        assert library_photo.card_photo_url == ""
+
+
+@pytest.mark.django_db
+class TestLibraryPhotoAdmin:
+    """Tests for LibraryPhoto admin actions."""
+
+    def test_approve_photos_action(self, admin_client, admin_library_photo):
+        """Verify approve photos action updates status to approved.
+        Confirms the admin moderation workflow for community photos."""
+        url = reverse("admin:libraries_libraryphoto_changelist")
+        response = admin_client.post(url, {
+            "action": "approve_photos",
+            "_selected_action": [admin_library_photo.pk],
+        })
+
+        assert response.status_code == 302
+        admin_library_photo.refresh_from_db()
+        assert admin_library_photo.status == LibraryPhoto.Status.APPROVED
+
+    def test_reject_photos_action(self, admin_client, admin_library_photo):
+        """Verify reject photos action updates status to rejected.
+        Confirms rejected photos are removed from public display."""
+        url = reverse("admin:libraries_libraryphoto_changelist")
+        response = admin_client.post(url, {
+            "action": "reject_photos",
+            "_selected_action": [admin_library_photo.pk],
+        })
+
+        assert response.status_code == 302
+        admin_library_photo.refresh_from_db()
+        assert admin_library_photo.status == LibraryPhoto.Status.REJECTED
+
+    def test_set_as_primary_photo_action(self, admin_client, admin_library_photo):
+        """Verify set as primary copies photo to the library record.
+        Confirms admin can promote a community photo to the primary slot."""
+        url = reverse("admin:libraries_libraryphoto_changelist")
+        response = admin_client.post(url, {
+            "action": "set_as_primary_photo",
+            "_selected_action": [admin_library_photo.pk],
+        })
+
+        assert response.status_code == 302
+        admin_library_photo.refresh_from_db()
+        assert admin_library_photo.status == LibraryPhoto.Status.APPROVED
+        library = admin_library_photo.library
+        library.refresh_from_db()
+        assert library.photo == admin_library_photo.photo
+
+    def test_set_as_primary_rejects_multiple_selection(self, admin_client, admin_library_photo, admin_user, admin_library):
+        """Verify set as primary rejects when multiple photos are selected.
+        Enforces single-selection constraint for primary photo promotion."""
+        second_photo = LibraryPhoto.objects.create(
+            library=admin_library,
+            created_by=admin_user,
+            photo="libraries/user_photos/2026/02/second.jpg",
+        )
+        url = reverse("admin:libraries_libraryphoto_changelist")
+        response = admin_client.post(url, {
+            "action": "set_as_primary_photo",
+            "_selected_action": [admin_library_photo.pk, second_photo.pk],
+        })
+
+        assert response.status_code == 302
+        admin_library.refresh_from_db()
+        assert admin_library.photo == "libraries/photos/2026/02/test.jpg"
+
+
+@pytest.mark.django_db
+class TestLibraryPhotoSubmission:
+    """Tests for community photo submission via web form."""
+
+    def test_submit_photo_happy_path(self, client, user, approved_library):
+        """Verify authenticated users can submit a photo to an approved library.
+        Confirms the full submission flow creates a pending photo record."""
+        client.force_login(user)
+        photo = _build_uploaded_photo(file_name="community.jpg")
+        url = reverse("submit_library_photo", kwargs={"slug": approved_library.slug})
+
+        response = client.post(url, {"photo": photo, "caption": "Nice library"})
+
+        assert response.status_code == 200
+        assert LibraryPhoto.objects.filter(
+            library=approved_library,
+            created_by=user,
+            caption="Nice library",
+            status=LibraryPhoto.Status.PENDING,
+        ).exists()
+
+    def test_submit_photo_requires_authentication(self, client, approved_library):
+        """Verify unauthenticated users are redirected to login.
+        Confirms the login_required decorator protects the endpoint."""
+        photo = _build_uploaded_photo(file_name="community.jpg")
+        url = reverse("submit_library_photo", kwargs={"slug": approved_library.slug})
+
+        response = client.post(url, {"photo": photo})
+
+        assert response.status_code == 302
+        assert "/login/" in response.url
+
+    def test_submit_photo_only_for_approved_libraries(self, client, user):
+        """Verify photo submission is rejected for non-approved libraries.
+        Confirms pending libraries do not accept community photos."""
+        pending_library = Library.objects.create(
+            name="Pending Library",
+            photo="libraries/photos/2026/02/test.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Roma 1",
+            city="Florence",
+            country="IT",
+            status=Library.Status.PENDING,
+            created_by=user,
+        )
+        client.force_login(user)
+        photo = _build_uploaded_photo(file_name="community.jpg")
+        url = reverse("submit_library_photo", kwargs={"slug": pending_library.slug})
+
+        response = client.post(url, {"photo": photo})
+
+        assert response.status_code == 404
+
+    def test_submit_photo_enforces_per_user_limit(self, client, user, approved_library):
+        """Verify per-user photo limit is enforced per library.
+        Confirms users cannot exceed the maximum photo submission count."""
+        client.force_login(user)
+        for i in range(MAX_LIBRARY_PHOTOS_PER_USER):
+            LibraryPhoto.objects.create(
+                library=approved_library,
+                created_by=user,
+                photo=f"libraries/user_photos/2026/02/existing-{i}.jpg",
+            )
+
+        photo = _build_uploaded_photo(file_name="one-too-many.jpg")
+        url = reverse("submit_library_photo", kwargs={"slug": approved_library.slug})
+        response = client.post(url, {"photo": photo})
+
+        assert response.status_code == 422
+        content = response.content.decode()
+        assert f"at most {MAX_LIBRARY_PHOTOS_PER_USER}" in content
+
+    def test_submit_photo_method_not_allowed_for_get(self, client, user, approved_library):
+        """Verify GET requests return 405 for the photo submission endpoint.
+        Confirms the view only accepts POST requests."""
+        client.force_login(user)
+        url = reverse("submit_library_photo", kwargs={"slug": approved_library.slug})
+
+        response = client.get(url)
+
+        assert response.status_code == 405
+
+    def test_gallery_shows_approved_photos(self, client, user, approved_library):
+        """Verify approved photos appear in the library detail gallery.
+        Confirms the gallery renders approved community photos."""
+        LibraryPhoto.objects.create(
+            library=approved_library,
+            created_by=user,
+            photo="libraries/user_photos/2026/02/visible.jpg",
+            caption="Visible photo",
+            status=LibraryPhoto.Status.APPROVED,
+        )
+
+        url = reverse("library_detail", kwargs={"slug": approved_library.slug})
+        response = client.get(url)
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Community photos" in content
+        assert "Visible photo" in content
+
+    def test_gallery_hides_pending_photos(self, client, user, approved_library):
+        """Verify pending photos do not appear in the library detail gallery.
+        Confirms only approved photos are publicly visible."""
+        LibraryPhoto.objects.create(
+            library=approved_library,
+            created_by=user,
+            photo="libraries/user_photos/2026/02/hidden.jpg",
+            caption="Hidden photo",
+            status=LibraryPhoto.Status.PENDING,
+        )
+
+        url = reverse("library_detail", kwargs={"slug": approved_library.slug})
+        response = client.get(url)
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Hidden photo" not in content
+
+    def test_add_photo_button_visible_for_authenticated_users(self, client, user, approved_library):
+        """Verify the add photo button is visible for authenticated users.
+        Confirms the UI entry point for photo submission appears when logged in."""
+        client.force_login(user)
+        url = reverse("library_detail", kwargs={"slug": approved_library.slug})
+
+        response = client.get(url)
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Add a photo" in content
+
+    def test_add_photo_button_hidden_for_anonymous_users(self, client, user, approved_library):
+        """Verify the add photo button is hidden for anonymous users.
+        Confirms only logged-in users see the photo submission entry point."""
+        url = reverse("library_detail", kwargs={"slug": approved_library.slug})
+
+        response = client.get(url)
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Add a photo" not in content
+
+    def test_rejected_photos_do_not_count_toward_limit(self, client, user, approved_library):
+        """Verify rejected photos are excluded from the per-user limit.
+        Confirms users can resubmit after their photos are rejected."""
+        client.force_login(user)
+        for i in range(MAX_LIBRARY_PHOTOS_PER_USER):
+            LibraryPhoto.objects.create(
+                library=approved_library,
+                created_by=user,
+                photo=f"libraries/user_photos/2026/02/rejected-{i}.jpg",
+                status=LibraryPhoto.Status.REJECTED,
+            )
+
+        photo = _build_uploaded_photo(file_name="fresh-submission.jpg")
+        url = reverse("submit_library_photo", kwargs={"slug": approved_library.slug})
+        response = client.post(url, {"photo": photo})
+
+        assert response.status_code == 200
+        assert LibraryPhoto.objects.filter(
+            library=approved_library,
+            created_by=user,
+            status=LibraryPhoto.Status.PENDING,
+        ).exists()
+
+
+@pytest.mark.django_db
+class TestLibraryPhotoOptional:
+    """Tests for the optional Library.photo field."""
+
+    def test_create_library_without_photo(self, user):
+        """Verify a library can be created without a photo.
+        Confirms imported libraries with no image are valid."""
+        library = Library.objects.create(
+            name="No Photo Library",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            created_by=user,
+        )
+
+        assert library.pk is not None
+        assert library.photo == ""
+        assert "library-placeholder.png" in library.card_photo_url
+
+    def test_detail_page_renders_placeholder_without_photo(self, client, user):
+        """Verify library detail page shows a placeholder when library has no photo.
+        Confirms the UI layout stays consistent for imported libraries."""
+        library = Library.objects.create(
+            name="Photoless Shelf",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.get(reverse("library_detail", kwargs={"slug": library.slug}))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Photoless Shelf" in content
+        assert "library-placeholder.png" in content
+
+
+@pytest.mark.django_db
+class TestLibraryPhotoInline:
+    """Tests for the LibraryPhoto inline on the Library admin page."""
+
+    def test_inline_visible_on_library_change_page(self, admin_client, admin_library):
+        """Verify community photos inline appears on the library change page.
+        Confirms admins can see and manage photos from the library edit form."""
+        url = reverse("admin:libraries_library_change", args=[admin_library.pk])
+
+        response = admin_client.get(url)
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "library_photos" in content or "user_photos" in content
+
+
+@pytest.mark.django_db
+class TestApprovePhotosAutoPromotion:
+    """Tests for auto-promotion of approved photos to library primary."""
+
+    def test_approve_promotes_to_primary_when_library_has_no_photo(self, admin_client, admin_user):
+        """Verify approving a photo auto-promotes it when library lacks a primary.
+        Confirms libraries without photos gain a primary on first approval."""
+        library = Library.objects.create(
+            name="No Photo Library",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Roma 10",
+            city="Florence",
+            country="IT",
+            created_by=admin_user,
+        )
+        community_photo = LibraryPhoto.objects.create(
+            library=library,
+            created_by=admin_user,
+            photo="libraries/user_photos/2026/02/promote-me.jpg",
+            photo_thumbnail="libraries/user_photos/thumbnails/2026/02/promote-me.jpg",
+        )
+
+        url = reverse("admin:libraries_libraryphoto_changelist")
+        admin_client.post(url, {
+            "action": "approve_photos",
+            "_selected_action": [community_photo.pk],
+        })
+
+        community_photo.refresh_from_db()
+        assert community_photo.status == LibraryPhoto.Status.APPROVED
+
+        library.refresh_from_db()
+        assert library.photo == "libraries/user_photos/2026/02/promote-me.jpg"
+        assert library.photo_thumbnail == "libraries/user_photos/thumbnails/2026/02/promote-me.jpg"
+
+    def test_approve_does_not_overwrite_existing_primary_photo(self, admin_client, admin_library, admin_user):
+        """Verify approving a photo does not overwrite an existing primary.
+        Confirms libraries with photos keep their original primary image."""
+        original_photo = admin_library.photo
+        community_photo = LibraryPhoto.objects.create(
+            library=admin_library,
+            created_by=admin_user,
+            photo="libraries/user_photos/2026/02/community-new.jpg",
+        )
+
+        url = reverse("admin:libraries_libraryphoto_changelist")
+        admin_client.post(url, {
+            "action": "approve_photos",
+            "_selected_action": [community_photo.pk],
+        })
+
+        community_photo.refresh_from_db()
+        assert community_photo.status == LibraryPhoto.Status.APPROVED
+
+        admin_library.refresh_from_db()
+        assert admin_library.photo == original_photo

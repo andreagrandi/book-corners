@@ -16,6 +16,8 @@ from libraries.api_schemas import (
     LatestLibrariesOut,
     LibraryListOut,
     LibraryOut,
+    LibraryPhotoIn,
+    LibraryPhotoOut,
     LibrarySearchParams,
     LibrarySubmitIn,
     ReportIn,
@@ -23,7 +25,7 @@ from libraries.api_schemas import (
 )
 from libraries.api_security import is_api_rate_limited
 from libraries.forms import _validate_uploaded_photo
-from libraries.models import Library, Report
+from libraries.models import Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
 from libraries.search import run_library_search
 
 library_router = Router(tags=["libraries"])
@@ -52,6 +54,7 @@ def list_libraries(request, filters: Query[LibrarySearchParams]):
         lat=filters.lat,
         lng=filters.lng,
         radius_km=filters.radius_km,
+        has_photo=filters.has_photo,
     )
     items, pagination = paginate_queryset(
         queryset=queryset, page=filters.page, page_size=filters.page_size,
@@ -60,7 +63,11 @@ def list_libraries(request, filters: Query[LibrarySearchParams]):
 
 
 @library_router.get("/latest", response={200: LatestLibrariesOut, 429: ErrorOut}, auth=None, summary="Get latest libraries")
-def latest_libraries(request, limit: int = Query(default=10, ge=1, le=50)):
+def latest_libraries(
+    request,
+    limit: int = Query(default=10, ge=1, le=50),
+    has_photo: bool | None = Query(default=None),
+):
     """Return the most recent approved libraries as a flat list.
     Provides a lightweight endpoint for newest-first results without pagination."""
     limited, retry_after = is_api_rate_limited(
@@ -74,7 +81,12 @@ def latest_libraries(request, limit: int = Query(default=10, ge=1, le=50)):
             details={"retry_after": retry_after},
         )
 
-    queryset = Library.objects.filter(status=Library.Status.APPROVED).order_by("-created_at")[:limit]
+    queryset = Library.objects.filter(status=Library.Status.APPROVED).order_by("-created_at")
+    if has_photo is True:
+        queryset = queryset.exclude(photo="")
+    elif has_photo is False:
+        queryset = queryset.filter(photo="")
+    queryset = queryset[:limit]
     return 200, {"items": list(queryset)}
 
 
@@ -195,3 +207,62 @@ def submit_library_report(
         status=Report.Status.OPEN,
     )
     return 201, report
+
+
+@library_router.post(
+    "/{slug}/photo",
+    response={201: LibraryPhotoOut, 400: ErrorOut, 404: ErrorOut, 413: ErrorOut, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="Submit a community photo for a library",
+)
+def submit_library_photo(
+    request,
+    slug: str,
+    payload: Form[LibraryPhotoIn],
+    photo: UploadedFile = File(...),
+):
+    """Submit a community photo for an approved library.
+    Validates the photo and enforces per-user limits before persisting."""
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-library-photo",
+        max_requests=settings.API_RATE_LIMIT_WRITE_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    library = get_object_or_404(Library, slug=slug, status=Library.Status.APPROVED)
+
+    try:
+        _validate_uploaded_photo(
+            uploaded_photo=photo,
+            max_size_bytes=settings.MAX_LIBRARY_PHOTO_SUBMISSION_BYTES,
+        )
+    except ValidationError as exc:
+        message = exc.message if hasattr(exc, "message") else str(exc)
+        status_code = 413 if ("MB or smaller" in str(message) or "at most" in str(message)) else 400
+        return status_code, ErrorOut(message=str(message))
+
+    existing_count = LibraryPhoto.objects.filter(
+        library=library,
+        created_by=request.user,
+    ).exclude(
+        status=LibraryPhoto.Status.REJECTED,
+    ).count()
+    if existing_count >= MAX_LIBRARY_PHOTOS_PER_USER:
+        return 400, ErrorOut(
+            message=f"You can submit at most {MAX_LIBRARY_PHOTOS_PER_USER} photos per library."
+        )
+
+    library_photo = LibraryPhoto(
+        library=library,
+        created_by=request.user,
+        photo=photo,
+        caption=payload.caption,
+        status=LibraryPhoto.Status.PENDING,
+    )
+    library_photo.save()
+    return 201, library_photo

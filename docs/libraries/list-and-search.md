@@ -16,6 +16,7 @@ Return a paginated list of approved libraries with optional search filters.
 | `city` | string | — | Filter by city name (case-insensitive, max 100 chars) |
 | `country` | string | — | Filter by ISO 3166-1 alpha-2 country code (max 2 chars) |
 | `postal_code` | string | — | Filter by postal / ZIP code (max 20 chars) |
+| `has_photo` | bool | — | Filter by photo presence: `true` for libraries with a photo, `false` for those without |
 | `lat` | float | — | Latitude for proximity search (-90 to 90, requires `lng` and `radius_km`) |
 | `lng` | float | — | Longitude for proximity search (-180 to 180, requires `lat` and `radius_km`) |
 | `radius_km` | int | — | Search radius in kilometres (1–100, requires `lat` and `lng`) |
@@ -131,6 +132,7 @@ Return the most recently approved libraries as a flat list (no pagination).
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `limit` | int | `10` | Number of results (1–50) |
+| `has_photo` | bool | — | Filter by photo presence: `true` for libraries with a photo, `false` for those without |
 
 === "curl"
 

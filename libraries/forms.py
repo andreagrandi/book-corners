@@ -9,7 +9,7 @@ from django import forms
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
 
-from libraries.models import Library, Report
+from libraries.models import Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
 
 
 COUNTRY_CHOICES = [
@@ -262,3 +262,70 @@ class LibrarySearchForm(forms.Form):
         cleaned_data["radius_km"] = radius_km if isinstance(radius_km, int) else 10
 
         return cleaned_data
+
+
+class LibraryPhotoSubmissionForm(forms.ModelForm):
+    """Form for submitting a community photo to an existing library."""
+
+    class Meta:
+        model = LibraryPhoto
+        fields = ("photo", "caption")
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize photo submission dependencies and widget styles.
+        Captures related objects needed to persist photo ownership."""
+        self.created_by = kwargs.pop("created_by", None)
+        self.library = kwargs.pop("library", None)
+        super().__init__(*args, **kwargs)
+
+        self.fields["photo"].widget.attrs["class"] = "file-input w-full"
+        self.fields["caption"].widget.attrs.update({
+            "class": "input w-full",
+            "placeholder": "Optional caption for your photo",
+        })
+
+    def clean_photo(self) -> Any:
+        """Validate the community photo before saving the submission.
+        Enforces file-type and max-size rules for uploaded images."""
+        photo = self.cleaned_data.get("photo")
+        return _validate_uploaded_photo(
+            uploaded_photo=photo,
+            max_size_bytes=settings.MAX_LIBRARY_PHOTO_SUBMISSION_BYTES,
+        )
+
+    def clean(self) -> dict[str, Any]:
+        """Enforce per-user photo limit for a given library.
+        Prevents excessive submissions from a single contributor."""
+        cleaned_data = super().clean()
+
+        if self.created_by and self.library:
+            existing_count = LibraryPhoto.objects.filter(
+                library=self.library,
+                created_by=self.created_by,
+            ).exclude(
+                status=LibraryPhoto.Status.REJECTED,
+            ).count()
+            if existing_count >= MAX_LIBRARY_PHOTOS_PER_USER:
+                raise ValidationError(
+                    f"You can submit at most {MAX_LIBRARY_PHOTOS_PER_USER} photos per library."
+                )
+
+        return cleaned_data
+
+    def save(self, commit: bool = True) -> LibraryPhoto:
+        """Persist the photo bound to the authenticated user and library.
+        Ensures new photos always start in the pending moderation state."""
+        if self.created_by is None:
+            raise ValueError("created_by is required to save a photo submission")
+        if self.library is None:
+            raise ValueError("library is required to save a photo submission")
+
+        library_photo = super().save(commit=False)
+        library_photo.created_by = self.created_by
+        library_photo.library = self.library
+        library_photo.status = LibraryPhoto.Status.PENDING
+
+        if commit:
+            library_photo.save()
+
+        return library_photo
