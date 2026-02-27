@@ -13,6 +13,8 @@ from allauth.core.context import request_context
 from allauth.socialaccount.helpers import complete_social_login
 from allauth.socialaccount.models import SocialAccount, SocialLogin
 
+from users.adapters import _generate_username
+
 User = get_user_model()
 
 
@@ -545,3 +547,78 @@ class TestCallbackStateMismatch:
 
         assert response.status_code != 500
         assert response.status_code == 401
+
+
+@pytest.mark.django_db
+class TestUsernameGeneration:
+    """Verify custom username generation for social auth signup."""
+
+    def test_username_from_first_and_last_name(self):
+        """Combines first and last name with underscore separator.
+        This is the primary username format for social signups."""
+        result = _generate_username(["John", "Smith", "j@x.com", "", "user"])
+        assert result == "john_smith"
+
+    def test_username_from_first_name_only(self):
+        """Uses first name alone when last name is empty.
+        Handles profiles with only a given name."""
+        result = _generate_username(["John", "", "j@x.com", "", "user"])
+        assert result == "john"
+
+    def test_username_from_last_name_only(self):
+        """Uses last name alone when first name is empty.
+        Handles profiles with only a family name."""
+        result = _generate_username(["", "Smith", "j@x.com", "", "user"])
+        assert result == "smith"
+
+    def test_username_falls_back_to_email_prefix(self):
+        """Falls back to email prefix when both names are empty.
+        Extracts the local part before the @ sign."""
+        result = _generate_username(["", "", "john.smith@x.com", "", "user"])
+        assert result == "john_smith"
+
+    def test_username_falls_back_to_user(self):
+        """Falls back to 'user' when names and email are all empty.
+        Ensures a username is always generated."""
+        result = _generate_username(["", "", "", "", "user"])
+        assert result == "user"
+
+    def test_username_never_empty(self):
+        """Returns 'user' even when given an empty input list.
+        Guards against edge cases in provider data."""
+        result = _generate_username([])
+        assert result == "user"
+
+    def test_collision_adds_progressive_number(self):
+        """Appends a three-digit suffix on first collision.
+        Keeps usernames readable while ensuring uniqueness."""
+        User.objects.create_user(username="john_smith", password="pass123")
+        result = _generate_username(["John", "Smith", "j@x.com", "", "user"])
+        assert result == "john_smith001"
+
+    def test_multiple_collisions_increment(self):
+        """Increments the suffix for each existing collision.
+        Handles scenarios where many users share the same name."""
+        User.objects.create_user(username="john_smith", password="pass123")
+        User.objects.create_user(username="john_smith001", password="pass123")
+        result = _generate_username(["John", "Smith", "j@x.com", "", "user"])
+        assert result == "john_smith002"
+
+    def test_unicode_names_normalized(self):
+        """Normalizes accented characters to ASCII equivalents.
+        Handles international names from Google profiles."""
+        result = _generate_username(["José", "García", "j@x.com", "", "user"])
+        assert result == "jose_garcia"
+
+    def test_special_characters_stripped(self):
+        """Strips apostrophes and other special characters.
+        Produces clean, URL-safe usernames."""
+        result = _generate_username(["O'Brien", "McDonald", "o@x.com", "", "user"])
+        assert result == "o_brien_mcdonald"
+
+    def test_email_prefix_collision_handled(self):
+        """Appends suffix when email-derived username is taken.
+        Collision handling works for all candidate sources."""
+        User.objects.create_user(username="john_smith", password="pass123")
+        result = _generate_username(["", "", "john.smith@x.com", "", "user"])
+        assert result == "john_smith001"
