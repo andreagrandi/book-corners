@@ -1,0 +1,155 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    .moderation-section { margin-bottom: 30px; }
+    .moderation-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .moderation-card {
+        background: var(--body-bg, #fff);
+        border: 1px solid var(--hairline-color, #ddd);
+        border-radius: 4px;
+        padding: 15px;
+        text-align: center;
+    }
+    .moderation-card .count {
+        font-size: 2em;
+        font-weight: bold;
+        color: var(--link-fg, #417690);
+        display: block;
+        margin-bottom: 5px;
+    }
+    .moderation-card .label {
+        font-size: 0.9em;
+        color: var(--body-quiet-color, #666);
+        display: block;
+        margin-bottom: 10px;
+    }
+    .moderation-card a {
+        font-size: 0.85em;
+    }
+    .moderation-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    .moderation-table th {
+        text-align: left;
+        padding: 8px;
+        background: var(--darkened-bg, #f8f8f8);
+        border-bottom: 1px solid var(--hairline-color, #ddd);
+        font-size: 0.85em;
+    }
+    .moderation-table td {
+        padding: 8px;
+        border-bottom: 1px solid var(--hairline-color, #ddd);
+        font-size: 0.85em;
+    }
+    .moderation-table caption {
+        text-align: left;
+        font-weight: bold;
+        padding: 8px 0;
+        font-size: 0.95em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if moderation %}
+<div class="moderation-section" id="moderation-dashboard">
+    <h2>{% trans "Moderation Queue" %}</h2>
+
+    <div class="moderation-cards">
+        <div class="moderation-card">
+            <span class="count">{{ moderation.pending_libraries_count }}</span>
+            <span class="label">{% trans "Pending Libraries" %}</span>
+            <a href="{% url 'admin:libraries_library_changelist' %}?status__exact=pending">{% trans "View all &rarr;" %}</a>
+        </div>
+        <div class="moderation-card">
+            <span class="count">{{ moderation.open_reports_count }}</span>
+            <span class="label">{% trans "Open Reports" %}</span>
+            <a href="{% url 'admin:libraries_report_changelist' %}?status__exact=open">{% trans "View all &rarr;" %}</a>
+        </div>
+        <div class="moderation-card">
+            <span class="count">{{ moderation.pending_photos_count }}</span>
+            <span class="label">{% trans "Pending Photos" %}</span>
+            <a href="{% url 'admin:libraries_libraryphoto_changelist' %}?status__exact=pending">{% trans "View all &rarr;" %}</a>
+        </div>
+    </div>
+
+    {% if moderation.pending_libraries_recent %}
+    <table class="moderation-table">
+        <caption>{% trans "Recent Pending Libraries" %}</caption>
+        <thead>
+            <tr>
+                <th>{% trans "Name / Address" %}</th>
+                <th>{% trans "City" %}</th>
+                <th>{% trans "Submitted" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lib in moderation.pending_libraries_recent %}
+            <tr>
+                <td><a href="{% url 'admin:libraries_library_change' lib.pk %}">{{ lib }}</a></td>
+                <td>{{ lib.city }}</td>
+                <td>{{ lib.created_at|date:"SHORT_DATETIME_FORMAT" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if moderation.open_reports_recent %}
+    <table class="moderation-table">
+        <caption>{% trans "Recent Open Reports" %}</caption>
+        <thead>
+            <tr>
+                <th>{% trans "Report" %}</th>
+                <th>{% trans "Library" %}</th>
+                <th>{% trans "Submitted" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for report in moderation.open_reports_recent %}
+            <tr>
+                <td><a href="{% url 'admin:libraries_report_change' report.pk %}">{{ report.get_reason_display }}</a></td>
+                <td>{{ report.library }}</td>
+                <td>{{ report.created_at|date:"SHORT_DATETIME_FORMAT" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if moderation.pending_photos_recent %}
+    <table class="moderation-table">
+        <caption>{% trans "Recent Pending Photos" %}</caption>
+        <thead>
+            <tr>
+                <th>{% trans "Photo" %}</th>
+                <th>{% trans "Library" %}</th>
+                <th>{% trans "Submitted" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for photo in moderation.pending_photos_recent %}
+            <tr>
+                <td><a href="{% url 'admin:libraries_libraryphoto_change' photo.pk %}">{{ photo }}</a></td>
+                <td>{{ photo.library }}</td>
+                <td>{{ photo.created_at|date:"SHORT_DATETIME_FORMAT" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+{% endif %}
+
+{{ block.super }}
+{% endblock %}

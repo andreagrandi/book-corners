@@ -112,7 +112,7 @@ MAX_REPORT_PHOTO_UPLOAD_BYTES = _env_int(name="MAX_REPORT_PHOTO_UPLOAD_BYTES", d
 # Application definition
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
+    "config.apps.BookCornersAdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.gis",
