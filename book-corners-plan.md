@@ -1022,35 +1022,12 @@ Automate deploys so that every push to `master` that passes CI gets deployed.
 
 #### 6.12 — Backups
 
-Backups are essential before the site has any real user data. Set up nightly database
-dumps and media backups. BorgBase is the planned offsite target.
+Nightly database dumps and media backups to BorgBase via Borg. Scripts are versioned
+in `scripts/` and auto-deployed to the VPS by the CI pipeline.
 
-- [ ] Install borg on the VPS
-  ```bash
-  sudo apt-get update && sudo apt-get install -y borgbackup
-  ```
-- [ ] Set up a BorgBase repository (https://www.borgbase.com/):
-  - Ensure the VPS has an SSH key pair (borg needs it to authenticate with BorgBase):
-    ```bash
-    # Check if a key already exists
-    ssh -t deploy@vps.bookcorners.org "ls -la ~/.ssh/id_*.pub"
-
-    # If no key exists, generate one
-    ssh -t deploy@vps.bookcorners.org "ssh-keygen -t ed25519 -N '' -C 'deploy@vps.bookcorners.org'"
-
-    # Print the public key to copy into BorgBase
-    ssh -t deploy@vps.bookcorners.org "cat ~/.ssh/id_ed25519.pub"
-    ```
-  - Create a BorgBase account and go to **Account → SSH Keys**
-  - Paste the VPS public key and save it
-  - Create a new repository in BorgBase
-  - Note the repository URL (e.g., `ssh://xxxxx@xxxxx.repo.borgbase.com/./repo`)
-- [ ] Initialize the borg repository from the VPS
-  ```bash
-  # Set a strong passphrase and save it securely
-  export BORG_PASSPHRASE="<your-passphrase>"
-  borg init --encryption=repokey ssh://xxxxx@xxxxx.repo.borgbase.com/./repo
-  ```
+- [x] Install borg on the VPS
+- [x] Set up a BorgBase repository and SSH key authentication
+- [x] Initialize the borg repository from the VPS
 - [x] Version the backup and restore scripts in the repo under `scripts/`:
   - `scripts/backup.sh` — nightly backup script
   - `scripts/restore.sh` — restore script with selective restore support
@@ -1062,59 +1039,12 @@ dumps and media backups. BorgBase is the planned offsite target.
     ```bash
     cat ~/.ssh/dokku_deploy.pub | ssh deploy@vps.bookcorners.org 'cat >> ~/.ssh/authorized_keys'
     ```
-- [ ] Test the backup script:
-  ```bash
-  ssh -t deploy@vps.bookcorners.org "~/backup.sh"
-  ```
-- [ ] Add a nightly cron job (e.g., 3 AM server time):
-  ```bash
-  sudo crontab -e
-  # Add:
-  0 3 * * * /home/deploy/backup.sh >> /var/log/book-corners-backup.log 2>&1
-  ```
+- [x] Test the backup script (manually verified 2026-02-28: 193 files, 27.8 MB archived)
+- [x] Add a nightly cron job (3 AM server time)
 - [ ] Test backup restore (verify backups actually work):
-  - **Database**: restore to a temporary Dokku Postgres service to avoid touching production:
-    ```bash
-    # Create a throwaway DB service
-    sudo dokku postgres:create book-corners-db-test
-
-    # Extract the dump from the latest archive
-    mkdir -p /tmp/restore-test && cd /tmp/restore-test
-    export BORG_PASSPHRASE="<your-passphrase>"
-    borg extract "$BORG_REPO::<latest-archive>" tmp/book-corners-backup/db.dump
-
-    # Import into the test service
-    sudo dokku postgres:import book-corners-db-test < tmp/book-corners-backup/db.dump
-
-    # Verify: connect and spot-check a table
-    sudo dokku postgres:connect book-corners-db-test
-    # In psql: SELECT count(*) FROM libraries_library; then \q
-
-    # Tear down
-    sudo dokku postgres:destroy book-corners-db-test --force
-    rm -rf /tmp/restore-test
-    ```
-  - **Media**: restore a small subset to a temp folder (avoids filling disk):
-    ```bash
-    mkdir -p /tmp/restore-test && cd /tmp/restore-test
-    export BORG_PASSPHRASE="<your-passphrase>"
-
-    # List media paths inside the archive to pick a small subset
-    borg list "$BORG_REPO::<latest-archive>" | grep media | head -20
-
-    # Extract only a few files (e.g., one subfolder or date prefix)
-    borg extract "$BORG_REPO::<latest-archive>" \
-      var/lib/dokku/data/storage/book-corners/media/library_photos/2026 \
-      --strip-components 7
-
-    # Verify files are intact
-    ls -la
-    file *.jpg  # should report valid image files
-
-    # Cleanup
-    rm -rf /tmp/restore-test
-    ```
-  - Mark this step done only after both DB and media restores succeed
+  - Use `restore.sh --dry-run` to inspect archive contents
+  - Use `restore.sh --db-only` to test database restore (script suggests creating a test DB first)
+  - Use `restore.sh --media-only` to test media restore
 - [ ] Add a monthly restore-test reminder (calendar or cron that logs a warning):
   ```bash
   # Add to deploy user's crontab:
