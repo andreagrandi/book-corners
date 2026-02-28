@@ -35,6 +35,8 @@ Runs on every push and pull request.
 - Checks out the full git history
 - Configures SSH with the Dokku deploy key
 - Pushes to the Dokku remote
+- Syncs ops scripts (`backup.sh`, `restore.sh`) to the VPS via SCP
+- Purges the Cloudflare cache
 
 ### Docs workflow (`.github/workflows/docs.yml`)
 
@@ -146,9 +148,9 @@ sudo dokku run book-corners python manage.py migrate
 sudo dokku run book-corners python manage.py showmigrations
 ```
 
-## Backups (planned)
+## Backups
 
-Backup infrastructure is planned using [Borg](https://www.borgbackup.org/) with [BorgBase](https://www.borgbase.com/) as the offsite target.
+Backups use [Borg](https://www.borgbackup.org/) with [BorgBase](https://www.borgbase.com/) as the offsite target.
 
 ### What gets backed up
 
@@ -157,65 +159,81 @@ Backup infrastructure is planned using [Borg](https://www.borgbackup.org/) with 
 
 ### Backup scripts
 
-Operational scripts will be versioned in the repo under `scripts/`:
-- `scripts/backup.sh` — nightly backup (database dump + media archive)
-- `scripts/restore.sh` — selective restore from any archive
+Operational scripts are versioned in the repo under `scripts/`:
+- `scripts/backup.sh` — nightly backup (database dump + media archive to Borg)
+- `scripts/restore.sh` — interactive restore with selective mode support
+
+Both scripts read configuration from `/home/deploy/.env.backup` on the VPS.
 
 ### Backup schedule
 
-Nightly at 3 AM server time via cron:
+Nightly at 3 AM server time via cron (under the deploy user):
 
 ```bash
 0 3 * * * /home/deploy/backup.sh >> /var/log/book-corners-backup.log 2>&1
 ```
 
-### Database restore procedure
+### Restore procedures
+
+Use the `restore.sh` script on the VPS:
 
 ```bash
-# Extract the dump from a borg archive
+# List available archives
+sudo /home/deploy/restore.sh --list
+
+# Preview what would be restored (no changes)
+sudo /home/deploy/restore.sh --dry-run
+
+# Restore a specific archive (both DB and media)
+sudo /home/deploy/restore.sh book-corners-2026-02-28T03:00:00
+
+# Restore only the database
+sudo /home/deploy/restore.sh --db-only
+
+# Restore only media files
+sudo /home/deploy/restore.sh --media-only
+```
+
+The script prompts for confirmation before any destructive operation and suggests creating a test database first.
+
+### Manual restore (without script)
+
+If the restore script is unavailable:
+
+```bash
 export BORG_PASSPHRASE="<your-passphrase>"
-borg extract "$BORG_REPO::<archive-name>" tmp/book-corners-backup/db.dump
+export BORG_REPO="<your-borg-repo-url>"
+
+# Extract the dump from a borg archive
+mkdir -p /tmp/restore && cd /tmp/restore
+borg extract "$BORG_REPO::<archive-name>" --pattern "*/db.dump"
 
 # Restore to a test database first
 sudo dokku postgres:create book-corners-db-test
-sudo dokku postgres:import book-corners-db-test < tmp/book-corners-backup/db.dump
+sudo dokku postgres:import book-corners-db-test < $(find . -name db.dump)
 
 # Verify the data
 sudo dokku postgres:connect book-corners-db-test
 # In psql: SELECT count(*) FROM libraries_library;
 
 # If everything looks good, restore to production
-sudo dokku postgres:import book-corners-db < db.dump
+sudo dokku postgres:import book-corners-db < $(find . -name db.dump)
 
-# Clean up test database
+# Clean up
 sudo dokku postgres:destroy book-corners-db-test --force
-```
-
-### Media restore procedure
-
-```bash
-export BORG_PASSPHRASE="<your-passphrase>"
-
-# List available archives
-borg list "$BORG_REPO"
-
-# Extract media files
-borg extract "$BORG_REPO::<archive-name>" \
-  var/lib/dokku/data/storage/book-corners/media/ \
-  --strip-components 7
-
-# Copy restored files to the production media path
-sudo cp -r media/* /var/lib/dokku/data/storage/book-corners/media/
-sudo chown -R 32767:32767 /var/lib/dokku/data/storage/book-corners/media/
+rm -rf /tmp/restore
 ```
 
 ## Updating ops scripts on the VPS
 
-The backup and restore scripts are symlinked from a checkout of the repo on the VPS:
+The deploy job in CI automatically syncs `scripts/backup.sh` and `scripts/restore.sh` to `/home/deploy/` on the VPS after every successful deploy. No manual `git pull` or repo checkout is needed.
+
+The sync step uses SCP (atomic copy to `/tmp/` then `mv` into place) and runs with `continue-on-error: true` so a sync failure never blocks a deploy.
+
+**Prerequisite:** The CI SSH key must be authorized for the `deploy` user:
 
 ```bash
-# Update to latest
-ssh -t deploy@vps.bookcorners.org "cd ~/book-corners && git pull"
+cat ~/.ssh/dokku_deploy.pub | ssh deploy@vps.bookcorners.org 'cat >> ~/.ssh/authorized_keys'
 ```
 
 ## Dockerfile overview

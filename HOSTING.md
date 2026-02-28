@@ -37,7 +37,7 @@ Book Corners runs on a single Hetzner VPS managed by [Dokku](https://dokku.com/)
 - **UptimeRobot** — uptime monitoring (free tier), checks `/health/` every 5 minutes
 - **Resend** — transactional email for admin notifications (new submissions, reports)
 - **Mastodon + Bluesky** — automated social media posting of approved libraries
-- **BorgBase** — offsite backup storage (planned)
+- **BorgBase** — offsite encrypted backup storage for database dumps and media files
 
 ## VPS setup
 
@@ -238,8 +238,7 @@ sudo dokku config:show book-corners
 | What | Path |
 |------|------|
 | Dokku app (bare git repo) | `/home/dokku/book-corners/` |
-| App source checkout (ops scripts) | `/home/deploy/book-corners/` |
-| Backup/restore scripts (symlinks) | `/home/deploy/backup.sh`, `/home/deploy/restore.sh` |
+| Backup/restore scripts (deployed by CI) | `/home/deploy/backup.sh`, `/home/deploy/restore.sh` |
 | Media files (mounted into container) | `/var/lib/dokku/data/storage/book-corners/media/` |
 | Postgres data (managed by plugin) | `/var/lib/dokku/services/postgres/book-corners-db/` |
 | Backup log | `/var/log/book-corners-backup.log` |

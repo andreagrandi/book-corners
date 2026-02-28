@@ -1051,25 +1051,17 @@ dumps and media backups. BorgBase is the planned offsite target.
   export BORG_PASSPHRASE="<your-passphrase>"
   borg init --encryption=repokey ssh://xxxxx@xxxxx.repo.borgbase.com/./repo
   ```
-- [ ] Version the backup and restore scripts in the repo under `scripts/`:
+- [x] Version the backup and restore scripts in the repo under `scripts/`:
   - `scripts/backup.sh` — nightly backup script
   - `scripts/restore.sh` — restore script with selective restore support
   - See the actual script files in the repo for contents
-- [ ] Deploy scripts to the VPS and make them executable:
-  ```bash
-  # Dokku stores the app source at /home/dokku/book-corners/ (as a bare git repo).
-  # The repo is checked out on each deploy but is not a convenient working tree.
-  #
-  # For ops scripts, clone the repo to the deploy user's home instead:
-  ssh -t deploy@vps.bookcorners.org "git clone https://github.com/andreagrandi/book-corners.git ~/book-corners"
-
-  # To update scripts later after pushing changes to GitHub:
-  ssh -t deploy@vps.bookcorners.org "cd ~/book-corners && git pull"
-
-  # Symlink scripts to a convenient location:
-  ssh -t deploy@vps.bookcorners.org "ln -sf ~/book-corners/scripts/backup.sh ~/backup.sh"
-  ssh -t deploy@vps.bookcorners.org "ln -sf ~/book-corners/scripts/restore.sh ~/restore.sh"
-  ```
+- [x] Deploy scripts to the VPS automatically via CI:
+  - The deploy job in `.github/workflows/ci.yml` SCPs scripts to `/home/deploy/` after each successful deploy
+  - No git checkout or symlinks needed on the VPS
+  - Prerequisite: authorize the CI SSH key for the deploy user:
+    ```bash
+    cat ~/.ssh/dokku_deploy.pub | ssh deploy@vps.bookcorners.org 'cat >> ~/.ssh/authorized_keys'
+    ```
 - [ ] Test the backup script:
   ```bash
   ssh -t deploy@vps.bookcorners.org "sudo ~/backup.sh"
@@ -1162,17 +1154,13 @@ Key paths on the VPS for quick reference:
 | What | Path |
 |------|------|
 | Dokku app (bare git repo) | `/home/dokku/book-corners/` |
-| App source checkout (for ops scripts) | `/home/deploy/book-corners/` |
-| Backup/restore scripts (symlinks) | `/home/deploy/backup.sh`, `/home/deploy/restore.sh` |
+| Backup/restore scripts (deployed by CI) | `/home/deploy/backup.sh`, `/home/deploy/restore.sh` |
 | Media files (mounted into container) | `/var/lib/dokku/data/storage/book-corners/media/` |
 | Postgres data (managed by Dokku plugin) | `/var/lib/dokku/services/postgres/book-corners-db/` |
 | App logs | `sudo dokku logs book-corners --tail` |
 | Backup log | `/var/log/book-corners-backup.log` |
 
-To update ops scripts after a push to GitHub:
-```bash
-ssh -t deploy@vps.bookcorners.org "cd ~/book-corners && git pull"
-```
+Ops scripts are automatically synced to the VPS by the CI deploy job (SCP after each successful Dokku push).
 
 #### 6.14 — Deploy runbook (reference document)
 
@@ -1197,8 +1185,9 @@ It should cover:
   ```
 - [ ] **Database restore** (from backup):
   ```bash
-  borg extract "$BORG_REPO::<archive-name>"
-  sudo dokku postgres:import book-corners-db < db.dump
+  sudo /home/deploy/restore.sh --db-only
+  # Or for a specific archive:
+  sudo /home/deploy/restore.sh --db-only book-corners-2026-02-28T03:00:00
   ```
 - [ ] **Post-deploy smoke checklist**:
   - Homepage loads with styles

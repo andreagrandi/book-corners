@@ -83,6 +83,19 @@ jobs:
           git remote add dokku dokku@${{ secrets.DOKKU_HOST }}:book-corners
           GIT_SSH_COMMAND="ssh -i ~/.ssh/deploy_key" git push --force dokku master
 
+      - name: Sync ops scripts to VPS
+        continue-on-error: true
+        run: |
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            scripts/backup.sh scripts/restore.sh \
+            deploy@${{ secrets.DOKKU_HOST }}:/tmp/
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            deploy@${{ secrets.DOKKU_HOST }} '
+              chmod +x /tmp/backup.sh /tmp/restore.sh
+              mv /tmp/backup.sh /home/deploy/backup.sh
+              mv /tmp/restore.sh /home/deploy/restore.sh
+            '
+
       - name: Purge Cloudflare cache
         run: |
           curl -sf -X POST \
