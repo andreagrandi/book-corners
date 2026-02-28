@@ -16,6 +16,21 @@ CONTAINER_POLL_INTERVAL = 5  # seconds between status checks
 CONTAINER_POLL_MAX_ATTEMPTS = 12  # up to 60 seconds total
 
 
+def _raise_with_detail(response: requests.Response) -> None:
+    """Raise an exception with the Instagram API error message included.
+    The default raise_for_status only shows the HTTP status code."""
+    if response.ok:
+        return
+    try:
+        detail = response.json().get("error", {}).get("message", response.text)
+    except Exception:
+        detail = response.text
+    raise RuntimeError(
+        f"Instagram API {response.status_code}: {detail} "
+        f"(URL: {response.url})"
+    )
+
+
 def _get_access_token() -> str:
     """Return the current Instagram access token.
     Prefers the DB-stored token, falls back to the env var for bootstrap."""
@@ -71,7 +86,7 @@ def post_library(library, text: str, image_path: Path) -> str:
         },
         timeout=60,
     )
-    container_response.raise_for_status()
+    _raise_with_detail(container_response)
     creation_id = container_response.json()["id"]
     logger.info("Created Instagram container: %s", creation_id)
 
@@ -87,7 +102,7 @@ def post_library(library, text: str, image_path: Path) -> str:
         },
         timeout=60,
     )
-    publish_response.raise_for_status()
+    _raise_with_detail(publish_response)
     media_id = publish_response.json()["id"]
     logger.info("Published Instagram media: %s", media_id)
 
@@ -100,5 +115,5 @@ def post_library(library, text: str, image_path: Path) -> str:
         },
         timeout=30,
     )
-    permalink_response.raise_for_status()
+    _raise_with_detail(permalink_response)
     return permalink_response.json()["permalink"]

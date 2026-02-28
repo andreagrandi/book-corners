@@ -944,6 +944,7 @@ class _MockResponse:
         Optionally configured to raise on raise_for_status."""
         self._json_data = json_data or {}
         self.status_code = status_code
+        self.ok = status_code < 400
         self._should_raise = should_raise
 
     def json(self):
