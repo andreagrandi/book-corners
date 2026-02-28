@@ -227,9 +227,10 @@ The production image is built in two stages:
 - Compiles Tailwind CSS to `static/css/app.css`
 
 **Stage 2 — Python app** (python:3.14-slim):
-- Installs system dependencies (GDAL, GEOS, Proj, libjpeg, zlib)
+- Installs system dependencies (GDAL, GEOS, Proj, libjpeg, zlib, gettext)
 - Installs Python packages via uv
 - Copies compiled CSS from stage 1
+- Runs `compilemessages` (compiles .po translation files to .mo)
 - Runs `collectstatic`
 - Serves via gunicorn on `$PORT`
 

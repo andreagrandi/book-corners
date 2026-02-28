@@ -15,9 +15,15 @@ Book Corners lets anyone discover nearby little free libraries on an interactive
 - **EXIF GPS extraction** — Photos with GPS metadata auto-populate the address fields via reverse geocoding
 - **Address autocomplete** — Type-ahead suggestions powered by Photon (OpenStreetMap data)
 - **Photo optimization** — Uploaded images are resized, compressed, and thumbnailed automatically
+- **Community photos** — Users can submit additional photos for existing libraries, moderated by admins
 - **Community reporting** — Flag damaged, missing, or incorrectly listed libraries
+- **GeoJSON import** — Admins can bulk-import libraries from GeoJSON files (e.g., Overpass Turbo exports) with duplicate detection
+- **Duplicate detection** — Find and merge duplicate libraries by normalized address and geographic proximity
 - **User authentication** — Register with username/email or sign in with Google OAuth
-- **Admin moderation** — Approve, reject, and manage submissions and reports through Django admin
+- **Admin dashboard** — Moderation dashboard with queue counts, plus approve/reject workflows for submissions, photos, and reports
+- **Email notifications** — Admin email alerts for new submissions via Resend
+- **Social media posting** — Approved libraries are automatically posted to Mastodon and Bluesky every 2 days
+- **Internationalization** — English and Italian with a language switcher; all user-facing strings are translatable
 - **SEO** — Sitemap, robots.txt, Open Graph tags on detail pages
 - **REST API** — JWT-authenticated API for all core operations (list, search, submit, report)
 
@@ -31,7 +37,12 @@ Book Corners lets anyone discover nearby little free libraries on an interactive
 | Maps | Leaflet + OpenStreetMap tiles |
 | Geocoding | Nominatim (reverse) + Photon (autocomplete) |
 | Auth | Session-based (web) + JWT (API), Google OAuth via django-allauth |
+| Email | Resend (transactional admin notifications) |
+| Social | Mastodon + Bluesky automated posting |
+| i18n | Django i18n (English + Italian) |
+| Error tracking | Sentry |
 | Static files | WhiteNoise |
+| Monitoring | UptimeRobot + Sentry |
 | Deployment | Dokku on Hetzner VPS, CI/CD via GitHub Actions |
 
 ## Local development
@@ -118,6 +129,10 @@ If no images are found in the selected directory, the command generates placehol
 
 The `libraries_examples/` directory is gitignored — each developer can use their own photos.
 
+### GeoJSON import (admin)
+
+Admins can bulk-import libraries from GeoJSON files (e.g., Overpass Turbo exports) via the Django admin interface. The import runs as a background task with automatic duplicate detection based on normalized addresses and geographic proximity.
+
 ### Social media posting
 
 Approved libraries with photos are automatically posted to Mastodon and Bluesky every 2 days via Dokku cron. Each library is posted once.
@@ -138,6 +153,16 @@ dokku run book-corners python manage.py post_random_library
 Run the command multiple times to post several libraries in one session. Each invocation picks a different unposted library.
 
 If credentials for a platform are missing, that platform is silently skipped.
+
+### Translations
+
+The project supports English and Italian. To update translations after changing user-facing strings:
+
+```bash
+python manage.py makemessages -l it --no-wrap
+# Edit locale/it/LC_MESSAGES/django.po
+python manage.py compilemessages
+```
 
 ### Create a superuser
 
@@ -204,9 +229,10 @@ Full API documentation: [developers.bookcorners.org](https://developers.bookcorn
 book-corners/
 ├── assets/              # Frontend source (Tailwind CSS input)
 ├── config/              # Django project settings, URLs, API config
-├── libraries/           # Core app: Library and Report models, views, API
+├── libraries/           # Core app: Library, Report, LibraryPhoto, SocialPost models, views, API
 ├── users/               # Custom User model, auth views, JWT endpoints
 ├── templates/           # Django HTML templates
+├── locale/              # Translation files (Italian .po/.mo)
 ├── static/              # Generated CSS (gitignored)
 ├── media/               # User uploads (gitignored)
 ├── docs/                # API documentation source (Zensical/MkDocs)
@@ -214,7 +240,7 @@ book-corners/
 ├── docker-compose.yml   # Local development services
 ├── Dockerfile           # Multi-stage production build
 ├── Procfile             # Dokku process definition
-├── app.json             # Dokku deployment hooks
+├── app.json             # Dokku deployment hooks + cron jobs
 ├── noxfile.py           # Test session configuration
 ├── requirements.txt     # Python dependencies
 └── package.json         # Node.js / Tailwind dependencies

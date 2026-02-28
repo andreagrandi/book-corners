@@ -33,7 +33,10 @@ Book Corners runs on a single Hetzner VPS managed by [Dokku](https://dokku.com/)
 **External services:**
 - **Cloudflare** — DNS and CDN proxy for `bookcorners.org` and `www.bookcorners.org`
 - **GitHub Pages** — hosts the API docs at `developers.bookcorners.org`
+- **Sentry** — error tracking (free developer plan)
 - **UptimeRobot** — uptime monitoring (free tier), checks `/health/` every 5 minutes
+- **Resend** — transactional email for admin notifications (new submissions, reports)
+- **Mastodon + Bluesky** — automated social media posting of approved libraries
 - **BorgBase** — offsite backup storage (planned)
 
 ## VPS setup
@@ -199,6 +202,25 @@ sudo dokku config:set book-corners \
 
 Credentials can be added independently — if only one platform is configured, the other is silently skipped.
 
+### Email notifications (optional)
+
+```bash
+sudo dokku config:set book-corners \
+  RESEND_API_KEY="<your-resend-api-key>" \
+  ADMIN_NOTIFICATION_EMAIL="<admin-email-address>"
+```
+
+Admin notifications are sent when new libraries are submitted. Falls back to console output if not configured.
+
+### Sentry error tracking (optional)
+
+```bash
+sudo dokku config:set book-corners \
+  SENTRY_DSN="<your-sentry-dsn>"
+```
+
+Sentry is on the free developer plan. Events are dropped when quota is exhausted, not billed.
+
 ### Generate a secret key
 
 ```bash
@@ -271,5 +293,7 @@ print(f'Site updated: {site.domain}')
 | SSL (Let's Encrypt) | Free |
 | Dokku, PostGIS, WhiteNoise | Free |
 | UptimeRobot (free tier) | Free |
+| Sentry (free developer plan) | Free |
+| Resend (free tier, 3k emails/month) | Free |
 | BorgBase backup (if separate from existing plan) | $0-8 |
 | **Lean total** | **~$6-10** |

@@ -632,8 +632,8 @@ app on every relevant push, so API changes automatically propagate to docs. No m
   register → login → submit library → list → search → detail → report
 - [ ] Verify pagination consistency across pages (no duplicates, correct totals)
 - [ ] Verify error response consistency across all endpoints
-- [ ] Update `CLAUDE.md` with new commands:
-  `python manage.py export_openapi_schema`, `mkdocs serve`
+- [x] Update `CLAUDE.md` with new commands:
+  `python manage.py export_openapi_schema`, `zensical serve`
 
 ---
 
@@ -672,10 +672,10 @@ app on every relevant push, so API changes automatically propagate to docs. No m
 - [x] Verify `DEBUG=False` and secret key management for production
 
 #### 5.6 — First public deploy gate (single environment)
-- [ ] Confirm there is no staging environment and production is public from first deploy
-- [ ] Complete 5.4 (error pages) and 5.5 (security review) before DNS cutover
-- [ ] Test core flows locally with production-like settings (`DEBUG=False`): home, map, submit, login, admin
-- [ ] Decide email policy for MVP: keep welcome/reset email flows disabled until provider is configured
+- [x] Confirm there is no staging environment and production is public from first deploy
+- [x] Complete 5.4 (error pages) and 5.5 (security review) before DNS cutover
+- [x] Test core flows locally with production-like settings (`DEBUG=False`): home, map, submit, login, admin
+- [x] Decide email policy for MVP: admin notifications via Resend, welcome/reset emails disabled
 - [ ] Create a one-page incident response note (who gets alerted, rollback steps, backup restore reference)
 
 ---
@@ -1144,6 +1144,7 @@ dumps and media backups. BorgBase is the planned offsite target.
     ```
   - Add Sentry initialization to `config/settings.py` (only when DSN is set)
   - Keep on free plan — events are dropped when quota is exhausted, not billed
+- [x] Silence `DisallowedHost` errors from Sentry (scanner noise)
 - [ ] Add backup health monitoring:
   - Add a heartbeat check (e.g., healthchecks.io free tier) that the backup script
     pings on success. If no ping arrives by 6 AM, you get alerted.
@@ -1229,6 +1230,7 @@ Assumptions:
 | BorgBase backup storage | Yes (recommended) | $0–8* | $0–96* | Reuse existing plan if possible |
 | Uptime monitoring (UptimeRobot free tier) | Recommended | $0 | $0 | Paid tier optional later |
 | Error tracking (Sentry developer plan) | Recommended | $0 | $0 | Quota-limited free usage |
+| Transactional email (Resend free tier) | Yes | $0 | $0 | 3k emails/month free, admin notifications |
 
 \* If you already have BorgBase capacity, incremental cost can be near zero.
 
@@ -1236,7 +1238,7 @@ Assumptions:
 
 | Item | Est. monthly | Notes |
 |------|--------------|-------|
-| Transactional email provider | $0–20 | Keep disabled for MVP, enable later for password reset/welcome mail |
+| Transactional email provider upgrade | $0–20 | Only if free tier limits are exceeded or user-facing emails are needed |
 | Paid uptime monitoring upgrade | $7–20+ | Only if free tier limits become restrictive |
 | Paid error monitoring upgrade | $26+ | Only if free Sentry quotas are consistently exceeded |
 
@@ -1250,7 +1252,7 @@ Assumptions:
 
 - Keep Sentry on free plan and do not enable paid add-ons by default.
 - Use free-tier uptime monitoring until false positives or feature limits justify upgrades.
-- Keep email features disabled until there is a real product need.
+- Keep Resend on free tier; admin notifications are low volume.
 - Review storage growth monthly (DB dumps + media) to avoid surprise backup costs.
 
 ### Quota behavior notes
@@ -1260,13 +1262,30 @@ Assumptions:
 
 ---
 
-### Phase 7 — Future Enhancements (out of scope for now)
+### Phase 7 — Post-Launch Enhancements
+
+#### Completed
+
+- [x] Multi language support with language switcher (English and Italian)
+- [x] Multiple photos per library (`LibraryPhoto` model with moderation workflow)
+- [x] Custom admin moderation dashboard with queue counts and recent items
+- [x] Email notifications for admin moderation via Resend
+- [x] Automated social media posting to Mastodon and Bluesky (every 2 days via Dokku cron)
+- [x] GeoJSON import for admin bulk library creation (with background tasks)
+- [x] Duplicate detection: find and merge duplicates by normalized address and geographic proximity
+- [x] Metadata fields on Library model (`source`, `operator`, `brand`, `external_id`)
+- [x] Submitter username shown on library detail page
+- [x] Readable username generation for social auth signup
+- [x] Total approved library count shown on home page and map
+- [x] Privacy page and redesigned footer with social links (Mastodon, Bluesky)
+- [x] Sentry error tracking integration (with `DisallowedHost` silencing)
+- [x] Locale-aware number formatting (`USE_THOUSAND_SEPARATOR`)
+- [x] Cloudflare cache purge after deploy
+
+#### Remaining
 
 - [ ] "Report this library" should be "Report an issue with this library"
-- [ ] Multi language support with language selector (at least English and Italian)
-- [ ] Multiple photos per library (LibraryPhoto model)
 - [ ] Sign in with Apple (after Apple Developer Program enrollment)
-- [ ] Custom moderation dashboard (beyond Django admin)
 - [ ] User profiles (public page with contributions)
 - [ ] Favorites / bookmarks
 - [ ] "Library near me" geolocation prompt
