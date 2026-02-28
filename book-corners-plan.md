@@ -1211,57 +1211,6 @@ It should cover:
 
 ---
 
-## Cost Sheet (single public VPS)
-
-Assumptions:
-- One public Hetzner VPS, Dokku-managed services on same host, no staging.
-- PostgreSQL/PostGIS, app, and reverse proxy run on the VPS.
-- Cloudflare for domain registration and DNS.
-
-### Baseline recurring costs
-
-| Item | Required now? | Est. monthly | Est. yearly | Notes |
-|------|----------------|--------------|-------------|-------|
-| Hetzner VPS (small instance) | Yes | $5–8 | $60–96 | App + DB + Dokku on one server |
-| Domain (Cloudflare Registrar) | Yes | $0.7–1.5 | $8–18 | Depends on TLD, billed yearly |
-| SSL (Let's Encrypt) | Yes | $0 | $0 | Free certs |
-| Dokku | Yes | $0 | $0 | Open source |
-| PostgreSQL + PostGIS (self-hosted) | Yes | $0 | $0 | Included in VPS cost |
-| BorgBase backup storage | Yes (recommended) | $0–8* | $0–96* | Reuse existing plan if possible |
-| Uptime monitoring (UptimeRobot free tier) | Recommended | $0 | $0 | Paid tier optional later |
-| Error tracking (Sentry developer plan) | Recommended | $0 | $0 | Quota-limited free usage |
-| Transactional email (Resend free tier) | Yes | $0 | $0 | 3k emails/month free, admin notifications |
-
-\* If you already have BorgBase capacity, incremental cost can be near zero.
-
-### Optional costs (only when needed)
-
-| Item | Est. monthly | Notes |
-|------|--------------|-------|
-| Transactional email provider upgrade | $0–20 | Only if free tier limits are exceeded or user-facing emails are needed |
-| Paid uptime monitoring upgrade | $7–20+ | Only if free tier limits become restrictive |
-| Paid error monitoring upgrade | $26+ | Only if free Sentry quotas are consistently exceeded |
-
-### Practical budget ranges
-
-- **Lean MVP baseline:** ~$6–10/month (VPS + domain amortized, free monitoring, existing backup capacity).
-- **Safer baseline with paid backup headroom:** ~$10–18/month.
-- **With optional paid monitoring/email upgrades:** ~$20–45+/month.
-
-### Cost control rules
-
-- Keep Sentry on free plan and do not enable paid add-ons by default.
-- Use free-tier uptime monitoring until false positives or feature limits justify upgrades.
-- Keep Resend on free tier; admin notifications are low volume.
-- Review storage growth monthly (DB dumps + media) to avoid surprise backup costs.
-
-### Quota behavior notes
-
-- Sentry free plan is quota-based: when quota is exhausted, new events are dropped/rejected.
-- Existing accepted events remain available according to plan retention window.
-
----
-
 ### Phase 7 — Post-Launch Enhancements
 
 #### Completed
