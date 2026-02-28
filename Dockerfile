@@ -18,6 +18,7 @@ ENV GIT_REV=${SOURCE_VERSION}
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
+    gettext \
     libc6-dev \
     libjpeg62-turbo-dev \
     zlib1g-dev \
@@ -37,6 +38,7 @@ RUN uv pip install --system --no-cache -r requirements.txt
 COPY . .
 COPY --from=css-builder /app/static/css/app.css /app/static/css/app.css
 
+RUN python manage.py compilemessages
 RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
