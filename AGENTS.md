@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Reference documentation (read before assuming)
+
+Before making assumptions about how to run commands, deploy, or configure production/hosting:
+
+- **`README.md`** — Project overview, local development setup, all management commands, tech stack
+- **`HOSTING.md`** — Infrastructure, VPS setup, DNS, SSL, environment variables, external services
+- **`DEPLOYMENT.md`** — CI/CD pipeline, manual deploy, rollback, backups, Dockerfile overview, troubleshooting
+
+Always consult these files first when the task involves deployment, environment configuration, infrastructure, or operational commands.
+
 ## Commands
 
 ```bash
