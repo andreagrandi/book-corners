@@ -16,26 +16,34 @@ from libraries.social.text import build_post_text
 
 logger = logging.getLogger(__name__)
 
+PLATFORM_CHOICES = ("mastodon", "bluesky", "instagram")
+
 
 class Command(BaseCommand):
-    """Post a random approved library with a photo to Mastodon and Bluesky.
+    """Post a random approved library with a photo to social media.
     Tracks posted libraries to avoid repeats."""
 
     help = "Post a random approved library to social media"
 
     def add_arguments(self, parser):
         """Register command-line flags for the management command.
-        Adds the dry-run option to preview without posting."""
+        Adds the dry-run and only options."""
         parser.add_argument(
             "--dry-run",
             action="store_true",
             help="Build post text and print it without actually posting",
+        )
+        parser.add_argument(
+            "--only",
+            choices=PLATFORM_CHOICES,
+            help="Post to a single platform only (skip all others)",
         )
 
     def handle(self, *args, **options):
         """Execute the social media posting workflow.
         Selects an unposted library, posts to configured platforms, and records results."""
         dry_run = options["dry_run"]
+        only_platform = options["only"]
 
         mastodon_configured = bool(
             getattr(settings, "MASTODON_INSTANCE_URL", "")
@@ -45,8 +53,20 @@ class Command(BaseCommand):
             getattr(settings, "BLUESKY_HANDLE", "")
             and getattr(settings, "BLUESKY_APP_PASSWORD", "")
         )
+        instagram_configured = self._is_instagram_configured()
 
-        if not dry_run and not mastodon_configured and not bluesky_configured:
+        if only_platform:
+            if only_platform == "mastodon":
+                bluesky_configured = False
+                instagram_configured = False
+            elif only_platform == "bluesky":
+                mastodon_configured = False
+                instagram_configured = False
+            elif only_platform == "instagram":
+                mastodon_configured = False
+                bluesky_configured = False
+
+        if not dry_run and not mastodon_configured and not bluesky_configured and not instagram_configured:
             logger.info("No social media credentials configured, skipping")
             self.stdout.write("No social media credentials configured, skipping")
             return
@@ -83,6 +103,7 @@ class Command(BaseCommand):
 
         mastodon_url = ""
         bluesky_url = ""
+        instagram_url = ""
         errors = []
 
         try:
@@ -105,28 +126,52 @@ class Command(BaseCommand):
             logger.exception("Bluesky posting failed for library %s", library.pk)
             errors.append(f"Bluesky: {exc}")
 
+        try:
+            if instagram_configured:
+                instagram_url = self._post_to_instagram(library, post_text, image_path)
+                logger.info("Posted to Instagram: %s", instagram_url)
+            else:
+                logger.info("Instagram not configured, skipping")
+        except Exception as exc:
+            logger.exception("Instagram posting failed for library %s", library.pk)
+            errors.append(f"Instagram: {exc}")
+
         # Clean up temp file if we created one
         if image_path and not library.photo.storage.exists(library.photo.name):
             image_path.unlink(missing_ok=True)
 
-        if mastodon_url or bluesky_url:
+        if mastodon_url or bluesky_url or instagram_url:
             social_post = SocialPost.objects.create(
                 library=library,
                 post_text=post_text,
                 mastodon_url=mastodon_url,
                 bluesky_url=bluesky_url,
+                instagram_url=instagram_url,
             )
             self.stdout.write(f"Posted library: {library}")
             if mastodon_url:
                 self.stdout.write(f"  Mastodon: {mastodon_url}")
             if bluesky_url:
                 self.stdout.write(f"  Bluesky: {bluesky_url}")
+            if instagram_url:
+                self.stdout.write(f"  Instagram: {instagram_url}")
             notify_social_post(social_post)
 
         if errors:
             error_details = "\n".join(errors)
             self.stderr.write(f"Errors:\n{error_details}")
             notify_social_post_error(library, error_details)
+
+    def _is_instagram_configured(self) -> bool:
+        """Check whether Instagram credentials are available.
+        Checks both env var and DB-stored token."""
+        from libraries.models import InstagramToken
+
+        if not getattr(settings, "INSTAGRAM_USER_ID", ""):
+            return False
+        if getattr(settings, "INSTAGRAM_ACCESS_TOKEN", ""):
+            return True
+        return InstagramToken.objects.exists()
 
     def _get_photo_path(self, library) -> Path | None:
         """Retrieve the library photo to a local path for uploading.
@@ -162,5 +207,12 @@ class Command(BaseCommand):
         """Delegate to the Bluesky client module.
         Returns the URL of the created post."""
         from libraries.social.bluesky import post_library
+
+        return post_library(library, text=text, image_path=image_path)
+
+    def _post_to_instagram(self, library, text: str, image_path: Path) -> str:
+        """Delegate to the Instagram client module.
+        Returns the permalink of the created post."""
+        from libraries.social.instagram import post_library
 
         return post_library(library, text=text, image_path=image_path)

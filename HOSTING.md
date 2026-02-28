@@ -36,7 +36,7 @@ Book Corners runs on a single Hetzner VPS managed by [Dokku](https://dokku.com/)
 - **Sentry** — error tracking (free developer plan)
 - **UptimeRobot** — uptime monitoring (free tier), checks `/health/` every 5 minutes
 - **Resend** — transactional email for admin notifications (new submissions, reports)
-- **Mastodon + Bluesky** — automated social media posting of approved libraries
+- **Mastodon + Bluesky + Instagram** — automated social media posting of approved libraries
 - **BorgBase** — offsite encrypted backup storage for database dumps and media files
 
 ## VPS setup
@@ -197,10 +197,14 @@ sudo dokku config:set book-corners \
   MASTODON_INSTANCE_URL="https://mastodon.social" \
   MASTODON_ACCESS_TOKEN="<your-access-token>" \
   BLUESKY_HANDLE="bookcorners.bsky.social" \
-  BLUESKY_APP_PASSWORD="<your-app-password>"
+  BLUESKY_APP_PASSWORD="<your-app-password>" \
+  INSTAGRAM_USER_ID="<your-instagram-user-id>" \
+  INSTAGRAM_ACCESS_TOKEN="<your-long-lived-token>"
 ```
 
-Credentials can be added independently — if only one platform is configured, the other is silently skipped.
+Credentials can be added independently — if only one platform is configured, the others are silently skipped.
+
+**Instagram token refresh:** The long-lived token expires after ~60 days. A cron job runs `refresh_instagram_token` every 30 days to keep it valid. After the first refresh, the token is stored in the database and the env var is only used as a fallback.
 
 ### Email notifications (optional)
 
