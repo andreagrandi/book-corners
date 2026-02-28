@@ -140,6 +140,10 @@ When any change touches API endpoints (`libraries/api.py`, `libraries/api_schema
 2. Regenerate the OpenAPI spec: `python manage.py export_openapi_schema > docs/openapi.json`
 3. Commit both the docs markdown changes and the regenerated `docs/openapi.json` alongside the code changes.
 
+## Docs changelog (required)
+
+When any user-facing feature is added, changed, or removed, update `docs/changelog.md` with a brief entry describing the change. Group entries under a version heading. Commit the changelog update alongside the code changes.
+
 ## Website / API feature parity
 
 When adding or removing a user-facing feature on the website (views, templates, forms), always ask the user whether the same change should also be reflected in the API. Features that exist in one surface but not the other can cause confusion for consumers. Examples:
