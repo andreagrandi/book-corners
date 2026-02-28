@@ -114,10 +114,21 @@ class LibraryAdmin(admin.GISModelAdmin):
 
         candidates = parse_geojson(geojson_data)
 
+        import tempfile
+        from django.conf import settings
+
+        imports_dir = settings.MEDIA_ROOT / "geojson_imports"
+        imports_dir.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            dir=imports_dir, suffix=".json", delete=False, mode="w"
+        ) as tmp:
+            json.dump(geojson_data, tmp)
+            geojson_path = tmp.name
+
         from libraries.tasks import run_geojson_import
 
         run_geojson_import.enqueue(
-            geojson_data=geojson_data,
+            geojson_path=geojson_path,
             source=source,
             status=status,
             user_id=request.user.pk,

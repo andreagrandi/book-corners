@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import logging
 from io import BytesIO
-from typing import Any
 
 from django.tasks import task
 
@@ -19,9 +18,12 @@ logger = logging.getLogger(__name__)
 
 
 @task()
-def run_geojson_import(geojson_data: dict[str, Any], source: str, status: str, user_id: int) -> None:
+def run_geojson_import(geojson_path: str, source: str, status: str, user_id: int) -> None:
     """Run a full GeoJSON import in the background.
-    Parses features, creates libraries, and logs the result summary."""
+    Reads the GeoJSON file from disk, creates libraries, and cleans up."""
+    import json
+    from pathlib import Path
+
     from django.contrib.auth import get_user_model
 
     User = get_user_model()
@@ -29,6 +31,13 @@ def run_geojson_import(geojson_data: dict[str, Any], source: str, status: str, u
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist:
         logger.error("User %d not found, aborting GeoJSON import", user_id)
+        return
+
+    file_path = Path(geojson_path)
+    try:
+        geojson_data = json.loads(file_path.read_text())
+    except (FileNotFoundError, json.JSONDecodeError) as exc:
+        logger.error("Failed to read GeoJSON file %s: %s", geojson_path, exc)
         return
 
     candidates = parse_geojson(geojson_data)
@@ -41,6 +50,8 @@ def run_geojson_import(geojson_data: dict[str, Any], source: str, status: str, u
         result.total_skipped,
         result.total_errors,
     )
+
+    file_path.unlink(missing_ok=True)
 
 
 @task()
