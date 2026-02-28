@@ -4,11 +4,11 @@ from django.contrib import messages
 from django.contrib.gis import admin
 from django.db.models import QuerySet
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import path
 from django.utils.html import format_html
 
-from libraries.geojson_import import GeoJSONImporter, parse_geojson
+from libraries.geojson_import import parse_geojson
 from libraries.management.commands.find_duplicates import (
     DEFAULT_RADIUS_METERS,
     find_duplicate_groups,
@@ -113,21 +113,21 @@ class LibraryAdmin(admin.GISModelAdmin):
             status = Library.Status.PENDING
 
         candidates = parse_geojson(geojson_data)
-        importer = GeoJSONImporter(
+
+        from libraries.tasks import run_geojson_import
+
+        run_geojson_import.enqueue(
+            geojson_data=geojson_data,
             source=source,
             status=status,
-            created_by=request.user,
+            user_id=request.user.pk,
         )
-        result = importer.run(candidates)
 
-        context = {
-            **self.admin_site.each_context(request),
-            "title": "Import Results",
-            "opts": self.model._meta,
-            "result": result,
-            "total_features": len(candidates),
-        }
-        return render(request, "admin/libraries/geojson_import_result.html", context)
+        messages.success(
+            request,
+            f"Import of {len(candidates)} features has been queued for background processing.",
+        )
+        return redirect("admin:libraries_library_changelist")
 
     def find_duplicates_view(self, request: HttpRequest) -> HttpResponse:
         """Scan for duplicate libraries and allow bulk deletion.

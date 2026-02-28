@@ -388,7 +388,7 @@ class TestGeoJSONImporter:
         assert result.skipped_duplicate == 1
         assert result.skipped_missing_address == 1
 
-    @patch("libraries.geojson_import.fetch_image_from_url")
+    @patch("libraries.tasks.fetch_image_from_url")
     def test_image_fetch_success_attaches_photo(self, mock_fetch, import_user):
         """Verify a downloaded image is attached to the library.
         Exercises the photo pipeline for features with image URLs."""
@@ -403,7 +403,7 @@ class TestGeoJSONImporter:
         assert library.photo
         assert library.photo_thumbnail
 
-    @patch("libraries.geojson_import.fetch_image_from_url")
+    @patch("libraries.tasks.fetch_image_from_url")
     def test_image_fetch_failure_creates_library_without_photo(self, mock_fetch, import_user):
         """Verify image fetch failure does not block library creation.
         Libraries are still created when photos cannot be downloaded."""
@@ -723,7 +723,7 @@ class TestAdminGeoJSONImportView:
 
         response = admin_client.post(url, {"geojson_file": uploaded, "source": "test", "status": "approved"})
 
-        assert response.status_code == 200
+        assert response.status_code == 302
         assert Library.objects.filter(external_id="node/admin1").exists()
         library = Library.objects.get(external_id="node/admin1")
         assert library.source == "test"
@@ -787,7 +787,7 @@ class TestAdminGeoJSONImportView:
 
         response = admin_client.post(url, {"geojson_file": uploaded, "source": "test", "status": "approved"})
 
-        assert response.status_code == 200
+        assert response.status_code == 302
         assert Library.objects.filter(external_id="node/existing").count() == 1
 
     def test_post_defaults_to_pending_for_invalid_status(self, admin_client, admin_user):
@@ -804,6 +804,6 @@ class TestAdminGeoJSONImportView:
 
         response = admin_client.post(url, {"geojson_file": uploaded, "source": "test", "status": "rejected"})
 
-        assert response.status_code == 200
+        assert response.status_code == 302
         library = Library.objects.get(external_id="node/statustest")
         assert library.status == "pending"

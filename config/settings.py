@@ -125,9 +125,18 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
+    "django_tasks_db",
     "users",
     "libraries",
 ]
+
+TASKS = {
+    "default": {
+        "BACKEND": "django.tasks.backends.immediate.ImmediateBackend"
+        if IS_TEST_ENVIRONMENT
+        else "django_tasks_db.DatabaseBackend",
+    }
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

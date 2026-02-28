@@ -7,16 +7,15 @@ and creates records with duplicate detection via external_id.
 from __future__ import annotations
 
 import logging
-import urllib.request
 import urllib.error
+import urllib.parse
+import urllib.request
 from dataclasses import dataclass, field
-from io import BytesIO
 from typing import Any
 
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 
-from libraries.image_processing import build_library_photo_files
 from libraries.management.commands.find_duplicates import _extract_street
 from libraries.models import Library
 
@@ -194,14 +193,15 @@ def fetch_image_from_url(url: str, *, timeout: int = IMAGE_FETCH_TIMEOUT, max_by
         return None
 
     try:
-        request = urllib.request.Request(url, headers={"User-Agent": "book-corners/1.0"})
+        safe_url = urllib.parse.quote(url, safe=":/?#[]@!$&'()*+,;=-._~%")
+        request = urllib.request.Request(safe_url, headers={"User-Agent": "book-corners/1.0"})
         with urllib.request.urlopen(request, timeout=timeout) as response:
             data = response.read(max_bytes + 1)
             if len(data) > max_bytes:
                 logger.warning("Image too large (>%d bytes): %s", max_bytes, url)
                 return None
             return data
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError) as exc:
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError, ValueError) as exc:
         logger.warning("Failed to fetch image %s: %s", url, exc)
         return None
 
@@ -313,21 +313,14 @@ class GeoJSONImporter:
             created_by=self.created_by,
         )
 
-        if candidate.image_url:
-            image_data = fetch_image_from_url(candidate.image_url)
-            if image_data:
-                try:
-                    image_file = BytesIO(image_data)
-                    main_image, thumbnail_image = build_library_photo_files(
-                        image_file=image_file,
-                        original_name=candidate.image_url.rsplit("/", maxsplit=1)[-1] or "import.jpg",
-                    )
-                    main_filename, main_content = main_image
-                    thumbnail_filename, thumbnail_content = thumbnail_image
-                    library.photo.save(main_filename, main_content, save=False)
-                    library.photo_thumbnail.save(thumbnail_filename, thumbnail_content, save=False)
-                except (ValueError, OSError) as exc:
-                    logger.warning("Image processing failed for %s: %s", candidate.external_id, exc)
-
         library.save()
+
+        if candidate.image_url:
+            from libraries.tasks import fetch_and_attach_library_image
+
+            fetch_and_attach_library_image.enqueue(
+                library_id=library.pk,
+                image_url=candidate.image_url,
+            )
+
         return library
