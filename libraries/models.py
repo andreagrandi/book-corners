@@ -382,6 +382,7 @@ class SocialPost(models.Model):
     posted_at = models.DateTimeField(auto_now_add=True)
     mastodon_url = models.URLField(blank=True, default="")
     bluesky_url = models.URLField(blank=True, default="")
+    instagram_url = models.URLField(blank=True, default="")
 
     class Meta:
         db_table = "social_posts"
@@ -391,3 +392,18 @@ class SocialPost(models.Model):
         """Return a readable string representation.
         Identifies the library and posting timestamp."""
         return f"SocialPost for {self.library} at {self.posted_at}"
+
+
+class InstagramToken(models.Model):
+    """Stores the current long-lived Instagram access token for automatic refresh."""
+
+    access_token = models.TextField()
+    refreshed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "instagram_tokens"
+
+    def __str__(self) -> str:
+        """Return a readable string representation.
+        Shows the refresh timestamp for admin display."""
+        return f"InstagramToken (refreshed {self.refreshed_at})"

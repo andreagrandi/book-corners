@@ -138,6 +138,8 @@ def notify_social_post(social_post) -> None:
         lines.append(f"\nMastodon: {social_post.mastodon_url}")
     if social_post.bluesky_url:
         lines.append(f"\nBluesky: {social_post.bluesky_url}")
+    if social_post.instagram_url:
+        lines.append(f"\nInstagram: {social_post.instagram_url}")
     lines.append(f"\nView in admin:\n{admin_url}")
     body = "\n".join(lines)
 

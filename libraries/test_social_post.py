@@ -13,7 +13,7 @@ from django.core.management import call_command
 from django.test import override_settings
 from PIL import Image
 
-from libraries.models import Library, SocialPost
+from libraries.models import InstagramToken, Library, SocialPost
 from libraries.notifications import notify_social_post, notify_social_post_error
 from libraries.social.text import build_bluesky_text, build_post_text, _country_name
 
@@ -94,12 +94,14 @@ class TestSocialPostModel:
             post_text="Test post text",
             mastodon_url="https://mastodon.social/@test/123",
             bluesky_url="https://bsky.app/profile/test/post/abc",
+            instagram_url="https://www.instagram.com/p/abc123/",
         )
         assert post.pk is not None
         assert post.library == approved_library
         assert post.post_text == "Test post text"
         assert post.mastodon_url == "https://mastodon.social/@test/123"
         assert post.bluesky_url == "https://bsky.app/profile/test/post/abc"
+        assert post.instagram_url == "https://www.instagram.com/p/abc123/"
         assert post.posted_at is not None
 
     def test_social_post_str(self, approved_library):
@@ -130,6 +132,27 @@ class TestSocialPostModel:
             mastodon_url="https://mastodon.social/@test/123",
         )
         assert post.bluesky_url == ""
+        assert post.instagram_url == ""
+
+
+@pytest.mark.django_db
+class TestInstagramTokenModel:
+    """Tests for the InstagramToken model."""
+
+    def test_create_token(self):
+        """Verify basic token creation and field storage.
+        Ensures the access token persists correctly."""
+        token = InstagramToken.objects.create(access_token="test-token-abc123")
+        assert token.pk is not None
+        assert token.access_token == "test-token-abc123"
+        assert token.refreshed_at is not None
+
+    def test_token_str(self):
+        """Verify the string representation shows refresh timestamp.
+        Keeps admin display informative."""
+        token = InstagramToken.objects.create(access_token="test-token")
+        assert "InstagramToken" in str(token)
+        assert "refreshed" in str(token)
 
 
 # --- Text builder tests ---
@@ -237,6 +260,8 @@ class TestPostRandomLibraryCommand:
         MASTODON_ACCESS_TOKEN="test-token",
         BLUESKY_HANDLE="test.bsky.social",
         BLUESKY_APP_PASSWORD="test-password",
+        INSTAGRAM_USER_ID="",
+        INSTAGRAM_ACCESS_TOKEN="",
         SITE_URL="https://bookcorners.org",
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
         ADMIN_NOTIFICATION_EMAIL="admin@test.com",
@@ -267,6 +292,41 @@ class TestPostRandomLibraryCommand:
         MASTODON_ACCESS_TOKEN="test-token",
         BLUESKY_HANDLE="test.bsky.social",
         BLUESKY_APP_PASSWORD="test-password",
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="ig-token",
+        SITE_URL="https://bookcorners.org",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        ADMIN_NOTIFICATION_EMAIL="admin@test.com",
+    )
+    @patch("libraries.management.commands.post_random_library.Command._post_to_instagram")
+    @patch("libraries.management.commands.post_random_library.Command._post_to_bluesky")
+    @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
+    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    def test_posts_to_all_three_platforms(
+        self, mock_photo, mock_mastodon, mock_bluesky, mock_instagram, approved_library, capsys
+    ):
+        """Verify the command posts to all three platforms when configured.
+        Creates a SocialPost record with URLs from all platforms."""
+        mock_photo.return_value = Path("/tmp/test.jpg")
+        mock_mastodon.return_value = "https://mastodon.test/@user/123"
+        mock_bluesky.return_value = "https://bsky.app/profile/test/post/abc"
+        mock_instagram.return_value = "https://www.instagram.com/p/abc123/"
+
+        call_command("post_random_library")
+
+        assert SocialPost.objects.count() == 1
+        post = SocialPost.objects.first()
+        assert post.mastodon_url == "https://mastodon.test/@user/123"
+        assert post.bluesky_url == "https://bsky.app/profile/test/post/abc"
+        assert post.instagram_url == "https://www.instagram.com/p/abc123/"
+
+    @override_settings(
+        MASTODON_INSTANCE_URL="https://mastodon.test",
+        MASTODON_ACCESS_TOKEN="test-token",
+        BLUESKY_HANDLE="test.bsky.social",
+        BLUESKY_APP_PASSWORD="test-password",
+        INSTAGRAM_USER_ID="",
+        INSTAGRAM_ACCESS_TOKEN="",
         SITE_URL="https://bookcorners.org",
     )
     @patch("libraries.management.commands.post_random_library.Command._post_to_bluesky")
@@ -293,6 +353,8 @@ class TestPostRandomLibraryCommand:
         MASTODON_ACCESS_TOKEN="test-token",
         BLUESKY_HANDLE="test.bsky.social",
         BLUESKY_APP_PASSWORD="test-password",
+        INSTAGRAM_USER_ID="",
+        INSTAGRAM_ACCESS_TOKEN="",
         SITE_URL="https://bookcorners.org",
     )
     def test_dry_run_does_not_post(self, approved_library, capsys):
@@ -310,6 +372,8 @@ class TestPostRandomLibraryCommand:
         MASTODON_ACCESS_TOKEN="test-token",
         BLUESKY_HANDLE="test.bsky.social",
         BLUESKY_APP_PASSWORD="test-password",
+        INSTAGRAM_USER_ID="",
+        INSTAGRAM_ACCESS_TOKEN="",
         SITE_URL="https://bookcorners.org",
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
         ADMIN_NOTIFICATION_EMAIL="admin@test.com",
@@ -338,6 +402,8 @@ class TestPostRandomLibraryCommand:
         MASTODON_ACCESS_TOKEN="test-token",
         BLUESKY_HANDLE="test.bsky.social",
         BLUESKY_APP_PASSWORD="test-password",
+        INSTAGRAM_USER_ID="",
+        INSTAGRAM_ACCESS_TOKEN="",
         SITE_URL="https://bookcorners.org",
     )
     def test_no_eligible_libraries(self, social_user, capsys):
@@ -351,6 +417,8 @@ class TestPostRandomLibraryCommand:
     @override_settings(
         MASTODON_INSTANCE_URL="https://mastodon.test",
         MASTODON_ACCESS_TOKEN="test-token",
+        INSTAGRAM_USER_ID="",
+        INSTAGRAM_ACCESS_TOKEN="",
         SITE_URL="https://bookcorners.org",
     )
     def test_skips_libraries_without_photo(self, approved_library_no_photo, capsys):
@@ -363,6 +431,96 @@ class TestPostRandomLibraryCommand:
 
 
 @pytest.mark.django_db
+class TestOnlyPlatformFlag:
+    """Tests for the --only flag on the post_random_library command."""
+
+    @override_settings(
+        MASTODON_INSTANCE_URL="https://mastodon.test",
+        MASTODON_ACCESS_TOKEN="test-token",
+        BLUESKY_HANDLE="test.bsky.social",
+        BLUESKY_APP_PASSWORD="test-password",
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.management.commands.post_random_library.Command._post_to_instagram")
+    @patch("libraries.management.commands.post_random_library.Command._post_to_bluesky")
+    @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
+    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    def test_only_instagram(
+        self, mock_photo, mock_mastodon, mock_bluesky, mock_instagram, approved_library
+    ):
+        """Verify --only instagram skips Mastodon and Bluesky.
+        Useful for testing and populating a new platform."""
+        mock_photo.return_value = Path("/tmp/test.jpg")
+        mock_instagram.return_value = "https://www.instagram.com/p/abc123/"
+
+        call_command("post_random_library", only="instagram")
+
+        mock_mastodon.assert_not_called()
+        mock_bluesky.assert_not_called()
+        mock_instagram.assert_called_once()
+        post = SocialPost.objects.first()
+        assert post.instagram_url == "https://www.instagram.com/p/abc123/"
+        assert post.mastodon_url == ""
+        assert post.bluesky_url == ""
+
+    @override_settings(
+        MASTODON_INSTANCE_URL="https://mastodon.test",
+        MASTODON_ACCESS_TOKEN="test-token",
+        BLUESKY_HANDLE="test.bsky.social",
+        BLUESKY_APP_PASSWORD="test-password",
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.management.commands.post_random_library.Command._post_to_instagram")
+    @patch("libraries.management.commands.post_random_library.Command._post_to_bluesky")
+    @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
+    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    def test_only_mastodon(
+        self, mock_photo, mock_mastodon, mock_bluesky, mock_instagram, approved_library
+    ):
+        """Verify --only mastodon skips Bluesky and Instagram.
+        Isolates posting to a single platform."""
+        mock_photo.return_value = Path("/tmp/test.jpg")
+        mock_mastodon.return_value = "https://mastodon.test/@user/123"
+
+        call_command("post_random_library", only="mastodon")
+
+        mock_mastodon.assert_called_once()
+        mock_bluesky.assert_not_called()
+        mock_instagram.assert_not_called()
+
+    @override_settings(
+        MASTODON_INSTANCE_URL="https://mastodon.test",
+        MASTODON_ACCESS_TOKEN="test-token",
+        BLUESKY_HANDLE="test.bsky.social",
+        BLUESKY_APP_PASSWORD="test-password",
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.management.commands.post_random_library.Command._post_to_instagram")
+    @patch("libraries.management.commands.post_random_library.Command._post_to_bluesky")
+    @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
+    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    def test_only_bluesky(
+        self, mock_photo, mock_mastodon, mock_bluesky, mock_instagram, approved_library
+    ):
+        """Verify --only bluesky skips Mastodon and Instagram.
+        Isolates posting to a single platform."""
+        mock_photo.return_value = Path("/tmp/test.jpg")
+        mock_bluesky.return_value = "https://bsky.app/profile/test/post/abc"
+
+        call_command("post_random_library", only="bluesky")
+
+        mock_mastodon.assert_not_called()
+        mock_bluesky.assert_called_once()
+        mock_instagram.assert_not_called()
+
+
+@pytest.mark.django_db
 class TestCredentialGating:
     """Tests for credential gating behavior."""
 
@@ -371,6 +529,8 @@ class TestCredentialGating:
         MASTODON_ACCESS_TOKEN="",
         BLUESKY_HANDLE="",
         BLUESKY_APP_PASSWORD="",
+        INSTAGRAM_USER_ID="",
+        INSTAGRAM_ACCESS_TOKEN="",
     )
     def test_no_credentials_skips_silently(self, approved_library, capsys):
         """Verify clean exit when no social credentials are configured.
@@ -386,6 +546,8 @@ class TestCredentialGating:
         MASTODON_ACCESS_TOKEN="test-token",
         BLUESKY_HANDLE="",
         BLUESKY_APP_PASSWORD="",
+        INSTAGRAM_USER_ID="",
+        INSTAGRAM_ACCESS_TOKEN="",
         SITE_URL="https://bookcorners.org",
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
         ADMIN_NOTIFICATION_EMAIL="admin@test.com",
@@ -395,7 +557,7 @@ class TestCredentialGating:
     def test_only_mastodon_configured(
         self, mock_photo, mock_mastodon, approved_library, capsys
     ):
-        """Verify only Mastodon is called when Bluesky is unconfigured.
+        """Verify only Mastodon is called when Bluesky and Instagram are unconfigured.
         Supports gradual platform rollout."""
         mock_photo.return_value = Path("/tmp/test.jpg")
         mock_mastodon.return_value = "https://mastodon.test/@user/123"
@@ -406,6 +568,228 @@ class TestCredentialGating:
         post = SocialPost.objects.first()
         assert post.mastodon_url == "https://mastodon.test/@user/123"
         assert post.bluesky_url == ""
+        assert post.instagram_url == ""
+
+    @override_settings(
+        MASTODON_INSTANCE_URL="",
+        MASTODON_ACCESS_TOKEN="",
+        BLUESKY_HANDLE="",
+        BLUESKY_APP_PASSWORD="",
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="ig-token",
+        SITE_URL="https://bookcorners.org",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        ADMIN_NOTIFICATION_EMAIL="admin@test.com",
+    )
+    @patch("libraries.management.commands.post_random_library.Command._post_to_instagram")
+    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    def test_only_instagram_configured(
+        self, mock_photo, mock_instagram, approved_library, capsys
+    ):
+        """Verify only Instagram is called when Mastodon and Bluesky are unconfigured.
+        Supports gradual platform rollout."""
+        mock_photo.return_value = Path("/tmp/test.jpg")
+        mock_instagram.return_value = "https://www.instagram.com/p/abc123/"
+
+        call_command("post_random_library")
+
+        assert SocialPost.objects.count() == 1
+        post = SocialPost.objects.first()
+        assert post.mastodon_url == ""
+        assert post.bluesky_url == ""
+        assert post.instagram_url == "https://www.instagram.com/p/abc123/"
+
+    @override_settings(
+        MASTODON_INSTANCE_URL="",
+        MASTODON_ACCESS_TOKEN="",
+        BLUESKY_HANDLE="",
+        BLUESKY_APP_PASSWORD="",
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="",
+        SITE_URL="https://bookcorners.org",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        ADMIN_NOTIFICATION_EMAIL="admin@test.com",
+    )
+    @patch("libraries.management.commands.post_random_library.Command._post_to_instagram")
+    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    def test_instagram_configured_via_db_token(
+        self, mock_photo, mock_instagram, approved_library
+    ):
+        """Verify Instagram is detected as configured when token exists in DB.
+        Supports the DB-first token strategy after initial refresh."""
+        InstagramToken.objects.create(access_token="db-stored-token")
+        mock_photo.return_value = Path("/tmp/test.jpg")
+        mock_instagram.return_value = "https://www.instagram.com/p/abc123/"
+
+        call_command("post_random_library")
+
+        assert SocialPost.objects.count() == 1
+        post = SocialPost.objects.first()
+        assert post.instagram_url == "https://www.instagram.com/p/abc123/"
+
+
+# --- Instagram client tests ---
+
+
+@pytest.mark.django_db
+class TestInstagramClient:
+    """Tests for the Instagram posting client module."""
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.social.instagram.requests.get")
+    @patch("libraries.social.instagram.requests.post")
+    def test_post_library_success(self, mock_post, mock_get, approved_library):
+        """Verify the three-step Instagram posting flow works end to end.
+        Container creation, publishing, and permalink retrieval."""
+        from libraries.social.instagram import post_library
+
+        # Mock container creation
+        mock_post.side_effect = [
+            _mock_response(json_data={"id": "container-123"}),
+            _mock_response(json_data={"id": "media-456"}),
+        ]
+        # Mock permalink retrieval
+        mock_get.return_value = _mock_response(
+            json_data={"permalink": "https://www.instagram.com/p/abc123/"}
+        )
+
+        result = post_library(
+            approved_library,
+            text="Test caption",
+            image_path=Path("/tmp/test.jpg"),
+        )
+
+        assert result == "https://www.instagram.com/p/abc123/"
+        assert mock_post.call_count == 2
+        assert mock_get.call_count == 1
+
+        # Verify container creation call
+        container_call = mock_post.call_args_list[0]
+        assert "123456/media" in container_call.args[0]
+        assert container_call.kwargs["data"]["caption"] == "Test caption"
+        assert "bookcorners.org" in container_call.kwargs["data"]["image_url"]
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.social.instagram.requests.post")
+    def test_post_library_container_fails(self, mock_post, approved_library):
+        """Verify HTTP errors from the container step propagate correctly.
+        Allows the command to catch and handle the failure."""
+        from libraries.social.instagram import post_library
+
+        mock_post.return_value = _mock_response(status_code=400, raise_on_status=True)
+
+        with pytest.raises(Exception):
+            post_library(
+                approved_library,
+                text="Test caption",
+                image_path=Path("/tmp/test.jpg"),
+            )
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.social.instagram.requests.get")
+    @patch("libraries.social.instagram.requests.post")
+    def test_post_library_uses_db_token(self, mock_post, mock_get, approved_library):
+        """Verify the client prefers the DB-stored token over the env var.
+        Ensures refreshed tokens are picked up automatically."""
+        from libraries.social.instagram import post_library
+
+        InstagramToken.objects.create(access_token="db-token-xyz")
+
+        mock_post.side_effect = [
+            _mock_response(json_data={"id": "container-123"}),
+            _mock_response(json_data={"id": "media-456"}),
+        ]
+        mock_get.return_value = _mock_response(
+            json_data={"permalink": "https://www.instagram.com/p/xyz/"}
+        )
+
+        post_library(
+            approved_library,
+            text="Test caption",
+            image_path=Path("/tmp/test.jpg"),
+        )
+
+        # Verify DB token was used in container creation
+        container_call = mock_post.call_args_list[0]
+        assert container_call.kwargs["data"]["access_token"] == "db-token-xyz"
+
+
+# --- Token refresh command tests ---
+
+
+@pytest.mark.django_db
+class TestRefreshInstagramToken:
+    """Tests for the refresh_instagram_token management command."""
+
+    @override_settings(INSTAGRAM_ACCESS_TOKEN="env-token-abc")
+    @patch("libraries.management.commands.refresh_instagram_token.requests.get")
+    def test_refresh_from_env_var(self, mock_get, capsys):
+        """Verify token refresh works when bootstrapping from env var.
+        Creates a DB row on first successful refresh."""
+        mock_get.return_value = _mock_response(
+            json_data={"access_token": "new-token-xyz"}
+        )
+
+        call_command("refresh_instagram_token")
+
+        captured = capsys.readouterr()
+        assert "refreshed successfully" in captured.out
+        assert InstagramToken.objects.count() == 1
+        assert InstagramToken.objects.first().access_token == "new-token-xyz"
+
+    @override_settings(INSTAGRAM_ACCESS_TOKEN="")
+    @patch("libraries.management.commands.refresh_instagram_token.requests.get")
+    def test_refresh_from_db_token(self, mock_get):
+        """Verify token refresh uses the DB-stored token when available.
+        Ensures continuity across multiple refresh cycles."""
+        InstagramToken.objects.create(access_token="old-db-token")
+        mock_get.return_value = _mock_response(
+            json_data={"access_token": "refreshed-token"}
+        )
+
+        call_command("refresh_instagram_token")
+
+        assert InstagramToken.objects.count() == 1
+        assert InstagramToken.objects.first().access_token == "refreshed-token"
+
+    @override_settings(INSTAGRAM_ACCESS_TOKEN="")
+    def test_skips_when_no_token(self, capsys):
+        """Verify clean exit when no Instagram token exists anywhere.
+        Prevents errors in environments without Instagram configured."""
+        call_command("refresh_instagram_token")
+
+        captured = capsys.readouterr()
+        assert "No Instagram token configured" in captured.out
+
+    @override_settings(
+        INSTAGRAM_ACCESS_TOKEN="env-token",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        ADMIN_NOTIFICATION_EMAIL="admin@test.com",
+    )
+    @patch("libraries.management.commands.refresh_instagram_token.requests.get")
+    def test_notifies_on_failure(self, mock_get, capsys):
+        """Verify admin is notified when token refresh fails.
+        Alerts before the token expires so manual action can be taken."""
+        mock_get.return_value = _mock_response(status_code=400, raise_on_status=True)
+
+        call_command("refresh_instagram_token")
+
+        captured = capsys.readouterr()
+        assert "Token refresh failed" in captured.err
+        assert len(mail.outbox) == 1
+        assert "refresh failed" in mail.outbox[0].subject
 
 
 # --- Notification tests ---
@@ -443,6 +827,25 @@ class TestSocialPostNotifications:
         ADMIN_NOTIFICATION_EMAIL="admin@test.com",
         SITE_URL="https://bookcorners.org",
     )
+    def test_success_notification_includes_instagram(self, approved_library):
+        """Verify the success notification includes the Instagram URL.
+        Keeps admins informed about all platforms posted to."""
+        social_post = SocialPost.objects.create(
+            library=approved_library,
+            post_text="Test post",
+            instagram_url="https://www.instagram.com/p/abc123/",
+        )
+
+        notify_social_post(social_post)
+
+        assert len(mail.outbox) == 1
+        assert "instagram.com" in mail.outbox[0].body
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        ADMIN_NOTIFICATION_EMAIL="admin@test.com",
+        SITE_URL="https://bookcorners.org",
+    )
     def test_error_notification_sent(self, approved_library):
         """Verify error notification email is sent with failure details.
         Alerts admins when social posting encounters problems."""
@@ -469,3 +872,41 @@ class TestSocialPostNotifications:
         notify_social_post_error(approved_library, "error")
 
         assert len(mail.outbox) == 0
+
+
+# --- Test helpers ---
+
+
+class _MockResponse:
+    """Minimal mock for requests.Response objects."""
+
+    def __init__(self, *, json_data=None, status_code=200, should_raise=False):
+        """Initialize with response data and status code.
+        Optionally configured to raise on raise_for_status."""
+        self._json_data = json_data or {}
+        self.status_code = status_code
+        self._should_raise = should_raise
+
+    def json(self):
+        """Return the mock JSON body."""
+        return self._json_data
+
+    def raise_for_status(self):
+        """Raise an HTTPError if configured to do so.
+        Simulates failed API responses."""
+        if self._should_raise:
+            import requests
+
+            raise requests.HTTPError(
+                response=self, request=None,
+            )
+
+
+def _mock_response(*, json_data=None, status_code=200, raise_on_status=False):
+    """Create a mock requests.Response for testing API calls.
+    Supports both success and error scenarios."""
+    return _MockResponse(
+        json_data=json_data,
+        status_code=status_code,
+        should_raise=raise_on_status,
+    )
