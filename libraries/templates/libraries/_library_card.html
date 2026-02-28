@@ -1,3 +1,4 @@
+{% load i18n %}
 <article class="card border border-base-300 bg-base-100 shadow-sm">
   <figure class="aspect-[4/3] overflow-hidden bg-base-200">
     <a href="{% url 'library_detail' slug=library.slug %}" class="h-full w-full">
@@ -15,11 +16,11 @@
     </h3>
     <p class="text-sm text-base-content/70">{{ library.city }}, {{ library.country }}</p>
     {% if library.distance %}
-      <p class="text-xs text-base-content/60">{{ library.distance.km|floatformat:1 }} km away</p>
+      <p class="text-xs text-base-content/60">{% blocktrans with km=library.distance.km|floatformat:1 %}{{ km }} km away{% endblocktrans %}</p>
     {% endif %}
     <p class="text-sm text-base-content/80">{{ library.description|default:library.address|truncatechars:120 }}</p>
     <div class="card-actions mt-2 justify-end">
-      <a href="{% url 'library_detail' slug=library.slug %}" class="btn btn-sm btn-outline">View details</a>
+      <a href="{% url 'library_detail' slug=library.slug %}" class="btn btn-sm btn-outline">{% trans "View details" %}</a>
     </div>
   </div>
 </article>

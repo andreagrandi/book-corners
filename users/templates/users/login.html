@@ -1,14 +1,15 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Login - Book Corners{% endblock %}
-{% block meta_description %}Log in to Book Corners to submit libraries, report issues, and manage your contributions.{% endblock %}
+{% block title %}{% trans "Login" %} - Book Corners{% endblock %}
+{% block meta_description %}{% trans "Log in to Book Corners to submit libraries, report issues, and manage your contributions." %}{% endblock %}
 
 {% block content %}
   <section class="mx-auto w-full max-w-md">
     <div class="card bg-base-100 shadow-sm">
       <div class="card-body">
-        <h1 class="card-title text-2xl">Log in</h1>
-        <p class="text-base-content/70">Use your username or email address to access your account.</p>
+        <h1 class="card-title text-2xl">{% trans "Log in" %}</h1>
+        <p class="text-base-content/70">{% trans "Use your username or email address to access your account." %}</p>
 
         <form method="post" class="mt-2 space-y-4" novalidate>
           {% csrf_token %}
@@ -19,22 +20,22 @@
           {% endif %}
 
           <label class="flex w-full flex-col gap-1">
-            <span class="text-sm font-medium">Username or email</span>
+            <span class="text-sm font-medium">{% trans "Username or email" %}</span>
             {{ form.username }}
             {% if form.username.errors %}<span class="mt-1 text-sm text-error">{{ form.username.errors.0 }}</span>{% endif %}
           </label>
 
           <label class="flex w-full flex-col gap-1">
-            <span class="text-sm font-medium">Password</span>
+            <span class="text-sm font-medium">{% trans "Password" %}</span>
             {{ form.password }}
             {% if form.password.errors %}<span class="mt-1 text-sm text-error">{{ form.password.errors.0 }}</span>{% endif %}
           </label>
 
-          <button type="submit" class="btn btn-primary w-full">Log in</button>
+          <button type="submit" class="btn btn-primary w-full">{% trans "Log in" %}</button>
         </form>
 
         {% if google_oauth_enabled %}
-        <div class="divider text-sm text-base-content/50">or</div>
+        <div class="divider text-sm text-base-content/50">{% trans "or" %}</div>
 
         <form method="post" action="{% url 'google_login' %}">
           {% csrf_token %}
@@ -46,14 +47,14 @@
               <path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.0 24.0 0 0 0 0 21.56l7.98-6.19z"/>
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
-            Continue with Google
+            {% trans "Continue with Google" %}
           </button>
         </form>
         {% endif %}
 
         <p class="mt-2 text-center text-sm text-base-content/70">
-          New here?
-          <a href="{% url 'register' %}" class="link link-primary">Create an account</a>
+          {% trans "New here?" %}
+          <a href="{% url 'register' %}" class="link link-primary">{% trans "Create an account" %}</a>
         </p>
       </div>
     </div>

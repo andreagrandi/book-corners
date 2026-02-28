@@ -152,6 +152,15 @@ When adding or removing a user-facing feature on the website (views, templates, 
 - Removing a field from a web form — ask if the corresponding API input schema should also drop the field.
 - Adding a new web page for a resource — ask if a matching API endpoint is needed.
 
+## Translations (required)
+
+Every user-facing string must be translatable. When adding, removing, or updating an English string in templates, views, or forms:
+
+1. Wrap the string with `{% trans %}` (templates) or `gettext` / `gettext_lazy` (Python code). For inline JS strings inside `<script>` blocks in Django templates, use `{% trans %}` directly in the string literal.
+2. Add or update the corresponding `msgid`/`msgstr` pair in `locale/it/LC_MESSAGES/django.po`.
+3. Run `python manage.py makemessages -l it --no-wrap` then `python manage.py compilemessages` to regenerate the `.mo` file.
+4. Avoid `%(name)s`-style placeholders inside `{% trans %}` for JS-only variables — use `{name}` brace placeholders instead (gettext marks `%(...)s` as `python-format` and doubles the `%`). Use JS `.replace("{name}", value)` to substitute at runtime.
+
 ## Code style expectations
 
 - Add a docstring to every new function, method, and test function.

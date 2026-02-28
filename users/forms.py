@@ -4,6 +4,7 @@ from django import forms
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.utils.translation import gettext_lazy as _
 
 User = get_user_model()
 
@@ -41,12 +42,12 @@ class RegistrationForm(UserCreationForm):
         Ensures case-insensitive uniqueness at the form level."""
         email = self.cleaned_data.get("email", "").strip().lower()
         if User.objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError("A user with this email already exists.")
+            raise forms.ValidationError(_("A user with this email already exists."))
         return email
 
 
 class UsernameOrEmailAuthenticationForm(AuthenticationForm):
-    username = forms.CharField(label="Username or email", max_length=254)
+    username = forms.CharField(label=_("Username or email"), max_length=254)
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the object state.

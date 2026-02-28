@@ -1,19 +1,19 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Submission received - Book Corners{% endblock %}
-{% block meta_description %}Your library submission was received and is now waiting for moderation approval on Book Corners.{% endblock %}
+{% block title %}{% trans "Submission received" %} - Book Corners{% endblock %}
+{% block meta_description %}{% trans "Your library submission was received and is now waiting for moderation approval on Book Corners." %}{% endblock %}
 
 {% block content %}
   <section class="mx-auto w-full max-w-2xl">
     <article class="card border border-base-300 bg-base-100 shadow-sm">
       <div class="card-body gap-4 p-6">
-        <h1 class="text-3xl font-bold">Submission received</h1>
+        <h1 class="text-3xl font-bold">{% trans "Submission received" %}</h1>
         <p class="text-base-content/80">
-          Thanks for contributing. Your library submission has been sent to moderators.
-          It will be reviewed and approved as soon as possible.
+          {% trans "Thanks for contributing. Your library submission has been sent to moderators. It will be reviewed and approved as soon as possible." %}
         </p>
         <div class="card-actions justify-end">
-          <a href="{% url 'home' %}" class="btn btn-primary">Continue</a>
+          <a href="{% url 'home' %}" class="btn btn-primary">{% trans "Continue" %}</a>
         </div>
       </div>
     </article>

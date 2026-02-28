@@ -1,3 +1,4 @@
+{% load i18n %}
 <div id="latest-entries-pagination" class="mt-6 flex justify-center"{% if use_oob %} hx-swap-oob="outerHTML"{% endif %}>
   {% if page_obj.has_next %}
     <button
@@ -7,9 +8,9 @@
       hx-target="#latest-entries-grid"
       hx-swap="beforeend"
     >
-      Load more
+      {% trans "Load more" %}
     </button>
   {% elif page_obj.paginator.count > 0 %}
-    <p class="text-sm text-base-content/60">You have reached the latest approved entries.</p>
+    <p class="text-sm text-base-content/60">{% trans "You have reached the latest approved entries." %}</p>
   {% endif %}
 </div>

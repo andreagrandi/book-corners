@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Map - Book Corners{% endblock %}
-{% block meta_description %}Explore the Book Corners map to find little free libraries near you and across nearby cities.{% endblock %}
+{% block title %}{% trans "Map" %} - Book Corners{% endblock %}
+{% block meta_description %}{% trans "Explore the Book Corners map to find little free libraries near you and across nearby cities." %}{% endblock %}
 
 {% block extra_head %}
   <link
@@ -24,49 +25,49 @@
   <section class="space-y-6">
     <article class="card border border-base-300 bg-base-100 shadow-sm">
       <div class="card-body p-5">
-        <h1 class="text-3xl font-bold">Explore libraries</h1>
+        <h1 class="text-3xl font-bold">{% trans "Explore libraries" %}</h1>
         <p class="text-base-content/70">
-          Use one filter set and switch between map, list, or split view without reloading the page.
+          {% trans "Use one filter set and switch between map, list, or split view without reloading the page." %}
         </p>
 
         <form id="map-filters-form" method="get" action="{% url 'map_page' %}" class="mt-2 space-y-4" novalidate>
           <div class="grid gap-4 lg:grid-cols-2">
             <label class="flex w-full flex-col gap-1">
-              <span class="text-sm font-medium">Keywords</span>
+              <span class="text-sm font-medium">{% trans "Keywords" %}</span>
               {{ form.q }}
             </label>
 
             <label class="flex w-full flex-col gap-1">
-              <span class="text-sm font-medium">Near (place-like query)</span>
+              <span class="text-sm font-medium">{% trans "Near (place-like query)" %}</span>
               {{ form.near }}
             </label>
           </div>
 
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <label class="flex w-full flex-col gap-1">
-              <span class="text-sm font-medium">Radius (km)</span>
+              <span class="text-sm font-medium">{% trans "Radius (km)" %}</span>
               {{ form.radius_km }}
             </label>
 
             <label class="flex w-full flex-col gap-1">
-              <span class="text-sm font-medium">City filter</span>
+              <span class="text-sm font-medium">{% trans "City filter" %}</span>
               {{ form.city }}
             </label>
 
             <label class="flex w-full flex-col gap-1">
-              <span class="text-sm font-medium">Country filter</span>
+              <span class="text-sm font-medium">{% trans "Country filter" %}</span>
               {{ form.country }}
             </label>
 
             <label class="flex w-full flex-col gap-1">
-              <span class="text-sm font-medium">Postal code filter</span>
+              <span class="text-sm font-medium">{% trans "Postal code filter" %}</span>
               {{ form.postal_code }}
             </label>
           </div>
 
           <div class="flex flex-wrap gap-2">
-            <button type="submit" class="btn btn-primary">Apply filters</button>
-            <button id="map-filters-clear" type="button" class="btn btn-outline">Clear</button>
+            <button type="submit" class="btn btn-primary">{% trans "Apply filters" %}</button>
+            <button id="map-filters-clear" type="button" class="btn btn-outline">{% trans "Clear" %}</button>
           </div>
         </form>
 
@@ -97,12 +98,12 @@
 
       <aside id="list-results-panel" class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm lg:col-span-1">
         <div class="mb-3 flex items-center justify-between gap-2">
-          <h2 class="text-lg font-semibold">Libraries list</h2>
+          <h2 class="text-lg font-semibold">{% trans "Libraries list" %}</h2>
           <span id="list-results-count" class="text-xs text-base-content/60"></span>
         </div>
 
         <div id="map-list-results" class="max-h-[68vh] overflow-y-auto pr-1">
-          <div class="text-sm text-base-content/70">Loading libraries...</div>
+          <div class="text-sm text-base-content/70">{% trans "Loading libraries..." %}</div>
         </div>
       </aside>
     </section>
@@ -118,6 +119,12 @@
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
+      const TEXT_RESULTS = "{% trans '{count} results' %}";
+      const TEXT_SHOWING_ALL = "{% trans 'Showing {total} libraries' %}";
+      const TEXT_SHOWING_PARTIAL = "{% trans 'Showing {count} of {total} libraries' %}";
+      const TEXT_GEOCODING_FAILED = "{% trans 'Could not resolve the location, so keyword matching was used instead.' %}";
+      const TEXT_ON_THE_MAP = "{% trans 'on the map.' %}";
+
       const mapElement = document.getElementById("libraries-map");
       const filtersForm = document.getElementById("map-filters-form");
       const clearButton = document.getElementById("map-filters-clear");
@@ -229,7 +236,7 @@
         const markerElement = listResultsContainer.querySelector("[data-list-total-count]");
         const rawCount = markerElement?.dataset.listTotalCount || "";
         const totalCount = Number.parseInt(rawCount, 10);
-        listCountElement.textContent = Number.isInteger(totalCount) ? `${totalCount} results` : "";
+        listCountElement.textContent = Number.isInteger(totalCount) ? TEXT_RESULTS.replace("{count}", totalCount) : "";
       }
 
       function escapeHtml(value) {
@@ -242,7 +249,7 @@
       }
 
       function buildPopupHtml(properties) {
-        const name = escapeHtml(properties.name || "Neighborhood Library");
+        const name = escapeHtml(properties.name || "{% trans 'Neighborhood Library' %}");
         const city = escapeHtml(properties.city || "");
         const country = escapeHtml(properties.country || "");
         const photoUrl = escapeHtml(properties.photo_url || "");
@@ -260,7 +267,7 @@
             ${imageHtml}
             <h3 class="text-sm font-semibold">${name}</h3>
             ${locationHtml}
-            <a href="${detailUrl}" class="btn btn-xs btn-outline">View details</a>
+            <a href="${detailUrl}" class="btn btn-xs btn-outline">{% trans "View details" %}</a>
           </article>
         `;
       }
@@ -331,17 +338,15 @@
         const geocodingFailed = Boolean(meta.location_resolution_failed);
 
         const countText = count === total
-          ? `Showing ${total} libraries`
-          : `Showing ${count} of ${total} libraries`;
+          ? TEXT_SHOWING_ALL.replace("{total}", total)
+          : TEXT_SHOWING_PARTIAL.replace("{count}", count).replace("{total}", total);
 
         if (geocodingFailed && nearQuery) {
-          setSummary(
-            `${countText}. Could not resolve "${nearQuery}", so keyword matching was used instead.`
-          );
+          setSummary(countText + ". " + TEXT_GEOCODING_FAILED);
           return;
         }
 
-        setSummary(`${countText} on the map.`);
+        setSummary(countText + " " + TEXT_ON_THE_MAP);
       }
 
       function applyMapViewFromPayload(payload, allowRecenter) {
@@ -422,10 +427,10 @@
         updateAddressBar(addressBarParams, pushHistory);
 
         if (showLoadingSummary && fetchMap) {
-          setSummary("Loading libraries on the map...");
+          setSummary("{% trans 'Loading libraries on the map...' %}");
         }
         if (fetchList) {
-          listResultsContainer.innerHTML = "<div class=\"text-sm text-base-content/70\">Loading libraries...</div>";
+          listResultsContainer.innerHTML = "<div class=\"text-sm text-base-content/70\">{% trans 'Loading libraries...' %}</div>";
         }
 
         const requests = [];
@@ -489,11 +494,11 @@
           }
 
           if (fetchList) {
-            listResultsContainer.innerHTML = "<div class=\"text-sm text-error\">Could not load library list right now.</div>";
+            listResultsContainer.innerHTML = "<div class=\"text-sm text-error\">{% trans 'Could not load library list right now.' %}</div>";
             listCountElement.textContent = "";
           }
           if (fetchMap) {
-            setSummary("Could not load map markers right now. Please try again.", true);
+            setSummary("{% trans 'Could not load map markers right now. Please try again.' %}", true);
           }
         }
       }

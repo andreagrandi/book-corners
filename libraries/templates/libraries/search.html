@@ -1,15 +1,16 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Search - Book Corners{% endblock %}
-{% block meta_description %}Search little free libraries by keywords, city, country, postcode, and proximity filters.{% endblock %}
+{% block title %}{% trans "Search" %} - Book Corners{% endblock %}
+{% block meta_description %}{% trans "Search little free libraries by keywords, city, country, postcode, and proximity filters." %}{% endblock %}
 
 {% block content %}
   <section class="space-y-6">
     <article class="card border border-base-300 bg-base-100 shadow-sm">
       <div class="card-body p-5">
-        <h1 class="text-3xl font-bold">Search libraries</h1>
+        <h1 class="text-3xl font-bold">{% trans "Search libraries" %}</h1>
         <p class="text-base-content/70">
-          Search by keywords, by place with a radius, or narrow results with structured filters.
+          {% trans "Search by keywords, by place with a radius, or narrow results with structured filters." %}
         </p>
 
         <form
@@ -23,41 +24,41 @@
         >
           <div class="grid gap-4 lg:grid-cols-2">
             <label class="flex w-full flex-col gap-1">
-              <span class="text-sm font-medium">Keywords</span>
+              <span class="text-sm font-medium">{% trans "Keywords" %}</span>
               {{ form.q }}
             </label>
 
             <label class="flex w-full flex-col gap-1">
-              <span class="text-sm font-medium">Near (place-like query)</span>
+              <span class="text-sm font-medium">{% trans "Near (place-like query)" %}</span>
               {{ form.near }}
             </label>
           </div>
 
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <label class="flex w-full flex-col gap-1">
-              <span class="text-sm font-medium">Radius (km)</span>
+              <span class="text-sm font-medium">{% trans "Radius (km)" %}</span>
               {{ form.radius_km }}
             </label>
 
             <label class="flex w-full flex-col gap-1">
-              <span class="text-sm font-medium">City filter</span>
+              <span class="text-sm font-medium">{% trans "City filter" %}</span>
               {{ form.city }}
             </label>
 
             <label class="flex w-full flex-col gap-1">
-              <span class="text-sm font-medium">Country filter</span>
+              <span class="text-sm font-medium">{% trans "Country filter" %}</span>
               {{ form.country }}
             </label>
 
             <label class="flex w-full flex-col gap-1">
-              <span class="text-sm font-medium">Postal code filter</span>
+              <span class="text-sm font-medium">{% trans "Postal code filter" %}</span>
               {{ form.postal_code }}
             </label>
           </div>
 
           <div class="flex flex-wrap gap-2">
-            <button type="submit" class="btn btn-primary">Search</button>
-            <a href="{% url 'search_libraries' %}" class="btn btn-outline">Clear</a>
+            <button type="submit" class="btn btn-primary">{% trans "Search" %}</button>
+            <a href="{% url 'search_libraries' %}" class="btn btn-outline">{% trans "Clear" %}</a>
           </div>
         </form>
       </div>

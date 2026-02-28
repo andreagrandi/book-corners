@@ -3,6 +3,7 @@ from django.contrib.gis.db.models import PointField
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import models
 from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
 
 from libraries.image_processing import build_library_photo_files
 
@@ -14,14 +15,14 @@ class Library(models.Model):
     """A little free library location with its details."""
 
     class Status(models.TextChoices):
-        PENDING = "pending", "Pending"
-        APPROVED = "approved", "Approved"
-        REJECTED = "rejected", "Rejected"
+        PENDING = "pending", _("Pending")
+        APPROVED = "approved", _("Approved")
+        REJECTED = "rejected", _("Rejected")
 
     class WheelchairAccess(models.TextChoices):
-        YES = "yes", "Yes"
-        NO = "no", "No"
-        LIMITED = "limited", "Limited"
+        YES = "yes", _("Yes")
+        NO = "no", _("No")
+        LIMITED = "limited", _("Limited")
 
     name = models.CharField(max_length=255, blank=True, default="")
     slug = models.SlugField(max_length=280, unique=True, editable=False)
@@ -193,16 +194,16 @@ class Report(models.Model):
     """A user-submitted report about a library issue."""
 
     class Reason(models.TextChoices):
-        DAMAGED = "damaged", "Damaged"
-        MISSING = "missing", "Missing"
-        INCORRECT_INFO = "incorrect_info", "Incorrect Info"
-        INAPPROPRIATE = "inappropriate", "Inappropriate"
-        OTHER = "other", "Other"
+        DAMAGED = "damaged", _("Damaged")
+        MISSING = "missing", _("Missing")
+        INCORRECT_INFO = "incorrect_info", _("Incorrect Info")
+        INAPPROPRIATE = "inappropriate", _("Inappropriate")
+        OTHER = "other", _("Other")
 
     class Status(models.TextChoices):
-        OPEN = "open", "Open"
-        RESOLVED = "resolved", "Resolved"
-        DISMISSED = "dismissed", "Dismissed"
+        OPEN = "open", _("Open")
+        RESOLVED = "resolved", _("Resolved")
+        DISMISSED = "dismissed", _("Dismissed")
 
     library = models.ForeignKey(
         "Library",
@@ -242,9 +243,9 @@ class LibraryPhoto(models.Model):
     """A community-submitted photo for an existing library."""
 
     class Status(models.TextChoices):
-        PENDING = "pending", "Pending"
-        APPROVED = "approved", "Approved"
-        REJECTED = "rejected", "Rejected"
+        PENDING = "pending", _("Pending")
+        APPROVED = "approved", _("Approved")
+        REJECTED = "rejected", _("Rejected")
 
     library = models.ForeignKey(
         "Library",

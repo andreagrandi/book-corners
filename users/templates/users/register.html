@@ -1,14 +1,15 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Register - Book Corners{% endblock %}
-{% block meta_description %}Create a Book Corners account to add new libraries and keep local entries up to date.{% endblock %}
+{% block title %}{% trans "Register" %} - Book Corners{% endblock %}
+{% block meta_description %}{% trans "Create a Book Corners account to add new libraries and keep local entries up to date." %}{% endblock %}
 
 {% block content %}
   <section class="mx-auto w-full max-w-md">
     <div class="card bg-base-100 shadow-sm">
       <div class="card-body">
-        <h1 class="card-title text-2xl">Create an account</h1>
-        <p class="text-base-content/70">Join to submit libraries and help keep information up to date.</p>
+        <h1 class="card-title text-2xl">{% trans "Create an account" %}</h1>
+        <p class="text-base-content/70">{% trans "Join to submit libraries and help keep information up to date." %}</p>
 
         <form method="post" class="mt-2 space-y-4" novalidate>
           {% csrf_token %}
@@ -18,34 +19,34 @@
           {% endif %}
 
           <label class="flex w-full flex-col gap-1">
-            <span class="text-sm font-medium">Username</span>
+            <span class="text-sm font-medium">{% trans "Username" %}</span>
             {{ form.username }}
             {% if form.username.errors %}<span class="mt-1 text-sm text-error">{{ form.username.errors.0 }}</span>{% endif %}
           </label>
 
           <label class="flex w-full flex-col gap-1">
-            <span class="text-sm font-medium">Email</span>
+            <span class="text-sm font-medium">{% trans "Email" %}</span>
             {{ form.email }}
             {% if form.email.errors %}<span class="mt-1 text-sm text-error">{{ form.email.errors.0 }}</span>{% endif %}
           </label>
 
           <label class="flex w-full flex-col gap-1">
-            <span class="text-sm font-medium">Password</span>
+            <span class="text-sm font-medium">{% trans "Password" %}</span>
             {{ form.password1 }}
             {% if form.password1.errors %}<span class="mt-1 text-sm text-error">{{ form.password1.errors.0 }}</span>{% endif %}
           </label>
 
           <label class="flex w-full flex-col gap-1">
-            <span class="text-sm font-medium">Confirm password</span>
+            <span class="text-sm font-medium">{% trans "Confirm password" %}</span>
             {{ form.password2 }}
             {% if form.password2.errors %}<span class="mt-1 text-sm text-error">{{ form.password2.errors.0 }}</span>{% endif %}
           </label>
 
-          <button type="submit" class="btn btn-primary w-full">Create account</button>
+          <button type="submit" class="btn btn-primary w-full">{% trans "Create account" %}</button>
         </form>
 
         {% if google_oauth_enabled %}
-        <div class="divider text-sm text-base-content/50">or</div>
+        <div class="divider text-sm text-base-content/50">{% trans "or" %}</div>
 
         <form method="post" action="{% url 'google_login' %}">
           {% csrf_token %}
@@ -56,14 +57,14 @@
               <path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.0 24.0 0 0 0 0 21.56l7.98-6.19z"/>
               <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
             </svg>
-            Continue with Google
+            {% trans "Continue with Google" %}
           </button>
         </form>
         {% endif %}
 
         <p class="mt-2 text-center text-sm text-base-content/70">
-          Already have an account?
-          <a href="{% url 'login' %}" class="link link-primary">Log in</a>
+          {% trans "Already have an account?" %}
+          <a href="{% url 'login' %}" class="link link-primary">{% trans "Log in" %}</a>
         </p>
       </div>
     </div>

@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Submit a library - Book Corners{% endblock %}
-{% block meta_description %}Submit a little free library to Book Corners with a photo, location, and address details.{% endblock %}
+{% block title %}{% trans "Submit a library" %} - Book Corners{% endblock %}
+{% block meta_description %}{% trans "Submit a little free library to Book Corners with a photo, location, and address details." %}{% endblock %}
 
 {% block extra_head %}
   <link
@@ -51,11 +52,11 @@
   <section class="grid gap-6 lg:grid-cols-2">
     <article class="card border border-base-300 bg-base-100 shadow-sm">
       <div class="card-body p-5">
-        <h1 class="text-3xl font-bold">Submit a library</h1>
+        <h1 class="text-3xl font-bold">{% trans "Submit a library" %}</h1>
         <p class="text-base-content/70">
-          Share a little free library with the community. Set the exact point on the map before submitting.
+          {% trans "Share a little free library with the community. Set the exact point on the map before submitting." %}
         </p>
-        <p class="text-sm text-base-content/60">Fields marked with <span class="font-medium">(optional)</span> can be left blank.</p>
+        <p class="text-sm text-base-content/60">{% blocktrans %}Fields marked with <span class="font-medium">(optional)</span> can be left blank.{% endblocktrans %}</p>
 
         <form method="post" enctype="multipart/form-data" class="space-y-4" novalidate>
           {% csrf_token %}
@@ -67,37 +68,37 @@
           {% endif %}
 
           <label class="flex w-full flex-col gap-1">
-            <span class="text-sm font-medium">Photo</span>
+            <span class="text-sm font-medium">{% trans "Photo" %}</span>
             {{ form.photo }}
             {% if form.photo.errors %}<span class="mt-1 text-sm text-error">{{ form.photo.errors.0 }}</span>{% endif %}
           </label>
 
           <label class="flex w-full flex-col gap-1">
-            <span class="text-sm font-medium">Name (optional)</span>
+            <span class="text-sm font-medium">{% trans "Name (optional)" %}</span>
             {{ form.name }}
             {% if form.name.errors %}<span class="mt-1 text-sm text-error">{{ form.name.errors.0 }}</span>{% endif %}
           </label>
 
           <label class="flex w-full flex-col gap-1">
-            <span class="text-sm font-medium">Description (optional)</span>
+            <span class="text-sm font-medium">{% trans "Description (optional)" %}</span>
             {{ form.description }}
             {% if form.description.errors %}<span class="mt-1 text-sm text-error">{{ form.description.errors.0 }}</span>{% endif %}
           </label>
 
           <label class="flex w-full flex-col gap-1">
-            <span class="text-sm font-medium">Country</span>
+            <span class="text-sm font-medium">{% trans "Country" %}</span>
             {{ form.country }}
             {% if form.country.errors %}<span class="mt-1 text-sm text-error">{{ form.country.errors.0 }}</span>{% endif %}
           </label>
 
           <label class="flex w-full flex-col gap-1">
-            <span class="text-sm font-medium">City</span>
+            <span class="text-sm font-medium">{% trans "City" %}</span>
             {{ form.city }}
             {% if form.city.errors %}<span class="mt-1 text-sm text-error">{{ form.city.errors.0 }}</span>{% endif %}
           </label>
 
           <label class="flex w-full flex-col gap-1">
-            <span class="text-sm font-medium">Address</span>
+            <span class="text-sm font-medium">{% trans "Address" %}</span>
             {{ form.address }}
             <ul
               id="address-suggestions"
@@ -107,7 +108,7 @@
           </label>
 
           <label class="flex w-full flex-col gap-1">
-            <span class="text-sm font-medium">Postal code (optional)</span>
+            <span class="text-sm font-medium">{% trans "Postal code (optional)" %}</span>
             {{ form.postal_code }}
             {% if form.postal_code.errors %}<span class="mt-1 text-sm text-error">{{ form.postal_code.errors.0 }}</span>{% endif %}
           </label>
@@ -115,18 +116,18 @@
           {% if form.latitude.errors %}<p class="text-sm text-error">{{ form.latitude.errors.0 }}</p>{% endif %}
           {% if form.longitude.errors %}<p class="text-sm text-error">{{ form.longitude.errors.0 }}</p>{% endif %}
 
-          <button type="submit" class="btn btn-primary w-full">Submit library</button>
+          <button type="submit" class="btn btn-primary w-full">{% trans "Submit library" %}</button>
         </form>
       </div>
     </article>
 
     <section class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <h2 class="text-xl font-semibold">Set exact location</h2>
-        <button id="center-map-from-address" type="button" class="btn btn-sm btn-outline">Center from address</button>
+        <h2 class="text-xl font-semibold">{% trans "Set exact location" %}</h2>
+        <button id="center-map-from-address" type="button" class="btn btn-sm btn-outline">{% trans "Center from address" %}</button>
       </div>
       <p class="mt-2 text-sm text-base-content/70">
-        Type an address and choose a suggestion to center the map. Drag the marker to refine the exact point.
+        {% trans "Type an address and choose a suggestion to center the map. Drag the marker to refine the exact point." %}
       </p>
       <p id="submit-map-status" class="mt-2 text-sm text-base-content/60"></p>
       <div
@@ -256,12 +257,12 @@
       marker.on("dragend", function () {
         const markerPosition = marker.getLatLng();
         updateCoordinates(markerPosition.lat, markerPosition.lng);
-        setStatus("Marker moved. Coordinates updated.");
+        setStatus("{% trans 'Marker moved. Coordinates updated.' %}");
       });
 
       map.on("click", function (event) {
         selectMarkerLocation(event.latlng.lat, event.latlng.lng);
-        setStatus("Map point selected. Coordinates updated.");
+        setStatus("{% trans 'Map point selected. Coordinates updated.' %}");
       });
 
       const existingLatitude = Number.parseFloat(latitudeInput.value || "");
@@ -274,7 +275,7 @@
         updateCoordinates(defaultLatitude, defaultLongitude);
       }
 
-      setStatus("Choose the map point by centering from address, dragging marker, or clicking map.");
+      setStatus("{% trans 'Choose the map point by centering from address, dragging marker, or clicking map.' %}");
 
       if (typeof TomSelect !== "undefined") {
         countrySelectControl = new TomSelect(countrySelect, {
@@ -285,7 +286,7 @@
             field: "text",
             direction: "asc",
           },
-          placeholder: "Select a country",
+          placeholder: "{% trans 'Select a country' %}",
         });
 
         countrySelectControl.on("change", function () {
@@ -360,7 +361,7 @@
 
         selectMarkerLocation(latitude, longitude);
         clearAddressSuggestions();
-        setStatus("Suggestion selected. Marker centered from autocomplete; drag to refine if needed.");
+        setStatus("{% trans 'Suggestion selected. Marker centered from autocomplete; drag to refine if needed.' %}");
       }
 
       function renderAddressSuggestions(features) {
@@ -468,7 +469,7 @@
         const payload = new FormData();
         payload.append("photo", photoInput.files[0]);
 
-        setStatus("Reading GPS metadata from the selected photo...");
+        setStatus("{% trans 'Reading GPS metadata from the selected photo...' %}");
 
         try {
           const response = await fetch(photoMetadataEndpoint, {
@@ -485,7 +486,7 @@
 
           const metadata = await response.json();
           if (!metadata.gps_found) {
-            setStatus("No GPS metadata found in this photo. Set location manually on the map.");
+            setStatus("{% trans 'No GPS metadata found in this photo. Set location manually on the map.' %}");
             return;
           }
 
@@ -500,13 +501,13 @@
             fillInputIfEmpty(cityInput, metadata.city || "");
             fillInputIfEmpty(postalCodeInput, metadata.postal_code || "");
             fillCountryIfEmpty(metadata.country || "");
-            setStatus("GPS metadata found. Map centered and address fields pre-filled from the photo.");
+            setStatus("{% trans 'GPS metadata found. Map centered and address fields pre-filled from the photo.' %}");
             return;
           }
 
-          setStatus("GPS metadata found. Map centered from photo location.");
+          setStatus("{% trans 'GPS metadata found. Map centered from photo location.' %}");
         } catch (error) {
-          setStatus("Could not read photo metadata right now. Set the location manually on the map.", true);
+          setStatus("{% trans 'Could not read photo metadata right now. Set the location manually on the map.' %}", true);
         }
       }
 
@@ -529,7 +530,7 @@
         previousGeocodeQuery = query;
         clearAddressSuggestions();
 
-        setStatus("Finding location from address...");
+        setStatus("{% trans 'Finding location from address...' %}");
 
         const endpoint = new URL("https://nominatim.openstreetmap.org/search");
         endpoint.searchParams.set("q", query);
@@ -546,21 +547,21 @@
 
           const results = await response.json();
           if (!Array.isArray(results) || results.length === 0) {
-            setStatus("Address not found. Move the marker manually on the map.", true);
+            setStatus("{% trans 'Address not found. Move the marker manually on the map.' %}", true);
             return;
           }
 
           const latitude = Number.parseFloat(results[0].lat || "");
           const longitude = Number.parseFloat(results[0].lon || "");
           if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-            setStatus("Address lookup returned invalid coordinates.", true);
+            setStatus("{% trans 'Address lookup returned invalid coordinates.' %}", true);
             return;
           }
 
           selectMarkerLocation(latitude, longitude);
-          setStatus("Map centered from address. Drag marker if you need to refine the point.");
+          setStatus("{% trans 'Map centered from address. Drag marker if you need to refine the point.' %}");
         } catch (error) {
-          setStatus("Geocoding is unavailable right now. You can still click the map to pick coordinates.", true);
+          setStatus("{% trans 'Geocoding is unavailable right now. You can still click the map to pick coordinates.' %}", true);
         }
       }
 

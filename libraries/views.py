@@ -527,8 +527,11 @@ def submit_library_photo_metadata(request: HttpRequest) -> JsonResponse:
 
 
 def privacy_page(request: HttpRequest) -> HttpResponse:
-    """Render the privacy policy page.
+    """Render the privacy policy page in the active language.
     Provides a dedicated route for legal and data-handling disclosures."""
+    language_code = getattr(request, "LANGUAGE_CODE", "en")
+    if language_code == "it":
+        return render(request, "privacy_it.html")
     return render(request, "privacy.html")
 
 
