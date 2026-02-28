@@ -9,6 +9,10 @@ from django.urls import path
 from django.utils.html import format_html
 
 from libraries.geojson_import import GeoJSONImporter, parse_geojson
+from libraries.management.commands.find_duplicates import (
+    DEFAULT_RADIUS_METERS,
+    find_duplicate_groups,
+)
 from libraries.models import Library, LibraryPhoto, Report
 
 
@@ -53,13 +57,18 @@ class LibraryAdmin(admin.GISModelAdmin):
     inlines = [LibraryPhotoInline]
 
     def get_urls(self):
-        """Extend admin URLs with the GeoJSON import endpoint.
-        Adds a custom view accessible from the library changelist."""
+        """Extend admin URLs with custom management endpoints.
+        Adds GeoJSON import and duplicate finder views."""
         custom_urls = [
             path(
                 "import-geojson/",
                 self.admin_site.admin_view(self.import_geojson_view),
                 name="libraries_library_import_geojson",
+            ),
+            path(
+                "find-duplicates/",
+                self.admin_site.admin_view(self.find_duplicates_view),
+                name="libraries_library_find_duplicates",
             ),
         ]
         return custom_urls + super().get_urls()
@@ -119,6 +128,51 @@ class LibraryAdmin(admin.GISModelAdmin):
             "total_features": len(candidates),
         }
         return render(request, "admin/libraries/geojson_import_result.html", context)
+
+    def find_duplicates_view(self, request: HttpRequest) -> HttpResponse:
+        """Scan for duplicate libraries and allow bulk deletion.
+        GET shows grouped duplicates; POST deletes selected entries."""
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Find Duplicates",
+            "opts": self.model._meta,
+            "radius": DEFAULT_RADIUS_METERS,
+            "filter_city": "",
+            "filter_country": "",
+            "scanned": False,
+            "groups": [],
+            "total_duplicates": 0,
+            "deleted_count": None,
+        }
+
+        if request.method == "POST":
+            delete_ids = request.POST.getlist("delete_ids")
+            if delete_ids:
+                pk_list = [int(pk) for pk in delete_ids]
+                deleted_count = Library.objects.filter(pk__in=pk_list).delete()[0]
+                context["deleted_count"] = deleted_count
+            return render(request, "admin/libraries/find_duplicates.html", context)
+
+        radius = int(request.GET.get("radius", DEFAULT_RADIUS_METERS))
+        filter_city = request.GET.get("city", "").strip()
+        filter_country = request.GET.get("country", "").strip()
+        scanned = "radius" in request.GET
+
+        context["radius"] = radius
+        context["filter_city"] = filter_city
+        context["filter_country"] = filter_country
+        context["scanned"] = scanned
+
+        if scanned:
+            groups = find_duplicate_groups(
+                radius_meters=radius,
+                city=filter_city,
+                country=filter_country,
+            )
+            context["groups"] = groups
+            context["total_duplicates"] = sum(len(g) - 1 for g in groups)
+
+        return render(request, "admin/libraries/find_duplicates.html", context)
 
     @admin.action(description="Approve selected libraries")
     def approve_libraries(

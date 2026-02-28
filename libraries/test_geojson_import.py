@@ -375,8 +375,8 @@ class TestGeoJSONImporter:
             created_by=import_user,
         )
         candidates = [
-            self._make_candidate(external_id="node/new1"),
-            self._make_candidate(external_id="node/new2"),
+            self._make_candidate(external_id="node/new1", address="Via Nuova 1", longitude=12.0, latitude=44.0),
+            self._make_candidate(external_id="node/new2", address="Via Nuova 2", longitude=13.0, latitude=45.0),
             self._make_candidate(external_id="node/dup"),
             self._make_candidate(external_id="node/noaddr", address="", city="", country=""),
         ]
@@ -432,9 +432,9 @@ class TestGeoJSONImporter:
         """Verify multiple valid candidates all create Library records.
         Tests batch import with distinct external IDs."""
         candidates = [
-            self._make_candidate(external_id="node/1"),
-            self._make_candidate(external_id="node/2"),
-            self._make_candidate(external_id="node/3"),
+            self._make_candidate(external_id="node/1", address="Via Uno 1", longitude=12.0, latitude=44.0),
+            self._make_candidate(external_id="node/2", address="Via Due 2", longitude=13.0, latitude=45.0),
+            self._make_candidate(external_id="node/3", address="Via Tre 3", longitude=14.0, latitude=46.0),
         ]
         importer = GeoJSONImporter(source="OSM", status="approved", created_by=import_user)
 
@@ -442,6 +442,196 @@ class TestGeoJSONImporter:
 
         assert result.created == 3
         assert Library.objects.count() == 3
+
+    def test_skips_duplicate_address(self, import_user):
+        """Verify candidates with matching city+address in DB are skipped.
+        Prevents duplicates from different OSM element types."""
+        Library.objects.create(
+            name="Existing",
+            location=Point(x=12.0, y=44.0, srid=4326),
+            address="Via Roma 5",
+            city="Florence",
+            country="IT",
+            external_id="way/999",
+            status="approved",
+            created_by=import_user,
+        )
+        candidate = self._make_candidate(external_id="node/12345")
+        importer = GeoJSONImporter(source="OSM", status="approved", created_by=import_user)
+
+        result = importer.run([candidate])
+
+        assert result.created == 0
+        assert result.skipped_duplicate_address == 1
+
+    def test_address_dedup_case_insensitive(self, import_user):
+        """Verify address dedup ignores case differences.
+        Handles inconsistent casing between OSM export tools."""
+        Library.objects.create(
+            name="Existing",
+            location=Point(x=12.0, y=44.0, srid=4326),
+            address="VIA ROMA 5",
+            city="FLORENCE",
+            country="IT",
+            external_id="way/999",
+            status="approved",
+            created_by=import_user,
+        )
+        candidate = self._make_candidate(
+            external_id="node/12345",
+            address="via roma 5",
+            city="florence",
+        )
+        importer = GeoJSONImporter(source="OSM", status="approved", created_by=import_user)
+
+        result = importer.run([candidate])
+
+        assert result.created == 0
+        assert result.skipped_duplicate_address == 1
+
+    def test_skips_nearby_location(self, import_user):
+        """Verify candidates near an existing library are skipped.
+        Catches duplicates with slightly different addresses."""
+        Library.objects.create(
+            name="Existing",
+            location=Point(x=10.62, y=43.89, srid=4326),
+            address="Via Diversa 1",
+            city="Pisa",
+            country="IT",
+            external_id="way/999",
+            status="approved",
+            created_by=import_user,
+        )
+        candidate = self._make_candidate(
+            external_id="node/12345",
+            address="Via Altra 2",
+            city="Pisa",
+            longitude=10.6201,
+            latitude=43.8901,
+        )
+        importer = GeoJSONImporter(source="OSM", status="approved", created_by=import_user)
+
+        result = importer.run([candidate])
+
+        assert result.created == 0
+        assert result.skipped_duplicate_location == 1
+
+    def test_different_city_same_street_allowed(self, import_user):
+        """Verify same street in different city is not a duplicate.
+        Common street names should not trigger false positives."""
+        Library.objects.create(
+            name="Existing",
+            location=Point(x=12.0, y=44.0, srid=4326),
+            address="Via Roma 5",
+            city="Milan",
+            country="IT",
+            external_id="way/999",
+            status="approved",
+            created_by=import_user,
+        )
+        candidate = self._make_candidate(
+            external_id="node/12345",
+            address="Via Roma 5",
+            city="Florence",
+            longitude=11.25,
+            latitude=43.77,
+        )
+        importer = GeoJSONImporter(source="OSM", status="approved", created_by=import_user)
+
+        result = importer.run([candidate])
+
+        assert result.created == 1
+
+    def test_beyond_100m_allowed(self, import_user):
+        """Verify libraries beyond 100m are not considered duplicates.
+        Close but distinct locations should both be imported."""
+        Library.objects.create(
+            name="Existing",
+            location=Point(x=10.0, y=43.0, srid=4326),
+            address="Via Diversa 1",
+            city="Pisa",
+            country="IT",
+            external_id="way/999",
+            status="approved",
+            created_by=import_user,
+        )
+        candidate = self._make_candidate(
+            external_id="node/12345",
+            address="Via Altra 2",
+            city="Pisa",
+            longitude=11.0,
+            latitude=44.0,
+        )
+        importer = GeoJSONImporter(source="OSM", status="approved", created_by=import_user)
+
+        result = importer.run([candidate])
+
+        assert result.created == 1
+        assert result.skipped_duplicate_location == 0
+
+    def test_intra_batch_address_dedup(self, import_user):
+        """Verify same address within a single batch is deduplicated.
+        Catches duplicates across features in the same import file."""
+        candidates = [
+            self._make_candidate(external_id="node/1", address="Via Roma 5", city="Florence"),
+            self._make_candidate(external_id="node/2", address="Via Roma 5", city="Florence"),
+        ]
+        importer = GeoJSONImporter(source="OSM", status="approved", created_by=import_user)
+
+        result = importer.run(candidates)
+
+        assert result.created == 1
+        assert result.skipped_duplicate_address == 1
+
+    def test_total_skipped_sums_all_types(self, import_user):
+        """Verify total_skipped includes all skip reasons.
+        Ensures the summary property aggregates correctly."""
+        Library.objects.create(
+            name="By ID",
+            location=Point(x=12.0, y=44.0, srid=4326),
+            address="Via ID 1",
+            city="Rome",
+            country="IT",
+            external_id="node/dup",
+            status="approved",
+            created_by=import_user,
+        )
+        Library.objects.create(
+            name="By Address",
+            location=Point(x=13.0, y=45.0, srid=4326),
+            address="Via Addr 1",
+            city="Milan",
+            country="IT",
+            external_id="way/addr",
+            status="approved",
+            created_by=import_user,
+        )
+        Library.objects.create(
+            name="By Location",
+            location=Point(x=10.62, y=43.89, srid=4326),
+            address="Via Loc 1",
+            city="Pisa",
+            country="IT",
+            external_id="way/loc",
+            status="approved",
+            created_by=import_user,
+        )
+        candidates = [
+            self._make_candidate(external_id="node/dup", address="Via New 1", city="Naples", longitude=14.0, latitude=40.0),
+            self._make_candidate(external_id="node/new1", address="Via Addr 1", city="Milan", longitude=14.5, latitude=40.5),
+            self._make_candidate(external_id="node/new2", address="Via Near 1", city="Livorno", longitude=10.6201, latitude=43.8901),
+            self._make_candidate(external_id="node/noaddr", address="", city="", country=""),
+        ]
+        importer = GeoJSONImporter(source="OSM", status="approved", created_by=import_user)
+
+        result = importer.run(candidates)
+
+        assert result.skipped_duplicate == 1
+        assert result.skipped_duplicate_address == 1
+        assert result.skipped_duplicate_location == 1
+        assert result.skipped_missing_address == 1
+        assert result.total_skipped == 4
+        assert result.created == 0
 
 
 class TestFetchImageFromUrl:

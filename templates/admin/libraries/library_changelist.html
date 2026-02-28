@@ -5,5 +5,8 @@
 <li>
     <a href="{% url 'admin:libraries_library_import_geojson' %}">{% trans "Import GeoJSON" %}</a>
 </li>
+<li>
+    <a href="{% url 'admin:libraries_library_find_duplicates' %}">{% trans "Find Duplicates" %}</a>
+</li>
 {{ block.super }}
 {% endblock %}

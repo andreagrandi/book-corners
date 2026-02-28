@@ -1,0 +1,135 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Find Duplicates" %} | {{ site_title|default:_("Django site admin") }}{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    .duplicate-group {
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    .duplicate-group h3 {
+        background: #f8f8f8;
+        padding: 8px 12px;
+        margin: 0;
+        border-bottom: 1px solid #ddd;
+    }
+    .duplicate-group table {
+        width: 100%;
+        margin: 0;
+    }
+    .duplicate-group tr.keep td {
+        background: #dfd;
+    }
+    .filter-form {
+        margin-bottom: 20px;
+    }
+    .filter-form label {
+        margin-right: 8px;
+        font-weight: bold;
+    }
+    .filter-form input[type="number"],
+    .filter-form input[type="text"] {
+        margin-right: 16px;
+        padding: 4px 8px;
+    }
+    .summary { margin-bottom: 16px; }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans "Home" %}</a>
+    &rsaquo; <a href="{% url 'admin:libraries_library_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; {% trans "Find Duplicates" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<form method="get" class="filter-form">
+    <label for="id_radius">{% trans "Radius (m):" %}</label>
+    <input type="number" name="radius" id="id_radius" value="{{ radius }}" min="1" max="10000">
+    <label for="id_city">{% trans "City:" %}</label>
+    <input type="text" name="city" id="id_city" value="{{ filter_city }}">
+    <label for="id_country">{% trans "Country:" %}</label>
+    <input type="text" name="country" id="id_country" value="{{ filter_country }}" maxlength="2">
+    <input type="submit" value="{% trans 'Scan' %}" class="default">
+</form>
+
+{% if scanned %}
+    {% if groups %}
+    <div class="summary">
+        <p class="help">
+            {% blocktrans with group_count=groups|length dup_count=total_duplicates %}
+            Found {{ group_count }} duplicate group(s) with {{ dup_count }} extra entry/entries.
+            {% endblocktrans %}
+            {% trans "The oldest entry in each group (highlighted in green) is kept by default." %}
+        </p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        {% for group in groups %}
+        <div class="duplicate-group">
+            <h3>{% trans "Group" %} {{ forloop.counter }}</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>{% trans "Delete" %}</th>
+                        <th>{% trans "ID" %}</th>
+                        <th>{% trans "Name" %}</th>
+                        <th>{% trans "Address" %}</th>
+                        <th>{% trans "City" %}</th>
+                        <th>{% trans "External ID" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Created" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lib in group %}
+                    <tr class="{% if forloop.first %}keep{% endif %}">
+                        <td>
+                            <input type="checkbox" name="delete_ids" value="{{ lib.pk }}"
+                                {% if not forloop.first %}checked{% endif %}>
+                        </td>
+                        <td><a href="{% url 'admin:libraries_library_change' lib.pk %}">{{ lib.pk }}</a></td>
+                        <td>{{ lib.name|default:"(unnamed)" }}</td>
+                        <td>{{ lib.address }}</td>
+                        <td>{{ lib.city }}</td>
+                        <td>{{ lib.external_id|default:"(none)" }}</td>
+                        <td>{{ lib.get_status_display }}</td>
+                        <td>{{ lib.created_at|date:"Y-m-d" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+        <div class="submit-row">
+            <input type="submit" value="{% trans 'Delete selected duplicates' %}" class="default"
+                onclick="return confirm('{% trans "Are you sure you want to delete the selected libraries?" %}');">
+        </div>
+    </form>
+
+    {% else %}
+    <p class="help">{% trans "No duplicates found." %}</p>
+    {% endif %}
+{% endif %}
+
+{% if deleted_count is not None %}
+<div class="module">
+    <p class="success">
+        {% blocktrans with count=deleted_count %}
+        Successfully deleted {{ count }} duplicate(s).
+        {% endblocktrans %}
+    </p>
+</div>
+{% endif %}
+
+<div class="submit-row">
+    <a href="{% url 'admin:libraries_library_changelist' %}">{% trans "Back to library list" %}</a>
+</div>
+{% endblock %}

@@ -25,8 +25,16 @@
                 <td>{{ result.created }}</td>
             </tr>
             <tr>
-                <th>{% trans "Skipped (duplicate)" %}</th>
+                <th>{% trans "Skipped (duplicate external ID)" %}</th>
                 <td>{{ result.skipped_duplicate }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Skipped (duplicate address)" %}</th>
+                <td>{{ result.skipped_duplicate_address }}</td>
+            </tr>
+            <tr>
+                <th>{% trans "Skipped (nearby location)" %}</th>
+                <td>{{ result.skipped_duplicate_location }}</td>
             </tr>
             <tr>
                 <th>{% trans "Skipped (missing address)" %}</th>

@@ -14,6 +14,7 @@ from io import BytesIO
 from typing import Any
 
 from django.contrib.gis.geos import Point
+from django.contrib.gis.measure import D
 
 from libraries.image_processing import build_library_photo_files
 from libraries.models import Library
@@ -62,20 +63,33 @@ class ImportResult:
 
     created: int = 0
     skipped_duplicate: int = 0
+    skipped_duplicate_address: int = 0
+    skipped_duplicate_location: int = 0
     skipped_missing_address: int = 0
     errors: list[ImportError] = field(default_factory=list)
 
     @property
     def total_skipped(self) -> int:
         """Return the total number of skipped features.
-        Combines duplicates and missing-address counts."""
-        return self.skipped_duplicate + self.skipped_missing_address
+        Combines all skip reasons into a single count."""
+        return (
+            self.skipped_duplicate
+            + self.skipped_duplicate_address
+            + self.skipped_duplicate_location
+            + self.skipped_missing_address
+        )
 
     @property
     def total_errors(self) -> int:
         """Return the number of features that failed during import.
         Counts items in the errors list."""
         return len(self.errors)
+
+
+def _normalize_for_dedup(value: str) -> str:
+    """Normalize a string for duplicate comparison.
+    Strips whitespace and lowercases to ignore trivial differences."""
+    return value.strip().lower()
 
 
 def _parse_bool(value: str | None) -> bool | None:
@@ -194,12 +208,29 @@ def fetch_image_from_url(url: str, *, timeout: int = IMAGE_FETCH_TIMEOUT, max_by
 class GeoJSONImporter:
     """Orchestrates creating Library records from parsed GeoJSON candidates."""
 
+    PROXIMITY_METERS = 100
+
     def __init__(self, *, source: str, status: str, created_by):
         """Initialise the importer with shared field values.
         All created libraries share the same source, status, and creator."""
         self.source = source
         self.status = status
         self.created_by = created_by
+
+    def _load_existing_address_pairs(self) -> set[tuple[str, str]]:
+        """Load all normalized (city, address) pairs from the database.
+        Used for fast address-based duplicate detection."""
+        return {
+            (_normalize_for_dedup(city), _normalize_for_dedup(address))
+            for city, address in Library.objects.values_list("city", "address")
+        }
+
+    def _has_nearby_library(self, point: Point) -> bool:
+        """Check whether a library already exists within proximity threshold.
+        Uses PostGIS ST_DWithin for efficient spatial lookup."""
+        return Library.objects.filter(
+            location__distance_lte=(point, D(m=self.PROXIMITY_METERS))
+        ).exists()
 
     def run(self, candidates: list[ImportCandidate]) -> ImportResult:
         """Process all candidates and return a structured import result.
@@ -212,6 +243,8 @@ class GeoJSONImporter:
             ).values_list("external_id", flat=True)
         )
 
+        existing_address_pairs = self._load_existing_address_pairs()
+
         for candidate in candidates:
             if candidate.external_id and candidate.external_id in existing_external_ids:
                 result.skipped_duplicate += 1
@@ -221,9 +254,23 @@ class GeoJSONImporter:
                 result.skipped_missing_address += 1
                 continue
 
+            address_pair = (
+                _normalize_for_dedup(candidate.city),
+                _normalize_for_dedup(candidate.address),
+            )
+            if address_pair in existing_address_pairs:
+                result.skipped_duplicate_address += 1
+                continue
+
+            point = Point(x=candidate.longitude, y=candidate.latitude, srid=4326)
+            if self._has_nearby_library(point):
+                result.skipped_duplicate_location += 1
+                continue
+
             try:
                 self._create_library(candidate=candidate)
                 result.created += 1
+                existing_address_pairs.add(address_pair)
             except Exception as exc:
                 logger.exception("Failed to create library for %s", candidate.external_id)
                 result.errors.append(
