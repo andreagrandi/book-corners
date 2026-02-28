@@ -24,6 +24,7 @@ from django.views.generic import TemplateView
 from config.api import api
 from config.views import health
 from libraries.sitemaps import LibrarySitemap, StaticViewSitemap
+from users.views import set_language_view
 from libraries.views import (
     about_page,
     dashboard,
@@ -51,6 +52,7 @@ handler404 = "config.error_views.page_not_found"
 handler500 = "config.error_views.server_error"
 
 urlpatterns = [
+    path("i18n/setlang/", set_language_view, name="set_language"),
     path("health/", health, name="health"),
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),

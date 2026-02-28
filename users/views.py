@@ -3,7 +3,9 @@ from django.contrib.auth import login, logout
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
+from django.views.i18n import set_language
 
 from users.forms import RegistrationForm, UsernameOrEmailAuthenticationForm
 from users.security import is_auth_rate_limited
@@ -63,7 +65,7 @@ def register_view(request: HttpRequest) -> HttpResponse:
                 template_name="users/register.html",
                 form=form,
                 retry_after_seconds=retry_after_seconds,
-                message="Too many registration attempts. Please try again in a few minutes.",
+                message=_("Too many registration attempts. Please try again in a few minutes."),
             )
 
     if request.method == "POST" and form.is_valid():
@@ -94,7 +96,7 @@ def login_view(request: HttpRequest) -> HttpResponse:
                 template_name="users/login.html",
                 form=form,
                 retry_after_seconds=retry_after_seconds,
-                message="Too many login attempts. Please try again in a few minutes.",
+                message=_("Too many login attempts. Please try again in a few minutes."),
             )
 
     if request.method == "POST" and form.is_valid():
@@ -113,3 +115,17 @@ def logout_view(request: HttpRequest) -> HttpResponse:
     Supports the module workflow with a focused operation."""
     logout(request=request)
     return redirect("home")
+
+
+@require_POST
+def set_language_view(request: HttpRequest) -> HttpResponse:
+    """Switch the active language and persist the choice.
+    Saves to the user model for authenticated users, delegates cookie to Django."""
+    response = set_language(request)
+    if hasattr(request, "user") and request.user.is_authenticated:
+        language = request.POST.get("language", "")
+        valid_codes = [code for code, _name in settings.LANGUAGES]
+        if language in valid_codes:
+            request.user.language = language
+            request.user.save(update_fields=["language"])
+    return response

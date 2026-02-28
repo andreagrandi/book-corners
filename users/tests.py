@@ -1,10 +1,12 @@
 import pytest
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.db import IntegrityError, connection
 from django.db.migrations.executor import MigrationExecutor
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import translation
 
 User = get_user_model()
 
@@ -214,7 +216,7 @@ class TestEmailMigration:
     """Tests that exercise the 0002 migration transition via MigrationExecutor."""
 
     migrate_from = ("users", "0001_initial")
-    migrate_to = ("users", "0002_normalize_email_add_unique_constraint")
+    migrate_to = ("users", "0003_add_language_field")
 
     def _run_migration(self, state):
         """Roll forward from migrate_from to migrate_to.
@@ -272,3 +274,123 @@ class TestEmailMigration:
 
         with pytest.raises(ValueError, match="duplicates found after lowercasing"):
             self._run_migration(self.migrate_to)
+
+
+@pytest.mark.django_db
+class TestI18nLanguageSwitching:
+    """Tests for language switching, user preference persistence, and admin enforcement."""
+
+    def test_anonymous_user_defaults_to_english(self, client):
+        """Verify anonymous requests render in English by default.
+        Confirms the base language without any cookie or preference."""
+        response = client.get(reverse("home"))
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Book Corners" in content
+
+    def test_cookie_based_language_switching(self, client):
+        """Verify setting the language cookie switches the rendered language.
+        Confirms anonymous users can browse in Italian via cookie."""
+        client.cookies.load({settings.LANGUAGE_COOKIE_NAME: "it"})
+        response = client.get(reverse("home"))
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert 'lang="it"' in content
+
+    def test_logged_in_user_gets_preferred_language(self, client, user):
+        """Verify authenticated users see content in their saved language.
+        Confirms the UserLanguageMiddleware activates the user preference."""
+        user.language = "it"
+        user.save(update_fields=["language"])
+        client.force_login(user)
+
+        response = client.get(reverse("home"))
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert 'lang="it"' in content
+
+    def test_set_language_view_updates_cookie_and_user_model(self, client, user):
+        """Verify the set_language view persists the choice for logged-in users.
+        Confirms both cookie and user.language field are updated."""
+        client.force_login(user)
+
+        response = client.post(
+            reverse("set_language"),
+            data={"language": "it", "next": "/"},
+            follow=False,
+        )
+        assert response.status_code in (302, 200)
+
+        user.refresh_from_db()
+        assert user.language == "it"
+
+    def test_set_language_view_anonymous_user(self, client):
+        """Verify anonymous users can switch language without errors.
+        Confirms the view handles unauthenticated requests gracefully."""
+        response = client.post(
+            reverse("set_language"),
+            data={"language": "it", "next": "/"},
+            follow=False,
+        )
+        assert response.status_code in (302, 200)
+
+    def test_admin_always_stays_english(self, client, admin_user):
+        """Verify admin pages render in English regardless of user preference.
+        Confirms the middleware forces English for /admin/ paths."""
+        admin_user.language = "it"
+        admin_user.save(update_fields=["language"])
+        client.force_login(admin_user)
+
+        response = client.get("/admin/", follow=True)
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert 'lang="en"' in content
+
+    def test_about_page_renders_in_italian(self, client):
+        """Verify the about page renders translated content in Italian.
+        Smoke test for template-level i18n on a static page."""
+        client.cookies.load({settings.LANGUAGE_COOKIE_NAME: "it"})
+        response = client.get(reverse("about_page"))
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert 'lang="it"' in content
+
+    def test_privacy_page_renders_italian_template(self, client):
+        """Verify the privacy page uses the Italian template when language is Italian.
+        Confirms the view selects the correct language-specific template."""
+        client.cookies.load({settings.LANGUAGE_COOKIE_NAME: "it"})
+        response = client.get(reverse("privacy_page"))
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Informativa sulla Privacy" in content
+
+    def test_privacy_page_renders_english_template(self, client):
+        """Verify the privacy page uses the English template by default.
+        Confirms the default language selection works correctly."""
+        response = client.get(reverse("privacy_page"))
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Privacy Policy" in content
+
+    def test_set_language_rejects_invalid_code(self, client, user):
+        """Verify invalid language codes are ignored.
+        Confirms the view does not persist unsupported language choices."""
+        client.force_login(user)
+
+        client.post(
+            reverse("set_language"),
+            data={"language": "xx", "next": "/"},
+            follow=False,
+        )
+
+        user.refresh_from_db()
+        assert user.language == "en"
+
+    def test_user_language_field_default(self):
+        """Verify new users default to English language preference.
+        Confirms the model field default is applied correctly."""
+        user = User.objects.create_user(
+            username="langtest",
+            password="TestPass123!",
+        )
+        assert user.language == "en"

@@ -1,20 +1,21 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Server error - Book Corners{% endblock %}
-{% block meta_description %}Book Corners encountered an unexpected error. Please try again shortly.{% endblock %}
+{% block title %}{% trans "Server error" %} - Book Corners{% endblock %}
+{% block meta_description %}{% trans "Book Corners encountered an unexpected error. Please try again shortly." %}{% endblock %}
 
 {% block content %}
   <section class="mx-auto w-full max-w-2xl">
     <article class="card border border-base-300 bg-base-100 shadow-sm">
       <div class="card-body gap-4 p-6 text-center sm:p-8">
-        <p class="text-sm uppercase tracking-wide text-base-content/60">Error 500</p>
-        <h1 class="text-3xl font-bold">Something went wrong</h1>
+        <p class="text-sm uppercase tracking-wide text-base-content/60">{% trans "Error 500" %}</p>
+        <h1 class="text-3xl font-bold">{% trans "Something went wrong" %}</h1>
         <p class="text-base-content/75">
-          Sorry, an unexpected error occurred on our side. Please try again in a moment.
+          {% trans "Sorry, an unexpected error occurred on our side. Please try again in a moment." %}
         </p>
         <div class="card-actions justify-center gap-3">
-          <a href="{% url 'home' %}" class="btn btn-primary">Back to homepage</a>
-          <a href="{% url 'map_page' %}" class="btn btn-outline">Explore map</a>
+          <a href="{% url 'home' %}" class="btn btn-primary">{% trans "Back to homepage" %}</a>
+          <a href="{% url 'map_page' %}" class="btn btn-outline">{% trans "Explore map" %}</a>
         </div>
       </div>
     </article>

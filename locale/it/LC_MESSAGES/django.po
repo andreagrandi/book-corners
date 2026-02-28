@@ -1,0 +1,1205 @@
+# Italian translations for Book Corners.
+# Copyright (C) 2026 Book Corners
+# This file is distributed under the same license as the Book Corners package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Book Corners 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-28 15:12+0000\n"
+"PO-Revision-Date: 2026-02-28 15:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Italian\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: libraries/forms.py:17 libraries/templates/libraries/submit_library.html:289
+msgid "Select a country"
+msgstr "Seleziona un paese"
+
+#: libraries/forms.py:25
+msgid "Any country"
+msgstr "Qualsiasi paese"
+
+#: libraries/forms.py:42
+#, python-format
+msgid "Photo must be %(size).0fMB or smaller."
+msgstr "La foto deve essere di %(size).0fMB o meno."
+
+#: libraries/forms.py:45
+#, python-format
+msgid "Photo must be at most %(size)s bytes."
+msgstr "La foto deve essere di massimo %(size)s byte."
+
+#: libraries/forms.py:62 libraries/forms.py:64
+msgid "Upload a valid image in JPEG, PNG, or WEBP format."
+msgstr "Carica un'immagine valida in formato JPEG, PNG o WEBP."
+
+#: libraries/forms.py:117
+msgid "Approximate book capacity"
+msgstr "Capacità approssimativa di libri"
+
+#: libraries/forms.py:125
+msgid "Email, phone, etc."
+msgstr "Email, telefono, ecc."
+
+#: libraries/forms.py:129
+msgid "Organisation managing this library"
+msgstr "Organizzazione che gestisce questa libreria"
+
+#: libraries/forms.py:133
+msgid "e.g. Little Free Library"
+msgstr "es. Little Free Library"
+
+#: libraries/forms.py:141
+msgid "Latitude must be between -90 and 90."
+msgstr "La latitudine deve essere compresa tra -90 e 90."
+
+#: libraries/forms.py:149
+msgid "Longitude must be between -180 and 180."
+msgstr "La longitudine deve essere compresa tra -180 e 180."
+
+#: libraries/forms.py:248
+msgid "Keywords in name or description"
+msgstr "Parole chiave nel nome o nella descrizione"
+
+#: libraries/forms.py:254
+msgid "City, area, postcode, or address"
+msgstr "Città, zona, CAP o indirizzo"
+
+#: libraries/forms.py:268
+msgid "Filter by city"
+msgstr "Filtra per città"
+
+#: libraries/forms.py:279
+msgid "Filter by postal code"
+msgstr "Filtra per CAP"
+
+#: libraries/forms.py:318
+msgid "Optional caption for your photo"
+msgstr "Didascalia opzionale per la tua foto"
+
+#: libraries/forms.py:344
+#, python-format
+msgid "You can submit at most %(max)s photos per library."
+msgstr "Puoi inviare al massimo %(max)s foto per libreria."
+
+#: libraries/models.py:18 libraries/models.py:246
+#: templates/admin/libraries/geojson_import_form.html:37
+msgid "Pending"
+msgstr "In attesa"
+
+#: libraries/models.py:19 libraries/models.py:247
+#: templates/admin/libraries/geojson_import_form.html:36
+msgid "Approved"
+msgstr "Approvato"
+
+#: libraries/models.py:20 libraries/models.py:248
+msgid "Rejected"
+msgstr "Rifiutato"
+
+#: libraries/models.py:23 libraries/templates/libraries/library_detail.html:46
+#: libraries/templates/libraries/library_detail.html:47
+msgid "Yes"
+msgstr "Sì"
+
+#: libraries/models.py:24 libraries/templates/libraries/library_detail.html:46
+#: libraries/templates/libraries/library_detail.html:47
+msgid "No"
+msgstr "No"
+
+#: libraries/models.py:25
+msgid "Limited"
+msgstr "Limitato"
+
+#: libraries/models.py:197
+msgid "Damaged"
+msgstr "Danneggiato"
+
+#: libraries/models.py:198
+msgid "Missing"
+msgstr "Mancante"
+
+#: libraries/models.py:199
+msgid "Incorrect Info"
+msgstr "Informazioni errate"
+
+#: libraries/models.py:200
+msgid "Inappropriate"
+msgstr "Inappropriato"
+
+#: libraries/models.py:201
+msgid "Other"
+msgstr "Altro"
+
+#: libraries/models.py:204
+msgid "Open"
+msgstr "Aperto"
+
+#: libraries/models.py:205
+msgid "Resolved"
+msgstr "Risolto"
+
+#: libraries/models.py:206
+msgid "Dismissed"
+msgstr "Archiviato"
+
+#: libraries/templates/libraries/_latest_entries.html:11
+msgid "No approved libraries yet"
+msgstr "Nessuna libreria approvata"
+
+#: libraries/templates/libraries/_latest_entries.html:12
+msgid "Use the seed command to generate sample records or submit your first library."
+msgstr "Usa il comando seed per generare dati di esempio o invia la tua prima libreria."
+
+#: libraries/templates/libraries/_latest_entries_pagination.html:11
+msgid "Load more"
+msgstr "Carica altre"
+
+#: libraries/templates/libraries/_latest_entries_pagination.html:14
+msgid "You have reached the latest approved entries."
+msgstr "Hai raggiunto le ultime librerie approvate."
+
+#: libraries/templates/libraries/_library_card.html:19
+#, python-format
+msgid "%(km)s km away"
+msgstr "a %(km)s km"
+
+#: libraries/templates/libraries/_library_card.html:23
+#: libraries/templates/libraries/dashboard.html:40
+#: libraries/templates/libraries/map.html:270
+msgid "View details"
+msgstr "Dettagli"
+
+#: libraries/templates/libraries/_map_results_list.html:6
+msgid "Please review the filter fields and try again."
+msgstr "Controlla i campi del filtro e riprova."
+
+#: libraries/templates/libraries/_map_results_list.html:12
+#: libraries/templates/libraries/_search_results.html:11
+#, python-format
+msgid "Could not resolve \"%(near_query)s\" to a place, so keyword matching was used instead."
+msgstr "Impossibile risolvere \"%(near_query)s\" come luogo, è stata usata la ricerca per parole chiave."
+
+#: libraries/templates/libraries/_map_results_list.html:18
+#: libraries/templates/libraries/_search_results.html:16
+#, python-format
+msgid "%(count)s library found."
+msgid_plural "%(count)s libraries found."
+msgstr[0] "%(count)s libreria trovata."
+msgstr[1] "%(count)s librerie trovate."
+
+#: libraries/templates/libraries/_map_results_list.html:20
+#: libraries/templates/libraries/_map_results_list.html:46
+#, python-format
+msgid "Page %(current)s of %(total)s"
+msgstr "Pagina %(current)s di %(total)s"
+
+#: libraries/templates/libraries/_map_results_list.html:38
+#: libraries/templates/libraries/_map_results_list.html:42
+msgid "Previous"
+msgstr "Precedente"
+
+#: libraries/templates/libraries/_map_results_list.html:54
+#: libraries/templates/libraries/_map_results_list.html:58
+msgid "Next"
+msgstr "Successiva"
+
+#: libraries/templates/libraries/_map_results_list.html:65
+#: libraries/templates/libraries/_search_results.html:24
+msgid "No libraries found"
+msgstr "Nessuna libreria trovata"
+
+#: libraries/templates/libraries/_map_results_list.html:66
+#: libraries/templates/libraries/_search_results.html:25
+msgid "Try broader keywords, increase the radius, or relax one of the filters."
+msgstr "Prova con parole chiave più ampie, aumenta il raggio o allenta uno dei filtri."
+
+#: libraries/templates/libraries/_photo_gallery.html:4
+msgid "Community photos"
+msgstr "Foto della community"
+
+#: libraries/templates/libraries/_photo_gallery.html:11
+msgid "Community photo"
+msgstr "Foto della community"
+
+#: libraries/templates/libraries/_photo_submission_form.html:5
+msgid "Thank you, your photo was submitted and is now pending moderation review."
+msgstr "Grazie, la tua foto è stata inviata ed è in attesa di revisione."
+
+#: libraries/templates/libraries/_photo_submission_form.html:9
+msgid "Share a photo of this library with the community. Photos are reviewed by moderators before appearing."
+msgstr "Condividi una foto di questa libreria con la community. Le foto vengono revisionate dai moderatori prima della pubblicazione."
+
+#: libraries/templates/libraries/_photo_submission_form.html:14
+#: libraries/templates/libraries/_report_form.html:14
+msgid "Please review the highlighted fields and try again."
+msgstr "Controlla i campi evidenziati e riprova."
+
+#: libraries/templates/libraries/_photo_submission_form.html:33
+#: libraries/templates/libraries/submit_library.html:71
+#: templates/admin/index.html:135
+msgid "Photo"
+msgstr "Foto"
+
+#: libraries/templates/libraries/_photo_submission_form.html:39
+msgid "Caption (optional)"
+msgstr "Didascalia (opzionale)"
+
+#: libraries/templates/libraries/_photo_submission_form.html:44
+msgid "Submit photo"
+msgstr "Invia foto"
+
+#: libraries/templates/libraries/_report_form.html:5
+msgid "Thank you, your report was submitted and is now pending moderation review."
+msgstr "Grazie, la tua segnalazione è stata inviata ed è in attesa di revisione."
+
+#: libraries/templates/libraries/_report_form.html:9
+msgid "Tell us what is wrong with this library entry so moderators can review and fix it."
+msgstr "Dicci cosa non va con questa libreria in modo che i moderatori possano verificare e correggere."
+
+#: libraries/templates/libraries/_report_form.html:33
+#: templates/admin/libraries/geojson_import_result.html:58
+msgid "Reason"
+msgstr "Motivo"
+
+#: libraries/templates/libraries/_report_form.html:39
+msgid "Details"
+msgstr "Dettagli"
+
+#: libraries/templates/libraries/_report_form.html:45
+msgid "Photo (optional)"
+msgstr "Foto (opzionale)"
+
+#: libraries/templates/libraries/_report_form.html:50
+msgid "Send report"
+msgstr "Invia segnalazione"
+
+#: libraries/templates/libraries/_search_results.html:4
+msgid "Please review the search fields and try again."
+msgstr "Controlla i campi di ricerca e riprova."
+
+#: libraries/templates/libraries/_search_results.html:30
+msgid "Start a search"
+msgstr "Inizia una ricerca"
+
+#: libraries/templates/libraries/_search_results.html:31
+msgid "Use a place like London for nearby results, or add keywords and filters."
+msgstr "Usa un luogo come Roma per risultati nelle vicinanze, oppure aggiungi parole chiave e filtri."
+
+#: libraries/templates/libraries/dashboard.html:4
+msgid "Dashboard"
+msgstr "Bacheca"
+
+#: libraries/templates/libraries/dashboard.html:5
+msgid "Review your submitted libraries and track each moderation status from your dashboard."
+msgstr "Controlla le librerie che hai inviato e segui lo stato di moderazione dalla tua bacheca."
+
+#: libraries/templates/libraries/dashboard.html:10
+msgid "Your submissions"
+msgstr "Le tue librerie"
+
+#: libraries/templates/libraries/dashboard.html:12
+msgid "Track the moderation status of the libraries you submitted."
+msgstr "Segui lo stato di moderazione delle librerie che hai inviato."
+
+#: libraries/templates/libraries/dashboard.html:48
+msgid "No submissions yet"
+msgstr "Nessun invio"
+
+#: libraries/templates/libraries/dashboard.html:49
+msgid "Share your first little free library to start your dashboard history."
+msgstr "Condividi la tua prima casetta dei libri per iniziare la cronologia della bacheca."
+
+#: libraries/templates/libraries/dashboard.html:50
+#: libraries/templates/libraries/submit_library.html:4
+#: libraries/templates/libraries/submit_library.html:55 templates/about.html:76
+#: templates/home.html:36
+msgid "Submit a library"
+msgstr "Invia una libreria"
+
+#: libraries/templates/libraries/library_detail.html:40
+msgid "Address:"
+msgstr "Indirizzo:"
+
+#: libraries/templates/libraries/library_detail.html:41
+#: templates/admin/libraries/find_duplicates.html:55
+msgid "City:"
+msgstr "Città:"
+
+#: libraries/templates/libraries/library_detail.html:42
+#: templates/admin/libraries/find_duplicates.html:57
+msgid "Country:"
+msgstr "Paese:"
+
+#: libraries/templates/libraries/library_detail.html:43
+msgid "Postal code:"
+msgstr "CAP:"
+
+#: libraries/templates/libraries/library_detail.html:44
+msgid "Wheelchair accessible:"
+msgstr "Accessibile in sedia a rotelle:"
+
+#: libraries/templates/libraries/library_detail.html:45
+msgid "Capacity:"
+msgstr "Capacità:"
+
+#: libraries/templates/libraries/library_detail.html:45
+msgid "books"
+msgstr "libri"
+
+#: libraries/templates/libraries/library_detail.html:46
+msgid "Indoor:"
+msgstr "Al chiuso:"
+
+#: libraries/templates/libraries/library_detail.html:47
+msgid "Lit at night:"
+msgstr "Illuminata di notte:"
+
+#: libraries/templates/libraries/library_detail.html:48
+msgid "Website:"
+msgstr "Sito web:"
+
+#: libraries/templates/libraries/library_detail.html:49
+msgid "Contact:"
+msgstr "Contatto:"
+
+#: libraries/templates/libraries/library_detail.html:50
+msgid "Operator:"
+msgstr "Gestore:"
+
+#: libraries/templates/libraries/library_detail.html:51
+msgid "Brand:"
+msgstr "Marchio:"
+
+#: libraries/templates/libraries/library_detail.html:52
+#: templates/admin/libraries/geojson_import_form.html:28
+msgid "Source:"
+msgstr "Fonte:"
+
+#: libraries/templates/libraries/library_detail.html:53
+msgid "Submitted by:"
+msgstr "Inviata da:"
+
+#: libraries/templates/libraries/library_detail.html:66
+msgid "Add a photo"
+msgstr "Aggiungi una foto"
+
+#: libraries/templates/libraries/library_detail.html:76
+msgid "Report an issue"
+msgstr "Segnala un problema"
+
+#: libraries/templates/libraries/library_detail.html:83
+msgid "Location map"
+msgstr "Mappa della posizione"
+
+#: libraries/templates/libraries/library_detail.html:103
+msgid "Add a photo of this library"
+msgstr "Aggiungi una foto di questa libreria"
+
+#: libraries/templates/libraries/library_detail.html:114
+msgid "Report an issue with this library"
+msgstr "Segnala un problema con questa libreria"
+
+#: libraries/templates/libraries/map.html:4 templates/base.html:32
+#: templates/base.html:62
+msgid "Map"
+msgstr "Mappa"
+
+#: libraries/templates/libraries/map.html:5
+msgid "Explore the Book Corners map to find little free libraries near you and across nearby cities."
+msgstr "Esplora la mappa di Book Corners per trovare casette dei libri vicino a te e nelle città limitrofe."
+
+#: libraries/templates/libraries/map.html:28
+msgid "Explore libraries"
+msgstr "Esplora le librerie"
+
+#: libraries/templates/libraries/map.html:30
+msgid "Use one filter set and switch between map, list, or split view without reloading the page."
+msgstr "Usa un set di filtri e passa tra vista mappa, lista o divisa senza ricaricare la pagina."
+
+#: libraries/templates/libraries/map.html:36
+#: libraries/templates/libraries/search.html:27
+msgid "Keywords"
+msgstr "Parole chiave"
+
+#: libraries/templates/libraries/map.html:41
+#: libraries/templates/libraries/search.html:32
+msgid "Near (place-like query)"
+msgstr "Vicino a (luogo)"
+
+#: libraries/templates/libraries/map.html:48
+#: libraries/templates/libraries/search.html:39
+msgid "Radius (km)"
+msgstr "Raggio (km)"
+
+#: libraries/templates/libraries/map.html:53
+#: libraries/templates/libraries/search.html:44
+msgid "City filter"
+msgstr "Filtra per città"
+
+#: libraries/templates/libraries/map.html:58
+#: libraries/templates/libraries/search.html:49
+msgid "Country filter"
+msgstr "Filtra per paese"
+
+#: libraries/templates/libraries/map.html:63
+#: libraries/templates/libraries/search.html:54
+msgid "Postal code filter"
+msgstr "Filtra per CAP"
+
+#: libraries/templates/libraries/map.html:69
+msgid "Apply filters"
+msgstr "Applica filtri"
+
+#: libraries/templates/libraries/map.html:70
+#: libraries/templates/libraries/search.html:61
+msgid "Clear"
+msgstr "Pulisci"
+
+#: libraries/templates/libraries/map.html:101
+msgid "Libraries list"
+msgstr "Elenco librerie"
+
+#: libraries/templates/libraries/map.html:106
+#: libraries/templates/libraries/map.html:433
+msgid "Loading libraries..."
+msgstr "Caricamento librerie..."
+
+#: libraries/templates/libraries/map.html:122
+#, python-brace-format
+msgid "{count} results"
+msgstr "{count} risultati"
+
+#: libraries/templates/libraries/map.html:123
+#, python-brace-format
+msgid "Showing {total} libraries"
+msgstr "{total} librerie visualizzate"
+
+#: libraries/templates/libraries/map.html:124
+#, python-brace-format
+msgid "Showing {count} of {total} libraries"
+msgstr "{count} di {total} librerie visualizzate"
+
+#: libraries/templates/libraries/map.html:125
+msgid "Could not resolve the location, so keyword matching was used instead."
+msgstr "Impossibile risolvere la posizione, è stata usata la ricerca per parole chiave."
+
+#: libraries/templates/libraries/map.html:126
+msgid "on the map."
+msgstr "sulla mappa."
+
+#: libraries/templates/libraries/map.html:252
+msgid "Neighborhood Library"
+msgstr "Casetta dei Libri"
+
+#: libraries/templates/libraries/map.html:430
+msgid "Loading libraries on the map..."
+msgstr "Caricamento librerie sulla mappa..."
+
+#: libraries/templates/libraries/map.html:497
+msgid "Could not load library list right now."
+msgstr "Impossibile caricare l'elenco delle librerie al momento."
+
+#: libraries/templates/libraries/map.html:501
+msgid "Could not load map markers right now. Please try again."
+msgstr "Impossibile caricare i marcatori sulla mappa. Riprova."
+
+#: libraries/templates/libraries/search.html:4
+#: libraries/templates/libraries/search.html:60 templates/home.html:29
+msgid "Search"
+msgstr "Cerca"
+
+#: libraries/templates/libraries/search.html:5
+msgid "Search little free libraries by keywords, city, country, postcode, and proximity filters."
+msgstr "Cerca casette dei libri per parole chiave, città, paese, CAP e filtri di prossimità."
+
+#: libraries/templates/libraries/search.html:11
+msgid "Search libraries"
+msgstr "Cerca librerie"
+
+#: libraries/templates/libraries/search.html:13
+msgid "Search by keywords, by place with a radius, or narrow results with structured filters."
+msgstr "Cerca per parole chiave, per luogo con un raggio, o restringi i risultati con filtri strutturati."
+
+#: libraries/templates/libraries/submit_library.html:5
+msgid "Submit a little free library to Book Corners with a photo, location, and address details."
+msgstr "Invia una casetta dei libri a Book Corners con foto, posizione e dettagli dell'indirizzo."
+
+#: libraries/templates/libraries/submit_library.html:57
+msgid "Share a little free library with the community. Set the exact point on the map before submitting."
+msgstr "Condividi una casetta dei libri con la community. Imposta il punto esatto sulla mappa prima di inviare."
+
+#: libraries/templates/libraries/submit_library.html:59
+msgid "Fields marked with <span class=\"font-medium\">(optional)</span> can be left blank."
+msgstr "I campi contrassegnati con <span class=\"font-medium\">(opzionale)</span> possono essere lasciati vuoti."
+
+#: libraries/templates/libraries/submit_library.html:77
+msgid "Name (optional)"
+msgstr "Nome (opzionale)"
+
+#: libraries/templates/libraries/submit_library.html:83
+msgid "Description (optional)"
+msgstr "Descrizione (opzionale)"
+
+#: libraries/templates/libraries/submit_library.html:89
+msgid "Country"
+msgstr "Paese"
+
+#: libraries/templates/libraries/submit_library.html:95
+#: templates/admin/index.html:92
+#: templates/admin/libraries/find_duplicates.html:90
+msgid "City"
+msgstr "Città"
+
+#: libraries/templates/libraries/submit_library.html:101
+#: templates/admin/libraries/find_duplicates.html:89
+msgid "Address"
+msgstr "Indirizzo"
+
+#: libraries/templates/libraries/submit_library.html:111
+msgid "Postal code (optional)"
+msgstr "CAP (opzionale)"
+
+#: libraries/templates/libraries/submit_library.html:119
+msgid "Submit library"
+msgstr "Invia libreria"
+
+#: libraries/templates/libraries/submit_library.html:126
+msgid "Set exact location"
+msgstr "Imposta posizione esatta"
+
+#: libraries/templates/libraries/submit_library.html:127
+msgid "Center from address"
+msgstr "Centra dall'indirizzo"
+
+#: libraries/templates/libraries/submit_library.html:130
+msgid "Type an address and choose a suggestion to center the map. Drag the marker to refine the exact point."
+msgstr "Digita un indirizzo e scegli un suggerimento per centrare la mappa. Trascina il marcatore per affinare il punto esatto."
+
+#: libraries/templates/libraries/submit_library.html:260
+msgid "Marker moved. Coordinates updated."
+msgstr "Marcatore spostato. Coordinate aggiornate."
+
+#: libraries/templates/libraries/submit_library.html:265
+msgid "Map point selected. Coordinates updated."
+msgstr "Punto sulla mappa selezionato. Coordinate aggiornate."
+
+#: libraries/templates/libraries/submit_library.html:278
+msgid "Choose the map point by centering from address, dragging marker, or clicking map."
+msgstr "Scegli il punto sulla mappa centrando dall'indirizzo, trascinando il marcatore o cliccando sulla mappa."
+
+#: libraries/templates/libraries/submit_library.html:364
+msgid "Suggestion selected. Marker centered from autocomplete; drag to refine if needed."
+msgstr "Suggerimento selezionato. Marcatore centrato dall'autocompletamento; trascina per affinare se necessario."
+
+#: libraries/templates/libraries/submit_library.html:472
+msgid "Reading GPS metadata from the selected photo..."
+msgstr "Lettura dei metadati GPS dalla foto selezionata..."
+
+#: libraries/templates/libraries/submit_library.html:489
+msgid "No GPS metadata found in this photo. Set location manually on the map."
+msgstr "Nessun metadato GPS trovato in questa foto. Imposta la posizione manualmente sulla mappa."
+
+#: libraries/templates/libraries/submit_library.html:504
+msgid "GPS metadata found. Map centered and address fields pre-filled from the photo."
+msgstr "Metadati GPS trovati. Mappa centrata e campi indirizzo precompilati dalla foto."
+
+#: libraries/templates/libraries/submit_library.html:508
+msgid "GPS metadata found. Map centered from photo location."
+msgstr "Metadati GPS trovati. Mappa centrata dalla posizione della foto."
+
+#: libraries/templates/libraries/submit_library.html:510
+msgid "Could not read photo metadata right now. Set the location manually on the map."
+msgstr "Impossibile leggere i metadati della foto al momento. Imposta la posizione manualmente sulla mappa."
+
+#: libraries/templates/libraries/submit_library.html:533
+msgid "Finding location from address..."
+msgstr "Ricerca della posizione dall'indirizzo..."
+
+#: libraries/templates/libraries/submit_library.html:550
+msgid "Address not found. Move the marker manually on the map."
+msgstr "Indirizzo non trovato. Sposta il marcatore manualmente sulla mappa."
+
+#: libraries/templates/libraries/submit_library.html:557
+msgid "Address lookup returned invalid coordinates."
+msgstr "La ricerca dell'indirizzo ha restituito coordinate non valide."
+
+#: libraries/templates/libraries/submit_library.html:562
+msgid "Map centered from address. Drag marker if you need to refine the point."
+msgstr "Mappa centrata dall'indirizzo. Trascina il marcatore se devi affinare il punto."
+
+#: libraries/templates/libraries/submit_library.html:564
+msgid "Geocoding is unavailable right now. You can still click the map to pick coordinates."
+msgstr "La geocodifica non è disponibile al momento. Puoi comunque cliccare sulla mappa per scegliere le coordinate."
+
+#: libraries/templates/libraries/submit_library_confirmation.html:4
+#: libraries/templates/libraries/submit_library_confirmation.html:11
+msgid "Submission received"
+msgstr "Invio ricevuto"
+
+#: libraries/templates/libraries/submit_library_confirmation.html:5
+msgid "Your library submission was received and is now waiting for moderation approval on Book Corners."
+msgstr "La tua libreria è stata ricevuta ed è in attesa di approvazione da parte dei moderatori su Book Corners."
+
+#: libraries/templates/libraries/submit_library_confirmation.html:13
+msgid "Thanks for contributing. Your library submission has been sent to moderators. It will be reviewed and approved as soon as possible."
+msgstr "Grazie per il contributo. La tua libreria è stata inviata ai moderatori. Verrà revisionata e approvata il prima possibile."
+
+#: libraries/templates/libraries/submit_library_confirmation.html:16
+msgid "Continue"
+msgstr "Continua"
+
+#: templates/404.html:4 templates/404.html:12
+msgid "Page not found"
+msgstr "Pagina non trovata"
+
+#: templates/404.html:5
+msgid "The page you requested could not be found. Explore the map or return to the homepage."
+msgstr "La pagina richiesta non è stata trovata. Esplora la mappa o torna alla homepage."
+
+#: templates/404.html:11
+msgid "Error 404"
+msgstr "Errore 404"
+
+#: templates/404.html:14
+msgid "We could not find the page you requested. It may have moved or the URL may be incorrect."
+msgstr "Non siamo riusciti a trovare la pagina richiesta. Potrebbe essere stata spostata o l'URL potrebbe non essere corretto."
+
+#: templates/404.html:17 templates/500.html:17
+msgid "Back to homepage"
+msgstr "Torna alla homepage"
+
+#: templates/404.html:18 templates/500.html:18 templates/about.html:75
+#: templates/home.html:35
+msgid "Explore map"
+msgstr "Esplora la mappa"
+
+#: templates/500.html:4
+msgid "Server error"
+msgstr "Errore del server"
+
+#: templates/500.html:5
+msgid "Book Corners encountered an unexpected error. Please try again shortly."
+msgstr "Book Corners ha riscontrato un errore imprevisto. Riprova tra poco."
+
+#: templates/500.html:11
+msgid "Error 500"
+msgstr "Errore 500"
+
+#: templates/500.html:12
+msgid "Something went wrong"
+msgstr "Qualcosa è andato storto"
+
+#: templates/500.html:14
+msgid "Sorry, an unexpected error occurred on our side. Please try again in a moment."
+msgstr "Ci scusiamo, si è verificato un errore imprevisto. Riprova tra un momento."
+
+#: templates/about.html:4 templates/base.html:31 templates/base.html:61
+msgid "About"
+msgstr "Chi siamo"
+
+#: templates/about.html:5
+msgid "Learn the mission behind Book Corners and how to contribute new neighborhood library entries."
+msgstr "Scopri la missione di Book Corners e come contribuire con nuove casette dei libri."
+
+#: templates/about.html:12
+msgid "Book Corners logo"
+msgstr "Logo di Book Corners"
+
+#: templates/about.html:16
+msgid "About Book Corners"
+msgstr "Chi siamo"
+
+#: templates/about.html:18
+msgid "Book Corners is a community map for little free libraries and neighborhood book exchange spots. The goal is simple: help people discover nearby places where they can leave a book or pick one up."
+msgstr "Book Corners è una mappa comunitaria per casette dei libri e punti di scambio libri di quartiere. L'obiettivo è semplice: aiutare le persone a scoprire luoghi vicini dove lasciare o prendere un libro."
+
+#: templates/about.html:21
+msgid "Every library submitted by users is reviewed before publication, so the map stays useful, trustworthy, and welcoming to everyone."
+msgstr "Ogni libreria inviata dagli utenti viene revisionata prima della pubblicazione, così la mappa resta utile, affidabile e accogliente per tutti."
+
+#: templates/about.html:36
+msgid "How to contribute"
+msgstr "Come contribuire"
+
+#: templates/about.html:39
+msgid "You can contribute by submitting new libraries, improving location details, and reporting outdated entries so the map keeps improving over time."
+msgstr "Puoi contribuire inviando nuove librerie, migliorando i dettagli della posizione e segnalando voci obsolete per migliorare la mappa nel tempo."
+
+#: templates/about.html:42
+msgid "Add a new library in your neighborhood"
+msgstr "Aggiungi una nuova libreria nel tuo quartiere"
+
+#: templates/about.html:43
+msgid "Improve address details and marker position"
+msgstr "Migliora i dettagli dell'indirizzo e la posizione del marcatore"
+
+#: templates/about.html:44
+msgid "Report places that are missing or no longer active"
+msgstr "Segnala luoghi mancanti o non più attivi"
+
+#: templates/about.html:51
+msgid "About the creator"
+msgstr "Il creatore"
+
+#: templates/about.html:55
+msgid "Andrea speaking at PyCon Italy"
+msgstr "Andrea parla al PyCon Italia"
+
+#: templates/about.html:59
+msgid "Hi, I am Andrea Grandi and I've been writing software for over 30 years. I built Book Corners as a practical side project to combine community tools, geospatial data, and a love for books into something useful."
+msgstr "Ciao, sono Andrea Grandi e scrivo software da oltre 30 anni. Ho creato Book Corners come progetto pratico per combinare strumenti comunitari, dati geospaziali e l'amore per i libri in qualcosa di utile."
+
+#: templates/about.html:62
+msgid "I enjoy creating practical products that start simple and improve with real feedback from people using them. This project follows that spirit: small iterations, clear priorities, and community value."
+msgstr "Mi piace creare prodotti pratici che partono semplici e migliorano con il feedback reale delle persone che li usano. Questo progetto segue quello spirito: piccole iterazioni, priorità chiare e valore per la community."
+
+#: templates/about.html:70
+msgid "Get involved"
+msgstr "Partecipa"
+
+#: templates/about.html:72
+msgid "Explore the map, submit a library in your area, or follow the code on GitHub if you want to track updates and future improvements."
+msgstr "Esplora la mappa, invia una libreria nella tua zona, o segui il codice su GitHub se vuoi seguire aggiornamenti e miglioramenti futuri."
+
+#: templates/about.html:77
+msgid "View source"
+msgstr "Codice sorgente"
+
+#: templates/admin/index.html:66
+msgid "Moderation Queue"
+msgstr ""
+
+#: templates/admin/index.html:71
+#, fuzzy
+#| msgid "Loading libraries..."
+msgid "Pending Libraries"
+msgstr "Caricamento librerie..."
+
+#: templates/admin/index.html:72 templates/admin/index.html:77
+#: templates/admin/index.html:82
+msgid "View all &rarr;"
+msgstr ""
+
+#: templates/admin/index.html:76
+#, fuzzy
+#| msgid "Send report"
+msgid "Open Reports"
+msgstr "Invia segnalazione"
+
+#: templates/admin/index.html:81
+#, fuzzy
+#| msgid "Pending"
+msgid "Pending Photos"
+msgstr "In attesa"
+
+#: templates/admin/index.html:88
+msgid "Recent Pending Libraries"
+msgstr ""
+
+#: templates/admin/index.html:91
+#, fuzzy
+#| msgid "Address"
+msgid "Name / Address"
+msgstr "Indirizzo"
+
+#: templates/admin/index.html:93 templates/admin/index.html:115
+#: templates/admin/index.html:137
+#, fuzzy
+#| msgid "Submitted by:"
+msgid "Submitted"
+msgstr "Inviata da:"
+
+#: templates/admin/index.html:110
+msgid "Recent Open Reports"
+msgstr ""
+
+#: templates/admin/index.html:113
+msgid "Report"
+msgstr ""
+
+#: templates/admin/index.html:114 templates/admin/index.html:136
+msgid "Library"
+msgstr ""
+
+#: templates/admin/index.html:132
+msgid "Recent Pending Photos"
+msgstr ""
+
+#: templates/admin/libraries/find_duplicates.html:4
+#: templates/admin/libraries/find_duplicates.html:47
+#: templates/admin/libraries/library_changelist.html:9
+msgid "Find Duplicates"
+msgstr ""
+
+#: templates/admin/libraries/find_duplicates.html:4
+#: templates/admin/libraries/geojson_import_form.html:4
+#: templates/admin/libraries/geojson_import_result.html:4
+msgid "Django site admin"
+msgstr ""
+
+#: templates/admin/libraries/find_duplicates.html:45
+#: templates/admin/libraries/geojson_import_form.html:8
+#: templates/admin/libraries/geojson_import_result.html:8
+#: templates/base.html:30 templates/base.html:60 templates/home.html:4
+msgid "Home"
+msgstr "Home"
+
+#: templates/admin/libraries/find_duplicates.html:53
+#, fuzzy
+#| msgid "Radius (km)"
+msgid "Radius (m):"
+msgstr "Raggio (km)"
+
+#: templates/admin/libraries/find_duplicates.html:62
+msgid "Include proximity matches"
+msgstr ""
+
+#: templates/admin/libraries/find_duplicates.html:64
+msgid "Scan"
+msgstr ""
+
+#: templates/admin/libraries/find_duplicates.html:71
+#, python-format
+msgid ""
+"\n"
+"            Found %(group_count)s duplicate group(s) with %(dup_count)s extra entry/entries.\n"
+"            "
+msgstr ""
+
+#: templates/admin/libraries/find_duplicates.html:74
+msgid "The oldest entry in each group (highlighted in green) is kept by default."
+msgstr ""
+
+#: templates/admin/libraries/find_duplicates.html:82
+msgid "Group"
+msgstr ""
+
+#: templates/admin/libraries/find_duplicates.html:86
+msgid "Delete"
+msgstr ""
+
+#: templates/admin/libraries/find_duplicates.html:87
+msgid "ID"
+msgstr ""
+
+#: templates/admin/libraries/find_duplicates.html:88
+msgid "Name"
+msgstr ""
+
+#: templates/admin/libraries/find_duplicates.html:91
+#: templates/admin/libraries/geojson_import_result.html:57
+msgid "External ID"
+msgstr ""
+
+#: templates/admin/libraries/find_duplicates.html:92 templates/base.html:129
+msgid "Status"
+msgstr "Stato"
+
+#: templates/admin/libraries/find_duplicates.html:93
+#: templates/admin/libraries/geojson_import_result.html:24
+msgid "Created"
+msgstr ""
+
+#: templates/admin/libraries/find_duplicates.html:117
+msgid "Delete selected duplicates"
+msgstr ""
+
+#: templates/admin/libraries/find_duplicates.html:118
+msgid "Are you sure you want to delete the selected libraries?"
+msgstr ""
+
+#: templates/admin/libraries/find_duplicates.html:123
+#, fuzzy
+#| msgid "No libraries found"
+msgid "No duplicates found."
+msgstr "Nessuna libreria trovata"
+
+#: templates/admin/libraries/find_duplicates.html:130
+#, python-format
+msgid ""
+"\n"
+"        Successfully deleted %(count)s duplicate(s).\n"
+"        "
+msgstr ""
+
+#: templates/admin/libraries/find_duplicates.html:138
+#: templates/admin/libraries/geojson_import_result.html:74
+#, fuzzy
+#| msgid "Search libraries"
+msgid "Back to library list"
+msgstr "Cerca librerie"
+
+#: templates/admin/libraries/geojson_import_form.html:4
+#: templates/admin/libraries/geojson_import_form.html:10
+#: templates/admin/libraries/library_changelist.html:6
+msgid "Import GeoJSON"
+msgstr ""
+
+#: templates/admin/libraries/geojson_import_form.html:19
+msgid "Upload GeoJSON File"
+msgstr ""
+
+#: templates/admin/libraries/geojson_import_form.html:22
+msgid "GeoJSON file:"
+msgstr ""
+
+#: templates/admin/libraries/geojson_import_form.html:24
+msgid "Upload an enriched GeoJSON file with addr:street, addr:city, and addr:country properties."
+msgstr ""
+
+#: templates/admin/libraries/geojson_import_form.html:30
+msgid "Applied to all imported libraries. Leave blank if not needed."
+msgstr ""
+
+#: templates/admin/libraries/geojson_import_form.html:34
+#, fuzzy
+#| msgid "Status"
+msgid "Status:"
+msgstr "Stato"
+
+#: templates/admin/libraries/geojson_import_form.html:39
+msgid "Status applied to all imported libraries."
+msgstr ""
+
+#: templates/admin/libraries/geojson_import_form.html:44
+msgid "Import"
+msgstr ""
+
+#: templates/admin/libraries/geojson_import_form.html:45
+msgid "Cancel"
+msgstr ""
+
+#: templates/admin/libraries/geojson_import_result.html:4
+#: templates/admin/libraries/geojson_import_result.html:10
+msgid "Import Results"
+msgstr ""
+
+#: templates/admin/libraries/geojson_import_result.html:16
+msgid "Import Summary"
+msgstr ""
+
+#: templates/admin/libraries/geojson_import_result.html:20
+msgid "Total features in file"
+msgstr ""
+
+#: templates/admin/libraries/geojson_import_result.html:28
+msgid "Skipped (duplicate external ID)"
+msgstr ""
+
+#: templates/admin/libraries/geojson_import_result.html:32
+msgid "Skipped (duplicate address)"
+msgstr ""
+
+#: templates/admin/libraries/geojson_import_result.html:36
+#, fuzzy
+#| msgid "Set exact location"
+msgid "Skipped (nearby location)"
+msgstr "Imposta posizione esatta"
+
+#: templates/admin/libraries/geojson_import_result.html:40
+msgid "Skipped (missing address)"
+msgstr ""
+
+#: templates/admin/libraries/geojson_import_result.html:44
+#: templates/admin/libraries/geojson_import_result.html:53
+#, fuzzy
+#| msgid "Error 404"
+msgid "Errors"
+msgstr "Errore 404"
+
+#: templates/admin/libraries/geojson_import_result.html:76
+msgid "Import another file"
+msgstr ""
+
+#: templates/base.html:7 templates/base.html:11 templates/base.html:98
+msgid "Community map of neighborhood book exchange spots."
+msgstr "Mappa comunitaria dei punti di scambio libri di quartiere."
+
+#: templates/base.html:24
+msgid "Open navigation menu"
+msgstr "Apri menu di navigazione"
+
+#: templates/base.html:33 templates/base.html:63
+msgid "Submit"
+msgstr "Invia"
+
+#: templates/base.html:39 templates/base.html:69
+msgid "Logout"
+msgstr "Esci"
+
+#: templates/base.html:43 templates/base.html:73
+#: users/templates/users/login.html:4
+msgid "Login"
+msgstr "Accedi"
+
+#: templates/base.html:44 templates/base.html:74
+#: users/templates/users/register.html:4
+msgid "Register"
+msgstr "Registrati"
+
+#: templates/base.html:99
+msgid "Made with ❤️ by <a href=\"https://www.andreagrandi.it\" class=\"link link-hover\" target=\"_blank\" rel=\"noopener noreferrer\">Andrea Grandi</a>"
+msgstr "Fatto con ❤️ da <a href=\"https://www.andreagrandi.it\" class=\"link link-hover\" target=\"_blank\" rel=\"noopener noreferrer\">Andrea Grandi</a>"
+
+#: templates/base.html:106
+msgid "Socials"
+msgstr "Social"
+
+#: templates/base.html:126
+msgid "Resources"
+msgstr "Risorse"
+
+#: templates/base.html:128
+msgid "Developers API"
+msgstr "API per sviluppatori"
+
+#: templates/base.html:137
+msgid "Legal"
+msgstr "Legale"
+
+#: templates/base.html:139
+msgid "Privacy"
+msgstr "Privacy"
+
+#: templates/base.html:147
+msgid "Language"
+msgstr "Lingua"
+
+#: templates/home.html:5
+msgid "Discover and share little free libraries in your neighborhood with Book Corners."
+msgstr "Scopri e condividi casette dei libri nel tuo quartiere con Book Corners."
+
+#: templates/home.html:11
+msgid "Share books, discover neighborhood libraries"
+msgstr "Condividi libri, scopri librerie di quartiere"
+
+#: templates/home.html:13
+#, python-format
+msgid "Join a community of <strong class=\"text-base-content\">%(total)s</strong> neighborhood libraries."
+msgstr "Unisciti a una community di <strong class=\"text-base-content\">%(total)s</strong> librerie di quartiere."
+
+#: templates/home.html:14
+msgid "Leave a book, take a book, and discover reading spots nearby."
+msgstr "Lascia un libro, prendi un libro e scopri punti di lettura nelle vicinanze."
+
+#: templates/home.html:25
+msgid "Search by city, area, postcode, or address"
+msgstr "Cerca per città, zona, CAP o indirizzo"
+
+#: templates/home.html:26
+msgid "Search libraries by place"
+msgstr "Cerca librerie per luogo"
+
+#: templates/home.html:31
+msgid "Advanced search"
+msgstr "Ricerca avanzata"
+
+#: templates/home.html:45
+msgid "Latest entries"
+msgstr "Ultime librerie"
+
+#: templates/home.html:46
+msgid "Recently approved libraries from the community."
+msgstr "Librerie approvate di recente dalla community."
+
+#: templates/socialaccount/signup.html:4
+msgid "Complete Sign Up"
+msgstr "Completa la registrazione"
+
+#: templates/socialaccount/signup.html:5
+msgid "Complete your Book Corners account setup after signing in with Google."
+msgstr "Completa la configurazione del tuo account Book Corners dopo l'accesso con Google."
+
+#: templates/socialaccount/signup.html:11
+msgid "Complete your account"
+msgstr "Completa il tuo account"
+
+#: templates/socialaccount/signup.html:12
+msgid "Just one more step — pick a username to finish signing up."
+msgstr "Solo un altro passo — scegli un nome utente per completare la registrazione."
+
+#: templates/socialaccount/signup.html:29
+msgid "Complete sign up"
+msgstr "Completa la registrazione"
+
+#: users/forms.py:45
+msgid "A user with this email already exists."
+msgstr "Un utente con questa email esiste già."
+
+#: users/forms.py:50 users/templates/users/login.html:23
+msgid "Username or email"
+msgstr "Nome utente o email"
+
+#: users/templates/users/login.html:5
+msgid "Log in to Book Corners to submit libraries, report issues, and manage your contributions."
+msgstr "Accedi a Book Corners per inviare librerie, segnalare problemi e gestire i tuoi contributi."
+
+#: users/templates/users/login.html:11 users/templates/users/login.html:34
+#: users/templates/users/register.html:67
+msgid "Log in"
+msgstr "Accedi"
+
+#: users/templates/users/login.html:12
+msgid "Use your username or email address to access your account."
+msgstr "Usa il tuo nome utente o indirizzo email per accedere al tuo account."
+
+#: users/templates/users/login.html:29 users/templates/users/register.html:34
+msgid "Password"
+msgstr "Password"
+
+#: users/templates/users/login.html:38 users/templates/users/register.html:49
+msgid "or"
+msgstr "oppure"
+
+#: users/templates/users/login.html:50 users/templates/users/register.html:60
+msgid "Continue with Google"
+msgstr "Continua con Google"
+
+#: users/templates/users/login.html:56
+msgid "New here?"
+msgstr "Sei nuovo?"
+
+#: users/templates/users/login.html:57 users/templates/users/register.html:11
+msgid "Create an account"
+msgstr "Crea un account"
+
+#: users/templates/users/register.html:5
+msgid "Create a Book Corners account to add new libraries and keep local entries up to date."
+msgstr "Crea un account Book Corners per aggiungere nuove librerie e mantenere aggiornate le voci locali."
+
+#: users/templates/users/register.html:12
+msgid "Join to submit libraries and help keep information up to date."
+msgstr "Registrati per inviare librerie e aiutare a mantenere le informazioni aggiornate."
+
+#: users/templates/users/register.html:22
+msgid "Username"
+msgstr "Nome utente"
+
+#: users/templates/users/register.html:28
+msgid "Email"
+msgstr "Email"
+
+#: users/templates/users/register.html:40
+msgid "Confirm password"
+msgstr "Conferma password"
+
+#: users/templates/users/register.html:45
+msgid "Create account"
+msgstr "Crea account"
+
+#: users/templates/users/register.html:66
+msgid "Already have an account?"
+msgstr "Hai già un account?"
+
+#: users/views.py:68
+msgid "Too many registration attempts. Please try again in a few minutes."
+msgstr "Troppi tentativi di registrazione. Riprova tra qualche minuto."
+
+#: users/views.py:99
+msgid "Too many login attempts. Please try again in a few minutes."
+msgstr "Troppi tentativi di accesso. Riprova tra qualche minuto."

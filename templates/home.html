@@ -1,16 +1,17 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Home - Book Corners{% endblock %}
-{% block meta_description %}Discover and share little free libraries in your neighborhood with Book Corners.{% endblock %}
+{% block title %}{% trans "Home" %} - Book Corners{% endblock %}
+{% block meta_description %}{% trans "Discover and share little free libraries in your neighborhood with Book Corners." %}{% endblock %}
 
 {% block content %}
   <section class="hero rounded-box bg-base-100 shadow-sm">
     <div class="hero-content py-16 text-center">
       <div class="max-w-3xl">
-        <h1 class="text-4xl font-bold">Share books, discover neighborhood libraries</h1>
+        <h1 class="text-4xl font-bold">{% trans "Share books, discover neighborhood libraries" %}</h1>
         <p class="py-6 text-base-content/70">
-          Join a community of <strong class="text-base-content">{{ total_libraries }}</strong> neighborhood libraries.
-          Leave a book, take a book, and discover reading spots nearby.
+          {% blocktrans with total=total_libraries %}Join a community of <strong class="text-base-content">{{ total }}</strong> neighborhood libraries.{% endblocktrans %}
+          {% trans "Leave a book, take a book, and discover reading spots nearby." %}
         </p>
         <form method="get" action="{% url 'map_page' %}" class="mx-auto mb-4 w-full max-w-2xl">
           <label class="input flex w-full items-center gap-2">
@@ -21,18 +22,18 @@
               type="text"
               name="near"
               class="grow"
-              placeholder="Search by city, area, postcode, or address"
-              aria-label="Search libraries by place"
+              placeholder="{% trans "Search by city, area, postcode, or address" %}"
+              aria-label="{% trans "Search libraries by place" %}"
             >
             <input type="hidden" name="radius_km" value="10">
-            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+            <button type="submit" class="btn btn-primary btn-sm">{% trans "Search" %}</button>
           </label>
-          <a href="{% url 'map_page' %}?view=list" class="mt-2 inline-block text-sm link link-hover">Advanced search</a>
+          <a href="{% url 'map_page' %}?view=list" class="mt-2 inline-block text-sm link link-hover">{% trans "Advanced search" %}</a>
         </form>
 
         <div class="flex flex-wrap justify-center gap-3">
-          <a href="/map/" class="btn btn-primary">Explore map</a>
-          <a href="/submit/" class="btn btn-outline">Submit a library</a>
+          <a href="/map/" class="btn btn-primary">{% trans "Explore map" %}</a>
+          <a href="/submit/" class="btn btn-outline">{% trans "Submit a library" %}</a>
         </div>
       </div>
     </div>
@@ -41,8 +42,8 @@
   <section class="mt-8">
     <div class="mb-4 flex items-end justify-between gap-3">
       <div>
-        <h2 class="text-2xl font-bold">Latest entries</h2>
-        <p class="text-base-content/70">Recently approved libraries from the community.</p>
+        <h2 class="text-2xl font-bold">{% trans "Latest entries" %}</h2>
+        <p class="text-base-content/70">{% trans "Recently approved libraries from the community." %}</p>
       </div>
     </div>
 

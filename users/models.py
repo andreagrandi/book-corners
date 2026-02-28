@@ -1,12 +1,16 @@
 from typing import Any
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 from django.db.models import Q, UniqueConstraint
 from django.db.models.functions import Lower
 
 
 class User(AbstractUser):
     """Custom user model. Extend as needed."""
+
+    language = models.CharField(max_length=10, choices=settings.LANGUAGES, default="en")
 
     class Meta:
         db_table = "users"

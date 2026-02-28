@@ -1,26 +1,24 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}About - Book Corners{% endblock %}
-{% block meta_description %}Learn the mission behind Book Corners and how to contribute new neighborhood library entries.{% endblock %}
+{% block title %}{% trans "About" %} - Book Corners{% endblock %}
+{% block meta_description %}{% trans "Learn the mission behind Book Corners and how to contribute new neighborhood library entries." %}{% endblock %}
 
 {% block content %}
   <section class="rounded-box bg-base-100 shadow-sm">
     <div class="hero-content flex-col gap-8 px-6 py-10 text-center lg:flex-row lg:items-center lg:px-12 lg:text-left">
       <img
         src="{% static 'images/book-corners-logo-navbar.png' %}"
-        alt="Book Corners logo"
+        alt="{% trans "Book Corners logo" %}"
         class="w-full max-w-sm rounded-2xl border border-base-300 bg-base-200 p-6 shadow-sm"
       >
       <div class="max-w-2xl">
-        <h1 class="text-4xl font-bold">About Book Corners</h1>
+        <h1 class="text-4xl font-bold">{% trans "About Book Corners" %}</h1>
         <p class="mt-4 text-base-content/80">
-          Book Corners is a community map for little free libraries and neighborhood book exchange spots.
-          The goal is simple: help people discover nearby places where they can leave a book or pick one up.
+          {% trans "Book Corners is a community map for little free libraries and neighborhood book exchange spots. The goal is simple: help people discover nearby places where they can leave a book or pick one up." %}
         </p>
         <p class="mt-3 text-base-content/80">
-          Every library submitted by users is reviewed before publication, so the map stays useful,
-          trustworthy, and welcoming to everyone.
+          {% trans "Every library submitted by users is reviewed before publication, so the map stays useful, trustworthy, and welcoming to everyone." %}
         </p>
       </div>
     </div>
@@ -35,36 +33,33 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 16v-2m8-6h-2M6 12H4m11.314 5.314l1.414 1.414M7.272 7.272l1.414 1.414m8.628-1.414l-1.414 1.414M8.686 15.314l-1.414 1.414M12 8a4 4 0 100 8 4 4 0 000-8z" />
             </svg>
           </span>
-          <h2 class="card-title text-xl">How to contribute</h2>
+          <h2 class="card-title text-xl">{% trans "How to contribute" %}</h2>
         </div>
         <p class="text-base-content/75">
-          You can contribute by submitting new libraries, improving location details, and reporting outdated
-          entries so the map keeps improving over time.
+          {% trans "You can contribute by submitting new libraries, improving location details, and reporting outdated entries so the map keeps improving over time." %}
         </p>
         <ul class="mt-3 list-inside list-disc space-y-1 text-base-content/75">
-          <li>Add a new library in your neighborhood</li>
-          <li>Improve address details and marker position</li>
-          <li>Report places that are missing or no longer active</li>
+          <li>{% trans "Add a new library in your neighborhood" %}</li>
+          <li>{% trans "Improve address details and marker position" %}</li>
+          <li>{% trans "Report places that are missing or no longer active" %}</li>
         </ul>
       </div>
     </article>
 
     <article class="card bg-base-100 shadow-sm">
       <div class="card-body">
-        <h2 class="card-title text-xl">About the creator</h2>
+        <h2 class="card-title text-xl">{% trans "About the creator" %}</h2>
         <div class="mt-1 text-base-content/75">
           <img
             src="{% static 'images/me_pycon_2019_2.jpg' %}"
-            alt="Andrea speaking at PyCon Italy"
+            alt="{% trans "Andrea speaking at PyCon Italy" %}"
             class="float-left mb-3 mr-4 w-32 rounded-xl border border-base-300 object-cover sm:w-40"
           >
           <p>
-            Hi, I am Andrea Grandi and I've been writing software for over 30 years. I built Book Corners as a practical side project to combine community tools,
-            geospatial data, and a love for books into something useful.
+            {% trans "Hi, I am Andrea Grandi and I've been writing software for over 30 years. I built Book Corners as a practical side project to combine community tools, geospatial data, and a love for books into something useful." %}
           </p>
           <p class="mt-3 clear-left">
-            I enjoy creating practical products that start simple and improve with real feedback from people
-            using them. This project follows that spirit: small iterations, clear priorities, and community value.
+            {% trans "I enjoy creating practical products that start simple and improve with real feedback from people using them. This project follows that spirit: small iterations, clear priorities, and community value." %}
           </p>
         </div>
       </div>
@@ -72,15 +67,14 @@
   </section>
 
   <section class="mt-8 rounded-box border border-base-300 bg-base-100 p-6 shadow-sm">
-    <h2 class="text-2xl font-bold">Get involved</h2>
+    <h2 class="text-2xl font-bold">{% trans "Get involved" %}</h2>
     <p class="mt-2 text-base-content/75">
-      Explore the map, submit a library in your area, or follow the code on GitHub if you want to track
-      updates and future improvements.
+      {% trans "Explore the map, submit a library in your area, or follow the code on GitHub if you want to track updates and future improvements." %}
     </p>
     <div class="mt-5 flex flex-wrap gap-3">
-      <a href="{% url 'map_page' %}" class="btn btn-primary">Explore map</a>
-      <a href="{% url 'submit_library' %}" class="btn btn-outline">Submit a library</a>
-      <a href="https://github.com/andreagrandi/book-corners" class="btn btn-ghost">View source</a>
+      <a href="{% url 'map_page' %}" class="btn btn-primary">{% trans "Explore map" %}</a>
+      <a href="{% url 'submit_library' %}" class="btn btn-outline">{% trans "Submit a library" %}</a>
+      <a href="https://github.com/andreagrandi/book-corners" class="btn btn-ghost">{% trans "View source" %}</a>
     </div>
   </section>
 {% endblock %}

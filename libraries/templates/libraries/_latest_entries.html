@@ -1,3 +1,4 @@
+{% load i18n %}
 {% if is_first_page %}
   <div id="latest-entries-grid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
 {% endif %}
@@ -7,8 +8,8 @@
 {% empty %}
   {% if is_first_page %}
     <div class="col-span-full rounded-box border border-dashed border-base-300 bg-base-100 p-8 text-center">
-      <h3 class="text-lg font-semibold">No approved libraries yet</h3>
-      <p class="mt-2 text-base-content/70">Use the seed command to generate sample records or submit your first library.</p>
+      <h3 class="text-lg font-semibold">{% trans "No approved libraries yet" %}</h3>
+      <p class="mt-2 text-base-content/70">{% trans "Use the seed command to generate sample records or submit your first library." %}</p>
     </div>
   {% endif %}
 {% endfor %}

@@ -8,12 +8,13 @@ from django.conf import settings
 from django import forms
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 from libraries.models import Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
 
 
 COUNTRY_CHOICES = [
-    ("", "Select a country"),
+    ("", _("Select a country")),
     *sorted(
         ((country.alpha_2, country.name) for country in pycountry.countries),
         key=lambda item: item[1],
@@ -21,7 +22,7 @@ COUNTRY_CHOICES = [
 ]
 
 SEARCH_COUNTRY_CHOICES = [
-    ("", "Any country"),
+    ("", _("Any country")),
     *COUNTRY_CHOICES[1:],
 ]
 
@@ -37,8 +38,12 @@ def _validate_uploaded_photo(*, uploaded_photo: Any, max_size_bytes: int) -> Any
     if uploaded_photo.size > max_size_bytes:
         max_size_mb = max_size_bytes / (1024 * 1024)
         if max_size_mb >= 1:
-            raise ValidationError(f"Photo must be {max_size_mb:.0f}MB or smaller.")
-        raise ValidationError(f"Photo must be at most {max_size_bytes} bytes.")
+            raise ValidationError(
+                _("Photo must be %(size).0fMB or smaller.") % {"size": max_size_mb}
+            )
+        raise ValidationError(
+            _("Photo must be at most %(size)s bytes.") % {"size": max_size_bytes}
+        )
 
     start_position = None
     if hasattr(uploaded_photo, "tell"):
@@ -54,9 +59,9 @@ def _validate_uploaded_photo(*, uploaded_photo: Any, max_size_bytes: int) -> Any
         with Image.open(uploaded_photo) as image:
             image_format = (image.format or "").upper()
             if image_format not in ALLOWED_IMAGE_FORMATS:
-                raise ValidationError("Upload a valid image in JPEG, PNG, or WEBP format.")
+                raise ValidationError(_("Upload a valid image in JPEG, PNG, or WEBP format."))
     except (UnidentifiedImageError, OSError, ValueError):
-        raise ValidationError("Upload a valid image in JPEG, PNG, or WEBP format.")
+        raise ValidationError(_("Upload a valid image in JPEG, PNG, or WEBP format."))
     finally:
         if start_position is not None and hasattr(uploaded_photo, "seek"):
             try:
@@ -109,7 +114,7 @@ class LibrarySubmissionForm(forms.ModelForm):
         self.fields["wheelchair_accessible"].widget.attrs["class"] = "select w-full"
         self.fields["capacity"].widget.attrs.update({
             "class": "input w-full",
-            "placeholder": "Approximate book capacity",
+            "placeholder": _("Approximate book capacity"),
         })
         self.fields["website"].widget.attrs.update({
             "class": "input w-full",
@@ -117,15 +122,15 @@ class LibrarySubmissionForm(forms.ModelForm):
         })
         self.fields["contact"].widget.attrs.update({
             "class": "input w-full",
-            "placeholder": "Email, phone, etc.",
+            "placeholder": _("Email, phone, etc."),
         })
         self.fields["operator"].widget.attrs.update({
             "class": "input w-full",
-            "placeholder": "Organisation managing this library",
+            "placeholder": _("Organisation managing this library"),
         })
         self.fields["brand"].widget.attrs.update({
             "class": "input w-full",
-            "placeholder": "e.g. Little Free Library",
+            "placeholder": _("e.g. Little Free Library"),
         })
 
     def clean_latitude(self) -> float:
@@ -133,7 +138,7 @@ class LibrarySubmissionForm(forms.ModelForm):
         Rejects invalid values before save-time logic."""
         latitude = self.cleaned_data["latitude"]
         if latitude < -90 or latitude > 90:
-            raise ValidationError("Latitude must be between -90 and 90.")
+            raise ValidationError(_("Latitude must be between -90 and 90."))
         return latitude
 
     def clean_longitude(self) -> float:
@@ -141,7 +146,7 @@ class LibrarySubmissionForm(forms.ModelForm):
         Rejects invalid values before save-time logic."""
         longitude = self.cleaned_data["longitude"]
         if longitude < -180 or longitude > 180:
-            raise ValidationError("Longitude must be between -180 and 180.")
+            raise ValidationError(_("Longitude must be between -180 and 180."))
         return longitude
 
     def clean_photo(self) -> Any:
@@ -240,13 +245,13 @@ class LibrarySearchForm(forms.Form):
         self.fields["q"].widget.attrs.update(
             {
                 "class": "input w-full",
-                "placeholder": "Keywords in name or description",
+                "placeholder": _("Keywords in name or description"),
             }
         )
         self.fields["near"].widget.attrs.update(
             {
                 "class": "input w-full",
-                "placeholder": "City, area, postcode, or address",
+                "placeholder": _("City, area, postcode, or address"),
             }
         )
         self.fields["radius_km"].widget.attrs.update(
@@ -260,7 +265,7 @@ class LibrarySearchForm(forms.Form):
         self.fields["city"].widget.attrs.update(
             {
                 "class": "input w-full",
-                "placeholder": "Filter by city",
+                "placeholder": _("Filter by city"),
             }
         )
         self.fields["country"].widget.attrs.update(
@@ -271,7 +276,7 @@ class LibrarySearchForm(forms.Form):
         self.fields["postal_code"].widget.attrs.update(
             {
                 "class": "input w-full",
-                "placeholder": "Filter by postal code",
+                "placeholder": _("Filter by postal code"),
             }
         )
 
@@ -310,7 +315,7 @@ class LibraryPhotoSubmissionForm(forms.ModelForm):
         self.fields["photo"].widget.attrs["class"] = "file-input w-full"
         self.fields["caption"].widget.attrs.update({
             "class": "input w-full",
-            "placeholder": "Optional caption for your photo",
+            "placeholder": _("Optional caption for your photo"),
         })
 
     def clean_photo(self) -> Any:
@@ -336,7 +341,8 @@ class LibraryPhotoSubmissionForm(forms.ModelForm):
             ).count()
             if existing_count >= MAX_LIBRARY_PHOTOS_PER_USER:
                 raise ValidationError(
-                    f"You can submit at most {MAX_LIBRARY_PHOTOS_PER_USER} photos per library."
+                    _("You can submit at most %(max)s photos per library.")
+                    % {"max": MAX_LIBRARY_PHOTOS_PER_USER}
                 )
 
         return cleaned_data

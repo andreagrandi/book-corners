@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block title %}{{ library.name|default:library.address }} - Book Corners{% endblock %}
 {% block meta_description %}{% if library.description %}{{ library.description|truncatechars:150 }}{% else %}Visit this little free library at {{ library.address }}, {{ library.city }} on Book Corners.{% endif %}{% endblock %}
@@ -37,20 +37,20 @@
         <p class="mt-2 text-base-content/80">{{ library.description|default:"A community little free library." }}</p>
 
         <div class="mt-4 space-y-2 text-sm sm:text-base">
-          <p><span class="font-semibold">Address:</span> {{ library.address }}</p>
-          <p><span class="font-semibold">City:</span> {{ library.city }}</p>
-          <p><span class="font-semibold">Country:</span> {{ library.country }}</p>
-          {% if library.postal_code %}<p><span class="font-semibold">Postal code:</span> {{ library.postal_code }}</p>{% endif %}
-          {% if library.wheelchair_accessible %}<p><span class="font-semibold">Wheelchair accessible:</span> {{ library.get_wheelchair_accessible_display }}</p>{% endif %}
-          {% if library.capacity %}<p><span class="font-semibold">Capacity:</span> {{ library.capacity }} books</p>{% endif %}
-          {% if library.is_indoor is not None %}<p><span class="font-semibold">Indoor:</span> {{ library.is_indoor|yesno:"Yes,No" }}</p>{% endif %}
-          {% if library.is_lit is not None %}<p><span class="font-semibold">Lit at night:</span> {{ library.is_lit|yesno:"Yes,No" }}</p>{% endif %}
-          {% if library.website %}<p><span class="font-semibold">Website:</span> <a href="{{ library.website }}" target="_blank" rel="noopener noreferrer" class="link link-primary">{{ library.website|truncatechars:50 }}</a></p>{% endif %}
-          {% if library.contact %}<p><span class="font-semibold">Contact:</span> {{ library.contact }}</p>{% endif %}
-          {% if library.operator %}<p><span class="font-semibold">Operator:</span> {{ library.operator }}</p>{% endif %}
-          {% if library.brand %}<p><span class="font-semibold">Brand:</span> {{ library.brand }}</p>{% endif %}
-          {% if library.source %}<p><span class="font-semibold">Source:</span> {{ library.source }}</p>{% endif %}
-          <p><span class="font-semibold">Submitted by:</span> {{ library.created_by.username }}</p>
+          <p><span class="font-semibold">{% trans "Address:" %}</span> {{ library.address }}</p>
+          <p><span class="font-semibold">{% trans "City:" %}</span> {{ library.city }}</p>
+          <p><span class="font-semibold">{% trans "Country:" %}</span> {{ library.country }}</p>
+          {% if library.postal_code %}<p><span class="font-semibold">{% trans "Postal code:" %}</span> {{ library.postal_code }}</p>{% endif %}
+          {% if library.wheelchair_accessible %}<p><span class="font-semibold">{% trans "Wheelchair accessible:" %}</span> {{ library.get_wheelchair_accessible_display }}</p>{% endif %}
+          {% if library.capacity %}<p><span class="font-semibold">{% trans "Capacity:" %}</span> {{ library.capacity }} {% trans "books" %}</p>{% endif %}
+          {% if library.is_indoor is not None %}<p><span class="font-semibold">{% trans "Indoor:" %}</span> {% if library.is_indoor %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</p>{% endif %}
+          {% if library.is_lit is not None %}<p><span class="font-semibold">{% trans "Lit at night:" %}</span> {% if library.is_lit %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</p>{% endif %}
+          {% if library.website %}<p><span class="font-semibold">{% trans "Website:" %}</span> <a href="{{ library.website }}" target="_blank" rel="noopener noreferrer" class="link link-primary">{{ library.website|truncatechars:50 }}</a></p>{% endif %}
+          {% if library.contact %}<p><span class="font-semibold">{% trans "Contact:" %}</span> {{ library.contact }}</p>{% endif %}
+          {% if library.operator %}<p><span class="font-semibold">{% trans "Operator:" %}</span> {{ library.operator }}</p>{% endif %}
+          {% if library.brand %}<p><span class="font-semibold">{% trans "Brand:" %}</span> {{ library.brand }}</p>{% endif %}
+          {% if library.source %}<p><span class="font-semibold">{% trans "Source:" %}</span> {{ library.source }}</p>{% endif %}
+          <p><span class="font-semibold">{% trans "Submitted by:" %}</span> {{ library.created_by.username }}</p>
         </div>
 
         {% if request.user.is_authenticated %}
@@ -63,7 +63,7 @@
                 aria-controls="photo-form"
                 aria-expanded="false"
               >
-                Add a photo
+                {% trans "Add a photo" %}
               </button>
             {% endif %}
             <button
@@ -73,14 +73,14 @@
               aria-controls="report-form"
               aria-expanded="false"
             >
-              Report an issue
+              {% trans "Report an issue" %}
             </button>
           </div>
         {% endif %}
       </div>
 
       <section class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
-        <h2 class="text-xl font-semibold">Location map</h2>
+        <h2 class="text-xl font-semibold">{% trans "Location map" %}</h2>
         <div
           id="library-detail-map"
           class="mt-3 h-72 w-full rounded-box border border-base-300"
@@ -100,7 +100,7 @@
       class="mt-6 hidden rounded-box border border-dashed border-base-300 bg-base-100 p-5"
       aria-hidden="true"
     >
-      <h2 class="text-xl font-semibold">Add a photo of this library</h2>
+      <h2 class="text-xl font-semibold">{% trans "Add a photo of this library" %}</h2>
       {% include "libraries/_photo_submission_form.html" with library=library photo_form=photo_form photo_submitted=False %}
     </section>
   {% endif %}
@@ -111,7 +111,7 @@
       class="mt-6 hidden rounded-box border border-dashed border-base-300 bg-base-100 p-5"
       aria-hidden="true"
     >
-      <h2 class="text-xl font-semibold">Report an issue with this library</h2>
+      <h2 class="text-xl font-semibold">{% trans "Report an issue with this library" %}</h2>
       {% include "libraries/_report_form.html" with library=library report_form=report_form report_submitted=False %}
     </section>
   {% endif %}

@@ -1,16 +1,17 @@
+{% load i18n %}
 <div id="report-form-panel" class="mt-3 space-y-4">
   {% if report_submitted %}
     <div class="alert alert-success">
-      <span>Thank you, your report was submitted and is now pending moderation review.</span>
+      <span>{% trans "Thank you, your report was submitted and is now pending moderation review." %}</span>
     </div>
   {% else %}
     <p class="text-sm text-base-content/70">
-      Tell us what is wrong with this library entry so moderators can review and fix it.
+      {% trans "Tell us what is wrong with this library entry so moderators can review and fix it." %}
     </p>
 
     {% if report_form.errors %}
       <div class="alert alert-error">
-        <span>Please review the highlighted fields and try again.</span>
+        <span>{% trans "Please review the highlighted fields and try again." %}</span>
       </div>
     {% endif %}
 
@@ -29,24 +30,24 @@
       {% endif %}
 
       <label class="flex w-full flex-col gap-1">
-        <span class="text-sm font-medium">Reason</span>
+        <span class="text-sm font-medium">{% trans "Reason" %}</span>
         {{ report_form.reason }}
         {% if report_form.reason.errors %}<span class="mt-1 text-sm text-error">{{ report_form.reason.errors.0 }}</span>{% endif %}
       </label>
 
       <label class="flex w-full flex-col gap-1">
-        <span class="text-sm font-medium">Details</span>
+        <span class="text-sm font-medium">{% trans "Details" %}</span>
         {{ report_form.details }}
         {% if report_form.details.errors %}<span class="mt-1 text-sm text-error">{{ report_form.details.errors.0 }}</span>{% endif %}
       </label>
 
       <label class="flex w-full flex-col gap-1">
-        <span class="text-sm font-medium">Photo (optional)</span>
+        <span class="text-sm font-medium">{% trans "Photo (optional)" %}</span>
         {{ report_form.photo }}
         {% if report_form.photo.errors %}<span class="mt-1 text-sm text-error">{{ report_form.photo.errors.0 }}</span>{% endif %}
       </label>
 
-      <button type="submit" class="btn btn-error">Send report</button>
+      <button type="submit" class="btn btn-error">{% trans "Send report" %}</button>
     </form>
   {% endif %}
 </div>

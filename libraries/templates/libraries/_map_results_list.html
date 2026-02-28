@@ -1,22 +1,23 @@
+{% load i18n %}
 <span class="hidden" data-list-total-count="{{ page_obj.paginator.count }}"></span>
 
 {% if form_errors %}
   <div class="alert alert-error mb-4">
-    <span>Please review the filter fields and try again.</span>
+    <span>{% trans "Please review the filter fields and try again." %}</span>
   </div>
 {% endif %}
 
 {% if location_resolution_failed and near_query %}
   <div class="alert alert-warning mb-4">
-    <span>Could not resolve "{{ near_query }}" to a place, so keyword matching was used instead.</span>
+    <span>{% blocktrans %}Could not resolve "{{ near_query }}" to a place, so keyword matching was used instead.{% endblocktrans %}</span>
   </div>
 {% endif %}
 
 {% if page_obj.object_list %}
   <div class="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm text-base-content/70">
-    <span>{{ page_obj.paginator.count }} libraries found.</span>
+    <span>{% blocktrans count count=page_obj.paginator.count %}{{ count }} library found.{% plural %}{{ count }} libraries found.{% endblocktrans %}</span>
     {% if page_obj.paginator.num_pages > 1 %}
-      <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      <span>{% blocktrans with current=page_obj.number total=page_obj.paginator.num_pages %}Page {{ current }} of {{ total }}{% endblocktrans %}</span>
     {% endif %}
   </div>
 
@@ -34,15 +35,15 @@
           class="btn btn-sm btn-outline"
           data-list-page="{{ page_obj.previous_page_number }}"
         >
-          Previous
+          {% trans "Previous" %}
         </button>
       {% else %}
         <button type="button" class="btn btn-sm btn-outline" disabled>
-          Previous
+          {% trans "Previous" %}
         </button>
       {% endif %}
 
-      <span class="text-sm text-base-content/70">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      <span class="text-sm text-base-content/70">{% blocktrans with current=page_obj.number total=page_obj.paginator.num_pages %}Page {{ current }} of {{ total }}{% endblocktrans %}</span>
 
       {% if page_obj.has_next %}
         <button
@@ -50,18 +51,18 @@
           class="btn btn-sm btn-outline"
           data-list-page="{{ page_obj.next_page_number }}"
         >
-          Next
+          {% trans "Next" %}
         </button>
       {% else %}
         <button type="button" class="btn btn-sm btn-outline" disabled>
-          Next
+          {% trans "Next" %}
         </button>
       {% endif %}
     </div>
   {% endif %}
 {% else %}
   <div class="rounded-box border border-dashed border-base-300 bg-base-100 p-8 text-center">
-    <h2 class="text-lg font-semibold">No libraries found</h2>
-    <p class="mt-2 text-base-content/70">Try broader keywords, increase the radius, or relax one of the filters.</p>
+    <h2 class="text-lg font-semibold">{% trans "No libraries found" %}</h2>
+    <p class="mt-2 text-base-content/70">{% trans "Try broader keywords, increase the radius, or relax one of the filters." %}</p>
   </div>
 {% endif %}
