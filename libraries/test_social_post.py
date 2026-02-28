@@ -15,7 +15,7 @@ from PIL import Image
 
 from libraries.models import Library, SocialPost
 from libraries.notifications import notify_social_post, notify_social_post_error
-from libraries.social.text import build_post_text, _country_name
+from libraries.social.text import build_bluesky_text, build_post_text, _country_name
 
 User = get_user_model()
 
@@ -192,6 +192,37 @@ class TestBuildPostText:
         )
         text = build_post_text(lib, "https://example.com/lib")
         assert "Named Library" in text
+
+    def test_bluesky_text_has_facets(self, approved_library):
+        """Verify the Bluesky TextBuilder includes link and tag facets.
+        Ensures URLs and hashtags render as clickable on Bluesky."""
+        builder = build_bluesky_text(approved_library, "https://example.com/library/test")
+        text = builder.build_text()
+        assert "https://example.com/library/test" in text
+        assert "#BookCorners" in text
+        assert len(builder.build_facets()) > 0
+
+    def test_bluesky_text_link_facet(self, approved_library):
+        """Verify the Bluesky text contains a link facet for the detail URL.
+        Makes the library link clickable in the Bluesky post."""
+        builder = build_bluesky_text(approved_library, "https://example.com/library/test")
+        facets = builder.build_facets()
+        link_facets = [
+            f for f in facets
+            if any(hasattr(feat, "uri") for feat in f.features)
+        ]
+        assert len(link_facets) >= 1
+
+    def test_bluesky_text_tag_facets(self, approved_library):
+        """Verify the Bluesky text contains tag facets for hashtags.
+        Makes hashtags clickable and searchable on Bluesky."""
+        builder = build_bluesky_text(approved_library, "https://example.com/library/test")
+        facets = builder.build_facets()
+        tag_facets = [
+            f for f in facets
+            if any(hasattr(feat, "tag") for feat in f.features)
+        ]
+        assert len(tag_facets) >= 4  # at least the base hashtags
 
 
 # --- Command tests ---

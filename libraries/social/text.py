@@ -82,3 +82,39 @@ def build_post_text(library, detail_url: str, *, max_length: int = 300) -> str:
         parts.append(hashtag_line)
 
     return "\n\n".join(parts)
+
+
+def build_bluesky_text(library, detail_url: str, *, max_length: int = 300):
+    """Build a Bluesky TextBuilder with clickable links and hashtags.
+    Returns an atproto TextBuilder instance with proper facets."""
+    from atproto import client_utils
+
+    plain_text = build_post_text(library, detail_url, max_length=max_length)
+    builder = client_utils.TextBuilder()
+
+    i = 0
+    while i < len(plain_text):
+        # Check if current position starts the URL
+        if plain_text[i:].startswith(detail_url):
+            builder.link(detail_url, detail_url)
+            i += len(detail_url)
+        # Check if current position starts a hashtag
+        elif plain_text[i] == "#":
+            end = i + 1
+            while end < len(plain_text) and plain_text[end] not in (" ", "\n"):
+                end += 1
+            tag_text = plain_text[i:end]
+            tag_value = tag_text[1:]  # strip the # for the tag facet
+            builder.tag(tag_text, tag_value)
+            i = end
+        else:
+            # Collect plain text until next special token
+            end = i + 1
+            while end < len(plain_text):
+                if plain_text[end] == "#" or plain_text[end:].startswith(detail_url):
+                    break
+                end += 1
+            builder.text(plain_text[i:end])
+            i = end
+
+    return builder
