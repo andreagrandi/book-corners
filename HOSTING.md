@@ -187,6 +187,18 @@ Add the production redirect URI in Google Cloud Console:
 - Authorized origin: `https://bookcorners.org`
 - Redirect URI: `https://bookcorners.org/accounts/google/login/callback/`
 
+### Social media posting (optional)
+
+```bash
+sudo dokku config:set book-corners \
+  MASTODON_INSTANCE_URL="https://mastodon.social" \
+  MASTODON_ACCESS_TOKEN="<your-access-token>" \
+  BLUESKY_HANDLE="bookcorners.bsky.social" \
+  BLUESKY_APP_PASSWORD="<your-app-password>"
+```
+
+Credentials can be added independently — if only one platform is configured, the other is silently skipped.
+
 ### Generate a secret key
 
 ```bash

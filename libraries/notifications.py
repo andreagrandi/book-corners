@@ -1,4 +1,4 @@
-"""Admin email notifications for new submissions requiring moderation."""
+"""Admin email notifications for submissions, moderation, and social posting."""
 
 from __future__ import annotations
 
@@ -114,3 +114,69 @@ def notify_new_photo(photo) -> None:
         )
     except Exception:
         logger.exception("Failed to send new-photo notification for photo %s", photo.pk)
+
+
+def notify_social_post(social_post) -> None:
+    """Send an admin notification about a successful social media post.
+    Fails silently so email outages never block the posting workflow."""
+    recipient = _get_admin_email()
+    if not recipient:
+        return
+
+    library = social_post.library
+    admin_url = _get_admin_url(
+        app_label="libraries", model_name="socialpost", object_id=social_post.pk,
+    )
+    subject = f"Social post published: {library.name or library.address}"
+    lines = [
+        "A library has been posted to social media.\n",
+        f"Library: {library.name or library.address}",
+        f"City: {library.city}",
+        f"\nPost text:\n{social_post.post_text}",
+    ]
+    if social_post.mastodon_url:
+        lines.append(f"\nMastodon: {social_post.mastodon_url}")
+    if social_post.bluesky_url:
+        lines.append(f"\nBluesky: {social_post.bluesky_url}")
+    lines.append(f"\nView in admin:\n{admin_url}")
+    body = "\n".join(lines)
+
+    try:
+        send_mail(
+            subject=subject,
+            message=body,
+            from_email=None,
+            recipient_list=[recipient],
+        )
+    except Exception:
+        logger.exception("Failed to send social-post notification for post %s", social_post.pk)
+
+
+def notify_social_post_error(library, error_details: str) -> None:
+    """Send an admin notification about a failed social media post.
+    Fails silently so email outages never block the posting workflow."""
+    recipient = _get_admin_email()
+    if not recipient:
+        return
+
+    admin_url = _get_admin_url(
+        app_label="libraries", model_name="library", object_id=library.pk,
+    )
+    subject = f"Social post failed: {library.name or library.address}"
+    body = (
+        f"Social media posting failed for a library.\n\n"
+        f"Library: {library.name or library.address}\n"
+        f"City: {library.city}\n\n"
+        f"Errors:\n{error_details}\n\n"
+        f"View library in admin:\n{admin_url}\n"
+    )
+
+    try:
+        send_mail(
+            subject=subject,
+            message=body,
+            from_email=None,
+            recipient_list=[recipient],
+        )
+    except Exception:
+        logger.exception("Failed to send social-post-error notification for library %s", library.pk)

@@ -142,7 +142,7 @@ When any change touches API endpoints (`libraries/api.py`, `libraries/api_schema
 
 ## Docs changelog (required)
 
-When any user-facing feature is added, changed, or removed, update `docs/changelog.md` with a brief entry describing the change. Group entries under a version heading. Commit the changelog update alongside the code changes.
+When any API feature is added, changed, or removed, update `docs/changelog.md` with a brief entry describing the change. Group entries under a version heading. Commit the changelog update alongside the code changes. Non-API changes (admin features, management commands, website-only features) do not belong in this changelog.
 
 ## Website / API feature parity
 

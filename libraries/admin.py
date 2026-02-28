@@ -13,7 +13,7 @@ from libraries.management.commands.find_duplicates import (
     DEFAULT_RADIUS_METERS,
     find_duplicate_groups,
 )
-from libraries.models import Library, LibraryPhoto, Report
+from libraries.models import Library, LibraryPhoto, Report, SocialPost
 
 
 class LibraryPhotoInline(admin.TabularInline):
@@ -232,6 +232,89 @@ class ReportAdmin(admin.ModelAdmin):
         self.message_user(
             request, f"{count} {'report' if count == 1 else 'reports'} dismissed."
         )
+
+
+@admin.register(SocialPost)
+class SocialPostAdmin(admin.ModelAdmin):
+    """Admin configuration for SocialPost model with read-only fields and links."""
+
+    list_display = ["library_link", "posted_at", "mastodon_url_short", "bluesky_url_short"]
+    readonly_fields = [
+        "library_admin_link",
+        "post_text",
+        "posted_at",
+        "mastodon_url_link",
+        "bluesky_url_link",
+    ]
+    fields = [
+        "library_admin_link",
+        "post_text",
+        "posted_at",
+        "mastodon_url_link",
+        "bluesky_url_link",
+    ]
+
+    def has_add_permission(self, request):
+        """Prevent manual creation of social post records.
+        Posts are created automatically by the management command."""
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        """Prevent editing of social post records.
+        All fields are read-only by design."""
+        return False
+
+    @admin.display(description="Library")
+    def library_link(self, obj):
+        """Render the library name as a link to its admin change page.
+        Makes navigation between related records easy."""
+        from django.urls import reverse
+
+        url = reverse("admin:libraries_library_change", args=[obj.library.pk])
+        return format_html('<a href="{}">{}</a>', url, obj.library)
+
+    @admin.display(description="Library")
+    def library_admin_link(self, obj):
+        """Render the library name as a clickable admin link in detail view.
+        Provides quick navigation to the parent library record."""
+        from django.urls import reverse
+
+        url = reverse("admin:libraries_library_change", args=[obj.library.pk])
+        return format_html('<a href="{}">{}</a>', url, obj.library)
+
+    @admin.display(description="Mastodon")
+    def mastodon_url_short(self, obj):
+        """Show a truncated Mastodon URL in the list view.
+        Keeps the table compact while still showing the link."""
+        if not obj.mastodon_url:
+            return "-"
+        short = obj.mastodon_url[:50] + "..." if len(obj.mastodon_url) > 50 else obj.mastodon_url
+        return format_html('<a href="{}" target="_blank">{}</a>', obj.mastodon_url, short)
+
+    @admin.display(description="Bluesky")
+    def bluesky_url_short(self, obj):
+        """Show a truncated Bluesky URL in the list view.
+        Keeps the table compact while still showing the link."""
+        if not obj.bluesky_url:
+            return "-"
+        short = obj.bluesky_url[:50] + "..." if len(obj.bluesky_url) > 50 else obj.bluesky_url
+        return format_html('<a href="{}" target="_blank">{}</a>', obj.bluesky_url, short)
+
+    @admin.display(description="Mastodon URL")
+    def mastodon_url_link(self, obj):
+        """Render the full Mastodon URL as a clickable link in detail view.
+        Opens in a new tab for easy verification."""
+        if not obj.mastodon_url:
+            return "-"
+        return format_html('<a href="{}" target="_blank">{}</a>', obj.mastodon_url, obj.mastodon_url)
+
+    @admin.display(description="Bluesky URL")
+    def bluesky_url_link(self, obj):
+        """Render the full Bluesky URL as a clickable link in detail view.
+        Opens in a new tab for easy verification."""
+        if not obj.bluesky_url:
+            return "-"
+        return format_html('<a href="{}" target="_blank">{}</a>', obj.bluesky_url, obj.bluesky_url)
 
 
 @admin.register(LibraryPhoto)

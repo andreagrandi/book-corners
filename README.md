@@ -118,6 +118,27 @@ If no images are found in the selected directory, the command generates placehol
 
 The `libraries_examples/` directory is gitignored — each developer can use their own photos.
 
+### Social media posting
+
+Approved libraries with photos are automatically posted to Mastodon and Bluesky every 2 days via Dokku cron. Each library is posted once.
+
+To manually trigger a post (useful for seeding profiles on the first day):
+
+```bash
+# Preview what would be posted (no credentials needed)
+python manage.py post_random_library --dry-run
+
+# Post one library
+python manage.py post_random_library
+
+# On the VPS via Dokku
+dokku run book-corners python manage.py post_random_library
+```
+
+Run the command multiple times to post several libraries in one session. Each invocation picks a different unposted library.
+
+If credentials for a platform are missing, that platform is silently skipped.
+
 ### Create a superuser
 
 ```bash

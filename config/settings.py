@@ -291,6 +291,12 @@ else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
+# Social media posting
+MASTODON_INSTANCE_URL = os.environ.get("MASTODON_INSTANCE_URL", "")
+MASTODON_ACCESS_TOKEN = os.environ.get("MASTODON_ACCESS_TOKEN", "")
+BLUESKY_HANDLE = os.environ.get("BLUESKY_HANDLE", "")
+BLUESKY_APP_PASSWORD = os.environ.get("BLUESKY_APP_PASSWORD", "")
+
 SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
 
 if SENTRY_DSN:

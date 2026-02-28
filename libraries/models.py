@@ -367,3 +367,26 @@ class LibraryPhoto(models.Model):
         merged_update_fields.update({"photo", "photo_thumbnail"})
         merged_kwargs["update_fields"] = merged_update_fields
         return merged_kwargs
+
+
+class SocialPost(models.Model):
+    """Tracks libraries that have been posted to social media."""
+
+    library = models.ForeignKey(
+        Library,
+        on_delete=models.CASCADE,
+        related_name="social_posts",
+    )
+    post_text = models.TextField()
+    posted_at = models.DateTimeField(auto_now_add=True)
+    mastodon_url = models.URLField(blank=True, default="")
+    bluesky_url = models.URLField(blank=True, default="")
+
+    class Meta:
+        db_table = "social_posts"
+        ordering = ["-posted_at"]
+
+    def __str__(self) -> str:
+        """Return a readable string representation.
+        Identifies the library and posting timestamp."""
+        return f"SocialPost for {self.library} at {self.posted_at}"
