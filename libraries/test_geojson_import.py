@@ -490,8 +490,8 @@ class TestGeoJSONImporter:
         assert result.skipped_duplicate_address == 1
 
     def test_skips_nearby_location(self, import_user):
-        """Verify candidates near an existing library are skipped.
-        Catches duplicates with slightly different addresses."""
+        """Verify candidates near an existing library on same street are skipped.
+        Catches duplicates with slightly different house numbers."""
         Library.objects.create(
             name="Existing",
             location=Point(x=10.62, y=43.89, srid=4326),
@@ -504,7 +504,7 @@ class TestGeoJSONImporter:
         )
         candidate = self._make_candidate(
             external_id="node/12345",
-            address="Via Altra 2",
+            address="Via Diversa 2",
             city="Pisa",
             longitude=10.6201,
             latitude=43.8901,
@@ -619,7 +619,7 @@ class TestGeoJSONImporter:
         candidates = [
             self._make_candidate(external_id="node/dup", address="Via New 1", city="Naples", longitude=14.0, latitude=40.0),
             self._make_candidate(external_id="node/new1", address="Via Addr 1", city="Milan", longitude=14.5, latitude=40.5),
-            self._make_candidate(external_id="node/new2", address="Via Near 1", city="Livorno", longitude=10.6201, latitude=43.8901),
+            self._make_candidate(external_id="node/new2", address="Via Loc 2", city="Livorno", longitude=10.6201, latitude=43.8901),
             self._make_candidate(external_id="node/noaddr", address="", city="", country=""),
         ]
         importer = GeoJSONImporter(source="OSM", status="approved", created_by=import_user)

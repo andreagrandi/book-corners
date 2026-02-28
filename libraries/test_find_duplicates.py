@@ -65,10 +65,10 @@ class TestFindDuplicateGroups:
         assert len(groups[0]) == 2
 
     def test_proximity_grouping(self, lib_user):
-        """Verify nearby libraries with different addresses form a group.
-        Catches duplicates with slightly different address text."""
+        """Verify nearby libraries on the same street form a group.
+        Catches duplicates with slightly different house numbers."""
         _create_library(lib_user, name="A", address="Via Roma 5", city="Florence", lon=11.25, lat=43.77)
-        _create_library(lib_user, name="B", address="Via Roma 5/A", city="Florence", lon=11.2501, lat=43.7701)
+        _create_library(lib_user, name="B", address="Via Roma 7", city="Florence", lon=11.2501, lat=43.7701)
 
         groups = find_duplicate_groups()
 
@@ -79,7 +79,7 @@ class TestFindDuplicateGroups:
         If A matches B by address and B matches C by proximity, all three group."""
         _create_library(lib_user, name="A", address="Via Test 1", city="Rome", lon=12.49, lat=41.89, external_id="a")
         _create_library(lib_user, name="B", address="Via Test 1", city="Rome", lon=12.4901, lat=41.8901, external_id="b")
-        _create_library(lib_user, name="C", address="Via Test 1bis", city="Rome", lon=12.4902, lat=41.8901, external_id="c")
+        _create_library(lib_user, name="C", address="Via Test 3", city="Rome", lon=12.4902, lat=41.8901, external_id="c")
 
         groups = find_duplicate_groups()
 

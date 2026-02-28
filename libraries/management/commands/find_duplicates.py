@@ -4,6 +4,7 @@ Identifies duplicates via normalized address matching and geographic
 proximity, then reports or auto-deletes them.
 """
 
+import re
 from collections import defaultdict
 
 from django.contrib.gis.measure import D
@@ -19,6 +20,12 @@ def _normalize(value: str) -> str:
     """Normalize a string for comparison.
     Strips whitespace and lowercases for consistent matching."""
     return value.strip().lower()
+
+
+def _extract_street(value: str) -> str:
+    """Extract the street name from an address by stripping trailing house numbers.
+    Returns the lowercased street name for fuzzy comparison."""
+    return re.sub(r"\s*\d+[a-zA-Z]?\s*$", "", value).strip().lower()
 
 
 class UnionFind:
@@ -53,6 +60,7 @@ def find_duplicate_groups(
     radius_meters: int = DEFAULT_RADIUS_METERS,
     city: str = "",
     country: str = "",
+    use_proximity: bool = True,
 ) -> list[list[Library]]:
     """Detect duplicate library groups via address and proximity.
     Returns lists of libraries that appear to be duplicates of each other."""
@@ -67,6 +75,7 @@ def find_duplicate_groups(
         return []
 
     uf = UnionFind()
+    lib_by_pk = {lib.pk: lib for lib in libraries}
 
     # Pass 1: exact normalized (city, address) matches
     address_groups: dict[tuple[str, str], list[int]] = defaultdict(list)
@@ -79,13 +88,17 @@ def find_duplicate_groups(
             for pk in pks[1:]:
                 uf.union(pks[0], pk)
 
-    # Pass 2: geographic proximity
-    for i, lib in enumerate(libraries):
-        nearby = queryset.filter(
-            location__distance_lte=(lib.location, D(m=radius_meters)),
-        ).exclude(pk=lib.pk).values_list("pk", flat=True)
-        for other_pk in nearby:
-            uf.union(lib.pk, other_pk)
+    # Pass 2: geographic proximity (street-aware)
+    if use_proximity:
+        for lib in libraries:
+            lib_street = _extract_street(lib.address)
+            nearby_pks = queryset.filter(
+                location__distance_lte=(lib.location, D(m=radius_meters)),
+            ).exclude(pk=lib.pk).values_list("pk", flat=True)
+            for other_pk in nearby_pks:
+                other_lib = lib_by_pk.get(other_pk)
+                if other_lib and _extract_street(other_lib.address) == lib_street:
+                    uf.union(lib.pk, other_pk)
 
     # Collect groups
     groups: dict[int, list[int]] = defaultdict(list)
@@ -94,7 +107,6 @@ def find_duplicate_groups(
         groups[root].append(lib.pk)
 
     # Filter to groups with >1 member, build Library lists
-    lib_by_pk = {lib.pk: lib for lib in libraries}
     result = []
     for pks in groups.values():
         if len(pks) > 1:
@@ -131,6 +143,11 @@ class Command(BaseCommand):
             help="Filter by country code (e.g. IT)",
         )
         parser.add_argument(
+            "--no-proximity",
+            action="store_true",
+            help="Skip proximity-based matching (address-only mode)",
+        )
+        parser.add_argument(
             "--auto-delete",
             action="store_true",
             help="Delete duplicates automatically (keeps oldest per group)",
@@ -143,6 +160,7 @@ class Command(BaseCommand):
             radius_meters=options["radius"],
             city=options["city"],
             country=options["country"],
+            use_proximity=not options["no_proximity"],
         )
 
         if not groups:

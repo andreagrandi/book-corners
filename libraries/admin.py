@@ -139,6 +139,7 @@ class LibraryAdmin(admin.GISModelAdmin):
             "radius": DEFAULT_RADIUS_METERS,
             "filter_city": "",
             "filter_country": "",
+            "use_proximity": True,
             "scanned": False,
             "groups": [],
             "total_duplicates": 0,
@@ -156,11 +157,13 @@ class LibraryAdmin(admin.GISModelAdmin):
         radius = int(request.GET.get("radius", DEFAULT_RADIUS_METERS))
         filter_city = request.GET.get("city", "").strip()
         filter_country = request.GET.get("country", "").strip()
+        use_proximity = request.GET.get("proximity", "on") == "on"
         scanned = "radius" in request.GET
 
         context["radius"] = radius
         context["filter_city"] = filter_city
         context["filter_country"] = filter_country
+        context["use_proximity"] = use_proximity
         context["scanned"] = scanned
 
         if scanned:
@@ -168,6 +171,7 @@ class LibraryAdmin(admin.GISModelAdmin):
                 radius_meters=radius,
                 city=filter_city,
                 country=filter_country,
+                use_proximity=use_proximity,
             )
             context["groups"] = groups
             context["total_duplicates"] = sum(len(g) - 1 for g in groups)

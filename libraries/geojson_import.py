@@ -17,6 +17,7 @@ from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 
 from libraries.image_processing import build_library_photo_files
+from libraries.management.commands.find_duplicates import _extract_street
 from libraries.models import Library
 
 logger = logging.getLogger(__name__)
@@ -225,12 +226,16 @@ class GeoJSONImporter:
             for city, address in Library.objects.values_list("city", "address")
         }
 
-    def _has_nearby_library(self, point: Point) -> bool:
-        """Check whether a library already exists within proximity threshold.
-        Uses PostGIS ST_DWithin for efficient spatial lookup."""
-        return Library.objects.filter(
+    def _has_nearby_library(self, point: Point, address: str) -> bool:
+        """Check whether a library on the same street exists within proximity.
+        Compares street names so nearby libraries on different streets are not flagged."""
+        candidate_street = _extract_street(address)
+        nearby_addresses = Library.objects.filter(
             location__distance_lte=(point, D(m=self.PROXIMITY_METERS))
-        ).exists()
+        ).values_list("address", flat=True)
+        return any(
+            _extract_street(addr) == candidate_street for addr in nearby_addresses
+        )
 
     def run(self, candidates: list[ImportCandidate]) -> ImportResult:
         """Process all candidates and return a structured import result.
@@ -263,7 +268,7 @@ class GeoJSONImporter:
                 continue
 
             point = Point(x=candidate.longitude, y=candidate.latitude, srid=4326)
-            if self._has_nearby_library(point):
+            if self._has_nearby_library(point, address=candidate.address):
                 result.skipped_duplicate_location += 1
                 continue
 

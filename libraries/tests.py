@@ -2507,3 +2507,203 @@ class TestApprovePhotosAutoPromotion:
 
         admin_library.refresh_from_db()
         assert admin_library.photo == original_photo
+
+
+@pytest.mark.django_db
+class TestExtractStreet:
+    """Tests for the _extract_street helper."""
+
+    def test_strips_trailing_house_number(self):
+        """Verify trailing house number is removed from address.
+        Ensures street name extraction handles the common case."""
+        from libraries.management.commands.find_duplicates import _extract_street
+
+        assert _extract_street("Via Roma 10") == "via roma"
+
+    def test_strips_trailing_house_number_with_letter(self):
+        """Verify alphanumeric house numbers like '10A' are stripped.
+        Covers European address suffixes."""
+        from libraries.management.commands.find_duplicates import _extract_street
+
+        assert _extract_street("Via Roma 10A") == "via roma"
+
+    def test_returns_full_street_without_number(self):
+        """Verify addresses without house numbers are returned as-is.
+        Covers street-only inputs."""
+        from libraries.management.commands.find_duplicates import _extract_street
+
+        assert _extract_street("Via Roma") == "via roma"
+
+    def test_normalises_whitespace_and_case(self):
+        """Verify leading/trailing whitespace is trimmed and case lowered.
+        Ensures consistent comparison across messy inputs."""
+        from libraries.management.commands.find_duplicates import _extract_street
+
+        assert _extract_street("  Via Milano 5  ") == "via milano"
+
+
+@pytest.mark.django_db
+class TestFindDuplicateGroupsProximity:
+    """Tests for street-aware proximity and the use_proximity flag."""
+
+    def test_different_streets_within_radius_are_not_duplicates(self, user):
+        """Verify two libraries on different streets within 100m are not grouped.
+        Prevents false positives from proximity-only matching."""
+        from libraries.management.commands.find_duplicates import find_duplicate_groups
+
+        Library.objects.create(
+            name="Lib A",
+            location=Point(x=11.25580, y=43.76960, srid=4326),
+            address="Via Roma 10",
+            city="Florence",
+            country="IT",
+            created_by=user,
+        )
+        Library.objects.create(
+            name="Lib B",
+            location=Point(x=11.25590, y=43.76965, srid=4326),
+            address="Via Milano 5",
+            city="Florence",
+            country="IT",
+            created_by=user,
+        )
+
+        groups = find_duplicate_groups()
+        assert groups == []
+
+    def test_same_street_within_radius_are_duplicates(self, user):
+        """Verify two libraries on the same street within 100m are grouped.
+        Confirms street-aware proximity still catches real duplicates."""
+        from libraries.management.commands.find_duplicates import find_duplicate_groups
+
+        Library.objects.create(
+            name="Lib A",
+            location=Point(x=11.25580, y=43.76960, srid=4326),
+            address="Via Roma 10",
+            city="Florence",
+            country="IT",
+            created_by=user,
+        )
+        Library.objects.create(
+            name="Lib B",
+            location=Point(x=11.25590, y=43.76965, srid=4326),
+            address="Via Roma 12",
+            city="Florence",
+            country="IT",
+            created_by=user,
+        )
+
+        groups = find_duplicate_groups()
+        assert len(groups) == 1
+
+    def test_use_proximity_false_skips_proximity_pass(self, user):
+        """Verify use_proximity=False only matches by exact address.
+        Libraries nearby on same street should not be grouped without proximity."""
+        from libraries.management.commands.find_duplicates import find_duplicate_groups
+
+        Library.objects.create(
+            name="Lib A",
+            location=Point(x=11.25580, y=43.76960, srid=4326),
+            address="Via Roma 10",
+            city="Florence",
+            country="IT",
+            created_by=user,
+        )
+        Library.objects.create(
+            name="Lib B",
+            location=Point(x=11.25590, y=43.76965, srid=4326),
+            address="Via Roma 12",
+            city="Florence",
+            country="IT",
+            created_by=user,
+        )
+
+        groups = find_duplicate_groups(use_proximity=False)
+        assert groups == []
+
+
+@pytest.mark.django_db
+class TestGeoJSONImportStreetAwareProximity:
+    """Tests for street-aware proximity in GeoJSON import."""
+
+    def test_import_skips_nearby_same_street(self, user):
+        """Verify import flags a candidate on the same street as a nearby library.
+        Confirms true duplicates are still caught during import."""
+        from libraries.geojson_import import GeoJSONImporter, ImportCandidate
+
+        Library.objects.create(
+            name="Existing",
+            location=Point(x=11.25580, y=43.76960, srid=4326),
+            address="Via Roma 10",
+            city="Florence",
+            country="IT",
+            created_by=user,
+        )
+
+        candidate = ImportCandidate(
+            external_id="new-1",
+            name="New Lib",
+            description="",
+            longitude=11.25590,
+            latitude=43.76965,
+            address="Via Roma 12",
+            city="Florence",
+            country="IT",
+            postal_code="",
+            wheelchair_accessible="",
+            capacity=None,
+            is_indoor=None,
+            is_lit=None,
+            website="",
+            contact="",
+            operator="",
+            brand="",
+            image_url="",
+        )
+
+        importer = GeoJSONImporter(source="test", status="pending", created_by=user)
+        result = importer.run([candidate])
+
+        assert result.skipped_duplicate_location == 1
+        assert result.created == 0
+
+    def test_import_allows_nearby_different_street(self, user):
+        """Verify import does not flag a candidate on a different street nearby.
+        Prevents false duplicate rejection for genuinely separate libraries."""
+        from libraries.geojson_import import GeoJSONImporter, ImportCandidate
+
+        Library.objects.create(
+            name="Existing",
+            location=Point(x=11.25580, y=43.76960, srid=4326),
+            address="Via Roma 10",
+            city="Florence",
+            country="IT",
+            created_by=user,
+        )
+
+        candidate = ImportCandidate(
+            external_id="new-2",
+            name="New Lib",
+            description="",
+            longitude=11.25590,
+            latitude=43.76965,
+            address="Via Milano 5",
+            city="Florence",
+            country="IT",
+            postal_code="",
+            wheelchair_accessible="",
+            capacity=None,
+            is_indoor=None,
+            is_lit=None,
+            website="",
+            contact="",
+            operator="",
+            brand="",
+            image_url="",
+        )
+
+        importer = GeoJSONImporter(source="test", status="pending", created_by=user)
+        result = importer.run([candidate])
+
+        assert result.skipped_duplicate_location == 0
+        assert result.created == 1

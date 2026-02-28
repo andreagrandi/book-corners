@@ -56,6 +56,11 @@
     <input type="text" name="city" id="id_city" value="{{ filter_city }}">
     <label for="id_country">{% trans "Country:" %}</label>
     <input type="text" name="country" id="id_country" value="{{ filter_country }}" maxlength="2">
+    <label for="id_proximity" style="margin-left: 16px;">
+        <input type="checkbox" name="proximity" id="id_proximity" value="on"
+            {% if use_proximity %}checked{% endif %}>
+        {% trans "Include proximity matches" %}
+    </label>
     <input type="submit" value="{% trans 'Scan' %}" class="default">
 </form>
 
