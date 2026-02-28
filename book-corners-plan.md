@@ -1064,7 +1064,7 @@ dumps and media backups. BorgBase is the planned offsite target.
     ```
 - [ ] Test the backup script:
   ```bash
-  ssh -t deploy@vps.bookcorners.org "sudo ~/backup.sh"
+  ssh -t deploy@vps.bookcorners.org "~/backup.sh"
   ```
 - [ ] Add a nightly cron job (e.g., 3 AM server time):
   ```bash
@@ -1185,9 +1185,9 @@ It should cover:
   ```
 - [ ] **Database restore** (from backup):
   ```bash
-  sudo /home/deploy/restore.sh --db-only
+  /home/deploy/restore.sh --db-only
   # Or for a specific archive:
-  sudo /home/deploy/restore.sh --db-only book-corners-2026-02-28T03:00:00
+  /home/deploy/restore.sh --db-only book-corners-2026-02-28T03:00:00
   ```
 - [ ] **Post-deploy smoke checklist**:
   - Homepage loads with styles

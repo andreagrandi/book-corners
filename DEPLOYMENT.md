@@ -163,7 +163,13 @@ Operational scripts are versioned in the repo under `scripts/`:
 - `scripts/backup.sh` — nightly backup (database dump + media archive to Borg)
 - `scripts/restore.sh` — interactive restore with selective mode support
 
-Both scripts read configuration from `/home/deploy/.env.backup` on the VPS.
+Both scripts read configuration from `/home/deploy/.env.backup` on the VPS. They must be run as the `deploy` user (not with `sudo`), because borg authenticates to BorgBase using the deploy user's SSH key.
+
+**Prerequisite:** The deploy user needs passwordless sudo for dokku commands (used by the scripts for database export/import):
+
+```bash
+echo 'deploy ALL=(ALL) NOPASSWD: /usr/bin/dokku' | sudo tee /etc/sudoers.d/deploy-dokku
+```
 
 ### Backup schedule
 
@@ -179,19 +185,19 @@ Use the `restore.sh` script on the VPS:
 
 ```bash
 # List available archives
-sudo /home/deploy/restore.sh --list
+/home/deploy/restore.sh --list
 
 # Preview what would be restored (no changes)
-sudo /home/deploy/restore.sh --dry-run
+/home/deploy/restore.sh --dry-run
 
 # Restore a specific archive (both DB and media)
-sudo /home/deploy/restore.sh book-corners-2026-02-28T03:00:00
+/home/deploy/restore.sh book-corners-2026-02-28T03:00:00
 
 # Restore only the database
-sudo /home/deploy/restore.sh --db-only
+/home/deploy/restore.sh --db-only
 
 # Restore only media files
-sudo /home/deploy/restore.sh --media-only
+/home/deploy/restore.sh --media-only
 ```
 
 The script prompts for confirmation before any destructive operation and suggests creating a test database first.

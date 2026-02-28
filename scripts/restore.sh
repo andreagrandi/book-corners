@@ -10,6 +10,10 @@
 #   restore.sh [ARCHIVE]           Restore both database and media
 #
 # If ARCHIVE is omitted, the latest archive is used.
+#
+# IMPORTANT: Run as the deploy user, NOT with sudo. Borg needs the deploy
+# user's SSH key to authenticate with BorgBase. The script uses sudo only
+# for the dokku commands that require it.
 
 set -euo pipefail
 
