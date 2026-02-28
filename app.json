@@ -7,7 +7,7 @@
     "cron": [
       {
         "command": "python manage.py post_random_library",
-        "schedule": "0 10 */2 * *"
+        "schedule": "0 10 * * *"
       }
     ],
     "healthchecks": {

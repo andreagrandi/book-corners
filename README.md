@@ -22,7 +22,7 @@ Book Corners lets anyone discover nearby little free libraries on an interactive
 - **User authentication** — Register with username/email or sign in with Google OAuth
 - **Admin dashboard** — Moderation dashboard with queue counts, plus approve/reject workflows for submissions, photos, and reports
 - **Email notifications** — Admin email alerts for new submissions via Resend
-- **Social media posting** — Approved libraries are automatically posted to Mastodon and Bluesky every 2 days
+- **Social media posting** — Approved libraries are automatically posted to Mastodon and Bluesky daily
 - **Internationalization** — English and Italian with a language switcher; all user-facing strings are translatable
 - **SEO** — Sitemap, robots.txt, Open Graph tags on detail pages
 - **REST API** — JWT-authenticated API for all core operations (list, search, submit, report)
@@ -135,7 +135,7 @@ Admins can bulk-import libraries from GeoJSON files (e.g., Overpass Turbo export
 
 ### Social media posting
 
-Approved libraries with photos are automatically posted to Mastodon and Bluesky every 2 days via Dokku cron. Each library is posted once.
+Approved libraries with photos are automatically posted to Mastodon and Bluesky daily via Dokku cron. Each library is posted once.
 
 To manually trigger a post (useful for seeding profiles on the first day):
 

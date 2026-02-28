@@ -1138,7 +1138,7 @@ It should cover:
 - [x] Multiple photos per library (`LibraryPhoto` model with moderation workflow)
 - [x] Custom admin moderation dashboard with queue counts and recent items
 - [x] Email notifications for admin moderation via Resend
-- [x] Automated social media posting to Mastodon and Bluesky (every 2 days via Dokku cron)
+- [x] Automated social media posting to Mastodon and Bluesky (daily via Dokku cron)
 - [x] GeoJSON import for admin bulk library creation (with background tasks)
 - [x] Duplicate detection: find and merge duplicates by normalized address and geographic proximity
 - [x] Metadata fields on Library model (`source`, `operator`, `brand`, `external_id`)
