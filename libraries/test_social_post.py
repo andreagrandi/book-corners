@@ -640,22 +640,22 @@ class TestInstagramClient:
         INSTAGRAM_ACCESS_TOKEN="test-ig-token",
         SITE_URL="https://bookcorners.org",
     )
+    @patch("libraries.social.instagram.time.sleep")
     @patch("libraries.social.instagram.requests.get")
     @patch("libraries.social.instagram.requests.post")
-    def test_post_library_success(self, mock_post, mock_get, approved_library):
-        """Verify the three-step Instagram posting flow works end to end.
-        Container creation, publishing, and permalink retrieval."""
+    def test_post_library_success(self, mock_post, mock_get, mock_sleep, approved_library):
+        """Verify the full Instagram posting flow works end to end.
+        Container creation, status polling, publishing, and permalink retrieval."""
         from libraries.social.instagram import post_library
 
-        # Mock container creation
         mock_post.side_effect = [
             _mock_response(json_data={"id": "container-123"}),
             _mock_response(json_data={"id": "media-456"}),
         ]
-        # Mock permalink retrieval
-        mock_get.return_value = _mock_response(
-            json_data={"permalink": "https://www.instagram.com/p/abc123/"}
-        )
+        mock_get.side_effect = [
+            _mock_response(json_data={"status_code": "FINISHED"}),
+            _mock_response(json_data={"permalink": "https://www.instagram.com/p/abc123/"}),
+        ]
 
         result = post_library(
             approved_library,
@@ -665,7 +665,7 @@ class TestInstagramClient:
 
         assert result == "https://www.instagram.com/p/abc123/"
         assert mock_post.call_count == 2
-        assert mock_get.call_count == 1
+        assert mock_get.call_count == 2
 
         # Verify container creation call
         container_call = mock_post.call_args_list[0]
@@ -695,12 +695,70 @@ class TestInstagramClient:
 
     @override_settings(
         INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.social.instagram.time.sleep")
+    @patch("libraries.social.instagram.requests.get")
+    @patch("libraries.social.instagram.requests.post")
+    def test_post_library_polls_until_finished(self, mock_post, mock_get, mock_sleep, approved_library):
+        """Verify the client polls container status before publishing.
+        Handles the asynchronous container processing delay."""
+        from libraries.social.instagram import post_library
+
+        mock_post.side_effect = [
+            _mock_response(json_data={"id": "container-123"}),
+            _mock_response(json_data={"id": "media-456"}),
+        ]
+        mock_get.side_effect = [
+            _mock_response(json_data={"status_code": "IN_PROGRESS"}),
+            _mock_response(json_data={"status_code": "IN_PROGRESS"}),
+            _mock_response(json_data={"status_code": "FINISHED"}),
+            _mock_response(json_data={"permalink": "https://www.instagram.com/p/abc123/"}),
+        ]
+
+        result = post_library(
+            approved_library,
+            text="Test caption",
+            image_path=Path("/tmp/test.jpg"),
+        )
+
+        assert result == "https://www.instagram.com/p/abc123/"
+        assert mock_sleep.call_count == 2
+        assert mock_get.call_count == 4
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.social.instagram.time.sleep")
+    @patch("libraries.social.instagram.requests.get")
+    @patch("libraries.social.instagram.requests.post")
+    def test_post_library_container_error_raises(self, mock_post, mock_get, mock_sleep, approved_library):
+        """Verify a container ERROR status raises an exception.
+        Prevents publishing a broken container."""
+        from libraries.social.instagram import post_library
+
+        mock_post.return_value = _mock_response(json_data={"id": "container-123"})
+        mock_get.return_value = _mock_response(json_data={"status_code": "ERROR"})
+
+        with pytest.raises(RuntimeError, match="failed with status: ERROR"):
+            post_library(
+                approved_library,
+                text="Test caption",
+                image_path=Path("/tmp/test.jpg"),
+            )
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
         INSTAGRAM_ACCESS_TOKEN="",
         SITE_URL="https://bookcorners.org",
     )
+    @patch("libraries.social.instagram.time.sleep")
     @patch("libraries.social.instagram.requests.get")
     @patch("libraries.social.instagram.requests.post")
-    def test_post_library_uses_db_token(self, mock_post, mock_get, approved_library):
+    def test_post_library_uses_db_token(self, mock_post, mock_get, mock_sleep, approved_library):
         """Verify the client prefers the DB-stored token over the env var.
         Ensures refreshed tokens are picked up automatically."""
         from libraries.social.instagram import post_library
@@ -711,9 +769,10 @@ class TestInstagramClient:
             _mock_response(json_data={"id": "container-123"}),
             _mock_response(json_data={"id": "media-456"}),
         ]
-        mock_get.return_value = _mock_response(
-            json_data={"permalink": "https://www.instagram.com/p/xyz/"}
-        )
+        mock_get.side_effect = [
+            _mock_response(json_data={"status_code": "FINISHED"}),
+            _mock_response(json_data={"permalink": "https://www.instagram.com/p/xyz/"}),
+        ]
 
         post_library(
             approved_library,

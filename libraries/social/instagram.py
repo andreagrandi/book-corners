@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from pathlib import Path
 
 import requests
@@ -11,6 +12,8 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 GRAPH_API_URL = "https://graph.instagram.com"
+CONTAINER_POLL_INTERVAL = 5  # seconds between status checks
+CONTAINER_POLL_MAX_ATTEMPTS = 12  # up to 60 seconds total
 
 
 def _get_access_token() -> str:
@@ -22,6 +25,32 @@ def _get_access_token() -> str:
     if token_row:
         return token_row.access_token
     return settings.INSTAGRAM_ACCESS_TOKEN
+
+
+def _wait_for_container(container_id: str, access_token: str) -> None:
+    """Poll the container status until it is ready to publish.
+    Raises RuntimeError if the container fails or times out."""
+    for attempt in range(CONTAINER_POLL_MAX_ATTEMPTS):
+        response = requests.get(
+            f"{GRAPH_API_URL}/{container_id}",
+            params={
+                "fields": "status_code",
+                "access_token": access_token,
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
+        status = response.json().get("status_code")
+        logger.info("Container %s status: %s (attempt %d)", container_id, status, attempt + 1)
+
+        if status == "FINISHED":
+            return
+        if status in ("ERROR", "EXPIRED"):
+            raise RuntimeError(f"Instagram container {container_id} failed with status: {status}")
+
+        time.sleep(CONTAINER_POLL_INTERVAL)
+
+    raise RuntimeError(f"Instagram container {container_id} timed out waiting to become FINISHED")
 
 
 def post_library(library, text: str, image_path: Path) -> str:
@@ -44,8 +73,12 @@ def post_library(library, text: str, image_path: Path) -> str:
     )
     container_response.raise_for_status()
     creation_id = container_response.json()["id"]
+    logger.info("Created Instagram container: %s", creation_id)
 
-    # Step 2: Publish the container
+    # Step 2: Wait for container to be ready
+    _wait_for_container(creation_id, access_token)
+
+    # Step 3: Publish the container
     publish_response = requests.post(
         f"{GRAPH_API_URL}/{user_id}/media_publish",
         data={
@@ -56,8 +89,9 @@ def post_library(library, text: str, image_path: Path) -> str:
     )
     publish_response.raise_for_status()
     media_id = publish_response.json()["id"]
+    logger.info("Published Instagram media: %s", media_id)
 
-    # Step 3: Get the permalink
+    # Step 4: Get the permalink
     permalink_response = requests.get(
         f"{GRAPH_API_URL}/{media_id}",
         params={
