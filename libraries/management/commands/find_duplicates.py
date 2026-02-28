@@ -7,8 +7,8 @@ proximity, then reports or auto-deletes them.
 import re
 from collections import defaultdict
 
-from django.contrib.gis.measure import D
 from django.core.management.base import BaseCommand
+from django.db import connection
 
 from libraries.models import Library
 
@@ -90,15 +90,30 @@ def find_duplicate_groups(
 
     # Pass 2: geographic proximity (street-aware)
     if use_proximity:
-        for lib in libraries:
-            lib_street = _extract_street(lib.address)
-            nearby_pks = queryset.filter(
-                location__distance_lte=(lib.location, D(m=radius_meters)),
-            ).exclude(pk=lib.pk).values_list("pk", flat=True)
-            for other_pk in nearby_pks:
-                other_lib = lib_by_pk.get(other_pk)
-                if other_lib and _extract_street(other_lib.address) == lib_street:
-                    uf.union(lib.pk, other_pk)
+        pk_list = [lib.pk for lib in libraries]
+        table = Library._meta.db_table
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f"""
+                SELECT a.id, b.id
+                FROM {table} a
+                JOIN {table} b ON a.id < b.id
+                WHERE a.id = ANY(%s) AND b.id = ANY(%s)
+                  AND LOWER(a.city) = LOWER(b.city)
+                  AND ST_DWithin(
+                      a.location::geography,
+                      b.location::geography,
+                      %s
+                  )
+                """,
+                [pk_list, pk_list, radius_meters],
+            )
+            for a_pk, b_pk in cursor.fetchall():
+                a_lib = lib_by_pk.get(a_pk)
+                b_lib = lib_by_pk.get(b_pk)
+                if a_lib and b_lib:
+                    if _extract_street(a_lib.address) == _extract_street(b_lib.address):
+                        uf.union(a_pk, b_pk)
 
     # Collect groups
     groups: dict[int, list[int]] = defaultdict(list)
