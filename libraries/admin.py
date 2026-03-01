@@ -48,14 +48,11 @@ class LibraryAdmin(admin.GISModelAdmin):
     list_display = ["name", "city", "country", "status", "created_at"]
     list_filter = [
         "status",
-        "city",
         "country",
         "wheelchair_accessible",
-        "capacity",
         "is_indoor",
         "is_lit",
         "source",
-        "operator",
         "brand",
     ]
     search_fields = ["name", "address", "city"]
