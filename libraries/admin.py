@@ -46,7 +46,6 @@ class LibraryAdmin(admin.GISModelAdmin):
 
     change_list_template = "admin/libraries/library_changelist.html"
     list_display = ["name", "city", "country", "status", "created_at"]
-    list_select_related = ["created_by"]
     list_filter = [
         "status",
         "city",

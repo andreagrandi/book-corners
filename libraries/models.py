@@ -78,6 +78,8 @@ class Library(models.Model):
             models.Index(fields=["source"], name="idx_lib_source"),
             models.Index(fields=["status", "-created_at"], name="idx_lib_status_created"),
             models.Index(fields=["created_by", "-created_at"], name="idx_lib_creator_created"),
+            models.Index(fields=["operator"], name="idx_lib_operator"),
+            models.Index(fields=["brand"], name="idx_lib_brand"),
         ]
 
     def __init__(self, *args, **kwargs):
