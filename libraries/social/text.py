@@ -43,7 +43,14 @@ def _country_name(country_code: str) -> str:
     return COUNTRY_NAMES.get(country_code.upper(), country_code)
 
 
-def build_post_text(library, detail_url: str, *, max_length: int = 300) -> str:
+def build_post_text(
+    library,
+    detail_url: str,
+    *,
+    max_length: int = 300,
+    extra_hashtags: list[str] | None = None,
+    max_hashtags: int | None = None,
+) -> str:
     """Build social media post text with description, location, link, and hashtags.
     Truncates description and fills hashtags to fit within max_length."""
     country_name = _country_name(library.country)
@@ -51,11 +58,22 @@ def build_post_text(library, detail_url: str, *, max_length: int = 300) -> str:
 
     city_tag = f"#{library.city.replace(' ', '')}"
     country_tag = f"#{country_name.replace(' ', '')}"
-    extra_hashtags = [city_tag, country_tag]
+    geo_hashtags = [city_tag, country_tag]
 
     all_hashtags = BASE_HASHTAGS + [
-        tag for tag in extra_hashtags if tag not in BASE_HASHTAGS
+        tag for tag in geo_hashtags if tag not in BASE_HASHTAGS
     ]
+
+    # Append AI-generated hashtags, avoiding duplicates
+    if extra_hashtags:
+        for tag in extra_hashtags:
+            prefixed = f"#{tag}" if not tag.startswith("#") else tag
+            if prefixed not in all_hashtags:
+                all_hashtags.append(prefixed)
+
+    # Cap total hashtags when a platform limit applies
+    if max_hashtags is not None and len(all_hashtags) > max_hashtags:
+        all_hashtags = all_hashtags[:max_hashtags]
 
     # Build the fixed parts (location + url)
     fixed_parts = f"\n\n{location_line}\n\n{detail_url}"
@@ -84,12 +102,20 @@ def build_post_text(library, detail_url: str, *, max_length: int = 300) -> str:
     return "\n\n".join(parts)
 
 
-def build_bluesky_text(library, detail_url: str, *, max_length: int = 300):
+def build_bluesky_text(
+    library,
+    detail_url: str,
+    *,
+    max_length: int = 300,
+    extra_hashtags: list[str] | None = None,
+):
     """Build a Bluesky TextBuilder with clickable links and hashtags.
     Returns an atproto TextBuilder instance with proper facets."""
     from atproto import client_utils
 
-    plain_text = build_post_text(library, detail_url, max_length=max_length)
+    plain_text = build_post_text(
+        library, detail_url, max_length=max_length, extra_hashtags=extra_hashtags,
+    )
     builder = client_utils.TextBuilder()
 
     i = 0

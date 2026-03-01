@@ -13,7 +13,14 @@ from libraries.social.text import build_bluesky_text
 logger = logging.getLogger(__name__)
 
 
-def post_library(library, text: str, image_path: Path) -> str:
+def post_library(
+    library,
+    text: str,
+    image_path: Path,
+    *,
+    alt_text: str | None = None,
+    extra_hashtags: list[str] | None = None,
+) -> str:
     """Post a library with photo to Bluesky and return the post URL.
     Builds a TextBuilder with facets so links and hashtags are clickable."""
     client = Client()
@@ -24,12 +31,12 @@ def post_library(library, text: str, image_path: Path) -> str:
 
     # Reconstruct the detail URL from the plain text
     detail_url = _extract_url(text)
-    rich_text = build_bluesky_text(library, detail_url)
+    rich_text = build_bluesky_text(library, detail_url, extra_hashtags=extra_hashtags)
 
     response = client.send_image(
         text=rich_text,
         image=img_data,
-        image_alt=str(library),
+        image_alt=alt_text or str(library),
     )
 
     rkey = response.uri.split("/")[-1]

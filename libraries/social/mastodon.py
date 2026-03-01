@@ -11,7 +11,7 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
-def post_library(library, text: str, image_path: Path) -> str:
+def post_library(library, text: str, image_path: Path, *, alt_text: str | None = None) -> str:
     """Post a library with photo to Mastodon and return the status URL.
     Uploads the image first, then creates a status with the media attached."""
     instance_url = settings.MASTODON_INSTANCE_URL.rstrip("/")
@@ -24,7 +24,7 @@ def post_library(library, text: str, image_path: Path) -> str:
             f"{instance_url}/api/v2/media",
             headers=headers,
             files={"file": (image_path.name, f, "image/jpeg")},
-            data={"description": str(library)},
+            data={"description": alt_text or str(library)},
             timeout=60,
         )
     media_response.raise_for_status()

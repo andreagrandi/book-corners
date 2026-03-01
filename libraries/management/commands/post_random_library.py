@@ -87,16 +87,43 @@ class Command(BaseCommand):
         detail_path = reverse("library_detail", kwargs={"slug": library.slug})
         base_url = getattr(settings, "SITE_URL", "http://localhost:8000").rstrip("/")
         detail_url = f"{base_url}{detail_path}"
-        post_text = build_post_text(library, detail_url)
+
+        # Access the photo from storage (needed for both AI analysis and posting)
+        image_path = self._get_photo_path(library)
+
+        # AI image analysis (best-effort, never blocks posting)
+        ai_result = None
+        if getattr(settings, "OPENROUTER_API_KEY", "") and image_path:
+            from libraries.social.image_ai import analyze_library_image
+
+            ai_result = analyze_library_image(image_path, library)
+
+        alt_text = ai_result["alt_text"] if ai_result else None
+        ai_hashtags = ai_result["hashtags"] if ai_result else []
+
+        post_text = build_post_text(
+            library, detail_url, extra_hashtags=ai_hashtags or None,
+        )
+        instagram_text = build_post_text(
+            library, detail_url, max_length=2200,
+            extra_hashtags=ai_hashtags or None, max_hashtags=5,
+        )
 
         if dry_run:
             self.stdout.write(f"Library: {library}")
             self.stdout.write(f"URL: {detail_url}")
             self.stdout.write(f"Text ({len(post_text)} chars):\n{post_text}")
+            if instagram_configured:
+                self.stdout.write(
+                    f"\nInstagram text ({len(instagram_text)} chars):\n{instagram_text}"
+                )
+            if ai_result:
+                self.stdout.write(f"\nAI alt text: {alt_text}")
+                self.stdout.write(f"AI hashtags: {ai_hashtags}")
+            else:
+                self.stdout.write("\nAI analysis: skipped (no API key or failed)")
             return
 
-        # Access the photo from storage
-        image_path = self._get_photo_path(library)
         if not image_path:
             logger.error("Could not access photo for library %s", library.pk)
             return
@@ -108,7 +135,9 @@ class Command(BaseCommand):
 
         try:
             if mastodon_configured:
-                mastodon_url = self._post_to_mastodon(library, post_text, image_path)
+                mastodon_url = self._post_to_mastodon(
+                    library, post_text, image_path, alt_text=alt_text,
+                )
                 logger.info("Posted to Mastodon: %s", mastodon_url)
             else:
                 logger.info("Mastodon not configured, skipping")
@@ -118,7 +147,10 @@ class Command(BaseCommand):
 
         try:
             if bluesky_configured:
-                bluesky_url = self._post_to_bluesky(library, post_text, image_path)
+                bluesky_url = self._post_to_bluesky(
+                    library, post_text, image_path,
+                    alt_text=alt_text, extra_hashtags=ai_hashtags or None,
+                )
                 logger.info("Posted to Bluesky: %s", bluesky_url)
             else:
                 logger.info("Bluesky not configured, skipping")
@@ -128,7 +160,7 @@ class Command(BaseCommand):
 
         try:
             if instagram_configured:
-                instagram_url = self._post_to_instagram(library, post_text, image_path)
+                instagram_url = self._post_to_instagram(library, instagram_text, image_path)
                 logger.info("Posted to Instagram: %s", instagram_url)
             else:
                 logger.info("Instagram not configured, skipping")
@@ -196,19 +228,32 @@ class Command(BaseCommand):
             logger.exception("Failed to access photo for library %s", library.pk)
             return None
 
-    def _post_to_mastodon(self, library, text: str, image_path: Path) -> str:
+    def _post_to_mastodon(
+        self, library, text: str, image_path: Path, *, alt_text: str | None = None,
+    ) -> str:
         """Delegate to the Mastodon client module.
         Returns the URL of the created status."""
         from libraries.social.mastodon import post_library
 
-        return post_library(library, text=text, image_path=image_path)
+        return post_library(library, text=text, image_path=image_path, alt_text=alt_text)
 
-    def _post_to_bluesky(self, library, text: str, image_path: Path) -> str:
+    def _post_to_bluesky(
+        self,
+        library,
+        text: str,
+        image_path: Path,
+        *,
+        alt_text: str | None = None,
+        extra_hashtags: list[str] | None = None,
+    ) -> str:
         """Delegate to the Bluesky client module.
         Returns the URL of the created post."""
         from libraries.social.bluesky import post_library
 
-        return post_library(library, text=text, image_path=image_path)
+        return post_library(
+            library, text=text, image_path=image_path,
+            alt_text=alt_text, extra_hashtags=extra_hashtags,
+        )
 
     def _post_to_instagram(self, library, text: str, image_path: Path) -> str:
         """Delegate to the Instagram client module.

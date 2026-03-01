@@ -319,6 +319,8 @@ BLUESKY_HANDLE = os.environ.get("BLUESKY_HANDLE", "")
 BLUESKY_APP_PASSWORD = os.environ.get("BLUESKY_APP_PASSWORD", "")
 INSTAGRAM_USER_ID = os.environ.get("INSTAGRAM_USER_ID", "")
 INSTAGRAM_ACCESS_TOKEN = os.environ.get("INSTAGRAM_ACCESS_TOKEN", "")
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "anthropic/claude-haiku-4.5")
 
 SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
 

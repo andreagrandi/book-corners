@@ -15,6 +15,7 @@ from PIL import Image
 
 from libraries.models import InstagramToken, Library, SocialPost
 from libraries.notifications import notify_social_post, notify_social_post_error
+from libraries.social.image_ai import _parse_response, analyze_library_image
 from libraries.social.text import build_bluesky_text, build_post_text, _country_name
 
 User = get_user_model()
@@ -931,6 +932,320 @@ class TestSocialPostNotifications:
         notify_social_post_error(approved_library, "error")
 
         assert len(mail.outbox) == 0
+
+
+# --- AI image analysis tests ---
+
+
+class TestParseResponse:
+    """Tests for parsing AI model responses into structured data."""
+
+    def test_valid_json(self):
+        """Verify valid JSON with expected keys is parsed correctly.
+        The happy path for AI responses."""
+        result = _parse_response('{"alt_text": "A wooden library box", "hashtags": ["wooden", "cozy"]}')
+        assert result == {"alt_text": "A wooden library box", "hashtags": ["wooden", "cozy"]}
+
+    def test_json_with_code_fences(self):
+        """Verify JSON wrapped in markdown code fences is handled.
+        Some models wrap output in triple backticks."""
+        result = _parse_response('```json\n{"alt_text": "A library", "hashtags": ["books"]}\n```')
+        assert result == {"alt_text": "A library", "hashtags": ["books"]}
+
+    def test_strips_hash_prefix_from_hashtags(self):
+        """Verify hashtags with # prefix get cleaned.
+        Normalizes inconsistent model output."""
+        result = _parse_response('{"alt_text": "test", "hashtags": ["#wooden", "cozy"]}')
+        assert result["hashtags"] == ["wooden", "cozy"]
+
+    def test_lowercases_hashtags(self):
+        """Verify hashtags are lowercased.
+        Ensures consistent hashtag formatting."""
+        result = _parse_response('{"alt_text": "test", "hashtags": ["Wooden", "COZY"]}')
+        assert result["hashtags"] == ["wooden", "cozy"]
+
+    def test_invalid_json_returns_none(self):
+        """Verify malformed JSON returns None gracefully.
+        Prevents crashes from unexpected model output."""
+        assert _parse_response("not json at all") is None
+
+    def test_missing_keys_returns_empty(self):
+        """Verify missing keys result in empty defaults.
+        Handles partial model responses."""
+        result = _parse_response('{"other": "value"}')
+        assert result == {"alt_text": "", "hashtags": []}
+
+    def test_wrong_types_returns_none(self):
+        """Verify wrong value types return None.
+        Catches type mismatches from models."""
+        assert _parse_response('{"alt_text": 123, "hashtags": "not a list"}') is None
+
+
+@pytest.mark.django_db
+class TestAnalyzeLibraryImage:
+    """Tests for the AI image analysis function."""
+
+    @override_settings(OPENROUTER_API_KEY="")
+    def test_skips_when_no_api_key(self, approved_library, tmp_path):
+        """Verify analysis is skipped when no API key is configured.
+        Preserves current behaviour for users without OpenRouter."""
+        image_file = tmp_path / "test.jpg"
+        image_file.write_bytes(b"fake image data")
+        assert analyze_library_image(image_file, approved_library) is None
+
+    @override_settings(
+        OPENROUTER_API_KEY="test-key",
+        OPENROUTER_MODEL="test/model",
+    )
+    @patch("openai.OpenAI")
+    def test_successful_analysis(self, mock_openai_class, approved_library, tmp_path):
+        """Verify successful AI analysis returns alt_text and hashtags.
+        Tests the full flow with a mocked OpenAI client."""
+        image_file = tmp_path / "test.jpg"
+        image_file.write_bytes(b"fake image data")
+
+        mock_client = mock_openai_class.return_value
+        mock_response = mock_client.chat.completions.create.return_value
+        mock_response.choices = [
+            type("Choice", (), {
+                "message": type("Message", (), {
+                    "content": '{"alt_text": "A cozy book nook", "hashtags": ["cozy", "reading"]}'
+                })()
+            })()
+        ]
+
+        result = analyze_library_image(image_file, approved_library)
+        assert result == {"alt_text": "A cozy book nook", "hashtags": ["cozy", "reading"]}
+        mock_openai_class.assert_called_once_with(
+            api_key="test-key",
+            base_url="https://openrouter.ai/api/v1",
+        )
+
+    @override_settings(
+        OPENROUTER_API_KEY="test-key",
+        OPENROUTER_MODEL="test/model",
+    )
+    @patch("openai.OpenAI")
+    def test_api_error_returns_none(self, mock_openai_class, approved_library, tmp_path):
+        """Verify API errors are caught and return None.
+        Ensures posting continues even when AI fails."""
+        image_file = tmp_path / "test.jpg"
+        image_file.write_bytes(b"fake image data")
+
+        mock_client = mock_openai_class.return_value
+        mock_client.chat.completions.create.side_effect = Exception("API error")
+
+        assert analyze_library_image(image_file, approved_library) is None
+
+
+# --- Extra hashtags in text builder tests ---
+
+
+@pytest.mark.django_db
+class TestExtraHashtags:
+    """Tests for the extra_hashtags parameter in text builders."""
+
+    def test_extra_hashtags_appended(self, approved_library):
+        """Verify AI-generated hashtags are appended to post text.
+        Extends discoverability beyond base and geo tags."""
+        text = build_post_text(
+            approved_library, "https://example.com/lib",
+            max_length=500, extra_hashtags=["cozy", "reading"],
+        )
+        assert "#cozy" in text
+        assert "#reading" in text
+        assert "#BookCorners" in text
+
+    def test_extra_hashtags_no_duplicates(self, approved_library):
+        """Verify duplicate hashtags are not added twice.
+        Prevents repetitive hashtag lines."""
+        text = build_post_text(
+            approved_library, "https://example.com/lib",
+            max_length=500, extra_hashtags=["freebooks"],
+        )
+        # #FreeBooks is already in BASE_HASHTAGS, #freebooks shouldn't duplicate
+        assert text.count("#FreeBooks") == 1
+        # The lowercase version should be added since it differs case-wise
+        assert "#freebooks" in text
+
+    def test_max_hashtags_caps_total(self, approved_library):
+        """Verify max_hashtags limits the total number of hashtags.
+        Instagram allows at most 5 hashtags."""
+        text = build_post_text(
+            approved_library, "https://example.com/lib",
+            max_length=2200, max_hashtags=5,
+            extra_hashtags=["cozy", "reading", "nature", "sunset"],
+        )
+        hashtag_count = text.count("#")
+        assert hashtag_count <= 5
+
+    def test_extra_hashtags_none_is_default(self, approved_library):
+        """Verify None extra_hashtags produces same output as before.
+        Maintains backwards compatibility."""
+        text_default = build_post_text(
+            approved_library, "https://example.com/lib", max_length=300,
+        )
+        text_none = build_post_text(
+            approved_library, "https://example.com/lib", max_length=300,
+            extra_hashtags=None,
+        )
+        assert text_default == text_none
+
+    def test_bluesky_text_with_extra_hashtags(self, approved_library):
+        """Verify Bluesky TextBuilder includes extra hashtag facets.
+        Ensures AI tags are clickable on Bluesky."""
+        builder = build_bluesky_text(
+            approved_library, "https://example.com/lib",
+            max_length=500, extra_hashtags=["cozy"],
+        )
+        text = builder.build_text()
+        assert "#cozy" in text
+
+
+# --- Command AI integration tests ---
+
+
+@pytest.mark.django_db
+class TestCommandAIIntegration:
+    """Tests for AI integration in the post_random_library command."""
+
+    @override_settings(
+        MASTODON_INSTANCE_URL="https://mastodon.test",
+        MASTODON_ACCESS_TOKEN="test-token",
+        BLUESKY_HANDLE="",
+        BLUESKY_APP_PASSWORD="",
+        INSTAGRAM_USER_ID="",
+        INSTAGRAM_ACCESS_TOKEN="",
+        OPENROUTER_API_KEY="test-key",
+        SITE_URL="https://bookcorners.org",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        ADMIN_NOTIFICATION_EMAIL="admin@test.com",
+    )
+    @patch("libraries.social.image_ai.analyze_library_image")
+    @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
+    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    def test_ai_alt_text_passed_to_mastodon(
+        self, mock_photo, mock_mastodon, mock_ai, approved_library,
+    ):
+        """Verify AI-generated alt text is forwarded to Mastodon.
+        Improves accessibility of posted images."""
+        mock_photo.return_value = Path("/tmp/test.jpg")
+        mock_ai.return_value = {"alt_text": "A cozy book nook", "hashtags": ["cozy"]}
+        mock_mastodon.return_value = "https://mastodon.test/@user/123"
+
+        call_command("post_random_library")
+
+        mock_mastodon.assert_called_once()
+        call_kwargs = mock_mastodon.call_args
+        assert call_kwargs.kwargs["alt_text"] == "A cozy book nook"
+
+    @override_settings(
+        MASTODON_INSTANCE_URL="https://mastodon.test",
+        MASTODON_ACCESS_TOKEN="test-token",
+        BLUESKY_HANDLE="",
+        BLUESKY_APP_PASSWORD="",
+        INSTAGRAM_USER_ID="",
+        INSTAGRAM_ACCESS_TOKEN="",
+        OPENROUTER_API_KEY="",
+        SITE_URL="https://bookcorners.org",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        ADMIN_NOTIFICATION_EMAIL="admin@test.com",
+    )
+    @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
+    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    def test_no_ai_key_falls_back(
+        self, mock_photo, mock_mastodon, approved_library,
+    ):
+        """Verify posting works without OpenRouter API key.
+        Preserves existing behaviour when AI is not configured."""
+        mock_photo.return_value = Path("/tmp/test.jpg")
+        mock_mastodon.return_value = "https://mastodon.test/@user/123"
+
+        call_command("post_random_library")
+
+        mock_mastodon.assert_called_once()
+        call_kwargs = mock_mastodon.call_args
+        assert call_kwargs.kwargs["alt_text"] is None
+
+    @override_settings(
+        MASTODON_INSTANCE_URL="",
+        MASTODON_ACCESS_TOKEN="",
+        BLUESKY_HANDLE="",
+        BLUESKY_APP_PASSWORD="",
+        INSTAGRAM_USER_ID="",
+        INSTAGRAM_ACCESS_TOKEN="",
+        OPENROUTER_API_KEY="test-key",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.social.image_ai.analyze_library_image")
+    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    def test_dry_run_shows_ai_results(
+        self, mock_photo, mock_ai, approved_library, capsys,
+    ):
+        """Verify dry-run output includes AI analysis results.
+        Allows inspecting AI-generated content before posting."""
+        mock_photo.return_value = Path("/tmp/test.jpg")
+        mock_ai.return_value = {"alt_text": "A wooden library box", "hashtags": ["wooden", "cozy"]}
+
+        call_command("post_random_library", dry_run=True)
+
+        captured = capsys.readouterr()
+        assert "AI alt text: A wooden library box" in captured.out
+        assert "wooden" in captured.out
+        assert "cozy" in captured.out
+
+    @override_settings(
+        MASTODON_INSTANCE_URL="",
+        MASTODON_ACCESS_TOKEN="",
+        BLUESKY_HANDLE="",
+        BLUESKY_APP_PASSWORD="",
+        INSTAGRAM_USER_ID="",
+        INSTAGRAM_ACCESS_TOKEN="",
+        OPENROUTER_API_KEY="",
+        SITE_URL="https://bookcorners.org",
+    )
+    def test_dry_run_without_ai_key(self, approved_library, capsys):
+        """Verify dry-run output shows AI was skipped when unconfigured.
+        Confirms fallback messaging in dry-run mode."""
+        call_command("post_random_library", dry_run=True)
+
+        captured = capsys.readouterr()
+        assert "AI analysis: skipped" in captured.out
+
+    @override_settings(
+        MASTODON_INSTANCE_URL="",
+        MASTODON_ACCESS_TOKEN="",
+        BLUESKY_HANDLE="",
+        BLUESKY_APP_PASSWORD="",
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="ig-token",
+        OPENROUTER_API_KEY="test-key",
+        SITE_URL="https://bookcorners.org",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        ADMIN_NOTIFICATION_EMAIL="admin@test.com",
+    )
+    @patch("libraries.social.image_ai.analyze_library_image")
+    @patch("libraries.management.commands.post_random_library.Command._post_to_instagram")
+    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    def test_instagram_uses_separate_text_with_hashtag_cap(
+        self, mock_photo, mock_instagram, mock_ai, approved_library,
+    ):
+        """Verify Instagram gets its own text with a 5-hashtag cap.
+        Respects Instagram's hashtag limit since December 2025."""
+        mock_photo.return_value = Path("/tmp/test.jpg")
+        mock_ai.return_value = {
+            "alt_text": "A library",
+            "hashtags": ["cozy", "reading", "nature", "sunset"],
+        }
+        mock_instagram.return_value = "https://www.instagram.com/p/abc123/"
+
+        call_command("post_random_library")
+
+        mock_instagram.assert_called_once()
+        instagram_text = mock_instagram.call_args.args[1]
+        hashtag_count = instagram_text.count("#")
+        assert hashtag_count <= 5
+        assert len(instagram_text) <= 2200
 
 
 # --- Test helpers ---
