@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.measure import D
+from django.core.cache import cache
 from django.core.paginator import Page, Paginator
 from django.db.models import Q, QuerySet
 from django.http import HttpRequest, HttpResponse, JsonResponse
@@ -256,17 +257,74 @@ def map_page(request: HttpRequest) -> HttpResponse:
     )
 
 
-def map_libraries_geojson(request: HttpRequest) -> JsonResponse:
+GEOJSON_CACHE_KEY = "map_geojson_all"
+GEOJSON_CACHE_TIMEOUT = 300  # 5 minutes
+
+
+def _build_all_approved_geojson_json() -> str:
+    """Serialize all approved libraries to a GeoJSON JSON string.
+    The result is cached so subsequent requests skip DB and serialization."""
+    import json as _json
+
+    cached = cache.get(GEOJSON_CACHE_KEY)
+    if cached is not None:
+        return cached
+
+    queryset = (
+        Library.objects.filter(status=Library.Status.APPROVED)
+        .order_by("-created_at")
+        .only("id", "slug", "name", "city", "country", "address",
+              "location", "photo", "photo_thumbnail")
+    )
+    detail_url_template = reverse("library_detail", kwargs={"slug": "__SLUG__"})
+    features = [
+        _serialize_library_geojson_feature(
+            library=library, detail_url_template=detail_url_template,
+        )
+        for library in queryset
+    ]
+    payload = {
+        "type": "FeatureCollection",
+        "features": features,
+        "meta": {
+            "count": len(features),
+            "total_count": len(features),
+            "near_query": "",
+            "location_resolution_failed": False,
+            "center": None,
+            "bounds_applied": False,
+        },
+    }
+    json_str = _json.dumps(payload)
+    cache.set(GEOJSON_CACHE_KEY, json_str, GEOJSON_CACHE_TIMEOUT)
+    return json_str
+
+
+def map_libraries_geojson(request: HttpRequest) -> JsonResponse | HttpResponse:
     """Return approved libraries as a GeoJSON feature collection.
-    Applies optional search filters so map markers update without page reloads."""
+    Serves a cached JSON string for unfiltered requests to avoid re-serialization."""
     form = LibrarySearchForm(request.GET or None)
-    queryset, location_resolution_failed, near_query, resolved_center = _run_map_filters(form=form)
+    has_search_filters = form.is_valid() and any(
+        form.cleaned_data.get(k) for k in ("q", "near", "city", "country", "postal_code")
+    )
+    has_bounds = _get_map_bounds_polygon(request=request) is not None
+
+    if not has_search_filters and not has_bounds:
+        json_str = _build_all_approved_geojson_json()
+        return HttpResponse(json_str, content_type="application/json")
+
+    if has_search_filters:
+        queryset, location_resolution_failed, near_query, resolved_center = _run_map_filters(form=form)
+    else:
+        queryset = Library.objects.filter(status=Library.Status.APPROVED).order_by("-created_at")
+        location_resolution_failed = False
+        near_query = ""
+        resolved_center = None
 
     queryset = queryset.only(
         "id", "slug", "name", "city", "country", "address",
         "location", "photo", "photo_thumbnail",
     )
-
     total_count = queryset.count()
 
     map_bounds_polygon = _get_map_bounds_polygon(request=request)
@@ -276,7 +334,7 @@ def map_libraries_geojson(request: HttpRequest) -> JsonResponse:
     detail_url_template = reverse("library_detail", kwargs={"slug": "__SLUG__"})
     features = [
         _serialize_library_geojson_feature(
-            library=library, detail_url_template=detail_url_template
+            library=library, detail_url_template=detail_url_template,
         )
         for library in queryset
     ]
