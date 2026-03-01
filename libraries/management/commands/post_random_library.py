@@ -124,8 +124,11 @@ class Command(BaseCommand):
                 )
                 self.stdout.write(f"\nHashtag comment:\n{hashtag_comment}")
             if ai_result:
+                from libraries.social.text import _is_forbidden
+
                 self.stdout.write(f"\nAI alt text: {alt_text}")
-                self.stdout.write(f"AI hashtags: {ai_hashtags}")
+                filtered = [t for t in ai_hashtags if not _is_forbidden(t)]
+                self.stdout.write(f"AI hashtags: {filtered}")
             else:
                 self.stdout.write("\nAI analysis: skipped (no API key or failed)")
             return
