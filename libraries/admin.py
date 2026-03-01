@@ -16,7 +16,7 @@ from libraries.management.commands.find_duplicates import (
 )
 from libraries.models import Library, LibraryPhoto, Report, SocialPost
 from libraries.notifications import notify_library_approved
-from libraries.views import GEOJSON_CACHE_KEY
+from libraries.views import GEOJSON_CACHE_KEY, invalidate_cluster_cache
 
 
 class LibraryPhotoInline(admin.TabularInline):
@@ -171,6 +171,7 @@ class LibraryAdmin(admin.GISModelAdmin):
                 pk_list = [int(pk) for pk in delete_ids]
                 deleted_count = Library.objects.filter(pk__in=pk_list).delete()[0]
                 cache.delete(GEOJSON_CACHE_KEY)
+                invalidate_cluster_cache()
                 context["deleted_count"] = deleted_count
             return render(request, "admin/libraries/find_duplicates.html", context)
 
@@ -209,6 +210,7 @@ class LibraryAdmin(admin.GISModelAdmin):
         )
         count = queryset.update(status=Library.Status.APPROVED)
         cache.delete(GEOJSON_CACHE_KEY)
+        invalidate_cluster_cache()
         for library in to_notify:
             notify_library_approved(library)
         self.message_user(
@@ -224,6 +226,7 @@ class LibraryAdmin(admin.GISModelAdmin):
             was_pending = old_status == Library.Status.PENDING
         super().save_model(request, obj, form, change)
         cache.delete(GEOJSON_CACHE_KEY)
+        invalidate_cluster_cache()
         if was_pending and obj.status == Library.Status.APPROVED:
             notify_library_approved(obj)
 
@@ -235,6 +238,7 @@ class LibraryAdmin(admin.GISModelAdmin):
         Supports the module workflow with a focused operation."""
         count = queryset.update(status=Library.Status.REJECTED)
         cache.delete(GEOJSON_CACHE_KEY)
+        invalidate_cluster_cache()
         self.message_user(
             request, f"{count} {'library' if count == 1 else 'libraries'} rejected."
         )

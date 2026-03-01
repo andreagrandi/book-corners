@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.db.models.functions import Distance
@@ -12,6 +14,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
+from libraries.clustering import CLUSTER_ZOOM_THRESHOLD, build_clustered_features, get_grid_size_for_zoom
 from libraries.forms import LibraryPhotoSubmissionForm, LibrarySearchForm, LibrarySubmissionForm, ReportSubmissionForm
 from libraries.notifications import notify_new_library, notify_new_photo, notify_new_report
 from libraries.geolocation import (
@@ -142,6 +145,19 @@ def _serialize_library_geojson_feature(
     }
 
 
+def _parse_query_int(*, request: HttpRequest, key: str) -> int | None:
+    """Parse an optional integer query parameter from the request.
+    Returns None for missing or invalid inputs."""
+    raw_value = request.GET.get(key)
+    if not isinstance(raw_value, str) or raw_value == "":
+        return None
+
+    try:
+        return int(raw_value)
+    except ValueError:
+        return None
+
+
 def _parse_query_float(*, request: HttpRequest, key: str) -> float | None:
     """Parse an optional float query parameter from the request.
     Returns None for missing or invalid numeric inputs."""
@@ -259,13 +275,21 @@ def map_page(request: HttpRequest) -> HttpResponse:
 
 GEOJSON_CACHE_KEY = "map_geojson_all"
 GEOJSON_CACHE_TIMEOUT = 300  # 5 minutes
+CLUSTER_CACHE_PREFIX = "map_cluster_v"
+CLUSTER_CACHE_VERSION_KEY = "map_cluster_version"
+CLUSTER_CACHE_TIMEOUT = 300  # 5 minutes
+
+
+def invalidate_cluster_cache() -> None:
+    """Bump the cluster cache version counter to invalidate all cached cluster responses.
+    Called alongside GEOJSON_CACHE_KEY invalidation when library data changes."""
+    current = cache.get(CLUSTER_CACHE_VERSION_KEY, 0)
+    cache.set(CLUSTER_CACHE_VERSION_KEY, current + 1, timeout=None)
 
 
 def _build_all_approved_geojson_json() -> str:
     """Serialize all approved libraries to a GeoJSON JSON string.
     The result is cached so subsequent requests skip DB and serialization."""
-    import json as _json
-
     cached = cache.get(GEOJSON_CACHE_KEY)
     if cached is not None:
         return cached
@@ -295,9 +319,21 @@ def _build_all_approved_geojson_json() -> str:
             "bounds_applied": False,
         },
     }
-    json_str = _json.dumps(payload)
+    json_str = json.dumps(payload)
     cache.set(GEOJSON_CACHE_KEY, json_str, GEOJSON_CACHE_TIMEOUT)
     return json_str
+
+
+def _build_cluster_cache_key(*, zoom: int, bounds: Polygon | None) -> str:
+    """Build a versioned cache key for a clustered GeoJSON response.
+    Includes zoom, rounded bounds, and a version counter for invalidation."""
+    version = cache.get(CLUSTER_CACHE_VERSION_KEY, 0)
+    if bounds is None:
+        bounds_part = "none"
+    else:
+        extent = bounds.extent
+        bounds_part = f"{extent[0]:.2f}_{extent[1]:.2f}_{extent[2]:.2f}_{extent[3]:.2f}"
+    return f"{CLUSTER_CACHE_PREFIX}{version}_z{zoom}_{bounds_part}"
 
 
 def map_libraries_geojson(request: HttpRequest) -> JsonResponse | HttpResponse:
@@ -308,6 +344,37 @@ def map_libraries_geojson(request: HttpRequest) -> JsonResponse | HttpResponse:
         form.cleaned_data.get(k) for k in ("q", "near", "city", "country", "postal_code")
     )
     has_bounds = _get_map_bounds_polygon(request=request) is not None
+
+    zoom = _parse_query_int(request=request, key="zoom")
+    if zoom is not None and zoom < CLUSTER_ZOOM_THRESHOLD and not has_search_filters:
+        bounds_polygon = _get_map_bounds_polygon(request=request)
+        cluster_cache_key = _build_cluster_cache_key(zoom=zoom, bounds=bounds_polygon)
+        cached_cluster = cache.get(cluster_cache_key)
+        if cached_cluster is not None:
+            return HttpResponse(cached_cluster, content_type="application/json")
+
+        grid_size = get_grid_size_for_zoom(zoom)
+        features = build_clustered_features(zoom=zoom, bounds=bounds_polygon)
+        total_libraries = sum(
+            f["properties"]["point_count"] for f in features
+        )
+        payload = {
+            "type": "FeatureCollection",
+            "features": features,
+            "meta": {
+                "count": total_libraries,
+                "total_count": total_libraries,
+                "near_query": "",
+                "location_resolution_failed": False,
+                "center": None,
+                "bounds_applied": bounds_polygon is not None,
+                "clustered": True,
+                "grid_size": grid_size,
+            },
+        }
+        json_str = json.dumps(payload)
+        cache.set(cluster_cache_key, json_str, CLUSTER_CACHE_TIMEOUT)
+        return HttpResponse(json_str, content_type="application/json")
 
     if not has_search_filters and not has_bounds:
         json_str = _build_all_approved_geojson_json()

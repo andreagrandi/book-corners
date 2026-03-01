@@ -19,6 +19,31 @@
     rel="stylesheet"
     href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
   >
+  <style>
+    .server-cluster-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 9999px;
+      font-weight: 700;
+      font-size: 12px;
+      line-height: 1;
+      color: #222;
+      text-align: center;
+    }
+    .server-cluster-icon--small {
+      background-color: rgba(181, 226, 140, 0.6);
+      border: 3px solid rgba(181, 226, 140, 0.9);
+    }
+    .server-cluster-icon--medium {
+      background-color: rgba(241, 211, 87, 0.6);
+      border: 3px solid rgba(241, 211, 87, 0.9);
+    }
+    .server-cluster-icon--large {
+      background-color: rgba(253, 156, 115, 0.6);
+      border: 3px solid rgba(253, 156, 115, 0.9);
+    }
+  </style>
 {% endblock %}
 
 {% block content %}
@@ -180,7 +205,9 @@
       const markersCluster = L.markerClusterGroup();
       map.addLayer(markersCluster);
 
-      let suppressNextBoundsRefresh = false;
+      let serverClusterLayer = null;
+
+      let suppressNextBoundsRefresh = true;
       let boundsRefreshTimeoutId = null;
       let activeRequestId = 0;
 
@@ -306,6 +333,7 @@
 
       function buildMapRequestParams() {
         const params = buildBaseFilterParams();
+        params.set("zoom", String(Math.round(map.getZoom())));
         const bounds = map.getBounds();
         if (!bounds.isValid()) {
           return params;
@@ -367,12 +395,25 @@
         }
 
         const hasMarkers = markersCluster.getLayers().length > 0;
+        const hasClusterMarkers = serverClusterLayer && serverClusterLayer.getLayers().length > 0;
         if (hasMarkers) {
           suppressNextBoundsRefresh = true;
           map.fitBounds(markersCluster.getBounds(), {
             padding: [32, 32],
             maxZoom: 15,
           });
+        } else if (hasClusterMarkers) {
+          suppressNextBoundsRefresh = true;
+          const clusterBounds = L.latLngBounds([]);
+          serverClusterLayer.eachLayer(function (layer) {
+            clusterBounds.extend(layer.getLatLng());
+          });
+          if (clusterBounds.isValid()) {
+            map.fitBounds(clusterBounds, {
+              padding: [32, 32],
+              maxZoom: 15,
+            });
+          }
         }
       }
 
@@ -392,9 +433,104 @@
         });
       }
 
+      function getClusterStyle(count) {
+        if (count >= 1000) return { size: 60, cssClass: "server-cluster-icon--large" };
+        if (count >= 100) return { size: 50, cssClass: "server-cluster-icon--medium" };
+        return { size: 40, cssClass: "server-cluster-icon--small" };
+      }
+
+      let clusterHoverPolygon = null;
+
+      function clearClusterHover() {
+        if (clusterHoverPolygon) {
+          map.removeLayer(clusterHoverPolygon);
+          clusterHoverPolygon = null;
+        }
+      }
+
+      function parseBoundsFromClusterEl(el) {
+        /** Extract actual point extent from a .server-cluster-icon data attribute. */
+        const span = el.tagName === "SPAN" ? el : el.querySelector("span[data-cluster-bounds]");
+        if (!span) return null;
+        const parts = (span.dataset.clusterBounds || "").split(",").map(Number);
+        if (parts.length !== 4 || parts.some(isNaN)) return null;
+        return L.latLngBounds([parts[0], parts[1]], [parts[2], parts[3]]);
+      }
+
+      mapElement.addEventListener("click", function (e) {
+        /** Zoom to fit the actual extent of points in a server-side cluster. */
+        const icon = e.target.closest(".server-cluster-icon");
+        if (!icon) return;
+        const bounds = parseBoundsFromClusterEl(icon);
+        if (!bounds) return;
+        e.stopPropagation();
+        const fitZoom = map.getBoundsZoom(bounds, false, [40, 40]);
+        const minZoom = map.getZoom() + 2;
+        if (fitZoom >= minZoom) {
+          map.fitBounds(bounds, { padding: [40, 40], maxZoom: map.getMaxZoom() });
+        } else {
+          map.setView(bounds.getCenter(), minZoom);
+        }
+      });
+
+      mapElement.addEventListener("mouseover", function (e) {
+        const icon = e.target.closest(".server-cluster-icon");
+        if (!icon) return;
+        const bounds = parseBoundsFromClusterEl(icon);
+        if (!bounds) return;
+        clearClusterHover();
+        clusterHoverPolygon = L.rectangle(bounds, {
+          color: "#3388ff",
+          weight: 2,
+          fillOpacity: 0.15,
+          interactive: false,
+        });
+        map.addLayer(clusterHoverPolygon);
+      });
+
+      mapElement.addEventListener("mouseout", function (e) {
+        const icon = e.target.closest(".server-cluster-icon");
+        if (!icon) return;
+        clearClusterHover();
+      });
+
       function renderMarkersFromPayload(payload) {
         markersCluster.clearLayers();
+        if (serverClusterLayer) {
+          map.removeLayer(serverClusterLayer);
+          serverClusterLayer = null;
+        }
+        clearClusterHover();
+
+        const meta = payload.meta && typeof payload.meta === "object" ? payload.meta : {};
         const features = Array.isArray(payload.features) ? payload.features : [];
+
+        if (meta.clustered) {
+          serverClusterLayer = L.layerGroup();
+          features.forEach(function (feature) {
+            const coords = feature.geometry && feature.geometry.coordinates ? feature.geometry.coordinates : [0, 0];
+            const lng = coords[0];
+            const lat = coords[1];
+            const latlng = [lat, lng];
+            const props = feature.properties || {};
+            const count = props.point_count || 0;
+            const style = getClusterStyle(count);
+            const bbox = Array.isArray(props.bbox) ? props.bbox : null;
+            const boundsData = bbox
+              ? [bbox[1], bbox[0], bbox[3], bbox[2]].join(",")
+              : "";
+            const icon = L.divIcon({
+              html: `<span data-cluster-bounds="${boundsData}">${count}</span>`,
+              className: "server-cluster-icon " + style.cssClass,
+              iconSize: [style.size, style.size],
+            });
+            const marker = L.marker(latlng, { icon: icon });
+            serverClusterLayer.addLayer(marker);
+          });
+          map.addLayer(serverClusterLayer);
+          return;
+        }
+
         const markersLayer = L.geoJSON(
           {
             type: "FeatureCollection",

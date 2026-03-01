@@ -1268,6 +1268,153 @@ class TestMapPageView:
 
 
 @pytest.mark.django_db
+class TestMapGeoJSONClustering:
+    """Tests for server-side GeoJSON clustering at low zoom levels."""
+
+    def test_clustered_response_at_low_zoom(self, client, user):
+        """Verify low-zoom requests return clustered features instead of individual points.
+        Reduces payload size dramatically for wide-area map views."""
+        for i in range(5):
+            Library.objects.create(
+                name=f"Cluster Shelf {i}",
+                location=Point(x=11.25 + i * 0.001, y=43.77, srid=4326),
+                address=f"Via Test {i}",
+                city="Florence",
+                country="IT",
+                status=Library.Status.APPROVED,
+                created_by=user,
+            )
+
+        response = client.get(
+            reverse("map_libraries_geojson"),
+            {"zoom": "5"},
+        )
+
+        payload = response.json()
+        assert response.status_code == 200
+        assert payload["meta"]["clustered"] is True
+        assert len(payload["features"]) < 5
+        feature = payload["features"][0]
+        assert feature["properties"]["cluster"] is True
+        assert feature["properties"]["point_count"] == 5
+        bbox = feature["properties"]["bbox"]
+        assert bbox is not None
+        assert len(bbox) == 4
+        assert bbox[0] <= bbox[2]
+        assert bbox[1] <= bbox[3]
+
+    def test_individual_points_at_high_zoom(self, client, user):
+        """Verify high-zoom requests return individual library features with detail URLs.
+        Preserves full marker popups when users are zoomed into a city."""
+        library = Library.objects.create(
+            name="High Zoom Shelf",
+            photo="libraries/photos/2026/02/high-zoom.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.get(
+            reverse("map_libraries_geojson"),
+            {
+                "zoom": "14",
+                "min_lat": "43.5",
+                "min_lng": "11.0",
+                "max_lat": "44.0",
+                "max_lng": "11.5",
+            },
+        )
+
+        payload = response.json()
+        assert response.status_code == 200
+        assert payload["meta"].get("clustered") is not True
+        assert len(payload["features"]) == 1
+        feature = payload["features"][0]
+        assert feature["properties"]["slug"] == library.slug
+        assert "detail_url" in feature["properties"]
+
+    def test_search_filters_bypass_clustering(self, client, user):
+        """Verify search filters at low zoom bypass clustering and return individual results.
+        Users expect precise matches when actively filtering."""
+        Library.objects.create(
+            name="Filtered Shelf",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Test 1",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.get(
+            reverse("map_libraries_geojson"),
+            {"zoom": "5", "city": "Florence"},
+        )
+
+        payload = response.json()
+        assert response.status_code == 200
+        assert payload["meta"].get("clustered") is not True
+
+    def test_no_zoom_falls_back_to_individual(self, client, user):
+        """Verify omitting zoom parameter returns individual points for backwards compatibility.
+        Ensures direct URL hits and old cached pages still work."""
+        Library.objects.create(
+            name="No Zoom Shelf",
+            photo="libraries/photos/2026/02/no-zoom.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Test 1",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.get(reverse("map_libraries_geojson"))
+
+        payload = response.json()
+        assert response.status_code == 200
+        assert payload["meta"].get("clustered") is not True
+        assert len(payload["features"]) == 1
+        assert "slug" in payload["features"][0]["properties"]
+
+
+@pytest.mark.django_db
+class TestClusteringGridSize:
+    """Unit tests for zoom-to-grid-size mapping."""
+
+    def test_grid_size_decreases_with_increasing_zoom(self):
+        """Verify that higher zoom levels use smaller grid cells.
+        Ensures clusters get progressively finer as users zoom in."""
+        from libraries.clustering import get_grid_size_for_zoom
+
+        previous_size = get_grid_size_for_zoom(0)
+        for zoom in range(1, 12):
+            current_size = get_grid_size_for_zoom(zoom)
+            assert current_size < previous_size, (
+                f"Grid size at zoom {zoom} ({current_size}) should be "
+                f"smaller than zoom {zoom - 1} ({previous_size})"
+            )
+            previous_size = current_size
+
+    def test_negative_zoom_returns_largest_grid(self):
+        """Verify negative zoom falls back to the largest grid cell size.
+        Handles edge cases from unexpected client values."""
+        from libraries.clustering import get_grid_size_for_zoom, ZOOM_GRID_SIZE
+
+        assert get_grid_size_for_zoom(-1) == ZOOM_GRID_SIZE[0]
+
+    def test_zoom_above_table_returns_smallest_grid(self):
+        """Verify zoom levels above the table use the smallest grid cell size.
+        Prevents missing-key errors for high zoom values."""
+        from libraries.clustering import get_grid_size_for_zoom, ZOOM_GRID_SIZE
+
+        assert get_grid_size_for_zoom(20) == ZOOM_GRID_SIZE[11]
+
+
+@pytest.mark.django_db
 class TestMapListEndpointFilters:
     def test_list_endpoint_search_by_keywords_matches_approved_name_and_description(self, client, user):
         """Verify keyword filtering shows approved libraries in list mode.
