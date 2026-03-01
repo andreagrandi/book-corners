@@ -25,6 +25,10 @@ class LibraryPhotoInline(admin.TabularInline):
     readonly_fields = ["photo_preview", "created_by", "created_at"]
     fields = ["photo_preview", "caption", "status", "created_by", "created_at"]
 
+    def get_queryset(self, request):
+        """Prefetch creator to avoid N+1 queries on inline display."""
+        return super().get_queryset(request).select_related("created_by")
+
     @admin.display(description="Preview")
     def photo_preview(self, obj: LibraryPhoto) -> str:
         """Render a small thumbnail of the community photo.
@@ -40,6 +44,7 @@ class LibraryAdmin(admin.GISModelAdmin):
 
     change_list_template = "admin/libraries/library_changelist.html"
     list_display = ["name", "city", "country", "status", "created_at"]
+    list_select_related = ["created_by"]
     list_filter = [
         "status",
         "city",
@@ -366,10 +371,12 @@ class LibraryPhotoAdmin(admin.ModelAdmin):
         Copies the first approved photo to the library if it has no primary."""
         photos = list(queryset.select_related("library"))
         promoted_libraries: set[int] = set()
-        for photo in photos:
-            photo.status = LibraryPhoto.Status.APPROVED
-            photo.save(update_fields=["status"])
 
+        # Batch update all photo statuses at once
+        queryset.update(status=LibraryPhoto.Status.APPROVED)
+
+        # Only loop for library promotion logic
+        for photo in photos:
             library = photo.library
             if not library.photo and library.pk not in promoted_libraries:
                 library.photo = photo.photo

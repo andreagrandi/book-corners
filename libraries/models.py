@@ -73,11 +73,17 @@ class Library(models.Model):
         indexes = [
             models.Index(fields=["city", "address"], name="idx_lib_city_address"),
             models.Index(fields=["country"], name="idx_lib_country"),
-            models.Index(fields=["status"], name="idx_lib_status"),
             models.Index(fields=["-created_at"], name="idx_lib_created_at_desc"),
-            models.Index(fields=["city"], name="idx_lib_city"),
             models.Index(fields=["source"], name="idx_lib_source"),
+            models.Index(fields=["status", "-created_at"], name="idx_lib_status_created"),
+            models.Index(fields=["created_by", "-created_at"], name="idx_lib_creator_created"),
         ]
+
+    def __init__(self, *args, **kwargs):
+        """Initialize instance and snapshot the current photo name.
+        Allows cheap in-memory change detection on save."""
+        super().__init__(*args, **kwargs)
+        self._original_photo_name = self.photo.name if self.photo else ""
 
     def __str__(self) -> str:
         """Return a readable string representation.
@@ -120,7 +126,7 @@ class Library(models.Model):
 
     def _photo_needs_processing(self) -> bool:
         """Determine whether the current photo should be optimized.
-        Skips unchanged stored files and path-only fixture assignments."""
+        Compares against the snapshot taken at init to avoid a DB query."""
         if not self.photo:
             return False
 
@@ -130,12 +136,7 @@ class Library(models.Model):
         if self._state.adding or self.pk is None:
             return True
 
-        existing_photo_name = (
-            Library.objects.filter(pk=self.pk)
-            .values_list("photo", flat=True)
-            .first()
-        )
-        return existing_photo_name != self.photo.name
+        return self._original_photo_name != self.photo.name
 
     def _optimize_uploaded_photo(self) -> None:
         """Create optimized JPEG derivatives for the uploaded library photo.
@@ -249,6 +250,9 @@ class Report(models.Model):
     class Meta:
         db_table = "reports"
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["status", "-created_at"], name="idx_report_status_created"),
+        ]
 
     def __str__(self) -> str:
         """Return a readable string representation.
@@ -291,6 +295,16 @@ class LibraryPhoto(models.Model):
     class Meta:
         db_table = "library_photos"
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["library", "status"], name="idx_photo_library_status"),
+            models.Index(fields=["status", "-created_at"], name="idx_photo_status_created"),
+        ]
+
+    def __init__(self, *args, **kwargs):
+        """Initialize instance and snapshot the current photo name.
+        Allows cheap in-memory change detection on save."""
+        super().__init__(*args, **kwargs)
+        self._original_photo_name = self.photo.name if self.photo else ""
 
     def __str__(self) -> str:
         """Return a readable string representation.
@@ -329,7 +343,7 @@ class LibraryPhoto(models.Model):
 
     def _photo_needs_processing(self) -> bool:
         """Determine whether the current photo should be optimized.
-        Skips unchanged stored files and path-only fixture assignments."""
+        Compares against the snapshot taken at init to avoid a DB query."""
         if not self.photo:
             return False
 
@@ -339,12 +353,7 @@ class LibraryPhoto(models.Model):
         if self._state.adding or self.pk is None:
             return True
 
-        existing_photo_name = (
-            LibraryPhoto.objects.filter(pk=self.pk)
-            .values_list("photo", flat=True)
-            .first()
-        )
-        return existing_photo_name != self.photo.name
+        return self._original_photo_name != self.photo.name
 
     def _optimize_uploaded_photo(self) -> None:
         """Create optimized JPEG derivatives for the uploaded photo.

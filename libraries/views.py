@@ -47,16 +47,14 @@ def _parse_page_number(value: str | None) -> int:
     return page_number
 
 
-def _get_latest_entries_page(*, page_number: int) -> Page:
-    """Return a paginated page of approved libraries.
+def _get_latest_entries_page(*, page_number: int) -> tuple[Page, int]:
+    """Return a paginated page of approved libraries and the total approved count.
     Keeps homepage and HTMX pagination behavior consistent."""
-    queryset = (
-        Library.objects.filter(status=Library.Status.APPROVED)
-        .exclude(photo="")
-        .order_by("-created_at")
-    )
+    base_qs = Library.objects.filter(status=Library.Status.APPROVED)
+    total_approved = base_qs.count()
+    queryset = base_qs.exclude(photo="").order_by("-created_at")
     paginator = Paginator(queryset, LATEST_ENTRIES_PAGE_SIZE)
-    return paginator.get_page(page_number)
+    return paginator.get_page(page_number), total_approved
 
 
 def _run_library_search(
@@ -183,8 +181,7 @@ def _get_map_bounds_polygon(*, request: HttpRequest) -> Polygon | None:
 def home(request: HttpRequest) -> HttpResponse:
     """Render the homepage with the first latest-entries page.
     Loads approved libraries for the initial full-page response."""
-    page_obj = _get_latest_entries_page(page_number=1)
-    total_libraries = Library.objects.filter(status=Library.Status.APPROVED).count()
+    page_obj, total_libraries = _get_latest_entries_page(page_number=1)
     return render(
         request,
         "home.html",
@@ -206,7 +203,7 @@ def latest_entries(request: HttpRequest) -> HttpResponse:
     Supports incremental loading without a full page refresh."""
     page_value = request.GET.get("page")
     page_number = _parse_page_number(page_value if isinstance(page_value, str) else None)
-    page_obj = _get_latest_entries_page(page_number=page_number)
+    page_obj, _total = _get_latest_entries_page(page_number=page_number)
 
     return render(
         request,
@@ -348,7 +345,7 @@ def _get_detail_visible_library(*, request: HttpRequest, slug: str) -> Library:
         visibility_filter |= Q(created_by=user)
 
     return get_object_or_404(
-        Library,
+        Library.objects.select_related("created_by"),
         visibility_filter,
         slug=slug,
     )
@@ -468,7 +465,14 @@ def submit_library_photo(request: HttpRequest, slug: str) -> HttpResponse:
 def dashboard(request: HttpRequest) -> HttpResponse:
     """Render the authenticated dashboard with user submissions.
     Shows the current user's libraries and moderation statuses."""
-    submissions = Library.objects.filter(created_by=request.user).order_by("-created_at")
+    submissions = (
+        Library.objects.filter(created_by=request.user)
+        .only(
+            "name", "slug", "address", "city", "country",
+            "status", "photo", "photo_thumbnail", "created_at",
+        )
+        .order_by("-created_at")
+    )
     return render(
         request,
         "libraries/dashboard.html",

@@ -70,7 +70,11 @@ def find_duplicate_groups(
     if country:
         queryset = queryset.filter(country__iexact=country)
 
-    libraries = list(queryset.order_by("created_at"))
+    libraries = list(
+        queryset.order_by("created_at").only(
+            "city", "address", "name", "external_id", "status", "created_at"
+        )
+    )
     if not libraries:
         return []
 
