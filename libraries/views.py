@@ -112,9 +112,18 @@ def _run_library_search(
     return queryset, False, (latitude, longitude)
 
 
-def _serialize_library_geojson_feature(*, library: Library) -> dict[str, object]:
+def _serialize_library_geojson_feature(
+    *, library: Library, detail_url_template: str
+) -> dict[str, object]:
     """Serialize one approved library into a GeoJSON feature.
     Provides marker coordinates and popup metadata for the map page."""
+    if library.photo_thumbnail:
+        photo_url = library.photo_thumbnail.url
+    elif library.photo:
+        photo_url = library.photo.url
+    else:
+        photo_url = ""
+
     return {
         "type": "Feature",
         "geometry": {
@@ -128,8 +137,8 @@ def _serialize_library_geojson_feature(*, library: Library) -> dict[str, object]
             "city": library.city,
             "country": library.country,
             "address": library.address,
-            "photo_url": library.card_photo_url,
-            "detail_url": reverse("library_detail", kwargs={"slug": library.slug}),
+            "photo_url": photo_url,
+            "detail_url": detail_url_template.replace("__SLUG__", library.slug),
         },
     }
 
@@ -255,12 +264,23 @@ def map_libraries_geojson(request: HttpRequest) -> JsonResponse:
     Applies optional search filters so map markers update without page reloads."""
     form = LibrarySearchForm(request.GET or None)
     queryset, location_resolution_failed, near_query, resolved_center = _run_map_filters(form=form)
+
+    queryset = queryset.only(
+        "id", "slug", "name", "city", "country", "address",
+        "location", "photo", "photo_thumbnail",
+    )
+
+    total_count = queryset.count()
+
     map_bounds_polygon = _get_map_bounds_polygon(request=request)
     if map_bounds_polygon is not None:
         queryset = queryset.filter(location__within=map_bounds_polygon)
 
+    detail_url_template = reverse("library_detail", kwargs={"slug": "__SLUG__"})
     features = [
-        _serialize_library_geojson_feature(library=library)
+        _serialize_library_geojson_feature(
+            library=library, detail_url_template=detail_url_template
+        )
         for library in queryset
     ]
 
@@ -270,8 +290,6 @@ def map_libraries_geojson(request: HttpRequest) -> JsonResponse:
             "lat": round(resolved_center[0], 6),
             "lng": round(resolved_center[1], 6),
         }
-
-    total_count = Library.objects.filter(status=Library.Status.APPROVED).count()
 
     payload: dict[str, object] = {
         "type": "FeatureCollection",
@@ -298,6 +316,12 @@ def map_libraries_list(request: HttpRequest) -> HttpResponse:
     Returns an HTML fragment so list updates without full page reloads."""
     form = LibrarySearchForm(request.GET or None)
     libraries, location_resolution_failed, near_query, _ = _run_map_filters(form=form)
+
+    libraries = libraries.only(
+        "id", "slug", "name", "city", "country", "address",
+        "description", "location", "photo", "photo_thumbnail",
+    )
+
     page_value = request.GET.get("page")
     page_number = _parse_page_number(page_value if isinstance(page_value, str) else None)
     paginator = Paginator(libraries, MAP_LIST_PAGE_SIZE)
