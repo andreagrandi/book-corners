@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import time
 from pathlib import Path
+from typing import NamedTuple
 
 import requests
 from django.conf import settings
@@ -14,6 +15,14 @@ logger = logging.getLogger(__name__)
 GRAPH_API_URL = "https://graph.instagram.com"
 CONTAINER_POLL_INTERVAL = 5  # seconds between status checks
 CONTAINER_POLL_MAX_ATTEMPTS = 12  # up to 60 seconds total
+
+
+class InstagramResult(NamedTuple):
+    """Result of a successful Instagram post.
+    Carries the permalink and media ID for follow-up actions."""
+
+    permalink: str
+    media_id: str
 
 
 def _raise_with_detail(response: requests.Response) -> None:
@@ -68,8 +77,8 @@ def _wait_for_container(container_id: str, access_token: str) -> None:
     raise RuntimeError(f"Instagram container {container_id} timed out waiting to become FINISHED")
 
 
-def post_library(library, text: str, image_path: Path) -> str:
-    """Post a library with photo to Instagram and return the permalink.
+def post_library(library, text: str, image_path: Path) -> InstagramResult:
+    """Post a library with photo to Instagram and return the result.
     Uses the two-step container publish flow via the Instagram Graph API."""
     from libraries.image_processing import ensure_instagram_aspect_ratio
 
@@ -120,4 +129,25 @@ def post_library(library, text: str, image_path: Path) -> str:
         timeout=30,
     )
     _raise_with_detail(permalink_response)
-    return permalink_response.json()["permalink"]
+    return InstagramResult(
+        permalink=permalink_response.json()["permalink"],
+        media_id=media_id,
+    )
+
+
+def comment_on_media(media_id: str, text: str) -> str:
+    """Post a comment on an Instagram media object.
+    Returns the comment ID from the Graph API."""
+    access_token = _get_access_token()
+    response = requests.post(
+        f"{GRAPH_API_URL}/{media_id}/comments",
+        data={
+            "message": text,
+            "access_token": access_token,
+        },
+        timeout=30,
+    )
+    _raise_with_detail(response)
+    comment_id = response.json()["id"]
+    logger.info("Posted comment %s on media %s", comment_id, media_id)
+    return comment_id

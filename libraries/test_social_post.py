@@ -16,7 +16,12 @@ from PIL import Image
 from libraries.models import InstagramToken, Library, SocialPost
 from libraries.notifications import notify_social_post, notify_social_post_error
 from libraries.social.image_ai import _parse_response, analyze_library_image
-from libraries.social.text import build_bluesky_text, build_post_text, _country_name
+from libraries.social.text import (
+    build_bluesky_text,
+    build_hashtag_comment,
+    build_post_text,
+    _country_name,
+)
 
 User = get_user_model()
 
@@ -664,7 +669,8 @@ class TestInstagramClient:
             image_path=Path("/tmp/test.jpg"),
         )
 
-        assert result == "https://www.instagram.com/p/abc123/"
+        assert result.permalink == "https://www.instagram.com/p/abc123/"
+        assert result.media_id == "media-456"
         assert mock_post.call_count == 2
         assert mock_get.call_count == 2
 
@@ -724,7 +730,8 @@ class TestInstagramClient:
             image_path=Path("/tmp/test.jpg"),
         )
 
-        assert result == "https://www.instagram.com/p/abc123/"
+        assert result.permalink == "https://www.instagram.com/p/abc123/"
+        assert result.media_id == "media-456"
         assert mock_sleep.call_count == 2
         assert mock_get.call_count == 4
 
@@ -1248,6 +1255,216 @@ class TestCommandAIIntegration:
         assert len(instagram_text) <= 2200
 
 
+# --- Hashtag comment tests ---
+
+
+@pytest.mark.django_db
+class TestBuildHashtagComment:
+    """Tests for the build_hashtag_comment function."""
+
+    def test_brand_and_geo_tags_present(self, approved_library):
+        """Verify brand and geo hashtags are always included.
+        These are the core tags for every Instagram comment."""
+        result = build_hashtag_comment(approved_library)
+        assert "#BookCorners" in result
+        assert "#FreeBooks" in result
+        assert "#Paris" in result
+        assert "#France" in result
+
+    def test_respects_max_hashtags(self, approved_library):
+        """Verify the comment never exceeds 30 hashtags.
+        Instagram limits comments to 30 hashtags."""
+        result = build_hashtag_comment(approved_library)
+        tag_count = result.count("#")
+        assert tag_count <= 30
+
+    def test_includes_ai_tags(self, approved_library):
+        """Verify AI-generated hashtags are included in the comment.
+        Enriches discovery with visually relevant tags."""
+        result = build_hashtag_comment(
+            approved_library, extra_hashtags=["cozy", "wooden"],
+        )
+        assert "#cozy" in result
+        assert "#wooden" in result
+
+    def test_deduplicates_tags(self, approved_library):
+        """Verify duplicate hashtags are removed.
+        Prevents redundant tags when AI generates brand-like hashtags."""
+        result = build_hashtag_comment(
+            approved_library, extra_hashtags=["BookCorners", "cozy"],
+        )
+        assert result.count("#BookCorners") == 1
+
+    def test_community_tags_fill_remaining_slots(self, approved_library):
+        """Verify community pool tags are added after brand/geo/AI tags.
+        Maximizes discovery potential up to the 30-tag limit."""
+        result = build_hashtag_comment(approved_library)
+        assert "#LittleFreeLibrary" in result
+        assert "#Bookstagram" in result
+
+    def test_custom_max_hashtags(self, approved_library):
+        """Verify the max_hashtags parameter caps the output.
+        Allows callers to set a lower limit than the default 30."""
+        result = build_hashtag_comment(approved_library, max_hashtags=6)
+        tag_count = result.count("#")
+        assert tag_count == 6
+
+
+# --- Photo description tests ---
+
+
+@pytest.mark.django_db
+class TestBuildPostTextPhotoDescription:
+    """Tests for the photo_description parameter in build_post_text."""
+
+    def test_photo_description_appears_in_caption(self, approved_library):
+        """Verify alt text is included in the post text when provided.
+        Enriches the Instagram caption with AI-generated image context."""
+        result = build_post_text(
+            approved_library,
+            "https://bookcorners.org/library/test/",
+            max_length=2200,
+            photo_description="A wooden book exchange box on a sunny street corner",
+        )
+        assert "A wooden book exchange box on a sunny street corner" in result
+
+    def test_photo_description_absent_when_none(self, approved_library):
+        """Verify no extra text appears when photo_description is None.
+        Preserves the existing caption format for non-Instagram platforms."""
+        result = build_post_text(
+            approved_library,
+            "https://bookcorners.org/library/test/",
+            max_length=2200,
+            photo_description=None,
+        )
+        assert result.startswith("A lovely little free library")
+
+    def test_photo_description_truncated_when_too_long(self, approved_library):
+        """Verify long photo descriptions are truncated gracefully.
+        Prevents the caption from exceeding the max_length limit."""
+        long_desc = "A" * 500
+        result = build_post_text(
+            approved_library,
+            "https://bookcorners.org/library/test/",
+            max_length=300,
+            photo_description=long_desc,
+        )
+        assert len(result) <= 300
+        assert result.endswith("\u2026") or "#" in result
+
+
+# --- Comment on media tests ---
+
+
+@pytest.mark.django_db
+class TestCommentOnMedia:
+    """Tests for the comment_on_media Instagram client function."""
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+    )
+    @patch("libraries.social.instagram.requests.post")
+    def test_comment_success(self, mock_post):
+        """Verify a comment is posted successfully.
+        Returns the comment ID from the API response."""
+        from libraries.social.instagram import comment_on_media
+
+        mock_post.return_value = _mock_response(json_data={"id": "comment-789"})
+
+        result = comment_on_media(media_id="media-456", text="#BookCorners #FreeBooks")
+        assert result == "comment-789"
+
+        call_kwargs = mock_post.call_args
+        assert "media-456/comments" in call_kwargs.args[0]
+        assert call_kwargs.kwargs["data"]["message"] == "#BookCorners #FreeBooks"
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+    )
+    @patch("libraries.social.instagram.requests.post")
+    def test_comment_api_error(self, mock_post):
+        """Verify API errors propagate as RuntimeError.
+        Allows the caller to catch and handle comment failures separately."""
+        from libraries.social.instagram import comment_on_media
+
+        mock_post.return_value = _mock_response(
+            status_code=400,
+            json_data={"error": {"message": "Invalid media ID"}},
+        )
+
+        with pytest.raises(RuntimeError, match="Invalid media ID"):
+            comment_on_media(media_id="bad-id", text="test")
+
+
+# --- Set Instagram token command tests ---
+
+
+@pytest.mark.django_db
+class TestSetInstagramToken:
+    """Tests for the set_instagram_token management command."""
+
+    @patch("libraries.management.commands.set_instagram_token.requests.get")
+    def test_stores_token(self, mock_get, capsys):
+        """Verify the command stores a validated token in the database.
+        Replaces any existing tokens."""
+        mock_get.return_value = _mock_response(json_data={"id": "12345"})
+
+        call_command("set_instagram_token", "new-token-abc")
+
+        assert InstagramToken.objects.count() == 1
+        assert InstagramToken.objects.first().access_token == "new-token-abc"
+        captured = capsys.readouterr()
+        assert "stored successfully" in captured.out
+
+    @patch("libraries.management.commands.set_instagram_token.requests.get")
+    def test_replaces_existing_token(self, mock_get):
+        """Verify existing tokens are deleted when setting a new one.
+        Ensures only one active token exists at a time."""
+        InstagramToken.objects.create(access_token="old-token")
+        mock_get.return_value = _mock_response(json_data={"id": "12345"})
+
+        call_command("set_instagram_token", "new-token-abc")
+
+        assert InstagramToken.objects.count() == 1
+        assert InstagramToken.objects.first().access_token == "new-token-abc"
+
+    @patch("libraries.management.commands.set_instagram_token.requests.get")
+    def test_validates_token(self, mock_get):
+        """Verify the command calls the Graph API to validate the token.
+        Prevents storing invalid tokens."""
+        mock_get.return_value = _mock_response(json_data={"id": "12345"})
+
+        call_command("set_instagram_token", "test-token")
+
+        mock_get.assert_called_once()
+        call_args = mock_get.call_args
+        assert call_args.kwargs["params"]["access_token"] == "test-token"
+
+    def test_skip_validation(self):
+        """Verify --skip-validation stores the token without API call.
+        Useful for offline or testing scenarios."""
+        call_command("set_instagram_token", "offline-token", skip_validation=True)
+
+        assert InstagramToken.objects.count() == 1
+        assert InstagramToken.objects.first().access_token == "offline-token"
+
+    @patch("libraries.management.commands.set_instagram_token.requests.get")
+    def test_validation_failure_raises(self, mock_get):
+        """Verify invalid tokens are rejected and not stored.
+        Protects against storing expired or malformed tokens."""
+        mock_get.return_value = _mock_response(
+            status_code=400,
+            json_data={"error": {"message": "Invalid token"}},
+        )
+
+        with pytest.raises(Exception, match="Token validation failed"):
+            call_command("set_instagram_token", "bad-token")
+
+        assert InstagramToken.objects.count() == 0
+
+
 # --- Test helpers ---
 
 
@@ -1260,6 +1477,8 @@ class _MockResponse:
         self._json_data = json_data or {}
         self.status_code = status_code
         self.ok = status_code < 400
+        self.text = str(json_data) if json_data else ""
+        self.url = "https://graph.instagram.com/mock"
         self._should_raise = should_raise
 
     def json(self):

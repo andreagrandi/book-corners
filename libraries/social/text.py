@@ -43,6 +43,25 @@ def _country_name(country_code: str) -> str:
     return COUNTRY_NAMES.get(country_code.upper(), country_code)
 
 
+COMMUNITY_HASHTAGS = [
+    "#LittleFreeLibrary",
+    "#BookExchange",
+    "#Bookstagram",
+    "#BookLovers",
+    "#ReadMore",
+    "#BookNerd",
+    "#InstaBooks",
+    "#BookCommunity",
+    "#CommunityLibrary",
+    "#FreeLibrary",
+    "#BooksOfInstagram",
+    "#BookSharing",
+    "#NeighborhoodLibrary",
+    "#LoveBooks",
+    "#BookWorm",
+]
+
+
 def build_post_text(
     library,
     detail_url: str,
@@ -50,6 +69,7 @@ def build_post_text(
     max_length: int = 300,
     extra_hashtags: list[str] | None = None,
     max_hashtags: int | None = None,
+    photo_description: str | None = None,
 ) -> str:
     """Build social media post text with description, location, link, and hashtags.
     Truncates description and fills hashtags to fit within max_length."""
@@ -87,19 +107,63 @@ def build_post_text(
         if len(test_text) <= max_length:
             hashtag_line = candidate
 
-    # Calculate budget for description
+    # Calculate budget for description + optional photo description
     suffix = f"{fixed_parts}\n\n{hashtag_line}" if hashtag_line else fixed_parts
     description_budget = max_length - len(suffix)
 
     description = library.description or library.name or library.address
-    if len(description) > description_budget:
-        description = description[: description_budget - 1].rstrip() + "\u2026"
 
-    parts = [description, location_line, detail_url]
+    # Append AI photo description when provided
+    if photo_description:
+        combined = f"{description}\n\n{photo_description}"
+    else:
+        combined = description
+
+    if len(combined) > description_budget:
+        combined = combined[: description_budget - 1].rstrip() + "\u2026"
+
+    parts = [combined, location_line, detail_url]
     if hashtag_line:
         parts.append(hashtag_line)
 
     return "\n\n".join(parts)
+
+
+def build_hashtag_comment(
+    library,
+    *,
+    extra_hashtags: list[str] | None = None,
+    max_hashtags: int = 30,
+) -> str:
+    """Assemble a hashtag-only comment for Instagram posts.
+    Combines brand, geo, AI-generated, and community hashtags up to the limit."""
+    country_name = _country_name(library.country)
+    city_tag = f"#{library.city.replace(' ', '')}"
+    country_tag = f"#{country_name.replace(' ', '')}"
+
+    # Start with brand tags
+    tags: list[str] = list(BASE_HASHTAGS)
+
+    # Add geo tags
+    for tag in [city_tag, country_tag]:
+        if tag not in tags:
+            tags.append(tag)
+
+    # Add AI-generated tags
+    if extra_hashtags:
+        for tag in extra_hashtags:
+            prefixed = f"#{tag}" if not tag.startswith("#") else tag
+            if prefixed not in tags:
+                tags.append(prefixed)
+
+    # Fill remaining slots from community pool
+    for tag in COMMUNITY_HASHTAGS:
+        if len(tags) >= max_hashtags:
+            break
+        if tag not in tags:
+            tags.append(tag)
+
+    return " ".join(tags[:max_hashtags])
 
 
 def build_bluesky_text(

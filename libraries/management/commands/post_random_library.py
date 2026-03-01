@@ -12,7 +12,7 @@ from django.urls import reverse
 
 from libraries.models import Library, SocialPost
 from libraries.notifications import notify_social_post, notify_social_post_error
-from libraries.social.text import build_post_text
+from libraries.social.text import build_hashtag_comment, build_post_text
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +107,10 @@ class Command(BaseCommand):
         instagram_text = build_post_text(
             library, detail_url, max_length=2200,
             extra_hashtags=ai_hashtags or None, max_hashtags=5,
+            photo_description=alt_text,
+        )
+        hashtag_comment = build_hashtag_comment(
+            library, extra_hashtags=ai_hashtags or None,
         )
 
         if dry_run:
@@ -117,6 +121,7 @@ class Command(BaseCommand):
                 self.stdout.write(
                     f"\nInstagram text ({len(instagram_text)} chars):\n{instagram_text}"
                 )
+                self.stdout.write(f"\nHashtag comment:\n{hashtag_comment}")
             if ai_result:
                 self.stdout.write(f"\nAI alt text: {alt_text}")
                 self.stdout.write(f"AI hashtags: {ai_hashtags}")
@@ -160,7 +165,10 @@ class Command(BaseCommand):
 
         try:
             if instagram_configured:
-                instagram_url = self._post_to_instagram(library, instagram_text, image_path)
+                instagram_url = self._post_to_instagram(
+                    library, instagram_text, image_path,
+                    hashtag_comment=hashtag_comment,
+                )
                 logger.info("Posted to Instagram: %s", instagram_url)
             else:
                 logger.info("Instagram not configured, skipping")
@@ -255,9 +263,24 @@ class Command(BaseCommand):
             alt_text=alt_text, extra_hashtags=extra_hashtags,
         )
 
-    def _post_to_instagram(self, library, text: str, image_path: Path) -> str:
+    def _post_to_instagram(
+        self, library, text: str, image_path: Path,
+        *, hashtag_comment: str | None = None,
+    ) -> str:
         """Delegate to the Instagram client module.
         Returns the permalink of the created post."""
-        from libraries.social.instagram import post_library
+        from libraries.social.instagram import comment_on_media, post_library
 
-        return post_library(library, text=text, image_path=image_path)
+        result = post_library(library, text=text, image_path=image_path)
+
+        if hashtag_comment:
+            try:
+                comment_on_media(media_id=result.media_id, text=hashtag_comment)
+                logger.info("Posted hashtag comment on Instagram media %s", result.media_id)
+            except Exception:
+                logger.exception(
+                    "Failed to post hashtag comment on Instagram media %s",
+                    result.media_id,
+                )
+
+        return result.permalink

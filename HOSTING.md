@@ -206,6 +206,14 @@ Credentials can be added independently — if only one platform is configured, t
 
 **Instagram token refresh:** The long-lived token expires after ~60 days. A cron job runs `refresh_instagram_token` every 30 days to keep it valid. After the first refresh, the token is stored in the database and the env var is only used as a fallback.
 
+**Updating the Instagram token after re-authorization:** If you re-authorize the Meta app (e.g. to add new permissions like `instagram_manage_comments`), exchange the new short-lived token for a long-lived one via the Graph API, then store it in the database:
+
+```bash
+sudo dokku run book-corners python manage.py set_instagram_token "NEW_LONG_LIVED_TOKEN"
+```
+
+The command validates the token against the Graph API before storing it. Use `--skip-validation` for offline scenarios. The DB token always takes precedence over the `INSTAGRAM_ACCESS_TOKEN` env var.
+
 ### Email notifications (optional)
 
 ```bash

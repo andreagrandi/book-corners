@@ -42,7 +42,7 @@ def analyze_library_image(image_path: Path, library) -> dict | None:
             f"Return a JSON object with exactly two keys:\n"
             f'- "alt_text": a concise image description for screen readers, '
             f"about 120-150 characters. Describe what is visible in the photo.\n"
-            f'- "hashtags": a list of 3-5 relevant lowercase hashtags based on '
+            f'- "hashtags": a list of 8-12 relevant lowercase hashtags based on '
             f"what you see in the image (without the # prefix). Focus on visual "
             f"elements like the style, setting, or notable features.\n\n"
             f"Respond with only the JSON object, no other text."
@@ -62,7 +62,7 @@ def analyze_library_image(image_path: Path, library) -> dict | None:
                     ],
                 }
             ],
-            max_tokens=300,
+            max_tokens=400,
             timeout=REQUEST_TIMEOUT,
         )
 
