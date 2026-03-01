@@ -5,6 +5,7 @@ import pytest
 from django.conf import settings as django_settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
+from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, override_settings
 from django.urls import reverse
@@ -12,6 +13,12 @@ from PIL import ExifTags, Image
 from PIL.TiffImagePlugin import IFDRational
 
 from libraries.geolocation import extract_gps_coordinates
+from libraries.image_processing import (
+    MIN_ASPECT_RATIO,
+    MAX_ASPECT_RATIO,
+    _crop_to_aspect_ratio_bounds,
+    ensure_instagram_aspect_ratio,
+)
 from libraries.models import Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
 
 User = get_user_model()
@@ -2707,3 +2714,106 @@ class TestGeoJSONImportStreetAwareProximity:
 
         assert result.skipped_duplicate_location == 0
         assert result.created == 1
+
+
+class TestAspectRatioCrop:
+    """Tests for the Instagram aspect ratio cropping function."""
+
+    def test_too_wide_image_is_cropped(self):
+        """Verify a landscape image beyond 1.91:1 is center-cropped in width.
+        Ensures the output ratio equals the maximum allowed bound."""
+        image = Image.new("RGB", (1000, 400))
+        result = _crop_to_aspect_ratio_bounds(image=image)
+
+        assert result.width == round(400 * MAX_ASPECT_RATIO)
+        assert result.height == 400
+
+    def test_too_tall_image_is_cropped(self):
+        """Verify a portrait image below 4:5 is center-cropped in height.
+        Ensures the output ratio equals the minimum allowed bound."""
+        image = Image.new("RGB", (400, 1000))
+        result = _crop_to_aspect_ratio_bounds(image=image)
+
+        assert result.width == 400
+        assert result.height == round(400 / MIN_ASPECT_RATIO)
+
+    def test_normal_image_is_unchanged(self):
+        """Verify an image within bounds passes through unmodified.
+        Confirms no unnecessary cropping for compliant aspect ratios."""
+        image = Image.new("RGB", (640, 480))
+        result = _crop_to_aspect_ratio_bounds(image=image)
+
+        assert result.size == (640, 480)
+
+    def test_exact_min_boundary_is_unchanged(self):
+        """Verify an image at exactly the 4:5 lower bound is not cropped.
+        Confirms boundary values are treated as within range."""
+        width, height = 800, 1000  # ratio = 0.8 = 4/5
+        image = Image.new("RGB", (width, height))
+        result = _crop_to_aspect_ratio_bounds(image=image)
+
+        assert result.size == (width, height)
+
+    def test_exact_max_boundary_is_unchanged(self):
+        """Verify an image at exactly the 1.91:1 upper bound is not cropped.
+        Confirms boundary values are treated as within range."""
+        width, height = 191, 100  # ratio = 1.91
+        image = Image.new("RGB", (width, height))
+        result = _crop_to_aspect_ratio_bounds(image=image)
+
+        assert result.size == (width, height)
+
+
+@pytest.mark.django_db
+class TestEnsureInstagramAspectRatio:
+    """Integration test for Instagram-specific aspect ratio cropping."""
+
+    def test_too_wide_photo_is_cropped_in_place(self, settings, tmp_path, user):
+        """Verify a too-wide library photo is cropped before Instagram posting.
+        Ensures the stored photo satisfies Instagram's ratio constraints."""
+        settings.MEDIA_ROOT = tmp_path / "media"
+
+        image = Image.new("RGB", (2000, 400), color=(140, 165, 210))
+        buf = BytesIO()
+        image.save(buf, format="JPEG", quality=85)
+
+        library = Library.objects.create(
+            name="Wide Shelf",
+            address="Via Roma 1",
+            city="Florence",
+            country="IT",
+            created_by=user,
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+        )
+        library.photo.save("wide.jpg", ContentFile(buf.getvalue()), save=True)
+
+        ensure_instagram_aspect_ratio(library=library)
+
+        with Image.open(library.photo.path) as stored_image:
+            ratio = stored_image.width / stored_image.height
+            assert MIN_ASPECT_RATIO <= ratio <= MAX_ASPECT_RATIO
+
+    def test_normal_photo_is_not_modified(self, settings, tmp_path, user):
+        """Verify a photo within bounds is left untouched.
+        Prevents unnecessary re-encoding of compliant images."""
+        settings.MEDIA_ROOT = tmp_path / "media"
+
+        image = Image.new("RGB", (640, 480), color=(140, 165, 210))
+        buf = BytesIO()
+        image.save(buf, format="JPEG", quality=85)
+        original_bytes = buf.getvalue()
+
+        library = Library.objects.create(
+            name="Normal Shelf",
+            address="Via Roma 2",
+            city="Florence",
+            country="IT",
+            created_by=user,
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+        )
+        library.photo.save("normal.jpg", ContentFile(original_bytes), save=True)
+
+        ensure_instagram_aspect_ratio(library=library)
+
+        with open(library.photo.path, "rb") as f:
+            assert f.read() == original_bytes

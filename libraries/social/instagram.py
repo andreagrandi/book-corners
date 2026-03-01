@@ -71,6 +71,10 @@ def _wait_for_container(container_id: str, access_token: str) -> None:
 def post_library(library, text: str, image_path: Path) -> str:
     """Post a library with photo to Instagram and return the permalink.
     Uses the two-step container publish flow via the Instagram Graph API."""
+    from libraries.image_processing import ensure_instagram_aspect_ratio
+
+    ensure_instagram_aspect_ratio(library=library)
+
     user_id = settings.INSTAGRAM_USER_ID
     access_token = _get_access_token()
     base_url = getattr(settings, "SITE_URL", "http://localhost:8000").rstrip("/")

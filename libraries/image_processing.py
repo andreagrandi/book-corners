@@ -12,6 +12,27 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 MAX_LIBRARY_PHOTO_DIMENSION = 1600
 LIBRARY_THUMBNAIL_MAX_WIDTH = 400
 LIBRARY_PHOTO_JPEG_QUALITY = 85
+MIN_ASPECT_RATIO = 4 / 5  # 0.8 — Instagram lower bound (4:5 portrait)
+MAX_ASPECT_RATIO = 1.91  # Instagram upper bound (≈ 1.91:1 landscape)
+
+
+def _crop_to_aspect_ratio_bounds(*, image: Image.Image) -> Image.Image:
+    """Center-crop an image so its aspect ratio falls within Instagram bounds.
+    Returns the image unchanged when the ratio is already within range."""
+    width, height = image.size
+    ratio = width / height
+
+    if ratio > MAX_ASPECT_RATIO:
+        new_width = round(height * MAX_ASPECT_RATIO)
+        left = (width - new_width) // 2
+        return image.crop((left, 0, left + new_width, height))
+
+    if ratio < MIN_ASPECT_RATIO:
+        new_height = round(width / MIN_ASPECT_RATIO)
+        top = (height - new_height) // 2
+        return image.crop((0, top, width, top + new_height))
+
+    return image
 
 
 def _normalize_base_filename(*, original_name: str) -> str:
@@ -102,3 +123,21 @@ def build_library_photo_files(
         (main_filename, ContentFile(resized_main_bytes)),
         (thumbnail_filename, ContentFile(thumbnail_bytes)),
     )
+
+
+def ensure_instagram_aspect_ratio(*, library) -> None:
+    """Crop the library photo in-place if its aspect ratio exceeds Instagram bounds.
+    Saves the cropped version back to the photo field so Instagram can fetch it."""
+    with library.photo.open("rb") as f:
+        with Image.open(f) as img:
+            width, height = img.size
+            ratio = width / height
+            if MIN_ASPECT_RATIO <= ratio <= MAX_ASPECT_RATIO:
+                return
+
+            rgb = img.convert("RGB")
+            cropped = _crop_to_aspect_ratio_bounds(image=rgb)
+
+    jpeg_bytes = _encode_jpeg(image=cropped, quality=LIBRARY_PHOTO_JPEG_QUALITY)
+    photo_name = library.photo.name
+    library.photo.save(photo_name, ContentFile(jpeg_bytes), save=True)
