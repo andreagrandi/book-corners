@@ -13,6 +13,7 @@ from django.db.models import Q, QuerySet
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.cache import cache_page
 
 from libraries.clustering import CLUSTER_ZOOM_THRESHOLD, build_clustered_features, get_grid_size_for_zoom
 from libraries.forms import LibraryPhotoSubmissionForm, LibrarySearchForm, LibrarySubmissionForm, ReportSubmissionForm
@@ -26,6 +27,8 @@ from libraries.models import Library, LibraryPhoto
 from libraries.search import DEFAULT_SEARCH_RADIUS_KM, apply_text_search, run_library_search
 
 LATEST_ENTRIES_PAGE_SIZE = 9
+HOMEPAGE_COUNT_CACHE_KEY = "homepage_total_approved"
+HOMEPAGE_COUNT_CACHE_TIMEOUT = 60
 DEFAULT_SUBMIT_MAP_LATITUDE = 48.8566
 DEFAULT_SUBMIT_MAP_LONGITUDE = 2.3522
 DEFAULT_MAP_CENTER_LATITUDE = 50.1109
@@ -54,9 +57,15 @@ def _parse_page_number(value: str | None) -> int:
 def _get_latest_entries_page(*, page_number: int) -> tuple[Page, int]:
     """Return a paginated page of approved libraries and the total approved count.
     Keeps homepage and HTMX pagination behavior consistent."""
-    base_qs = Library.objects.filter(status=Library.Status.APPROVED)
-    total_approved = base_qs.count()
-    queryset = base_qs.exclude(photo="").order_by("-created_at")
+    total_approved = cache.get(HOMEPAGE_COUNT_CACHE_KEY)
+    if total_approved is None:
+        total_approved = Library.objects.filter(status=Library.Status.APPROVED).count()
+        cache.set(HOMEPAGE_COUNT_CACHE_KEY, total_approved, HOMEPAGE_COUNT_CACHE_TIMEOUT)
+    queryset = (
+        Library.objects.filter(status=Library.Status.APPROVED)
+        .exclude(photo="")
+        .order_by("-created_at")
+    )
     paginator = Paginator(queryset, LATEST_ENTRIES_PAGE_SIZE)
     return paginator.get_page(page_number), total_approved
 
@@ -195,6 +204,7 @@ def _get_map_bounds_polygon(*, request: HttpRequest) -> Polygon | None:
     return bounds_polygon
 
 
+@cache_page(60)
 def home(request: HttpRequest) -> HttpResponse:
     """Render the homepage with the first latest-entries page.
     Loads approved libraries for the initial full-page response."""

@@ -9,6 +9,7 @@ from libraries.image_processing import build_library_photo_files
 
 MAX_LIBRARY_PHOTOS_PER_USER = 3
 LIBRARY_PLACEHOLDER_IMAGE = "images/library-placeholder.png"
+LIBRARY_PLACEHOLDER_IMAGE_WEBP = "images/library-placeholder.webp"
 
 
 class Library(models.Model):
@@ -123,6 +124,14 @@ class Library(models.Model):
                 pass
 
         return staticfiles_storage.url(LIBRARY_PLACEHOLDER_IMAGE)
+
+    @property
+    def card_photo_url_webp(self) -> str:
+        """Return the WebP placeholder URL when no photo is available.
+        Returns empty string when a real photo exists (no WebP conversion needed)."""
+        if self.photo_thumbnail or self.photo:
+            return ""
+        return staticfiles_storage.url(LIBRARY_PLACEHOLDER_IMAGE_WEBP)
 
     def _photo_needs_processing(self) -> bool:
         """Determine whether the current photo should be optimized.

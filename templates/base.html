@@ -46,12 +46,15 @@
           </ul>
         </div>
         <a href="{% url 'home' %}" class="btn btn-ghost gap-2 px-2 text-xl normal-case">
-          <img
-            src="{% static 'images/book-corners-logo-navbar.png' %}"
-            alt=""
-            class="h-9 w-9 object-contain"
-            aria-hidden="true"
-          >
+          <picture>
+            <source srcset="{% static 'images/book-corners-logo-navbar-small.webp' %}" type="image/webp">
+            <img
+              src="{% static 'images/book-corners-logo-navbar.png' %}"
+              alt=""
+              class="h-9 w-9 object-contain"
+              aria-hidden="true"
+            >
+          </picture>
           <span>Book Corners</span>
         </a>
       </div>
@@ -85,14 +88,17 @@
       <div class="mx-auto grid w-full max-w-6xl gap-10 p-10 sm:grid-cols-2 md:grid-cols-5">
         <aside class="sm:col-span-2 md:col-span-2">
           <a href="{% url 'home' %}" class="flex items-center gap-2">
-            <img
-              src="{% static 'images/book-corners-logo-navbar.png' %}"
-              alt=""
-              width="32"
-              height="32"
-              class="h-8 w-8 object-contain"
-              aria-hidden="true"
-            >
+            <picture>
+              <source srcset="{% static 'images/book-corners-logo-navbar-small.webp' %}" type="image/webp">
+              <img
+                src="{% static 'images/book-corners-logo-navbar.png' %}"
+                alt=""
+                width="32"
+                height="32"
+                class="h-8 w-8 object-contain"
+                aria-hidden="true"
+              >
+            </picture>
             <span class="text-lg font-bold">Book Corners</span>
           </a>
           <p class="mt-2">{% trans "Community map of neighborhood book exchange spots." %}</p>

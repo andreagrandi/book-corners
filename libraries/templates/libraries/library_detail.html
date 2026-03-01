@@ -23,11 +23,22 @@
   <section class="grid gap-6 lg:grid-cols-2">
     <article class="card overflow-hidden border border-base-300 bg-base-100 shadow-sm">
       <figure class="max-h-[560px] overflow-hidden rounded-box bg-base-200">
-        <img
-          src="{% if library.photo %}{{ library.photo.url }}{% else %}{% static 'images/library-placeholder.png' %}{% endif %}"
-          alt="{{ library.name|default:library.address }}"
-          class="h-full w-full object-cover"
-        >
+        {% if library.photo %}
+          <img
+            src="{{ library.photo.url }}"
+            alt="{{ library.name|default:library.address }}"
+            class="h-full w-full object-cover"
+          >
+        {% else %}
+          <picture>
+            <source srcset="{% static 'images/library-placeholder.webp' %}" type="image/webp">
+            <img
+              src="{% static 'images/library-placeholder.png' %}"
+              alt="{{ library.name|default:library.address }}"
+              class="h-full w-full object-cover"
+            >
+          </picture>
+        {% endif %}
       </figure>
     </article>
 

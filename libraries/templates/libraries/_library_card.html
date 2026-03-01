@@ -2,12 +2,24 @@
 <article class="card border border-base-300 bg-base-100 shadow-sm">
   <figure class="aspect-[4/3] overflow-hidden bg-base-200">
     <a href="{% url 'library_detail' slug=library.slug %}" class="h-full w-full">
-      <img
-        src="{{ library.card_photo_url }}"
-        alt="{{ library.name|default:library.address }}"
-        class="h-full w-full object-cover"
-        loading="lazy"
-      >
+      {% if library.card_photo_url_webp %}
+        <picture>
+          <source srcset="{{ library.card_photo_url_webp }}" type="image/webp">
+          <img
+            src="{{ library.card_photo_url }}"
+            alt="{{ library.name|default:library.address }}"
+            class="h-full w-full object-cover"
+            loading="lazy"
+          >
+        </picture>
+      {% else %}
+        <img
+          src="{{ library.card_photo_url }}"
+          alt="{{ library.name|default:library.address }}"
+          class="h-full w-full object-cover"
+          loading="lazy"
+        >
+      {% endif %}
     </a>
   </figure>
   <div class="card-body p-4">
