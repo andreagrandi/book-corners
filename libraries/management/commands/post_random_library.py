@@ -116,7 +116,8 @@ class Command(BaseCommand):
         if dry_run:
             self.stdout.write(f"Library: {library}")
             self.stdout.write(f"URL: {detail_url}")
-            self.stdout.write(f"Text ({len(post_text)} chars):\n{post_text}")
+            if only_platform != "instagram":
+                self.stdout.write(f"Text ({len(post_text)} chars):\n{post_text}")
             if instagram_configured:
                 self.stdout.write(
                     f"\nInstagram text ({len(instagram_text)} chars):\n{instagram_text}"

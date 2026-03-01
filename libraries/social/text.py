@@ -36,6 +36,17 @@ COUNTRY_NAMES = {
 
 BASE_HASHTAGS = ["#BookCorners", "#FreeBooks", "#Books", "#StreetLibrary"]
 
+# Registered trademarks or otherwise problematic hashtags (case-insensitive)
+FORBIDDEN_HASHTAGS = {
+    "littlefreelibrary",
+}
+
+
+def _is_forbidden(tag: str) -> bool:
+    """Check whether a hashtag is in the forbidden list.
+    Comparison is case-insensitive and ignores the leading # prefix."""
+    return tag.lstrip("#").lower() in FORBIDDEN_HASHTAGS
+
 
 def _country_name(country_code: str) -> str:
     """Look up a full country name from a two-letter ISO code.
@@ -44,7 +55,6 @@ def _country_name(country_code: str) -> str:
 
 
 COMMUNITY_HASHTAGS = [
-    "#LittleFreeLibrary",
     "#BookExchange",
     "#Bookstagram",
     "#BookLovers",
@@ -59,6 +69,7 @@ COMMUNITY_HASHTAGS = [
     "#NeighborhoodLibrary",
     "#LoveBooks",
     "#BookWorm",
+    "#ReadingCommunity",
 ]
 
 
@@ -84,11 +95,11 @@ def build_post_text(
         tag for tag in geo_hashtags if tag not in BASE_HASHTAGS
     ]
 
-    # Append AI-generated hashtags, avoiding duplicates
+    # Append AI-generated hashtags, avoiding duplicates and forbidden tags
     if extra_hashtags:
         for tag in extra_hashtags:
             prefixed = f"#{tag}" if not tag.startswith("#") else tag
-            if prefixed not in all_hashtags:
+            if prefixed not in all_hashtags and not _is_forbidden(prefixed):
                 all_hashtags.append(prefixed)
 
     # Cap total hashtags when a platform limit applies
@@ -149,11 +160,11 @@ def build_hashtag_comment(
         if tag not in tags:
             tags.append(tag)
 
-    # Add AI-generated tags
+    # Add AI-generated tags, filtering forbidden ones
     if extra_hashtags:
         for tag in extra_hashtags:
             prefixed = f"#{tag}" if not tag.startswith("#") else tag
-            if prefixed not in tags:
+            if prefixed not in tags and not _is_forbidden(prefixed):
                 tags.append(prefixed)
 
     # Fill remaining slots from community pool

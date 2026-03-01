@@ -1098,6 +1098,16 @@ class TestExtraHashtags:
         )
         assert text_default == text_none
 
+    def test_forbidden_hashtags_excluded(self, approved_library):
+        """Verify trademarked hashtags are filtered from post text.
+        Prevents using registered brand names in any platform."""
+        text = build_post_text(
+            approved_library, "https://example.com/lib",
+            max_length=500, extra_hashtags=["littlefreelibrary", "cozy"],
+        )
+        assert "#littlefreelibrary" not in text.lower()
+        assert "#cozy" in text
+
     def test_bluesky_text_with_extra_hashtags(self, approved_library):
         """Verify Bluesky TextBuilder includes extra hashtag facets.
         Ensures AI tags are clickable on Bluesky."""
@@ -1299,8 +1309,17 @@ class TestBuildHashtagComment:
         """Verify community pool tags are added after brand/geo/AI tags.
         Maximizes discovery potential up to the 30-tag limit."""
         result = build_hashtag_comment(approved_library)
-        assert "#LittleFreeLibrary" in result
+        assert "#BookExchange" in result
         assert "#Bookstagram" in result
+
+    def test_forbidden_tags_excluded(self, approved_library):
+        """Verify trademarked hashtags are never included.
+        Protects against using registered brand names as hashtags."""
+        result = build_hashtag_comment(
+            approved_library, extra_hashtags=["littlefreelibrary", "cozy"],
+        )
+        assert "#littlefreelibrary" not in result.lower()
+        assert "#cozy" in result
 
     def test_custom_max_hashtags(self, approved_library):
         """Verify the max_hashtags parameter caps the output.
