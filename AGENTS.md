@@ -196,6 +196,10 @@ Admin uses `GISModelAdmin` for the Library model to support map-based editing.
 
 URL routing currently includes web pages (`/`, `/login/`, `/register/`, `/latest-entries/`) plus Django admin (`/admin/`). API is scaffolded at `/api/v1/` and will be expanded.
 
+## Database indexes (required)
+
+When adding a new model field or modifying queries, ensure fields used in `filter()`, `order_by()`, `list_filter`, or `values_list()` lookups have a database index. Add indexes in the model's `Meta.indexes` list and generate a migration. Skip indexes for low-cardinality boolean fields or fields that are rarely queried.
+
 ## Key Patterns
 
 - **Slug generation**: `Library.save()` auto-generates unique slugs from `city + address + name`, with numeric suffixes for duplicates, truncated to fit `max_length`.
