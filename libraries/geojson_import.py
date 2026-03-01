@@ -218,20 +218,24 @@ class GeoJSONImporter:
         self.status = status
         self.created_by = created_by
 
-    def _load_existing_address_pairs(self) -> set[tuple[str, str]]:
-        """Load all normalized (city, address) pairs from the database.
-        Used for fast address-based duplicate detection."""
+    def _load_existing_address_pairs(self, countries: set[str]) -> set[tuple[str, str, str]]:
+        """Load normalized (country, city, address) triples for relevant countries.
+        Pre-filters by country to avoid loading the entire table."""
+        qs = Library.objects.all()
+        if countries:
+            qs = qs.filter(country__in=countries)
         return {
-            (_normalize_for_dedup(city), _normalize_for_dedup(address))
-            for city, address in Library.objects.values_list("city", "address")
+            (country, _normalize_for_dedup(city), _normalize_for_dedup(address))
+            for country, city, address in qs.values_list("country", "city", "address")
         }
 
-    def _has_nearby_library(self, point: Point, address: str) -> bool:
+    def _has_nearby_library(self, point: Point, address: str, country: str) -> bool:
         """Check whether a library on the same street exists within proximity.
-        Compares street names so nearby libraries on different streets are not flagged."""
+        Scopes the search to the candidate's country for efficiency."""
         candidate_street = _extract_street(address)
         nearby_addresses = Library.objects.filter(
-            location__distance_lte=(point, D(m=self.PROXIMITY_METERS))
+            country=country,
+            location__distance_lte=(point, D(m=self.PROXIMITY_METERS)),
         ).values_list("address", flat=True)
         return any(
             _extract_street(addr) == candidate_street for addr in nearby_addresses
@@ -248,7 +252,8 @@ class GeoJSONImporter:
             ).values_list("external_id", flat=True)
         )
 
-        existing_address_pairs = self._load_existing_address_pairs()
+        countries = {c.country for c in candidates if c.country}
+        existing_address_pairs = self._load_existing_address_pairs(countries)
 
         for candidate in candidates:
             if candidate.external_id and candidate.external_id in existing_external_ids:
@@ -259,23 +264,24 @@ class GeoJSONImporter:
                 result.skipped_missing_address += 1
                 continue
 
-            address_pair = (
+            address_tuple = (
+                candidate.country,
                 _normalize_for_dedup(candidate.city),
                 _normalize_for_dedup(candidate.address),
             )
-            if address_pair in existing_address_pairs:
+            if address_tuple in existing_address_pairs:
                 result.skipped_duplicate_address += 1
                 continue
 
             point = Point(x=candidate.longitude, y=candidate.latitude, srid=4326)
-            if self._has_nearby_library(point, address=candidate.address):
+            if self._has_nearby_library(point, address=candidate.address, country=candidate.country):
                 result.skipped_duplicate_location += 1
                 continue
 
             try:
                 self._create_library(candidate=candidate)
                 result.created += 1
-                existing_address_pairs.add(address_pair)
+                existing_address_pairs.add(address_tuple)
             except Exception as exc:
                 logger.exception("Failed to create library for %s", candidate.external_id)
                 result.errors.append(

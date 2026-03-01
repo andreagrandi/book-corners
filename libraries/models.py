@@ -70,6 +70,14 @@ class Library(models.Model):
         db_table = "libraries"
         ordering = ["-created_at"]
         verbose_name_plural = "libraries"
+        indexes = [
+            models.Index(fields=["city", "address"], name="idx_lib_city_address"),
+            models.Index(fields=["country"], name="idx_lib_country"),
+            models.Index(fields=["status"], name="idx_lib_status"),
+            models.Index(fields=["-created_at"], name="idx_lib_created_at_desc"),
+            models.Index(fields=["city"], name="idx_lib_city"),
+            models.Index(fields=["source"], name="idx_lib_source"),
+        ]
 
     def __str__(self) -> str:
         """Return a readable string representation.
@@ -170,7 +178,8 @@ class Library(models.Model):
         return merged_kwargs
 
     def _generate_unique_slug(self) -> str:
-        """Generate a unique slug from city, address, and optionally name."""
+        """Generate a unique slug from city, address, and optionally name.
+        Uses at most two queries instead of one per collision."""
         max_length = self._meta.get_field("slug").max_length
         suffix_reserve = 4  # room for "-999"
 
@@ -181,13 +190,21 @@ class Library(models.Model):
 
         base = base[: max_length - suffix_reserve]
 
-        slug = base
-        counter = 2
-        while Library.objects.filter(slug=slug).exists():
-            slug = f"{base}-{counter}"
-            counter += 1
+        if not Library.objects.filter(slug=base).exists():
+            return base
 
-        return slug
+        # Find the highest numeric suffix for this base slug
+        existing_slugs = Library.objects.filter(
+            slug__startswith=f"{base}-"
+        ).values_list("slug", flat=True)
+
+        max_suffix = 1
+        for slug in existing_slugs:
+            suffix = slug[len(base) + 1 :]
+            if suffix.isdigit():
+                max_suffix = max(max_suffix, int(suffix))
+
+        return f"{base}-{max_suffix + 1}"
 
 
 class Report(models.Model):

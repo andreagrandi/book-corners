@@ -235,6 +235,7 @@ class ReportAdmin(admin.ModelAdmin):
 
     list_display = ["library", "reason", "status", "created_by", "created_at"]
     list_filter = ["status", "reason"]
+    list_select_related = ["library", "created_by"]
     search_fields = ["details"]
     readonly_fields = ["created_at"]
     actions = ["resolve_reports", "dismiss_reports"]
@@ -267,6 +268,7 @@ class SocialPostAdmin(admin.ModelAdmin):
     """Admin configuration for SocialPost model with read-only fields and links."""
 
     list_display = ["library_link", "posted_at", "mastodon_url_short", "bluesky_url_short"]
+    list_select_related = ["library"]
     readonly_fields = [
         "library_admin_link",
         "post_text",
@@ -351,6 +353,7 @@ class LibraryPhotoAdmin(admin.ModelAdmin):
 
     list_display = ["library", "status", "caption", "created_by", "created_at"]
     list_filter = ["status"]
+    list_select_related = ["library", "created_by"]
     search_fields = ["caption"]
     readonly_fields = ["created_at"]
     actions = ["approve_photos", "reject_photos", "set_as_primary_photo"]
