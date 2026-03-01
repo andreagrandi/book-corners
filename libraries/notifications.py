@@ -1,4 +1,4 @@
-"""Admin email notifications for submissions, moderation, and social posting."""
+"""Email notifications for submissions, moderation, and social posting."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import logging
 
 from django.conf import settings
 from django.core.mail import send_mail
+from django.urls import reverse
 
 logger = logging.getLogger(__name__)
 
@@ -182,3 +183,33 @@ def notify_social_post_error(library, error_details: str) -> None:
         )
     except Exception:
         logger.exception("Failed to send social-post-error notification for library %s", library.pk)
+
+
+def notify_library_approved(library) -> None:
+    """Email the submitter when their library is approved.
+    Fails silently so email outages never block the approval workflow."""
+    if not library.created_by or not library.created_by.email:
+        return
+
+    site_url = getattr(settings, "SITE_URL", "").rstrip("/")
+    detail_path = reverse("library_detail", kwargs={"slug": library.slug})
+    public_url = f"{site_url}{detail_path}"
+
+    subject = "Your library is now live on Book Corners!"
+    library_label = library.name or library.address
+    body = (
+        f"Great news! Your library \"{library_label}\" "
+        f"in {library.city} has been approved and is now live.\n\n"
+        f"View it here:\n{public_url}\n\n"
+        f"Thank you for contributing to Book Corners!\n"
+    )
+
+    try:
+        send_mail(
+            subject=subject,
+            message=body,
+            from_email="no-reply@bookcorners.org",
+            recipient_list=[library.created_by.email],
+        )
+    except Exception:
+        logger.exception("Failed to send approval notification for library %s", library.pk)

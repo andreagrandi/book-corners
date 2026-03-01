@@ -14,6 +14,7 @@ from libraries.management.commands.find_duplicates import (
     find_duplicate_groups,
 )
 from libraries.models import Library, LibraryPhoto, Report, SocialPost
+from libraries.notifications import notify_library_approved
 
 
 class LibraryPhotoInline(admin.TabularInline):
@@ -193,12 +194,28 @@ class LibraryAdmin(admin.GISModelAdmin):
     def approve_libraries(
         self, request: HttpRequest, queryset: QuerySet[Library]
     ) -> None:
-        """Handle approve libraries.
-        Supports the module workflow with a focused operation."""
+        """Approve selected libraries and notify submitters via email.
+        Only sends notifications for libraries transitioning from pending."""
+        to_notify = list(
+            queryset.filter(status=Library.Status.PENDING).select_related("created_by")
+        )
         count = queryset.update(status=Library.Status.APPROVED)
+        for library in to_notify:
+            notify_library_approved(library)
         self.message_user(
             request, f"{count} {'library' if count == 1 else 'libraries'} approved."
         )
+
+    def save_model(self, request, obj, form, change):
+        """Save library and notify submitter when status changes to approved.
+        Detects the pending-to-approved transition by comparing with the DB."""
+        was_pending = False
+        if change and obj.pk:
+            old_status = Library.objects.filter(pk=obj.pk).values_list("status", flat=True).first()
+            was_pending = old_status == Library.Status.PENDING
+        super().save_model(request, obj, form, change)
+        if was_pending and obj.status == Library.Status.APPROVED:
+            notify_library_approved(obj)
 
     @admin.action(description="Reject selected libraries")
     def reject_libraries(

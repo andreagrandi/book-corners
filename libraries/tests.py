@@ -482,6 +482,181 @@ class TestLibraryAdmin:
 
 
 @pytest.mark.django_db
+class TestLibraryApprovalNotification:
+    """Tests for email notifications when libraries are approved."""
+
+    def test_notify_library_approved_sends_email(self, user):
+        """Verify approval notification sends email with correct content.
+        Checks subject, recipient, public link, and thank-you message."""
+        from django.core import mail
+        from libraries.notifications import notify_library_approved
+
+        user.email = "submitter@example.com"
+        user.save()
+        library = Library.objects.create(
+            name="Corner Shelf",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            created_by=user,
+        )
+
+        notify_library_approved(library)
+
+        assert len(mail.outbox) == 1
+        email = mail.outbox[0]
+        assert email.subject == "Your library is now live on Book Corners!"
+        assert email.to == ["submitter@example.com"]
+        assert email.from_email == "no-reply@bookcorners.org"
+        assert library.slug in email.body
+        assert "Thank you" in email.body
+
+    def test_notify_library_approved_skips_no_email(self, user):
+        """Verify no email is sent when the submitter has no email address.
+        Ensures the function exits gracefully without raising."""
+        from django.core import mail
+        from libraries.notifications import notify_library_approved
+
+        user.email = ""
+        user.save()
+        library = Library.objects.create(
+            name="Silent Shelf",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Roma 1",
+            city="Florence",
+            country="IT",
+            created_by=user,
+        )
+
+        notify_library_approved(library)
+
+        assert len(mail.outbox) == 0
+
+    def test_approve_action_sends_notification(self, admin_client, admin_user):
+        """Verify bulk approve action sends notification for pending libraries.
+        Confirms email is triggered by the admin action, not just the function."""
+        from django.core import mail
+
+        admin_user.email = "admin@example.com"
+        admin_user.save()
+        library = Library.objects.create(
+            name="Bulk Shelf",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Roma 2",
+            city="Florence",
+            country="IT",
+            status=Library.Status.PENDING,
+            created_by=admin_user,
+        )
+
+        url = reverse("admin:libraries_library_changelist")
+        admin_client.post(url, {
+            "action": "approve_libraries",
+            "_selected_action": [library.pk],
+        })
+
+        assert len(mail.outbox) == 1
+        assert mail.outbox[0].to == ["admin@example.com"]
+
+    def test_save_model_sends_notification_on_approval(self, admin_client, admin_user):
+        """Verify single-edit approval triggers notification email.
+        Covers the save_model override path for status transitions."""
+        from django.core import mail
+
+        admin_user.email = "admin@example.com"
+        admin_user.save()
+        library = Library.objects.create(
+            name="Edit Shelf",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Roma 3",
+            city="Florence",
+            country="IT",
+            status=Library.Status.PENDING,
+            created_by=admin_user,
+        )
+
+        change_url = reverse("admin:libraries_library_change", args=[library.pk])
+        response = admin_client.get(change_url)
+        assert response.status_code == 200
+
+        form_data = {
+            "name": library.name,
+            "description": "",
+            "address": library.address,
+            "city": library.city,
+            "country": library.country,
+            "postal_code": "",
+            "location": library.location.wkt,
+            "status": Library.Status.APPROVED,
+            "created_by": admin_user.pk,
+            "wheelchair_accessible": "",
+            "website": "",
+            "contact": "",
+            "source": "",
+            "operator": "",
+            "brand": "",
+            "external_id": "",
+            "user_photos-TOTAL_FORMS": "0",
+            "user_photos-INITIAL_FORMS": "0",
+            "user_photos-MIN_NUM_FORMS": "0",
+            "user_photos-MAX_NUM_FORMS": "1000",
+            "_save": "Save",
+        }
+        admin_client.post(change_url, form_data)
+
+        library.refresh_from_db()
+        assert library.status == Library.Status.APPROVED
+        assert len(mail.outbox) == 1
+        assert "now live" in mail.outbox[0].subject
+
+    def test_save_model_no_notification_when_already_approved(self, admin_client, admin_user):
+        """Verify no duplicate email when editing an already-approved library.
+        Prevents notification spam on non-transition saves."""
+        from django.core import mail
+
+        admin_user.email = "admin@example.com"
+        admin_user.save()
+        library = Library.objects.create(
+            name="Already Approved Shelf",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Roma 4",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=admin_user,
+        )
+
+        change_url = reverse("admin:libraries_library_change", args=[library.pk])
+        form_data = {
+            "name": library.name,
+            "description": "",
+            "address": library.address,
+            "city": library.city,
+            "country": library.country,
+            "postal_code": "",
+            "location": library.location.wkt,
+            "status": Library.Status.APPROVED,
+            "created_by": admin_user.pk,
+            "wheelchair_accessible": "",
+            "website": "",
+            "contact": "",
+            "source": "",
+            "operator": "",
+            "brand": "",
+            "external_id": "",
+            "user_photos-TOTAL_FORMS": "0",
+            "user_photos-INITIAL_FORMS": "0",
+            "user_photos-MIN_NUM_FORMS": "0",
+            "user_photos-MAX_NUM_FORMS": "1000",
+            "_save": "Save",
+        }
+        admin_client.post(change_url, form_data)
+
+        assert len(mail.outbox) == 0
+
+
+@pytest.mark.django_db
 class TestReportAdmin:
     """Tests for Report admin actions."""
 
