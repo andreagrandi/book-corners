@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Statistics" %} - Book Corners{% endblock %}
+{% block meta_description %}{% trans "Public statistics about Book Corners libraries worldwide." %}{% endblock %}
+{% block og_title %}{% trans "Statistics" %} - Book Corners{% endblock %}
+{% block og_description %}{% trans "Public statistics about Book Corners libraries worldwide." %}{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+  <h1 class="text-3xl font-bold">{% trans "Statistics" %}</h1>
+  <p class="mt-2 text-base-content/70">{% trans "Public statistics about Book Corners libraries worldwide." %}</p>
+</div>
+
+<div class="mb-8 grid gap-4 sm:grid-cols-2">
+  <div class="stat rounded-box border border-base-300 bg-base-100">
+    <div class="stat-title">{% trans "Total libraries" %}</div>
+    <div class="stat-value text-primary">{{ stats.total_approved }}</div>
+    <div class="stat-desc">{% trans "Approved and published" %}</div>
+  </div>
+  <div class="stat rounded-box border border-base-300 bg-base-100">
+    <div class="stat-title">{% trans "Libraries with photos" %}</div>
+    <div class="stat-value text-primary">{{ stats.total_with_image }}</div>
+    <div class="stat-desc">{% trans "With at least one image" %}</div>
+  </div>
+</div>
+
+<div class="grid gap-8 lg:grid-cols-2">
+  <div class="rounded-box border border-base-300 bg-base-100 p-6">
+    <h2 class="mb-4 text-lg font-semibold">{% trans "Top countries" %}</h2>
+    <div class="h-80">
+      <canvas id="countries-chart"></canvas>
+    </div>
+  </div>
+  <div class="rounded-box border border-base-300 bg-base-100 p-6">
+    <h2 class="mb-4 text-lg font-semibold">{% trans "Growth over time" %}</h2>
+    <div class="h-80">
+      <canvas id="growth-chart"></canvas>
+    </div>
+  </div>
+</div>
+
+{{ stats.top_countries|json_script:"countries-data" }}
+{{ stats.cumulative_series|json_script:"growth-data" }}
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  var primaryColor = "#009485";
+  var primaryColorAlpha = "rgba(0, 148, 133, 0.15)";
+
+  var countriesRaw = JSON.parse(document.getElementById("countries-data").textContent);
+  var growthRaw = JSON.parse(document.getElementById("growth-data").textContent);
+
+  if (countriesRaw.length > 0) {
+    var countriesCtx = document.getElementById("countries-chart").getContext("2d");
+    new Chart(countriesCtx, {
+      type: "bar",
+      data: {
+        labels: countriesRaw.map(function (c) { return c.flag_emoji + " " + c.country_name; }),
+        datasets: [{
+          data: countriesRaw.map(function (c) { return c.count; }),
+          backgroundColor: primaryColor,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, ticks: { precision: 0 } }
+        }
+      }
+    });
+  }
+
+  if (growthRaw.length > 0) {
+    var growthCtx = document.getElementById("growth-chart").getContext("2d");
+    new Chart(growthCtx, {
+      type: "line",
+      data: {
+        labels: growthRaw.map(function (p) { return p.period; }),
+        datasets: [{
+          data: growthRaw.map(function (p) { return p.cumulative_count; }),
+          borderColor: primaryColor,
+          backgroundColor: primaryColorAlpha,
+          fill: true,
+          tension: 0,
+          pointRadius: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { maxTicksToShow: 10 } },
+          y: { beginAtZero: true, ticks: { precision: 0 } }
+        }
+      }
+    });
+  }
+})();
+</script>
+{% endblock %}

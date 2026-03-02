@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.1.0
+
+- Public statistics endpoint (`GET /statistics/`) with totals, top countries, and cumulative growth series
+- Community photo submissions count towards the "libraries with photos" statistic
+
 ## v1.0.0
 
 *Initial release*

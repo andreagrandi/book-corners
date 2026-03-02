@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Book Corners 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-28 15:12+0000\n"
+"POT-Creation-Date: 2026-03-02 10:13+0000\n"
 "PO-Revision-Date: 2026-02-28 15:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Italian\n"
@@ -87,63 +87,63 @@ msgstr "Didascalia opzionale per la tua foto"
 msgid "You can submit at most %(max)s photos per library."
 msgstr "Puoi inviare al massimo %(max)s foto per libreria."
 
-#: libraries/models.py:18 libraries/models.py:246
+#: libraries/models.py:19 libraries/models.py:278
 #: templates/admin/libraries/geojson_import_form.html:37
 msgid "Pending"
 msgstr "In attesa"
 
-#: libraries/models.py:19 libraries/models.py:247
+#: libraries/models.py:20 libraries/models.py:279
 #: templates/admin/libraries/geojson_import_form.html:36
 msgid "Approved"
 msgstr "Approvato"
 
-#: libraries/models.py:20 libraries/models.py:248
+#: libraries/models.py:21 libraries/models.py:280
 msgid "Rejected"
 msgstr "Rifiutato"
 
-#: libraries/models.py:23 libraries/templates/libraries/library_detail.html:46
-#: libraries/templates/libraries/library_detail.html:47
+#: libraries/models.py:24 libraries/templates/libraries/library_detail.html:57
+#: libraries/templates/libraries/library_detail.html:58
 msgid "Yes"
 msgstr "Sì"
 
-#: libraries/models.py:24 libraries/templates/libraries/library_detail.html:46
-#: libraries/templates/libraries/library_detail.html:47
+#: libraries/models.py:25 libraries/templates/libraries/library_detail.html:57
+#: libraries/templates/libraries/library_detail.html:58
 msgid "No"
 msgstr "No"
 
-#: libraries/models.py:25
+#: libraries/models.py:26
 msgid "Limited"
 msgstr "Limitato"
 
-#: libraries/models.py:197
+#: libraries/models.py:226
 msgid "Damaged"
 msgstr "Danneggiato"
 
-#: libraries/models.py:198
+#: libraries/models.py:227
 msgid "Missing"
 msgstr "Mancante"
 
-#: libraries/models.py:199
+#: libraries/models.py:228
 msgid "Incorrect Info"
 msgstr "Informazioni errate"
 
-#: libraries/models.py:200
+#: libraries/models.py:229
 msgid "Inappropriate"
 msgstr "Inappropriato"
 
-#: libraries/models.py:201
+#: libraries/models.py:230
 msgid "Other"
 msgstr "Altro"
 
-#: libraries/models.py:204
+#: libraries/models.py:233
 msgid "Open"
 msgstr "Aperto"
 
-#: libraries/models.py:205
+#: libraries/models.py:234
 msgid "Resolved"
 msgstr "Risolto"
 
-#: libraries/models.py:206
+#: libraries/models.py:235
 msgid "Dismissed"
 msgstr "Archiviato"
 
@@ -163,14 +163,14 @@ msgstr "Carica altre"
 msgid "You have reached the latest approved entries."
 msgstr "Hai raggiunto le ultime librerie approvate."
 
-#: libraries/templates/libraries/_library_card.html:19
+#: libraries/templates/libraries/_library_card.html:31
 #, python-format
 msgid "%(km)s km away"
 msgstr "a %(km)s km"
 
-#: libraries/templates/libraries/_library_card.html:23
+#: libraries/templates/libraries/_library_card.html:35
 #: libraries/templates/libraries/dashboard.html:40
-#: libraries/templates/libraries/map.html:270
+#: libraries/templates/libraries/map.html:297
 msgid "View details"
 msgstr "Dettagli"
 
@@ -321,91 +321,91 @@ msgstr "Condividi la tua prima casetta dei libri per iniziare la cronologia dell
 msgid "Submit a library"
 msgstr "Invia una libreria"
 
-#: libraries/templates/libraries/library_detail.html:40
+#: libraries/templates/libraries/library_detail.html:51
 msgid "Address:"
 msgstr "Indirizzo:"
 
-#: libraries/templates/libraries/library_detail.html:41
+#: libraries/templates/libraries/library_detail.html:52
 #: templates/admin/libraries/find_duplicates.html:55
 msgid "City:"
 msgstr "Città:"
 
-#: libraries/templates/libraries/library_detail.html:42
+#: libraries/templates/libraries/library_detail.html:53
 #: templates/admin/libraries/find_duplicates.html:57
 msgid "Country:"
 msgstr "Paese:"
 
-#: libraries/templates/libraries/library_detail.html:43
+#: libraries/templates/libraries/library_detail.html:54
 msgid "Postal code:"
 msgstr "CAP:"
 
-#: libraries/templates/libraries/library_detail.html:44
+#: libraries/templates/libraries/library_detail.html:55
 msgid "Wheelchair accessible:"
 msgstr "Accessibile in sedia a rotelle:"
 
-#: libraries/templates/libraries/library_detail.html:45
+#: libraries/templates/libraries/library_detail.html:56
 msgid "Capacity:"
 msgstr "Capacità:"
 
-#: libraries/templates/libraries/library_detail.html:45
+#: libraries/templates/libraries/library_detail.html:56
 msgid "books"
 msgstr "libri"
 
-#: libraries/templates/libraries/library_detail.html:46
+#: libraries/templates/libraries/library_detail.html:57
 msgid "Indoor:"
 msgstr "Al chiuso:"
 
-#: libraries/templates/libraries/library_detail.html:47
+#: libraries/templates/libraries/library_detail.html:58
 msgid "Lit at night:"
 msgstr "Illuminata di notte:"
 
-#: libraries/templates/libraries/library_detail.html:48
+#: libraries/templates/libraries/library_detail.html:59
 msgid "Website:"
 msgstr "Sito web:"
 
-#: libraries/templates/libraries/library_detail.html:49
+#: libraries/templates/libraries/library_detail.html:60
 msgid "Contact:"
 msgstr "Contatto:"
 
-#: libraries/templates/libraries/library_detail.html:50
+#: libraries/templates/libraries/library_detail.html:61
 msgid "Operator:"
 msgstr "Gestore:"
 
-#: libraries/templates/libraries/library_detail.html:51
+#: libraries/templates/libraries/library_detail.html:62
 msgid "Brand:"
 msgstr "Marchio:"
 
-#: libraries/templates/libraries/library_detail.html:52
+#: libraries/templates/libraries/library_detail.html:63
 #: templates/admin/libraries/geojson_import_form.html:28
 msgid "Source:"
 msgstr "Fonte:"
 
-#: libraries/templates/libraries/library_detail.html:53
+#: libraries/templates/libraries/library_detail.html:64
 msgid "Submitted by:"
 msgstr "Inviata da:"
 
-#: libraries/templates/libraries/library_detail.html:66
+#: libraries/templates/libraries/library_detail.html:77
 msgid "Add a photo"
 msgstr "Aggiungi una foto"
 
-#: libraries/templates/libraries/library_detail.html:76
+#: libraries/templates/libraries/library_detail.html:87
 msgid "Report an issue"
 msgstr "Segnala un problema"
 
-#: libraries/templates/libraries/library_detail.html:83
+#: libraries/templates/libraries/library_detail.html:94
 msgid "Location map"
 msgstr "Mappa della posizione"
 
-#: libraries/templates/libraries/library_detail.html:103
+#: libraries/templates/libraries/library_detail.html:114
 msgid "Add a photo of this library"
 msgstr "Aggiungi una foto di questa libreria"
 
-#: libraries/templates/libraries/library_detail.html:114
+#: libraries/templates/libraries/library_detail.html:125
 msgid "Report an issue with this library"
 msgstr "Segnala un problema con questa libreria"
 
 #: libraries/templates/libraries/map.html:4 templates/base.html:32
-#: templates/base.html:62
+#: templates/base.html:66
 msgid "Map"
 msgstr "Mappa"
 
@@ -413,98 +413,98 @@ msgstr "Mappa"
 msgid "Explore the Book Corners map to find little free libraries near you and across nearby cities."
 msgstr "Esplora la mappa di Book Corners per trovare casette dei libri vicino a te e nelle città limitrofe."
 
-#: libraries/templates/libraries/map.html:28
+#: libraries/templates/libraries/map.html:53
 msgid "Explore libraries"
 msgstr "Esplora le librerie"
 
-#: libraries/templates/libraries/map.html:30
+#: libraries/templates/libraries/map.html:55
 msgid "Use one filter set and switch between map, list, or split view without reloading the page."
 msgstr "Usa un set di filtri e passa tra vista mappa, lista o divisa senza ricaricare la pagina."
 
-#: libraries/templates/libraries/map.html:36
+#: libraries/templates/libraries/map.html:61
 #: libraries/templates/libraries/search.html:27
 msgid "Keywords"
 msgstr "Parole chiave"
 
-#: libraries/templates/libraries/map.html:41
+#: libraries/templates/libraries/map.html:66
 #: libraries/templates/libraries/search.html:32
 msgid "Near (place-like query)"
 msgstr "Vicino a (luogo)"
 
-#: libraries/templates/libraries/map.html:48
+#: libraries/templates/libraries/map.html:73
 #: libraries/templates/libraries/search.html:39
 msgid "Radius (km)"
 msgstr "Raggio (km)"
 
-#: libraries/templates/libraries/map.html:53
+#: libraries/templates/libraries/map.html:78
 #: libraries/templates/libraries/search.html:44
 msgid "City filter"
 msgstr "Filtra per città"
 
-#: libraries/templates/libraries/map.html:58
+#: libraries/templates/libraries/map.html:83
 #: libraries/templates/libraries/search.html:49
 msgid "Country filter"
 msgstr "Filtra per paese"
 
-#: libraries/templates/libraries/map.html:63
+#: libraries/templates/libraries/map.html:88
 #: libraries/templates/libraries/search.html:54
 msgid "Postal code filter"
 msgstr "Filtra per CAP"
 
-#: libraries/templates/libraries/map.html:69
+#: libraries/templates/libraries/map.html:94
 msgid "Apply filters"
 msgstr "Applica filtri"
 
-#: libraries/templates/libraries/map.html:70
+#: libraries/templates/libraries/map.html:95
 #: libraries/templates/libraries/search.html:61
 msgid "Clear"
 msgstr "Pulisci"
 
-#: libraries/templates/libraries/map.html:101
+#: libraries/templates/libraries/map.html:126
 msgid "Libraries list"
 msgstr "Elenco librerie"
 
-#: libraries/templates/libraries/map.html:106
-#: libraries/templates/libraries/map.html:433
+#: libraries/templates/libraries/map.html:131
+#: libraries/templates/libraries/map.html:569
 msgid "Loading libraries..."
 msgstr "Caricamento librerie..."
 
-#: libraries/templates/libraries/map.html:122
+#: libraries/templates/libraries/map.html:147
 #, python-brace-format
 msgid "{count} results"
 msgstr "{count} risultati"
 
-#: libraries/templates/libraries/map.html:123
+#: libraries/templates/libraries/map.html:148
 #, python-brace-format
 msgid "Showing {total} libraries"
 msgstr "{total} librerie visualizzate"
 
-#: libraries/templates/libraries/map.html:124
+#: libraries/templates/libraries/map.html:149
 #, python-brace-format
 msgid "Showing {count} of {total} libraries"
 msgstr "{count} di {total} librerie visualizzate"
 
-#: libraries/templates/libraries/map.html:125
+#: libraries/templates/libraries/map.html:150
 msgid "Could not resolve the location, so keyword matching was used instead."
 msgstr "Impossibile risolvere la posizione, è stata usata la ricerca per parole chiave."
 
-#: libraries/templates/libraries/map.html:126
+#: libraries/templates/libraries/map.html:151
 msgid "on the map."
 msgstr "sulla mappa."
 
-#: libraries/templates/libraries/map.html:252
+#: libraries/templates/libraries/map.html:279
 msgid "Neighborhood Library"
 msgstr "Casetta dei Libri"
 
-#: libraries/templates/libraries/map.html:430
+#: libraries/templates/libraries/map.html:566
 msgid "Loading libraries on the map..."
 msgstr "Caricamento librerie sulla mappa..."
 
-#: libraries/templates/libraries/map.html:497
+#: libraries/templates/libraries/map.html:633
 msgid "Could not load library list right now."
 msgstr "Impossibile caricare l'elenco delle librerie al momento."
 
-#: libraries/templates/libraries/map.html:501
+#: libraries/templates/libraries/map.html:637
 msgid "Could not load map markers right now. Please try again."
 msgstr "Impossibile caricare i marcatori sulla mappa. Riprova."
 
@@ -524,6 +524,43 @@ msgstr "Cerca librerie"
 #: libraries/templates/libraries/search.html:13
 msgid "Search by keywords, by place with a radius, or narrow results with structured filters."
 msgstr "Cerca per parole chiave, per luogo con un raggio, o restringi i risultati con filtri strutturati."
+
+#: libraries/templates/libraries/stats.html:4
+#: libraries/templates/libraries/stats.html:6
+#: libraries/templates/libraries/stats.html:11 templates/base.html:34
+#: templates/base.html:68
+msgid "Statistics"
+msgstr "Statistiche"
+
+#: libraries/templates/libraries/stats.html:5
+#: libraries/templates/libraries/stats.html:7
+#: libraries/templates/libraries/stats.html:12
+msgid "Public statistics about Book Corners libraries worldwide."
+msgstr "Statistiche pubbliche sulle librerie Book Corners nel mondo."
+
+#: libraries/templates/libraries/stats.html:17
+msgid "Total libraries"
+msgstr "Librerie totali"
+
+#: libraries/templates/libraries/stats.html:19
+msgid "Approved and published"
+msgstr "Approvate e pubblicate"
+
+#: libraries/templates/libraries/stats.html:22
+msgid "Libraries with photos"
+msgstr "Librerie con foto"
+
+#: libraries/templates/libraries/stats.html:24
+msgid "With at least one image"
+msgstr "Con almeno un'immagine"
+
+#: libraries/templates/libraries/stats.html:30
+msgid "Top countries"
+msgstr "Paesi principali"
+
+#: libraries/templates/libraries/stats.html:36
+msgid "Growth over time"
+msgstr "Crescita nel tempo"
 
 #: libraries/templates/libraries/submit_library.html:5
 msgid "Submit a little free library to Book Corners with a photo, location, and address details."
@@ -698,7 +735,7 @@ msgstr "Qualcosa è andato storto"
 msgid "Sorry, an unexpected error occurred on our side. Please try again in a moment."
 msgstr "Ci scusiamo, si è verificato un errore imprevisto. Riprova tra un momento."
 
-#: templates/about.html:4 templates/base.html:31 templates/base.html:61
+#: templates/about.html:4 templates/base.html:31 templates/base.html:65
 msgid "About"
 msgstr "Chi siamo"
 
@@ -845,7 +882,7 @@ msgstr ""
 #: templates/admin/libraries/find_duplicates.html:45
 #: templates/admin/libraries/geojson_import_form.html:8
 #: templates/admin/libraries/geojson_import_result.html:8
-#: templates/base.html:30 templates/base.html:60 templates/home.html:4
+#: templates/base.html:30 templates/base.html:64 templates/home.html:4
 msgid "Home"
 msgstr "Home"
 
@@ -896,7 +933,7 @@ msgstr ""
 msgid "External ID"
 msgstr ""
 
-#: templates/admin/libraries/find_duplicates.html:92 templates/base.html:129
+#: templates/admin/libraries/find_duplicates.html:92 templates/base.html:143
 msgid "Status"
 msgstr "Stato"
 
@@ -1016,7 +1053,7 @@ msgstr "Errore 404"
 msgid "Import another file"
 msgstr ""
 
-#: templates/base.html:7 templates/base.html:11 templates/base.html:98
+#: templates/base.html:7 templates/base.html:11 templates/base.html:106
 msgid "Community map of neighborhood book exchange spots."
 msgstr "Mappa comunitaria dei punti di scambio libri di quartiere."
 
@@ -1024,49 +1061,49 @@ msgstr "Mappa comunitaria dei punti di scambio libri di quartiere."
 msgid "Open navigation menu"
 msgstr "Apri menu di navigazione"
 
-#: templates/base.html:33 templates/base.html:63
+#: templates/base.html:33 templates/base.html:67
 msgid "Submit"
 msgstr "Invia"
 
-#: templates/base.html:39 templates/base.html:69
+#: templates/base.html:40 templates/base.html:74
 msgid "Logout"
 msgstr "Esci"
 
-#: templates/base.html:43 templates/base.html:73
+#: templates/base.html:44 templates/base.html:78
 #: users/templates/users/login.html:4
 msgid "Login"
 msgstr "Accedi"
 
-#: templates/base.html:44 templates/base.html:74
+#: templates/base.html:45 templates/base.html:79
 #: users/templates/users/register.html:4
 msgid "Register"
 msgstr "Registrati"
 
-#: templates/base.html:99
+#: templates/base.html:107
 msgid "Made with ❤️ by <a href=\"https://www.andreagrandi.it\" class=\"link link-hover\" target=\"_blank\" rel=\"noopener noreferrer\">Andrea Grandi</a>"
 msgstr "Fatto con ❤️ da <a href=\"https://www.andreagrandi.it\" class=\"link link-hover\" target=\"_blank\" rel=\"noopener noreferrer\">Andrea Grandi</a>"
 
-#: templates/base.html:106
+#: templates/base.html:114
 msgid "Socials"
 msgstr "Social"
 
-#: templates/base.html:126
+#: templates/base.html:140
 msgid "Resources"
 msgstr "Risorse"
 
-#: templates/base.html:128
+#: templates/base.html:142
 msgid "Developers API"
 msgstr "API per sviluppatori"
 
-#: templates/base.html:137
+#: templates/base.html:151
 msgid "Legal"
 msgstr "Legale"
 
-#: templates/base.html:139
+#: templates/base.html:153
 msgid "Privacy"
 msgstr "Privacy"
 
-#: templates/base.html:147
+#: templates/base.html:161
 msgid "Language"
 msgstr "Lingua"
 
