@@ -56,9 +56,44 @@ class LibraryAdmin(admin.GISModelAdmin):
         "brand",
     ]
     search_fields = ["name", "address", "city"]
-    readonly_fields = ["slug", "created_at", "updated_at"]
+    readonly_fields = ["slug", "photo_preview", "created_at", "updated_at"]
+    fields = [
+        "name",
+        "description",
+        "photo",
+        "photo_preview",
+        "photo_thumbnail",
+        "location",
+        "address",
+        "city",
+        "country",
+        "postal_code",
+        "wheelchair_accessible",
+        "capacity",
+        "is_indoor",
+        "is_lit",
+        "website",
+        "contact",
+        "source",
+        "operator",
+        "brand",
+        "external_id",
+        "status",
+        "created_by",
+        "slug",
+        "created_at",
+        "updated_at",
+    ]
     actions = ["approve_libraries", "reject_libraries"]
     inlines = [LibraryPhotoInline]
+
+    @admin.display(description="Photo preview")
+    def photo_preview(self, obj: Library) -> str:
+        """Render an inline preview of the library photo.
+        Lets admins visually review the photo without clicking the file link."""
+        if obj.photo:
+            return format_html('<img src="{}" style="max-height:200px;">', obj.photo.url)
+        return "-"
 
     def get_urls(self):
         """Extend admin URLs with custom management endpoints.
