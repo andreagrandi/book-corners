@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static i18n %}
+{% load static i18n l10n %}
 
 {% block title %}{{ library.name|default:library.address }} - Book Corners{% endblock %}
 {% block meta_description %}{% if library.description %}{{ library.description|truncatechars:150 }}{% else %}Visit this little free library at {{ library.address }}, {{ library.city }} on Book Corners.{% endif %}{% endblock %}
@@ -95,8 +95,8 @@
         <div
           id="library-detail-map"
           class="mt-3 h-72 w-full rounded-box border border-base-300"
-          data-lat="{{ library.location.y }}"
-          data-lng="{{ library.location.x }}"
+          data-lat="{{ library.location.y|unlocalize }}"
+          data-lng="{{ library.location.x|unlocalize }}"
           data-name="{{ library.name|default:library.address|escapejs }}"
         ></div>
       </section>
