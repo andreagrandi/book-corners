@@ -22,8 +22,10 @@ from libraries.api_schemas import (
     LibrarySubmitIn,
     ReportIn,
     ReportOut,
+    StatisticsOut,
 )
 from libraries.api_security import is_api_rate_limited
+from libraries.stats import build_stats_data
 from libraries.forms import _validate_uploaded_photo
 from libraries.models import Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
 from libraries.notifications import notify_new_library, notify_new_photo, notify_new_report
@@ -278,3 +280,25 @@ def submit_library_photo(
     library_photo.save()
     notify_new_photo(library_photo)
     return 201, library_photo
+
+
+statistics_router = Router(tags=["statistics"])
+
+
+@statistics_router.get("/", response={200: StatisticsOut, 429: ErrorOut}, auth=None, summary="Get platform statistics")
+def get_statistics(request):
+    """Return aggregate statistics about approved libraries.
+    Includes totals, top countries, and cumulative growth series."""
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-statistics",
+        max_requests=settings.API_RATE_LIMIT_READ_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    data = build_stats_data()
+    return 200, data

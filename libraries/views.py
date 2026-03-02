@@ -25,6 +25,7 @@ from libraries.geolocation import (
 )
 from libraries.models import Library, LibraryPhoto
 from libraries.search import DEFAULT_SEARCH_RADIUS_KM, apply_text_search, run_library_search
+from libraries.stats import build_stats_data
 
 LATEST_ENTRIES_PAGE_SIZE = 9
 HOMEPAGE_COUNT_CACHE_KEY = "homepage_total_approved"
@@ -687,6 +688,13 @@ def submit_library_photo_metadata(request: HttpRequest) -> JsonResponse:
         response_data.update(geocoded_data)
 
     return JsonResponse(response_data)
+
+
+def stats_page(request: HttpRequest) -> HttpResponse:
+    """Render the public statistics page with charts and summary data.
+    Displays library growth, geographic distribution, and photo coverage."""
+    stats = build_stats_data()
+    return render(request, "libraries/stats.html", {"stats": stats})
 
 
 def privacy_page(request: HttpRequest) -> HttpResponse:

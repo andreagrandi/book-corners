@@ -21,6 +21,7 @@ class StaticViewSitemap(Sitemap):
             "about_page",
             "map_page",
             "privacy_page",
+            "stats_page",
         ]
 
     def location(self, item: str) -> str:
