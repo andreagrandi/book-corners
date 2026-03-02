@@ -1062,6 +1062,39 @@
           }
         ]
       }
+    },
+    "/api/v1/statistics/": {
+      "get": {
+        "operationId": "libraries_api_get_statistics",
+        "summary": "Get platform statistics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatisticsOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return aggregate statistics about approved libraries.\nIncludes totals, top countries, and cumulative growth series.",
+        "tags": [
+          "statistics"
+        ]
+      }
     }
   },
   "components": {
@@ -2097,6 +2130,132 @@
           }
         },
         "title": "LibraryPhotoIn",
+        "type": "object"
+      },
+      "CountryStatOut": {
+        "description": "Statistics for a single country in the top-countries ranking.\nIncludes display-friendly name and flag emoji.",
+        "properties": {
+          "country_code": {
+            "description": "ISO 3166-1 alpha-2 country code.",
+            "examples": [
+              "DE"
+            ],
+            "title": "Country Code",
+            "type": "string"
+          },
+          "country_name": {
+            "description": "Human-readable country name.",
+            "examples": [
+              "Germany"
+            ],
+            "title": "Country Name",
+            "type": "string"
+          },
+          "flag_emoji": {
+            "description": "Unicode flag emoji for the country.",
+            "examples": [
+              "🇩🇪"
+            ],
+            "title": "Flag Emoji",
+            "type": "string"
+          },
+          "count": {
+            "description": "Number of approved libraries in this country.",
+            "examples": [
+              42
+            ],
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "country_code",
+          "country_name",
+          "flag_emoji",
+          "count"
+        ],
+        "title": "CountryStatOut",
+        "type": "object"
+      },
+      "StatisticsOut": {
+        "description": "Aggregate platform statistics for approved libraries.\nIncludes totals, geographic breakdown, and growth over time.",
+        "properties": {
+          "total_approved": {
+            "description": "Total number of approved libraries.",
+            "examples": [
+              350
+            ],
+            "title": "Total Approved",
+            "type": "integer"
+          },
+          "total_with_image": {
+            "description": "Number of approved libraries with at least one photo.",
+            "examples": [
+              280
+            ],
+            "title": "Total With Image",
+            "type": "integer"
+          },
+          "top_countries": {
+            "description": "Top 10 countries by number of approved libraries.",
+            "items": {
+              "$ref": "#/components/schemas/CountryStatOut"
+            },
+            "title": "Top Countries",
+            "type": "array"
+          },
+          "cumulative_series": {
+            "description": "Cumulative growth time series of approved libraries.",
+            "items": {
+              "$ref": "#/components/schemas/TimeSeriesPointOut"
+            },
+            "title": "Cumulative Series",
+            "type": "array"
+          },
+          "granularity": {
+            "description": "Time series granularity: 'daily' or 'monthly'.",
+            "examples": [
+              "monthly"
+            ],
+            "title": "Granularity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "total_approved",
+          "total_with_image",
+          "top_countries",
+          "cumulative_series",
+          "granularity"
+        ],
+        "title": "StatisticsOut",
+        "type": "object"
+      },
+      "TimeSeriesPointOut": {
+        "description": "A single data point in the cumulative growth time series.\nRepresents the running total of approved libraries at a given period.",
+        "properties": {
+          "period": {
+            "description": "Date or month label (YYYY-MM-DD or YYYY-MM-DD for month start).",
+            "examples": [
+              "2025-06-15"
+            ],
+            "title": "Period",
+            "type": "string"
+          },
+          "cumulative_count": {
+            "description": "Running total of approved libraries up to this period.",
+            "examples": [
+              128
+            ],
+            "title": "Cumulative Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "period",
+          "cumulative_count"
+        ],
+        "title": "TimeSeriesPointOut",
         "type": "object"
       }
     },
