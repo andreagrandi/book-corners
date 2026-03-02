@@ -352,6 +352,21 @@ class TestLibraryModel:
         assert len(library_1.slug) <= max_length
         assert len(library_2.slug) <= max_length
 
+    def test_slug_falls_back_to_uuid_when_slugify_produces_empty_string(self, user):
+        """Verify a non-empty slug is generated when city and address slugify to nothing.
+        Prevents NoReverseMatch errors in sitemaps and URL resolution."""
+        library = Library.objects.create(
+            photo="libraries/photos/2026/02/test.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="",
+            city="",
+            country="IT",
+            created_by=user,
+        )
+
+        assert library.slug != ""
+        assert len(library.slug) == 8
+
     def test_default_status_is_pending(self, user):
         """Verify default status is pending.
         Confirms the expected behavior stays stable."""

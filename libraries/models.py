@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.contrib.gis.db.models import PointField
 from django.contrib.staticfiles.storage import staticfiles_storage
@@ -201,6 +203,9 @@ class Library(models.Model):
             base = slugify(f"{self.city} {self.address}")
 
         base = base[: max_length - suffix_reserve]
+
+        if not base:
+            base = uuid.uuid4().hex[:8]
 
         if not Library.objects.filter(slug=base).exists():
             return base
