@@ -31,6 +31,7 @@
             <li><a href="{% url 'about_page' %}">{% trans "About" %}</a></li>
             <li><a href="/map/">{% trans "Map" %}</a></li>
             <li><a href="/submit/">{% trans "Submit" %}</a></li>
+            <li><a href="{% url 'stats_page' %}">{% trans "Statistics" %}</a></li>
             {% if request.user.is_authenticated %}
               <li><a href="{% url 'dashboard' %}">{{ request.user.username }}</a></li>
               <li>
@@ -64,6 +65,7 @@
           <li><a href="{% url 'about_page' %}">{% trans "About" %}</a></li>
           <li><a href="/map/">{% trans "Map" %}</a></li>
           <li><a href="/submit/">{% trans "Submit" %}</a></li>
+          <li><a href="{% url 'stats_page' %}">{% trans "Statistics" %}</a></li>
           {% if request.user.is_authenticated %}
             <li><a href="{% url 'dashboard' %}">{{ request.user.username }}</a></li>
             <li>

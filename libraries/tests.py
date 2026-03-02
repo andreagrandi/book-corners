@@ -687,6 +687,154 @@ class TestReportAdmin:
         assert admin_report.status == Report.Status.DISMISSED
 
 
+@pytest.mark.django_db
+class TestStatsPageView:
+    """Tests for the public statistics page view."""
+
+    def test_stats_page_returns_200(self, client):
+        """Verify the stats page is publicly accessible.
+        Confirms unauthenticated users can view statistics."""
+        response = client.get(reverse("stats_page"))
+
+        assert response.status_code == 200
+
+    def test_stats_page_empty_state(self, client):
+        """Verify the stats page renders with zero libraries.
+        Confirms graceful handling when no data exists."""
+        response = client.get(reverse("stats_page"))
+
+        content = response.content.decode()
+        assert "0" in content
+
+    def test_stats_page_counts_only_approved(self, client, user):
+        """Verify totals count only approved libraries.
+        Confirms pending and rejected entries are excluded."""
+        Library.objects.create(
+            name="Approved",
+            photo="libraries/photos/2026/02/test.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        Library.objects.create(
+            name="Pending",
+            photo="libraries/photos/2026/02/test.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 16",
+            city="Florence",
+            country="IT",
+            status=Library.Status.PENDING,
+            created_by=user,
+        )
+
+        response = client.get(reverse("stats_page"))
+
+        assert response.context["stats"]["total_approved"] == 1
+
+    def test_stats_page_counts_libraries_with_primary_photo(self, client, user):
+        """Verify image count includes libraries with a primary photo.
+        Confirms primary photo presence is detected."""
+        Library.objects.create(
+            name="With Photo",
+            photo="libraries/photos/2026/02/test.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        Library.objects.create(
+            name="No Photo",
+            photo="",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 16",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.get(reverse("stats_page"))
+
+        assert response.context["stats"]["total_with_image"] == 1
+
+    def test_stats_page_counts_libraries_with_community_photo(self, client, user):
+        """Verify image count includes libraries with approved community photos.
+        Confirms LibraryPhoto presence contributes to the with-image count."""
+        lib = Library.objects.create(
+            name="Community Photo Lib",
+            photo="",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 17",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        LibraryPhoto.objects.create(
+            library=lib,
+            created_by=user,
+            photo="libraries/user_photos/2026/02/community.jpg",
+            status=LibraryPhoto.Status.APPROVED,
+        )
+
+        response = client.get(reverse("stats_page"))
+
+        assert response.context["stats"]["total_with_image"] == 1
+
+    def test_stats_page_country_labels_include_flags(self, client, user):
+        """Verify top countries include flag emoji and country name.
+        Confirms display-friendly labels for chart rendering."""
+        Library.objects.create(
+            name="German Lib",
+            photo="libraries/photos/2026/02/test.jpg",
+            location=Point(x=13.405, y=52.52, srid=4326),
+            address="Unter den Linden 1",
+            city="Berlin",
+            country="DE",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.get(reverse("stats_page"))
+
+        countries = response.context["stats"]["top_countries"]
+        assert len(countries) == 1
+        assert countries[0]["country_code"] == "DE"
+        assert countries[0]["country_name"] == "Germany"
+        assert countries[0]["flag_emoji"] == "\U0001F1E9\U0001F1EA"
+
+    def test_stats_page_daily_granularity_for_recent_data(self, client, user):
+        """Verify daily granularity when all data is within 90 days.
+        Confirms adaptive time series resolution."""
+        Library.objects.create(
+            name="Recent Lib",
+            photo="libraries/photos/2026/02/test.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        response = client.get(reverse("stats_page"))
+
+        assert response.context["stats"]["granularity"] == "daily"
+
+    def test_stats_page_contains_chart_js_script(self, client):
+        """Verify the stats page loads Chart.js from CDN.
+        Confirms the charting library is available for rendering."""
+        response = client.get(reverse("stats_page"))
+
+        content = response.content.decode()
+        assert "chart.js" in content
+
+
 class TestTailwindIntegration:
     def test_style_preview_template_renders_daisyui_classes(self, client):
         """Verify style preview template renders daisyui classes.

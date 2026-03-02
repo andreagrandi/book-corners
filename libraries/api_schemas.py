@@ -179,3 +179,32 @@ class LibraryPhotoOut(Schema):
     caption: str = Field(description="Caption for the photo.", examples=["A sunny day at the library."])
     status: str = Field(description="Moderation status of the photo.", examples=["pending"])
     created_at: datetime = Field(description="Timestamp when the photo was submitted (UTC).", examples=["2025-06-15T14:30:00Z"])
+
+
+class CountryStatOut(Schema):
+    """Statistics for a single country in the top-countries ranking.
+    Includes display-friendly name and flag emoji."""
+
+    country_code: str = Field(description="ISO 3166-1 alpha-2 country code.", examples=["DE"])
+    country_name: str = Field(description="Human-readable country name.", examples=["Germany"])
+    flag_emoji: str = Field(description="Unicode flag emoji for the country.", examples=["\U0001F1E9\U0001F1EA"])
+    count: int = Field(description="Number of approved libraries in this country.", examples=[42])
+
+
+class TimeSeriesPointOut(Schema):
+    """A single data point in the cumulative growth time series.
+    Represents the running total of approved libraries at a given period."""
+
+    period: str = Field(description="Date or month label (YYYY-MM-DD or YYYY-MM-DD for month start).", examples=["2025-06-15"])
+    cumulative_count: int = Field(description="Running total of approved libraries up to this period.", examples=[128])
+
+
+class StatisticsOut(Schema):
+    """Aggregate platform statistics for approved libraries.
+    Includes totals, geographic breakdown, and growth over time."""
+
+    total_approved: int = Field(description="Total number of approved libraries.", examples=[350])
+    total_with_image: int = Field(description="Number of approved libraries with at least one photo.", examples=[280])
+    top_countries: list[CountryStatOut] = Field(description="Top 10 countries by number of approved libraries.")
+    cumulative_series: list[TimeSeriesPointOut] = Field(description="Cumulative growth time series of approved libraries.")
+    granularity: str = Field(description="Time series granularity: 'daily' or 'monthly'.", examples=["monthly"])

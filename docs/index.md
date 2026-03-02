@@ -25,6 +25,7 @@ https://bookcorners.org/api/v1/
 | [List & Search](libraries/list-and-search.md) | Browse and search the library catalogue |
 | [Submit a Library](libraries/submit.md) | Add a new library with a photo |
 | [Report an Issue](libraries/report.md) | Flag problems with a library |
+| [Statistics](statistics.md) | Platform-wide aggregate statistics |
 | [Errors](errors.md) | Error response format and status codes |
 | [Rate Limiting](rate-limiting.md) | Request limits and 429 handling |
 | [API Reference](reference/openapi.md) | Interactive OpenAPI / Swagger UI |

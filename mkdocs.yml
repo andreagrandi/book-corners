@@ -44,6 +44,7 @@ nav:
       - Detail: libraries/detail.md
       - Submit: libraries/submit.md
       - Report: libraries/report.md
+  - Statistics: statistics.md
   - Errors: errors.md
   - Rate Limiting: rate-limiting.md
   - API Reference: reference/openapi.md
