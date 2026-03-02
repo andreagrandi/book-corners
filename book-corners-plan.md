@@ -1159,6 +1159,59 @@ It should cover:
 - [ ] "Library near me" geolocation prompt
 - [ ] iOS app
 
+#### 7.1 — Public statistics page (`/stats/`) and API endpoint
+
+A public page with charts and summary stats, plus a matching JSON API endpoint.
+Chart.js v4 via CDN for visualisations (loaded in `{% block extra_scripts %}`,
+same pattern as Leaflet on the map page). Server-side aggregation with 5-minute
+cache (same pattern as GeoJSON cache). All queries use existing indexes — no new
+indexes needed.
+
+**Web page**
+
+- [ ] Add `stats_page` view to `libraries/views.py` with `_build_stats_data()` helper
+      and `STATS_CACHE_KEY` (300s TTL)
+- [ ] **Stats cards** (daisyUI `stat` component):
+  - Total approved libraries — `Library.objects.filter(status=APPROVED).count()`
+  - Total libraries with at least one image (primary `photo` field or approved
+    `LibraryPhoto`) — `Q(~Q(photo="")) | Q(Exists(LibraryPhoto approved subquery))`
+- [ ] **Bar chart — top 10 countries by approved library count**:
+  - Horizontal bars for readable labels
+  - Each label: flag emoji (Unicode regional indicator symbols, no extra library) +
+    country name via `pycountry` (already a dependency) + count
+  - Query: `.values("country").annotate(count=Count("id")).order_by("-count")[:10]`
+- [ ] **Line chart — cumulative approved libraries over time**:
+  - Adaptive granularity: ≤90 days old → `TruncDate` (daily), >90 days → `TruncMonth` (monthly)
+  - Cumulative sum computed in Python
+  - Filled area chart with smooth curves
+- [ ] Chart theme colours via `oklch(var(--p))` (daisyUI primary) with `getComputedStyle` fallback
+- [ ] Create template `libraries/templates/libraries/stats.html` extending `base.html`,
+      responsive grid layout
+- [ ] Add URL `/stats/` in `config/urls.py`
+- [ ] Add navbar link in both mobile + desktop menus (`templates/base.html`) — positioned
+      between "Submit" and the username/login links
+- [ ] Add to `StaticViewSitemap` in `libraries/sitemaps.py`
+- [ ] Add Italian translations for all new strings
+- [ ] Add tests: page renders, correct counts (approved only), image count (primary +
+      community photos), country labels with flags, public access, empty state,
+      daily vs monthly granularity selection
+
+**API endpoint (`GET /api/v1/statistics`)**
+
+- [ ] Add schemas to `libraries/api_schemas.py`:
+  - `CountryStatOut` — country code, country name, flag emoji, library count
+  - `TimeSeriesPointOut` — period label, cumulative count
+  - `StatisticsOut` — total_approved, total_with_image, top_countries (list),
+    cumulative_series (labels, values, granularity)
+- [ ] Add `GET /api/v1/statistics` endpoint to `libraries/api.py`
+      (public, read-only, rate-limited with read-tier limits)
+- [ ] Reuse `_build_stats_data()` from the web view (shared query + cache)
+- [ ] Add OpenAPI descriptions and examples to all schema fields
+- [ ] Add API docs page `docs/statistics.md` with curl + Python examples
+- [ ] Update `docs/openapi.json` via `python manage.py export_openapi_schema`
+- [ ] Add changelog entry in `docs/changelog.md`
+- [ ] Add API tests: response shape, correct counts, rate limiting, empty state
+
 ---
 
 ### Phase 8 — Advanced: Rolling Sandbox PR Deploy (single preview environment)
