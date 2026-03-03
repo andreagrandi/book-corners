@@ -209,7 +209,27 @@ When adding a new model field or modifying queries, ensure fields used in `filte
 - **Seed data command**: `seed_libraries` can reset and generate realistic sample `Library` rows with geospatial points and status mix. It accepts `--reset`, `--count`, `--seed`, and `--images-dir` and will reuse local images when provided.
 - **Local seed images**: `libraries_examples/` is intentionally gitignored so each developer can use their own local photo set for seeding.
 
+## Production logs (LogCLI)
+
+Production logs are shipped to Grafana Cloud Loki via Dokku Vector. Query them locally with LogCLI:
+
+```bash
+# Recent app logs
+logcli query '{app="book-corners"}' --limit 50
+
+# Errors only
+logcli query '{app="book-corners"} | json | level="error"'
+
+# Search for specific text
+logcli query '{app="book-corners"} |= "search term"' --since 24h
+
+# Tail logs live
+logcli query '{app="book-corners"}' --tail
+```
+
+Requires `LOKI_ADDR`, `LOKI_USERNAME`, and `LOKI_PASSWORD` environment variables (see `HOSTING.md` for setup).
+
 ## Dependencies
 
-Python 3.14. PostGIS 17. Key packages: `django`, `psycopg2-binary`, `Pillow`, `dj-database-url`, `pytest`, `pytest-django`, `gunicorn`.
+Python 3.14. PostGIS 17. Key packages: `django`, `psycopg2-binary`, `Pillow`, `dj-database-url`, `pytest`, `pytest-django`, `gunicorn`, `structlog`.
 ALWAYS use uv to install packages but do not use its lock system. Use simple requirements files instead.
