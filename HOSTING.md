@@ -321,15 +321,16 @@ Neither token is stored in the repository. The write token is configured on the 
 
 ### VPS setup
 
-A setup script is provided at `scripts/setup_loki.sh`. Copy it to the VPS and run:
+A setup script is provided at `scripts/setup_loki.sh`. After deploying, extract it from the app container and run:
 
 ```bash
-scp scripts/setup_loki.sh deploy@vps.bookcorners.org:~/
 ssh deploy@vps.bookcorners.org
-bash setup_loki.sh <LOKI_WRITE_TOKEN>
+sudo dokku run book-corners cat scripts/setup_loki.sh > ~/setup_loki.sh
+sed -i 's/\r$//' ~/setup_loki.sh
+sudo bash ~/setup_loki.sh <LOKI_WRITE_TOKEN>
 ```
 
-The script configures Dokku's Vector to ship container logs to Loki. It tries the simple DSN sink first and falls back to a custom Vector config if needed.
+The `sed` step strips carriage returns that Docker's `cat` may add. The script configures Dokku's Vector to ship container logs to Loki. It tries the simple DSN sink first and falls back to a custom Vector config if needed.
 
 Verify Vector is running:
 
