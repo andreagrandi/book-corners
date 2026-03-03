@@ -1369,7 +1369,7 @@ class TestBuildPostTextPhotoDescription:
             photo_description=long_desc,
         )
         assert len(result) <= 300
-        assert result.endswith("\u2026") or "#" in result
+        assert "\u2026" in result
 
 
 # --- Comment on media tests ---

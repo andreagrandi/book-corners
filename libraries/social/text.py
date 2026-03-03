@@ -109,19 +109,6 @@ def build_post_text(
     # Build the fixed parts (location + url)
     fixed_parts = f"\n\n{location_line}\n\n{detail_url}"
 
-    # Fill hashtags up to max_length
-    hashtag_line = ""
-    for tag in all_hashtags:
-        candidate = f"{hashtag_line} {tag}".strip()
-        # Check if adding description + fixed + hashtags fits
-        test_text = f"x{fixed_parts}\n\n{candidate}"
-        if len(test_text) <= max_length:
-            hashtag_line = candidate
-
-    # Calculate budget for description + optional photo description
-    suffix = f"{fixed_parts}\n\n{hashtag_line}" if hashtag_line else fixed_parts
-    description_budget = max_length - len(suffix)
-
     description = library.description or library.name or library.address
 
     # Append AI photo description when provided
@@ -130,8 +117,19 @@ def build_post_text(
     else:
         combined = description
 
+    # Truncate description only if it exceeds the space without any hashtags
+    description_budget = max_length - len(fixed_parts)
     if len(combined) > description_budget:
         combined = combined[: description_budget - 1].rstrip() + "\u2026"
+
+    # Fill hashtags into whatever space remains after the description
+    base_text = f"{combined}{fixed_parts}"
+    hashtag_line = ""
+    for tag in all_hashtags:
+        candidate = f"{hashtag_line} {tag}".strip()
+        test_text = f"{base_text}\n\n{candidate}"
+        if len(test_text) <= max_length:
+            hashtag_line = candidate
 
     parts = [combined, location_line, detail_url]
     if hashtag_line:
