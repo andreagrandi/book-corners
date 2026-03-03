@@ -1,5 +1,4 @@
-import logging
-
+import structlog
 from django.conf import settings
 from django.http import Http404, HttpRequest, JsonResponse
 from ninja import NinjaAPI
@@ -9,7 +8,7 @@ from config.api_schemas import ErrorOut
 from libraries.api import library_router, statistics_router
 from users.api import auth_router
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 api = NinjaAPI(
     title="Book Corners API",

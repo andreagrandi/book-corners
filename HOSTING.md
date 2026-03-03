@@ -33,6 +33,7 @@ Book Corners runs on a single Hetzner VPS managed by [Dokku](https://dokku.com/)
 **External services:**
 - **Cloudflare** — DNS and CDN proxy for `bookcorners.org` and `www.bookcorners.org`
 - **GitHub Pages** — hosts the API docs at `developers.bookcorners.org`
+- **Grafana Cloud** — log aggregation via Loki (free tier), logs shipped by Dokku Vector
 - **Sentry** — error tracking (free developer plan)
 - **UptimeRobot** — uptime monitoring (free tier), checks `/health/` every 5 minutes
 - **Resend** — transactional email for admin notifications (new submissions, reports)
@@ -290,10 +291,91 @@ print(f'Site updated: {site.domain}')
 "
 ```
 
+## Log aggregation (Grafana Cloud Loki)
+
+Production logs are shipped to [Grafana Cloud Loki](https://grafana.com/products/cloud/logs/) via Dokku's built-in [Vector](https://vector.dev/) integration. Logs can be queried from the Grafana Cloud UI or locally with [LogCLI](https://grafana.com/docs/loki/latest/query/logcli/).
+
+### How it works
+
+```
+Dokku containers → Vector (sidecar) → Grafana Cloud Loki
+                                            ↑
+                                     LogCLI / Grafana UI
+```
+
+Django uses [structlog](https://www.structlog.org/) for structured logging — JSON output in production, pretty console in development. Existing stdlib loggers (Django internals, third-party packages) pass through the same pipeline.
+
+### Credentials
+
+Two Grafana Cloud API tokens are required (generate from Grafana Cloud → Security → API Keys):
+
+| Token | Purpose | Used by |
+|-------|---------|---------|
+| Write | Push logs to Loki | Vector on VPS |
+| Read  | Query logs from Loki | LogCLI on local machine |
+
+- **Loki URL:** `https://logs-prod-012.grafana.net`
+- **User ID:** `1502192`
+
+Neither token is stored in the repository. The write token is configured on the VPS via the setup script; the read token goes in your local shell environment.
+
+### VPS setup
+
+A setup script is provided at `scripts/setup_loki.sh`. Copy it to the VPS and run:
+
+```bash
+scp scripts/setup_loki.sh deploy@vps.bookcorners.org:~/
+ssh deploy@vps.bookcorners.org
+bash setup_loki.sh <LOKI_WRITE_TOKEN>
+```
+
+The script configures Dokku's Vector to ship container logs to Loki. It tries the simple DSN sink first and falls back to a custom Vector config if needed.
+
+Verify Vector is running:
+
+```bash
+sudo dokku logs:vector-logs
+```
+
+### Querying logs locally (LogCLI)
+
+Install LogCLI:
+
+```bash
+brew install grafana/tap/logcli
+```
+
+Configure your shell (add to `~/.zshrc` or `.envrc`):
+
+```bash
+export LOKI_ADDR=https://logs-prod-012.grafana.net
+export LOKI_USERNAME=1502192
+export LOKI_PASSWORD=<LOKI_READ_TOKEN>
+```
+
+Example queries:
+
+```bash
+# Recent app logs
+logcli query '{app="book-corners"}' --limit 50
+
+# Errors only (structured JSON logs)
+logcli query '{app="book-corners"} | json | level="error"'
+
+# Search for specific text
+logcli query '{app="book-corners"} |= "DisallowedHost"' --since 24h
+
+# Tail logs live
+logcli query '{app="book-corners"}' --tail
+```
+
+You can also explore logs in the Grafana Cloud UI at **Explore → Loki**.
+
 ## Monitoring
 
 - **UptimeRobot** monitors `https://bookcorners.org/health/` every 5 minutes
 - **Sentry** error tracking (free developer plan) — reports unhandled exceptions and API 500s
+- **Grafana Cloud Loki** — centralized log aggregation, queryable via LogCLI or Grafana UI
 
 ## Cost sheet
 
