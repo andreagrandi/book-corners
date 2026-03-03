@@ -209,25 +209,57 @@ When adding a new model field or modifying queries, ensure fields used in `filte
 - **Seed data command**: `seed_libraries` can reset and generate realistic sample `Library` rows with geospatial points and status mix. It accepts `--reset`, `--count`, `--seed`, and `--images-dir` and will reuse local images when provided.
 - **Local seed images**: `libraries_examples/` is intentionally gitignored so each developer can use their own local photo set for seeding.
 
-## Production logs (LogCLI)
+## Production logs (Grafana Cloud Loki)
 
-Production logs are shipped to Grafana Cloud Loki via Dokku Vector. Query them locally with LogCLI:
+Production logs are shipped to Grafana Cloud Loki via Dokku Vector.
+
+### Canonical label and datasource
+
+- Use `app="book-corners"` as the default stream selector.
+- In Grafana Explore, use datasource `grafanacloud-andreagrandi-logs` (type: Loki).
+- Legacy examples using `source="book-corners"` may still return older entries, but new queries should use `app`.
+
+### Grafana UI (preferred, no LogQL memorization)
+
+1. Open **Explore**.
+2. Select datasource **`grafanacloud-andreagrandi-logs`**.
+3. Keep **Builder** mode.
+4. Add label filter `app = book-corners`.
+5. Set time range to **Last 24 hours**.
+6. Click **Run query**.
+
+To make this one-click in future, save the query as `All logs (book-corners)` from **Saved queries**.
+
+### LogCLI examples
 
 ```bash
 # Recent app logs
-logcli query '{app="book-corners"}' --limit 50
+logcli query '{app="book-corners"}' --since 24h --limit 50
 
 # Errors only
-logcli query '{app="book-corners"} | json | level="error"'
+logcli query '{app="book-corners"} | json | level="error"' --since 24h --limit 50
 
 # Search for specific text
-logcli query '{app="book-corners"} |= "search term"' --since 24h
+logcli query '{app="book-corners"} |= "search term"' --since 24h --limit 50
 
 # Tail logs live
 logcli query '{app="book-corners"}' --tail
+
+# Ignore common bot noise
+logcli query '{app="book-corners"} != "wp-admin/setup-config.php" != "wordpress/wp-admin/setup-config.php"' --since 24h --limit 50
 ```
 
 Requires `LOKI_ADDR`, `LOKI_USERNAME`, and `LOKI_PASSWORD` environment variables (see `HOSTING.md` for setup).
+
+### VPS verification after Loki setup
+
+```bash
+# Ensure Vector picked up the sink and is healthy
+sudo dokku logs:report book-corners
+sudo dokku logs:vector-logs 2>&1 | tail -80
+```
+
+If logs stop after reconfiguration, rerun `scripts/setup_loki.sh` from `HOSTING.md`. The script validates token auth with a direct Loki push (expects HTTP `204`) before applying Dokku config.
 
 ## Dependencies
 
