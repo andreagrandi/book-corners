@@ -17,5 +17,5 @@ pytest-django==4.12.0
 sqlparse==0.5.5
 structlog==25.5.0
 sentry-sdk[django]==2.54.0
-openai==2.24.0
+openai==2.26.0
 whitenoise==6.12.0
