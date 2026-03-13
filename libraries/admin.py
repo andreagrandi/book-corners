@@ -3,10 +3,11 @@ import json
 from django.contrib import messages
 from django.contrib.gis import admin
 from django.core.cache import cache
+from django.core.paginator import Paginator
 from django.db.models import QuerySet
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
-from django.urls import path
+from django.urls import path, reverse
 from django.utils.html import format_html
 
 from libraries.geojson_import import parse_geojson
@@ -108,6 +109,11 @@ class LibraryAdmin(admin.GISModelAdmin):
                 "find-duplicates/",
                 self.admin_site.admin_view(self.find_duplicates_view),
                 name="libraries_library_find_duplicates",
+            ),
+            path(
+                "photo-grid/",
+                self.admin_site.admin_view(self.photo_grid_view),
+                name="libraries_library_photo_grid",
             ),
         ]
         return custom_urls + super().get_urls()
@@ -230,6 +236,70 @@ class LibraryAdmin(admin.GISModelAdmin):
             context["total_duplicates"] = sum(len(g) - 1 for g in groups)
 
         return render(request, "admin/libraries/find_duplicates.html", context)
+
+    def photo_grid_view(self, request: HttpRequest) -> HttpResponse:
+        """Show all photos across libraries in a resizable grid.
+        Combines primary library photos and community submissions for quick review."""
+        status_filter = request.GET.get("status", "all")
+        type_filter = request.GET.get("type", "all")
+
+        photos: list[dict] = []
+
+        # Primary library photos
+        if type_filter in ("all", "primary"):
+            qs = Library.objects.exclude(photo="").select_related("created_by")
+            if status_filter != "all":
+                qs = qs.filter(status=status_filter)
+            for lib in qs.order_by("-created_at"):
+                thumb = lib.photo_thumbnail.url if lib.photo_thumbnail else lib.photo.url
+                photos.append({
+                    "thumbnail_url": thumb,
+                    "library_name": lib.name,
+                    "library_url": reverse("admin:libraries_library_change", args=[lib.pk]),
+                    "photo_type": "primary",
+                    "status": lib.get_status_display(),
+                    "status_raw": lib.status,
+                    "submitted_by": str(lib.created_by) if lib.created_by else "",
+                    "date": lib.created_at,
+                })
+
+        # Community-submitted photos
+        if type_filter in ("all", "community"):
+            qs = LibraryPhoto.objects.select_related("library", "created_by")
+            if status_filter != "all":
+                qs = qs.filter(status=status_filter)
+            for photo in qs.order_by("-created_at"):
+                thumb = photo.photo_thumbnail.url if photo.photo_thumbnail else photo.photo.url
+                photos.append({
+                    "thumbnail_url": thumb,
+                    "library_name": photo.library.name,
+                    "library_url": reverse(
+                        "admin:libraries_library_change", args=[photo.library.pk]
+                    ),
+                    "photo_type": "community",
+                    "status": photo.get_status_display(),
+                    "status_raw": photo.status,
+                    "submitted_by": str(photo.created_by) if photo.created_by else "",
+                    "date": photo.created_at,
+                })
+
+        # Sort combined results by date descending
+        photos.sort(key=lambda p: p["date"], reverse=True)
+
+        paginator = Paginator(photos, 60)
+        page_number = request.GET.get("page", 1)
+        page_obj = paginator.get_page(page_number)
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Photo Grid",
+            "opts": self.model._meta,
+            "photos": page_obj,
+            "page_obj": page_obj,
+            "status_filter": status_filter,
+            "type_filter": type_filter,
+        }
+        return render(request, "admin/libraries/photo_grid.html", context)
 
     @admin.action(description="Approve selected libraries")
     def approve_libraries(
