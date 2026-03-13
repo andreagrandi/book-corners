@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.2.0
+
+- Login endpoint (`POST /auth/login`) now accepts email address in the `username` field, matching the web login flow. Email lookup is case-insensitive and the identifier is trimmed before authentication.
+
 ## v1.1.0
 
 - Public statistics endpoint (`GET /statistics/`) with totals, top countries, and cumulative growth series

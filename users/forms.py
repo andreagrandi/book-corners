@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.utils.translation import gettext_lazy as _
 
+from users.auth import resolve_login_identifier
+
 User = get_user_model()
 
 
@@ -69,11 +71,7 @@ class UsernameOrEmailAuthenticationForm(AuthenticationForm):
 
         if username_or_email and password:
             self.cleaned_data["username"] = username_or_email
-            username = username_or_email
-            if "@" in username_or_email:
-                matching_user = User.objects.filter(email__iexact=username_or_email).first()
-                if matching_user is not None:
-                    username = matching_user.get_username()
+            username = resolve_login_identifier(username_or_email)
 
             self.user_cache = authenticate(
                 self.request,

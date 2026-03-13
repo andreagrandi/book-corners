@@ -1212,6 +1212,92 @@ indexes needed.
 - [x] Add changelog entry in `docs/changelog.md`
 - [x] Add API tests: response shape, correct counts, rate limiting, empty state
 
+#### 7.2 — Near-term quality, parity, and scalability roadmap
+
+Focus the next phase on tightening product consistency, reducing regression risk, and
+preparing the project for a larger dataset before adding another major surface area.
+
+##### 7.2.1 — Auth parity between web and API
+
+- [x] Update `POST /api/v1/auth/login` to accept email as well as username, matching the web login flow
+- [x] Normalize and trim the login identifier before authentication
+- [x] Reuse the same email-to-username resolution strategy used by the web auth form
+- [x] Add API tests for login by username, login by email, mixed-case email, and invalid credentials
+- [x] Update authentication docs and examples so API behavior matches the web UX
+
+##### 7.2.2 — Browser-level regression coverage
+
+- [ ] Add a browser E2E test stack (Playwright or equivalent) alongside the current pytest suite
+- [ ] Add smoke coverage for `/`, `/map/`, `/submit/`, and `/library/<slug>/`
+- [ ] Cover the most JS-heavy flows:
+  - [ ] Map filters, view switching, and bounds-driven refresh
+  - [ ] Submit-form address autocomplete and marker positioning
+  - [ ] EXIF photo metadata prefill
+  - [ ] Detail-page report and community-photo submission toggles
+- [ ] Run browser smoke checks in CI for at least one happy-path flow
+- [ ] Keep browser tests deterministic by mocking geocoding and autocomplete calls where needed
+
+##### 7.2.3 — API/docs parity and contract validation
+
+- [ ] Fix docs drift where prose docs and actual behavior disagree
+- [ ] Align search docs with the real search implementation (or expand implementation to match the docs)
+- [ ] Update upload docs to reflect all accepted image formats
+- [ ] Correct statistics docs and changelog entries to use the actual routed API paths
+- [ ] Add a prose docs page for `POST /api/v1/libraries/{slug}/photo`
+- [ ] Add OpenAPI schema validation in CI
+- [ ] Add an end-to-end API integration test covering:
+  - [ ] register
+  - [ ] login
+  - [ ] submit library
+  - [ ] list
+  - [ ] search
+  - [ ] detail
+  - [ ] report
+  - [ ] community photo submission
+- [ ] Regenerate `docs/openapi.json` whenever API code or API docs change
+
+##### 7.2.4 — Search quality and indexing
+
+- [ ] Decide the canonical search behavior for `q` across web and API
+- [ ] Include `address` in text search or narrow the docs so they match the implementation
+- [ ] Evaluate weighted PostgreSQL full-text search versus trigram search for names and addresses
+- [ ] Add any missing indexes required by the final query strategy
+- [ ] Add tests for address matches, ranking expectations, and combined filters
+
+##### 7.2.5 — Map scalability and cache architecture
+
+- [ ] Review the unfiltered all-libraries GeoJSON path and reduce full-dataset responses where possible
+- [ ] Prefer bounds-limited responses by default for interactive map requests
+- [ ] Move hot cache and rate-limit state off the database cache backend to Redis or equivalent
+- [ ] Add cache invalidation coverage for library approval, photo approval, and moderation changes
+- [ ] Measure payload size, query count, and response time before and after the change
+
+##### 7.2.6 — Dashboard as a contribution center
+
+- [ ] Expand `/dashboard/` to show submitted libraries, reports, and community photo submissions together
+- [ ] Show moderation status for each contribution type
+- [ ] Add quick links back to the affected library detail page where relevant
+- [ ] Consider a contribution timeline/history view for approvals and rejections
+- [ ] Decide whether matching contribution-status visibility should also be added to the API for parity
+
+##### 7.2.7 — Ops hardening and recovery confidence
+
+- [ ] Test backup restore end-to-end on a non-production target
+- [ ] Add backup heartbeat monitoring (for example healthchecks.io) to nightly backups
+- [ ] Write a one-page incident response note covering alerts, rollback steps, and restore references
+- [ ] Run one scheduled incident drill and document the outcome
+- [ ] Add a recurring reminder to verify restore procedures
+
+##### 7.2.8 — Suggested execution order
+
+- [ ] 1. Auth parity between web and API
+- [ ] 2. Browser-level regression coverage
+- [ ] 3. API/docs parity and contract validation
+- [ ] 4. Search quality and indexing
+- [ ] 5. Map scalability and cache architecture
+- [ ] 6. Dashboard as a contribution center
+- [ ] 7. Ops hardening and recovery confidence
+
 ---
 
 ### Phase 8 — Advanced: Rolling Sandbox PR Deploy (single preview environment)
