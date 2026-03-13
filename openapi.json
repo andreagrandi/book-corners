@@ -96,7 +96,7 @@
             }
           }
         },
-        "description": "Authenticate with username and password and return a JWT token pair.\nReturns 401 for invalid credentials or 429 when rate-limited.",
+        "description": "Authenticate with username or email and return a JWT token pair.\nReturns 401 for invalid credentials or 429 when rate-limited.",
         "tags": [
           "auth"
         ],
@@ -1214,12 +1214,13 @@
         "type": "object"
       },
       "LoginIn": {
-        "description": "Login payload for authenticating with credentials.\nAccepts username and password.",
+        "description": "Login payload for authenticating with credentials.\nAccepts username or email address plus password.",
         "properties": {
           "username": {
-            "description": "Username or email used during registration.",
+            "description": "Username or email address.",
             "examples": [
-              "janedoe"
+              "janedoe",
+              "jane@example.com"
             ],
             "maxLength": 254,
             "minLength": 1,
