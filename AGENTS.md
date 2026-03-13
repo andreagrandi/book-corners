@@ -144,11 +144,12 @@ Note: `static/css/app.css` is generated and gitignored. Regenerate it when neede
 
 ## API documentation (required)
 
-When any change touches API endpoints (`libraries/api.py`, `libraries/api_schemas.py`, `libraries/search.py`, or URL routing), always regenerate the OpenAPI spec and update the corresponding docs before finishing:
+When any change touches API endpoints (`libraries/api.py`, `libraries/api_schemas.py`, `libraries/search.py`, or URL routing), update the corresponding docs before finishing:
 
 1. Update the relevant markdown file under `docs/` (e.g., `docs/libraries/list-and-search.md`) to reflect new, changed, or removed parameters, endpoints, or response shapes.
-2. Regenerate the OpenAPI spec: `python manage.py export_openapi_schema > docs/openapi.json`
-3. Commit both the docs markdown changes and the regenerated `docs/openapi.json` alongside the code changes.
+2. Commit the docs markdown changes alongside the code changes.
+
+Note: `docs/openapi.json` is generated and gitignored. The docs CI workflow regenerates it automatically on every push. Do not commit it.
 
 ## Docs changelog (required)
 
