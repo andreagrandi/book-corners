@@ -80,14 +80,18 @@ Create a new user account and receive a token pair.
 
 Authenticate with credentials and receive a token pair.
 
+The `username` field accepts either a **username** or an **email address**. When an email
+is provided, the server resolves it to the corresponding account (case-insensitive lookup).
+This matches the web login flow.
+
 **Auth required:** No
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `username` | string | Yes | Username |
+| `username` | string | Yes | Username or email address |
 | `password` | string | Yes | Account password |
 
-=== "curl"
+=== "curl (username)"
 
     ```bash
     curl -X POST https://bookcorners.org/api/v1/auth/login \
@@ -98,12 +102,31 @@ Authenticate with credentials and receive a token pair.
       }'
     ```
 
+=== "curl (email)"
+
+    ```bash
+    curl -X POST https://bookcorners.org/api/v1/auth/login \
+      -H "Content-Type: application/json" \
+      -d '{
+        "username": "jane@example.com",
+        "password": "s3cure!Pass"
+      }'
+    ```
+
 === "Python"
 
     ```python
+    # Login by username
     resp = requests.post(
         "https://bookcorners.org/api/v1/auth/login",
         json={"username": "janedoe", "password": "s3cure!Pass"},
+    )
+    tokens = resp.json()
+
+    # Login by email (same field, same endpoint)
+    resp = requests.post(
+        "https://bookcorners.org/api/v1/auth/login",
+        json={"username": "jane@example.com", "password": "s3cure!Pass"},
     )
     tokens = resp.json()
     ```

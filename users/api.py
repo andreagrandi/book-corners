@@ -11,6 +11,7 @@ from ninja_jwt.tokens import RefreshToken
 from pydantic import Field
 
 from config.api_schemas import ErrorOut
+from users.auth import resolve_login_identifier
 from users.security import is_auth_rate_limited
 
 User = get_user_model()
@@ -44,9 +45,9 @@ class RegisterIn(Schema):
 
 class LoginIn(Schema):
     """Login payload for authenticating with credentials.
-    Accepts username and password."""
+    Accepts username or email address plus password."""
 
-    username: str = Field(min_length=1, max_length=254, description="Username or email used during registration.", examples=["janedoe"])
+    username: str = Field(min_length=1, max_length=254, description="Username or email address.", examples=["janedoe", "jane@example.com"])
     password: str = Field(min_length=1, max_length=128, description="Account password.", examples=["s3cure!Pass"])
 
 
@@ -118,7 +119,7 @@ def register(request, payload: RegisterIn):
 
 @auth_router.post("/login", response={200: TokenPairOut, 401: ErrorOut, 429: ErrorOut}, auth=None, summary="Log in with credentials")
 def login(request, payload: LoginIn):
-    """Authenticate with username and password and return a JWT token pair.
+    """Authenticate with username or email and return a JWT token pair.
     Returns 401 for invalid credentials or 429 when rate-limited."""
     limited, _ = is_auth_rate_limited(
         request=request,
@@ -128,10 +129,11 @@ def login(request, payload: LoginIn):
     if limited:
         return 429, {"message": "Too many login attempts. Please try again later."}
 
-    normalized_username = payload.username.strip()
+    identifier = payload.username.strip()
+    username = resolve_login_identifier(identifier)
     user = authenticate(
         request,
-        username=normalized_username,
+        username=username,
         password=payload.password,
     )
     if user is None:

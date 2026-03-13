@@ -7,6 +7,17 @@ from ninja_jwt.tokens import RefreshToken
 User = get_user_model()
 
 
+@pytest.fixture
+def user_with_email(db):
+    """Create a test user with an email address.
+    Required for testing email-based API login."""
+    return User.objects.create_user(
+        username="emailuser",
+        email="emailuser@example.com",
+        password="testpass123",
+    )
+
+
 @pytest.mark.django_db
 class TestAuthAPI:
     def test_register_returns_tokens_and_creates_user(self, client):
@@ -44,6 +55,86 @@ class TestAuthAPI:
         assert response.status_code == 200
         assert "access" in body
         assert "refresh" in body
+
+    def test_login_by_email_returns_jwt_pair(self, client, user_with_email):
+        """Verify login accepts an email address instead of username.
+        Matches the web login flow that resolves email to username."""
+        response = client.post(
+            "/api/v1/auth/login",
+            data={
+                "username": "emailuser@example.com",
+                "password": "testpass123",
+            },
+            content_type="application/json",
+        )
+
+        body = response.json()
+        assert response.status_code == 200
+        assert "access" in body
+        assert "refresh" in body
+
+    def test_login_by_email_case_insensitive(self, client, user_with_email):
+        """Verify email-based login is case-insensitive.
+        Users should be able to log in regardless of email casing."""
+        response = client.post(
+            "/api/v1/auth/login",
+            data={
+                "username": "EmailUser@Example.COM",
+                "password": "testpass123",
+            },
+            content_type="application/json",
+        )
+
+        body = response.json()
+        assert response.status_code == 200
+        assert "access" in body
+        assert "refresh" in body
+
+    def test_login_by_email_with_whitespace(self, client, user_with_email):
+        """Verify login trims whitespace from the identifier.
+        Prevents authentication failures from copy-paste artifacts."""
+        response = client.post(
+            "/api/v1/auth/login",
+            data={
+                "username": "  emailuser@example.com  ",
+                "password": "testpass123",
+            },
+            content_type="application/json",
+        )
+
+        body = response.json()
+        assert response.status_code == 200
+        assert "access" in body
+
+    def test_login_by_nonexistent_email_returns_401(self, client, user_with_email):
+        """Verify login with an unknown email returns 401.
+        Should not leak whether the email exists."""
+        response = client.post(
+            "/api/v1/auth/login",
+            data={
+                "username": "nobody@example.com",
+                "password": "testpass123",
+            },
+            content_type="application/json",
+        )
+
+        assert response.status_code == 401
+        assert response.json()["message"] == "Invalid credentials."
+
+    def test_login_invalid_credentials_returns_401(self, client, user):
+        """Verify login with wrong password returns 401.
+        Prevents unauthorized access with incorrect credentials."""
+        response = client.post(
+            "/api/v1/auth/login",
+            data={
+                "username": user.username,
+                "password": "wrongpassword",
+            },
+            content_type="application/json",
+        )
+
+        assert response.status_code == 401
+        assert response.json()["message"] == "Invalid credentials."
 
     def test_register_rejects_weak_password(self, client):
         """Verify register endpoint applies Django password validators.
