@@ -1240,3 +1240,32 @@ msgstr "Troppi tentativi di registrazione. Riprova tra qualche minuto."
 #: users/views.py:99
 msgid "Too many login attempts. Please try again in a few minutes."
 msgstr "Troppi tentativi di accesso. Riprova tra qualche minuto."
+
+#: templates/admin/libraries/photo_grid.html
+#: templates/admin/libraries/library_changelist.html
+msgid "Photo Grid"
+msgstr "Griglia foto"
+
+#: templates/admin/libraries/photo_grid.html
+msgid "Grid:"
+msgstr "Griglia:"
+
+#: templates/admin/libraries/photo_grid.html
+msgid "Type:"
+msgstr "Tipo:"
+
+#: templates/admin/libraries/photo_grid.html
+msgid "Primary"
+msgstr "Principale"
+
+#: templates/admin/libraries/photo_grid.html
+msgid "Community"
+msgstr "Comunità"
+
+#: templates/admin/libraries/photo_grid.html
+msgid "No photos found matching the selected filters."
+msgstr "Nessuna foto trovata con i filtri selezionati."
+
+#: templates/admin/libraries/photo_grid.html
+msgid "All"
+msgstr "Tutti"

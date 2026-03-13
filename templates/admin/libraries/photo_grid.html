@@ -1,0 +1,245 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Photo Grid" %} | {{ site_title|default:_("Django site admin") }}{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    .photo-grid-controls {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+    .photo-grid-controls label {
+        font-weight: bold;
+        margin-right: 4px;
+    }
+    .photo-grid-controls select {
+        padding: 4px 8px;
+    }
+    .grid-size-buttons {
+        display: flex;
+        gap: 4px;
+    }
+    .grid-size-buttons button {
+        padding: 4px 10px;
+        border: 1px solid #ccc;
+        background: #f8f8f8;
+        cursor: pointer;
+        border-radius: 3px;
+        font-size: 13px;
+    }
+    .grid-size-buttons button.active {
+        background: #417690;
+        color: #fff;
+        border-color: #417690;
+    }
+    .photo-grid {
+        display: grid;
+        gap: 16px;
+    }
+    .photo-grid.cols-1 { grid-template-columns: 1fr; }
+    .photo-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .photo-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .photo-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .photo-card {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        overflow: hidden;
+        background: #fff;
+    }
+    .photo-card img {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        display: block;
+    }
+    .photo-card-info {
+        padding: 8px 10px;
+    }
+    .photo-card-info a {
+        font-weight: bold;
+        color: #417690;
+        text-decoration: none;
+    }
+    .photo-card-info a:hover {
+        text-decoration: underline;
+    }
+    .photo-card-badges {
+        display: flex;
+        gap: 6px;
+        margin-top: 4px;
+        flex-wrap: wrap;
+    }
+    .badge {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 11px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    .badge-primary { background: #d4edda; color: #155724; }
+    .badge-community { background: #cce5ff; color: #004085; }
+    .badge-pending { background: #fff3cd; color: #856404; }
+    .badge-approved { background: #d4edda; color: #155724; }
+    .badge-rejected { background: #f8d7da; color: #721c24; }
+    .photo-card-meta {
+        font-size: 11px;
+        color: #666;
+        margin-top: 4px;
+    }
+    .pagination-controls {
+        margin-top: 20px;
+        text-align: center;
+    }
+    .pagination-controls a,
+    .pagination-controls span {
+        padding: 4px 10px;
+        margin: 0 2px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        text-decoration: none;
+        color: #417690;
+    }
+    .pagination-controls span.current {
+        background: #417690;
+        color: #fff;
+        border-color: #417690;
+    }
+    .photo-grid-empty {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans "Home" %}</a>
+    &rsaquo; <a href="{% url 'admin:libraries_library_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; {% trans "Photo Grid" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="photo-grid-controls">
+    <div>
+        <label>{% trans "Grid:" %}</label>
+        <span class="grid-size-buttons">
+            <button type="button" data-cols="1">1</button>
+            <button type="button" data-cols="2">2</button>
+            <button type="button" data-cols="3" class="active">3</button>
+            <button type="button" data-cols="4">4</button>
+        </span>
+    </div>
+    <form method="get" style="display:flex; gap:12px; align-items:center;">
+        <div>
+            <label for="id_status">{% trans "Status:" %}</label>
+            <select name="status" id="id_status" onchange="this.form.submit()">
+                <option value="all" {% if status_filter == "all" %}selected{% endif %}>{% trans "All" %}</option>
+                <option value="pending" {% if status_filter == "pending" %}selected{% endif %}>{% trans "Pending" %}</option>
+                <option value="approved" {% if status_filter == "approved" %}selected{% endif %}>{% trans "Approved" %}</option>
+                <option value="rejected" {% if status_filter == "rejected" %}selected{% endif %}>{% trans "Rejected" %}</option>
+            </select>
+        </div>
+        <div>
+            <label for="id_type">{% trans "Type:" %}</label>
+            <select name="type" id="id_type" onchange="this.form.submit()">
+                <option value="all" {% if type_filter == "all" %}selected{% endif %}>{% trans "All" %}</option>
+                <option value="primary" {% if type_filter == "primary" %}selected{% endif %}>{% trans "Primary" %}</option>
+                <option value="community" {% if type_filter == "community" %}selected{% endif %}>{% trans "Community" %}</option>
+            </select>
+        </div>
+    </form>
+</div>
+
+{% if photos %}
+<div class="photo-grid cols-3" id="photo-grid">
+    {% for photo in photos %}
+    <div class="photo-card">
+        <a href="{{ photo.library_url }}">
+            <img src="{{ photo.thumbnail_url }}" alt="{{ photo.library_name }}" loading="lazy">
+        </a>
+        <div class="photo-card-info">
+            <a href="{{ photo.library_url }}">{{ photo.library_name }}</a>
+            <div class="photo-card-badges">
+                {% if photo.photo_type == "primary" %}
+                <span class="badge badge-primary">{% trans "Primary" %}</span>
+                {% else %}
+                <span class="badge badge-community">{% trans "Community" %}</span>
+                {% endif %}
+                <span class="badge badge-{{ photo.status_raw }}">{{ photo.status }}</span>
+            </div>
+            {% if photo.submitted_by %}
+            <div class="photo-card-meta">
+                {{ photo.submitted_by }} &middot; {{ photo.date|date:"Y-m-d" }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="pagination-controls">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}&type={{ type_filter }}">&laquo;</a>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+        {% if num == page_obj.number %}
+        <span class="current">{{ num }}</span>
+        {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+        <a href="?page={{ num }}&status={{ status_filter }}&type={{ type_filter }}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}&type={{ type_filter }}">&raquo;</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="photo-grid-empty">
+    <p>{% trans "No photos found matching the selected filters." %}</p>
+</div>
+{% endif %}
+
+<div class="submit-row" style="margin-top: 20px;">
+    <a href="{% url 'admin:libraries_library_changelist' %}">{% trans "Back to library list" %}</a>
+</div>
+
+<script>
+(function() {
+    var grid = document.getElementById("photo-grid");
+    var buttons = document.querySelectorAll(".grid-size-buttons button");
+    var storageKey = "photoGridCols";
+
+    function setCols(n) {
+        grid.className = "photo-grid cols-" + n;
+        buttons.forEach(function(btn) {
+            btn.classList.toggle("active", btn.getAttribute("data-cols") === String(n));
+        });
+        try { localStorage.setItem(storageKey, n); } catch(e) {}
+    }
+
+    buttons.forEach(function(btn) {
+        btn.addEventListener("click", function() {
+            setCols(parseInt(this.getAttribute("data-cols")));
+        });
+    });
+
+    // Restore saved preference
+    try {
+        var saved = localStorage.getItem(storageKey);
+        if (saved && ["1","2","3","4"].indexOf(saved) !== -1) {
+            setCols(parseInt(saved));
+        }
+    } catch(e) {}
+})();
+</script>
+{% endblock %}
