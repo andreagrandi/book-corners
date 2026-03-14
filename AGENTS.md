@@ -24,8 +24,11 @@ docker compose up app db tailwind
 # Build CSS once
 npm run build:css
 
-# Run all tests
+# Run all tests (unit + integration, excludes browser E2E)
 nox -s tests
+
+# Run browser E2E tests (Playwright + Chromium)
+nox -s e2e
 
 # Note: nox is configured to use uv for package installation
 
@@ -54,6 +57,20 @@ zensical serve
 # Build docs
 zensical build
 ```
+
+## Browser E2E tests (required for medium/large changes)
+
+After implementing changes that touch templates, views, JavaScript, HTMX interactions, URL routing, or static assets, run the browser E2E suite before considering the task done:
+
+```bash
+nox -s e2e
+```
+
+This runs 18 Playwright tests covering homepage (HTMX load, pagination), map page (Leaflet init, view switching, GeoJSON fetch), submit form (autocomplete, geocoding, full submission), library detail (report/photo toggles, HTMX submit), and statistics (Chart.js rendering). External APIs (Photon, Nominatim, OSM tiles) are mocked at the browser level for determinism.
+
+The E2E tests require PostGIS running (`docker compose up db -d`) and CSS built (`npm run build:css`). They run in a separate nox session from unit tests and both gate CI deployment.
+
+Tests live in `tests/e2e/` with shared fixtures in `tests/e2e/conftest.py`. When adding new pages or JS interactions, add corresponding E2E test coverage.
 
 ## End-to-end smoke test (Docker + browser)
 
@@ -205,7 +222,7 @@ When adding a new model field or modifying queries, ensure fields used in `filte
 
 - **Slug generation**: `Library.save()` auto-generates unique slugs from `city + address + name`, with numeric suffixes for duplicates, truncated to fit `max_length`.
 - **Database config**: Uses `dj-database-url` to parse `DATABASE_URL` env var. GIS library paths (`GDAL_LIBRARY_PATH`, `GEOS_LIBRARY_PATH`) are read from environment in `config/settings.py`.
-- **Test fixtures**: Shared fixtures (`user`, `admin_user`, `admin_client`) in root `conftest.py`. App-specific fixtures (`library`, `admin_library`, `admin_report`) in `libraries/tests.py`.
+- **Test fixtures**: Shared fixtures (`user`, `admin_user`, `admin_client`) in root `conftest.py`. App-specific fixtures (`library`, `admin_library`, `admin_report`) in `libraries/tests.py`. E2E fixtures (`e2e_user`, `approved_libraries`, `single_library`, `mock_external_apis`, `authenticated_page`) in `tests/e2e/conftest.py`.
 - **Environment**: `.envrc` (direnv) sets `DATABASE_URL`, `GDAL_LIBRARY_PATH`, and `GEOS_LIBRARY_PATH` for local macOS development. `.env.example` has Docker equivalents.
 - **Seed data command**: `seed_libraries` can reset and generate realistic sample `Library` rows with geospatial points and status mix. It accepts `--reset`, `--count`, `--seed`, and `--images-dir` and will reuse local images when provided.
 - **Local seed images**: `libraries_examples/` is intentionally gitignored so each developer can use their own local photo set for seeding.
