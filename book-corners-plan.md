@@ -1227,15 +1227,15 @@ preparing the project for a larger dataset before adding another major surface a
 
 ##### 7.2.2 — Browser-level regression coverage
 
-- [ ] Add a browser E2E test stack (Playwright or equivalent) alongside the current pytest suite
-- [ ] Add smoke coverage for `/`, `/map/`, `/submit/`, and `/library/<slug>/`
-- [ ] Cover the most JS-heavy flows:
-  - [ ] Map filters, view switching, and bounds-driven refresh
-  - [ ] Submit-form address autocomplete and marker positioning
+- [x] Add a browser E2E test stack (Playwright or equivalent) alongside the current pytest suite
+- [x] Add smoke coverage for `/`, `/map/`, `/submit/`, and `/library/<slug>/`
+- [x] Cover the most JS-heavy flows:
+  - [x] Map filters, view switching, and bounds-driven refresh
+  - [x] Submit-form address autocomplete and marker positioning
   - [ ] EXIF photo metadata prefill
-  - [ ] Detail-page report and community-photo submission toggles
-- [ ] Run browser smoke checks in CI for at least one happy-path flow
-- [ ] Keep browser tests deterministic by mocking geocoding and autocomplete calls where needed
+  - [x] Detail-page report and community-photo submission toggles
+- [x] Run browser smoke checks in CI for at least one happy-path flow
+- [x] Keep browser tests deterministic by mocking geocoding and autocomplete calls where needed
 
 ##### 7.2.3 — API/docs parity and contract validation
 

@@ -8,9 +8,26 @@ PYTHON_VERSIONS = ["3.14"]
 
 @nox.session(python=PYTHON_VERSIONS)
 def tests(session: nox.Session) -> None:
-    """Run the test suite."""
+    """Run the test suite (excludes browser E2E tests)."""
     session.install("-r", "requirements.txt")
-    session.run("pytest", *session.posargs)
+    session.run("pytest", "-m", "not e2e", *session.posargs)
+
+
+@nox.session(python=PYTHON_VERSIONS)
+def e2e(session: nox.Session) -> None:
+    """Run end-to-end browser tests with Playwright."""
+    session.install("-r", "requirements.txt")
+    session.run("playwright", "install", "chromium", "--with-deps")
+    session.run("python", "manage.py", "migrate", "--run-syncdb")
+    session.run("python", "manage.py", "collectstatic", "--noinput")
+    session.run(
+        "pytest",
+        "tests/e2e/",
+        "-m",
+        "e2e",
+        *session.posargs,
+        env={"DJANGO_ALLOW_ASYNC_UNSAFE": "true"},
+    )
 
 
 @nox.session(python=PYTHON_VERSIONS)
