@@ -2,7 +2,7 @@
 
 Public, read-only endpoint that returns aggregate statistics about approved libraries on the platform.
 
-## `GET /statistics/`
+## `GET /api/v1/statistics/`
 
 Returns totals, a top-10 country ranking, and a cumulative growth time series.
 

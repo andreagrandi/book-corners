@@ -20,7 +20,7 @@ Report a problem with an approved library. Reports are reviewed by moderators.
 |-------|------|----------|-------------|
 | `reason` | string | Yes | Issue category (see values below) |
 | `details` | string | No | Free-text description of the issue (max 2000 chars) |
-| `photo` | file | No | Photo showing the issue (JPEG/PNG, max 5 MB) |
+| `photo` | file | No | Photo showing the issue (JPEG/PNG/WEBP, max 5 MB) |
 
 ### Reason values
 

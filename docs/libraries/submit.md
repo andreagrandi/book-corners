@@ -28,7 +28,7 @@ Submit a new library location with a photo. The library starts in **pending** st
 | `brand` | string | No | Network or brand name (max 255 chars) |
 | `latitude` | float | Yes | Latitude (-90 to 90, WGS 84) |
 | `longitude` | float | Yes | Longitude (-180 to 180, WGS 84) |
-| `photo` | file | Yes | Photo of the library (JPEG/PNG, max 8 MB) |
+| `photo` | file | Yes | Photo of the library (JPEG/PNG/WEBP, max 8 MB) |
 
 ## Examples
 

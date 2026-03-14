@@ -60,6 +60,9 @@ jobs:
       - name: Run test suite
         run: uvx nox -s tests
 
+      - name: Validate OpenAPI schema
+        run: uvx nox -s validate_openapi
+
   deploy:
     needs: tests
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'

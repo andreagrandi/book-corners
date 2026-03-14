@@ -1,12 +1,20 @@
 # Changelog
 
+## v1.3.0
+
+- Community photo endpoint (`POST /api/v1/libraries/{slug}/photo`) is now documented
+- Fixed `q` search parameter description: searches name and description (not address)
+- Fixed image format documentation: JPEG/PNG/WEBP accepted (not just JPEG/PNG)
+- Fixed `GET /api/v1/statistics/` path in docs (was missing `/api/v1/` prefix)
+- Added `POST /libraries/{slug}/photo` and `GET /statistics/` to rate-limiting documentation
+
 ## v1.2.0
 
 - Login endpoint (`POST /auth/login`) now accepts email address in the `username` field, matching the web login flow. Email lookup is case-insensitive and the identifier is trimmed before authentication.
 
 ## v1.1.0
 
-- Public statistics endpoint (`GET /statistics/`) with totals, top countries, and cumulative growth series
+- Public statistics endpoint (`GET /api/v1/statistics/`) with totals, top countries, and cumulative growth series
 - Community photo submissions count towards the "libraries with photos" statistic
 
 ## v1.0.0

@@ -23,7 +23,7 @@ All API errors return a consistent JSON structure, making it straightforward to 
 | `400` | Bad Request | Invalid input (bad email, duplicate username, unsupported photo format) |
 | `401` | Unauthorized | Missing/invalid JWT token, or bad credentials on login |
 | `404` | Not Found | Library slug doesn't exist or isn't visible to the current user |
-| `413` | Payload Too Large | Uploaded photo exceeds the size limit (8 MB for libraries, 5 MB for reports) |
+| `413` | Payload Too Large | Uploaded photo exceeds the size limit (8 MB for libraries and community photos, 5 MB for reports) |
 | `422` | Unprocessable Entity | Request validation failed (missing required fields, out-of-range values) |
 | `429` | Too Many Requests | Rate limit exceeded (see [Rate Limiting](rate-limiting.md)) |
 | `500` | Internal Server Error | Unexpected server error |

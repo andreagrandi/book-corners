@@ -12,7 +12,7 @@ Return a paginated list of approved libraries with optional search filters.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `q` | string | — | Free-text search across name, description, and address (max 200 chars) |
+| `q` | string | — | Free-text search across name and description (max 200 chars) |
 | `city` | string | — | Filter by city name (case-insensitive, max 100 chars) |
 | `country` | string | — | Filter by ISO 3166-1 alpha-2 country code (max 2 chars) |
 | `postal_code` | string | — | Filter by postal / ZIP code (max 20 chars) |
