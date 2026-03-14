@@ -211,17 +211,13 @@
                   "type": "null"
                 }
               ],
-              "description": "Free-text search query matched against name, description, and address.",
-              "examples": [
-                "corner books"
-              ],
+              "description": "Free-text search query matched against name and description.",
+              "example": "corner books",
               "title": "Q"
             },
             "required": false,
-            "description": "Free-text search query matched against name, description, and address.",
-            "examples": [
-              "corner books"
-            ]
+            "description": "Free-text search query matched against name and description.",
+            "example": "corner books"
           },
           {
             "in": "query",
@@ -237,16 +233,12 @@
                 }
               ],
               "description": "Filter by exact city name (case-insensitive).",
-              "examples": [
-                "Berlin"
-              ],
+              "example": "Berlin",
               "title": "City"
             },
             "required": false,
             "description": "Filter by exact city name (case-insensitive).",
-            "examples": [
-              "Berlin"
-            ]
+            "example": "Berlin"
           },
           {
             "in": "query",
@@ -262,16 +254,12 @@
                 }
               ],
               "description": "Filter by ISO 3166-1 alpha-2 country code.",
-              "examples": [
-                "DE"
-              ],
+              "example": "DE",
               "title": "Country"
             },
             "required": false,
             "description": "Filter by ISO 3166-1 alpha-2 country code.",
-            "examples": [
-              "DE"
-            ]
+            "example": "DE"
           },
           {
             "in": "query",
@@ -287,16 +275,12 @@
                 }
               ],
               "description": "Filter by postal or ZIP code.",
-              "examples": [
-                "10117"
-              ],
+              "example": "10117",
               "title": "Postal Code"
             },
             "required": false,
             "description": "Filter by postal or ZIP code.",
-            "examples": [
-              "10117"
-            ]
+            "example": "10117"
           },
           {
             "in": "query",
@@ -313,16 +297,12 @@
                 }
               ],
               "description": "Latitude for proximity search (requires lng and radius_km).",
-              "examples": [
-                52.52
-              ],
+              "example": 52.52,
               "title": "Lat"
             },
             "required": false,
             "description": "Latitude for proximity search (requires lng and radius_km).",
-            "examples": [
-              52.52
-            ]
+            "example": 52.52
           },
           {
             "in": "query",
@@ -339,16 +319,12 @@
                 }
               ],
               "description": "Longitude for proximity search (requires lat and radius_km).",
-              "examples": [
-                13.405
-              ],
+              "example": 13.405,
               "title": "Lng"
             },
             "required": false,
             "description": "Longitude for proximity search (requires lat and radius_km).",
-            "examples": [
-              13.405
-            ]
+            "example": 13.405
           },
           {
             "in": "query",
@@ -365,16 +341,12 @@
                 }
               ],
               "description": "Search radius in kilometres (requires lat and lng).",
-              "examples": [
-                5
-              ],
+              "example": 5,
               "title": "Radius Km"
             },
             "required": false,
             "description": "Search radius in kilometres (requires lat and lng).",
-            "examples": [
-              5
-            ]
+            "example": 5
           },
           {
             "in": "query",
@@ -400,9 +372,7 @@
             "schema": {
               "default": 1,
               "description": "Page number to retrieve (1-indexed).",
-              "examples": [
-                1
-              ],
+              "example": 1,
               "maximum": 1000,
               "minimum": 1,
               "title": "Page",
@@ -410,9 +380,7 @@
             },
             "required": false,
             "description": "Page number to retrieve (1-indexed).",
-            "examples": [
-              1
-            ]
+            "example": 1
           },
           {
             "in": "query",
@@ -420,9 +388,7 @@
             "schema": {
               "default": 20,
               "description": "Number of items per page.",
-              "examples": [
-                20
-              ],
+              "example": 20,
               "maximum": 50,
               "minimum": 1,
               "title": "Page Size",
@@ -430,9 +396,7 @@
             },
             "required": false,
             "description": "Number of items per page.",
-            "examples": [
-              20
-            ]
+            "example": 20
           }
         ],
         "responses": {
@@ -1331,10 +1295,8 @@
                 "type": "null"
               }
             ],
-            "description": "Free-text search query matched against name, description, and address.",
-            "examples": [
-              "corner books"
-            ],
+            "description": "Free-text search query matched against name and description.",
+            "example": "corner books",
             "title": "Q"
           },
           "city": {
@@ -1348,9 +1310,7 @@
               }
             ],
             "description": "Filter by exact city name (case-insensitive).",
-            "examples": [
-              "Berlin"
-            ],
+            "example": "Berlin",
             "title": "City"
           },
           "country": {
@@ -1364,9 +1324,7 @@
               }
             ],
             "description": "Filter by ISO 3166-1 alpha-2 country code.",
-            "examples": [
-              "DE"
-            ],
+            "example": "DE",
             "title": "Country"
           },
           "postal_code": {
@@ -1380,9 +1338,7 @@
               }
             ],
             "description": "Filter by postal or ZIP code.",
-            "examples": [
-              "10117"
-            ],
+            "example": "10117",
             "title": "Postal Code"
           },
           "lat": {
@@ -1397,9 +1353,7 @@
               }
             ],
             "description": "Latitude for proximity search (requires lng and radius_km).",
-            "examples": [
-              52.52
-            ],
+            "example": 52.52,
             "title": "Lat"
           },
           "lng": {
@@ -1414,9 +1368,7 @@
               }
             ],
             "description": "Longitude for proximity search (requires lat and radius_km).",
-            "examples": [
-              13.405
-            ],
+            "example": 13.405,
             "title": "Lng"
           },
           "radius_km": {
@@ -1431,9 +1383,7 @@
               }
             ],
             "description": "Search radius in kilometres (requires lat and lng).",
-            "examples": [
-              5
-            ],
+            "example": 5,
             "title": "Radius Km"
           },
           "has_photo": {
@@ -1451,9 +1401,7 @@
           "page": {
             "default": 1,
             "description": "Page number to retrieve (1-indexed).",
-            "examples": [
-              1
-            ],
+            "example": 1,
             "maximum": 1000,
             "minimum": 1,
             "title": "Page",
@@ -1462,9 +1410,7 @@
           "page_size": {
             "default": 20,
             "description": "Number of items per page.",
-            "examples": [
-              20
-            ],
+            "example": 20,
             "maximum": 50,
             "minimum": 1,
             "title": "Page Size",
