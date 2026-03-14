@@ -101,3 +101,4 @@ Public endpoints like listing libraries don't require authentication:
 - [Authentication](authentication.md) — full token lifecycle details
 - [List & Search](libraries/list-and-search.md) — all search and filter options
 - [Submit a Library](libraries/submit.md) — add a new library with a photo
+- [Submit a Community Photo](libraries/submit-photo.md) — add a photo to an existing library

@@ -1239,22 +1239,22 @@ preparing the project for a larger dataset before adding another major surface a
 
 ##### 7.2.3 — API/docs parity and contract validation
 
-- [ ] Fix docs drift where prose docs and actual behavior disagree
-- [ ] Align search docs with the real search implementation (or expand implementation to match the docs)
-- [ ] Update upload docs to reflect all accepted image formats
-- [ ] Correct statistics docs and changelog entries to use the actual routed API paths
-- [ ] Add a prose docs page for `POST /api/v1/libraries/{slug}/photo`
-- [ ] Add OpenAPI schema validation in CI
-- [ ] Add an end-to-end API integration test covering:
-  - [ ] register
-  - [ ] login
-  - [ ] submit library
-  - [ ] list
-  - [ ] search
-  - [ ] detail
-  - [ ] report
-  - [ ] community photo submission
-- [ ] Regenerate `docs/openapi.json` whenever API code or API docs change
+- [x] Fix docs drift where prose docs and actual behavior disagree
+- [x] Align search docs with the real search implementation (or expand implementation to match the docs)
+- [x] Update upload docs to reflect all accepted image formats
+- [x] Correct statistics docs and changelog entries to use the actual routed API paths
+- [x] Add a prose docs page for `POST /api/v1/libraries/{slug}/photo`
+- [x] Add OpenAPI schema validation in CI
+- [x] Add an end-to-end API integration test covering:
+  - [x] register
+  - [x] login
+  - [x] submit library
+  - [x] list
+  - [x] search
+  - [x] detail
+  - [x] report
+  - [x] community photo submission
+- [x] Regenerate `docs/openapi.json` whenever API code or API docs change
 
 ##### 7.2.4 — Search quality and indexing
 

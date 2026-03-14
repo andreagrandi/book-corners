@@ -18,4 +18,5 @@ sqlparse==0.5.5
 structlog==25.5.0
 sentry-sdk[django]==2.54.0
 openai==2.24.0
+openapi-spec-validator==0.7.1
 whitenoise==6.12.0

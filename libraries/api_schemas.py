@@ -102,16 +102,16 @@ class LibrarySearchParams(Schema):
     """Query parameters for searching and filtering libraries.
     Validates bounds and defaults for pagination and geospatial queries."""
 
-    q: str | None = Field(default=None, max_length=200, description="Free-text search query matched against name, description, and address.", examples=["corner books"])
-    city: str | None = Field(default=None, max_length=100, description="Filter by exact city name (case-insensitive).", examples=["Berlin"])
-    country: str | None = Field(default=None, max_length=2, description="Filter by ISO 3166-1 alpha-2 country code.", examples=["DE"])
-    postal_code: str | None = Field(default=None, max_length=20, description="Filter by postal or ZIP code.", examples=["10117"])
-    lat: float | None = Field(default=None, ge=-90, le=90, description="Latitude for proximity search (requires lng and radius_km).", examples=[52.5200])
-    lng: float | None = Field(default=None, ge=-180, le=180, description="Longitude for proximity search (requires lat and radius_km).", examples=[13.4050])
-    radius_km: int | None = Field(default=None, ge=1, le=100, description="Search radius in kilometres (requires lat and lng).", examples=[5])
+    q: str | None = Field(default=None, max_length=200, description="Free-text search query matched against name and description.", json_schema_extra={"example": "corner books"})
+    city: str | None = Field(default=None, max_length=100, description="Filter by exact city name (case-insensitive).", json_schema_extra={"example": "Berlin"})
+    country: str | None = Field(default=None, max_length=2, description="Filter by ISO 3166-1 alpha-2 country code.", json_schema_extra={"example": "DE"})
+    postal_code: str | None = Field(default=None, max_length=20, description="Filter by postal or ZIP code.", json_schema_extra={"example": "10117"})
+    lat: float | None = Field(default=None, ge=-90, le=90, description="Latitude for proximity search (requires lng and radius_km).", json_schema_extra={"example": 52.52})
+    lng: float | None = Field(default=None, ge=-180, le=180, description="Longitude for proximity search (requires lat and radius_km).", json_schema_extra={"example": 13.405})
+    radius_km: int | None = Field(default=None, ge=1, le=100, description="Search radius in kilometres (requires lat and lng).", json_schema_extra={"example": 5})
     has_photo: bool | None = Field(default=None, description="Filter by photo presence: true for libraries with a photo, false for those without.")
-    page: int = Field(default=1, ge=1, le=1000, description="Page number to retrieve (1-indexed).", examples=[1])
-    page_size: int = Field(default=20, ge=1, le=50, description="Number of items per page.", examples=[20])
+    page: int = Field(default=1, ge=1, le=1000, description="Page number to retrieve (1-indexed).", json_schema_extra={"example": 1})
+    page_size: int = Field(default=20, ge=1, le=50, description="Number of items per page.", json_schema_extra={"example": 20})
 
 
 class LibrarySubmitIn(Schema):
