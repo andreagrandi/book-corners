@@ -34,7 +34,7 @@ def analyze_library_image(image_path: Path, library) -> dict | None:
             base_url=OPENROUTER_BASE_URL,
         )
 
-        model = getattr(settings, "OPENROUTER_MODEL", "anthropic/claude-haiku-4.5")
+        model = getattr(settings, "OPENROUTER_MODEL", "openai/gpt-5.4-mini")
         prompt = (
             f"You are analyzing a photo of a little free library (book exchange box). "
             f"Context: the library is named '{library.name}' in {library.city}, "
