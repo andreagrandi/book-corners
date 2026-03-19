@@ -8,6 +8,7 @@ from django.views.decorators.http import require_POST
 from django.views.i18n import set_language
 
 from users.forms import RegistrationForm, UsernameOrEmailAuthenticationForm
+from users.notifications import notify_new_registration
 from users.security import is_auth_rate_limited
 
 
@@ -70,6 +71,7 @@ def register_view(request: HttpRequest) -> HttpResponse:
 
     if request.method == "POST" and form.is_valid():
         user = form.save()
+        notify_new_registration(user, via="email")
         login(request=request, user=user, backend="django.contrib.auth.backends.ModelBackend")
         return redirect("home")
 

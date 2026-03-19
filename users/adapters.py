@@ -7,6 +7,8 @@ from django.db import IntegrityError, transaction
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 
+from users.notifications import notify_new_registration
+
 User = get_user_model()
 
 
@@ -91,7 +93,9 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         Recovers from race conditions on email or username collisions."""
         try:
             with transaction.atomic():
-                return super().save_user(request, sociallogin, form=form)
+                user = super().save_user(request, sociallogin, form=form)
+            notify_new_registration(user, via="Google OAuth")
+            return user
         except IntegrityError:
             # Another request created the user between our check and insert.
             # Look up the winner by email and connect to them instead.
