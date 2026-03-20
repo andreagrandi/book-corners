@@ -335,12 +335,23 @@ SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
 if SENTRY_DSN:
     import sentry_sdk
 
+    from django.core.exceptions import DisallowedHost
+
+    def _sentry_before_send(event, hint):
+        """Drop DisallowedHost errors to avoid wasting Sentry quota on bot noise."""
+        if "exc_info" in hint:
+            exc_type = hint["exc_info"][0]
+            if exc_type is DisallowedHost:
+                return None
+        return event
+
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         release=os.environ.get("GIT_REV", ""),
         environment="production" if not DEBUG else "development",
         traces_sample_rate=0.1,
         send_default_pii=False,
+        before_send=_sentry_before_send,
     )
 
 LOGGING = {
