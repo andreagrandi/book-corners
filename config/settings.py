@@ -151,6 +151,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "libraries.middleware.APICacheControlMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
