@@ -1349,3 +1349,73 @@ preparing the project for a larger dataset before adding another major surface a
 - [ ] Every sandbox deploy gets a fresh or sanitized DB refresh
 - [ ] `sandbox.mywebsite.com` consistently points to the latest eligible PR deploy
 - [ ] Deploy logs and smoke results are visible in Actions and linked from the PR
+
+---
+
+### Phase 9 — API Response Caching (Backend + Cloudflare)
+
+**Goal:** Add `Cache-Control` headers to read-only API endpoints so that clients (iOS
+URLSession, browsers) and Cloudflare edge cache responses automatically. Zero client-side
+code needed.
+
+**File:** `libraries/api.py`
+
+#### 9.1 — Add Cache-Control headers to read-only endpoints
+
+```python
+from django.views.decorators.cache import cache_control
+```
+
+- [x] `GET /libraries/` — `@cache_control(public=True, max_age=120, s_maxage=120)` (2 min)
+- [x] `GET /libraries/latest` — `@cache_control(public=True, max_age=300, s_maxage=300)` (5 min)
+- [x] `GET /libraries/{slug}` — `@cache_control(public=True, max_age=300, s_maxage=300)` (5 min)
+- [x] `GET /statistics/` — `@cache_control(public=True, max_age=900, s_maxage=900)` (15 min)
+
+`max_age` controls client cache TTL; `s_maxage` controls Cloudflare/proxy cache TTL.
+
+**Do NOT cache:** POST endpoints (submit, report, photo), auth endpoints.
+
+**Django Ninja note:** `@router.get()` must be the outermost decorator:
+
+```python
+@library_router.get("/latest", response=..., auth=None)
+@cache_control(public=True, max_age=300, s_maxage=300)
+def latest_libraries(request, ...):
+```
+
+#### 9.2 — Configure Cloudflare Cache Rule (free plan)
+
+Cloudflare only caches static file extensions by default — not API JSON responses.
+Create a Cache Rule in the Cloudflare Dashboard:
+
+- **Dashboard:** Caching → Cache Rules → Create rule
+- **When:** URI path starts with `/api/v1/` AND request method equals `GET`
+- **Then:** Cache eligible, respect origin cache headers
+
+This tells Cloudflare to cache GET API responses using the `Cache-Control` headers
+from Django. No page rules consumed.
+
+#### 9.3 — Verification
+
+- [ ] `curl -sI "https://bookcorners.org/api/v1/libraries/" | grep -i 'cache-control\|cf-cache-status'`
+- [ ] Expected: `Cache-Control: public, max-age=120, s-maxage=120`
+- [ ] Second request: `CF-Cache-Status: HIT`
+
+#### 9.4 — Add `search` parameter to API (OR across fields)
+
+The iOS simple search box currently uses `q` which only searches name/description.
+Add a new `search` parameter that ORs across name, description, city, address, postal_code:
+
+```python
+if search:
+    queryset = queryset.filter(
+        Q(name__icontains=search) |
+        Q(description__icontains=search) |
+        Q(city__icontains=search) |
+        Q(address__icontains=search) |
+        Q(postal_code__icontains=search)
+    )
+```
+
+- [ ] Add `search` param to `LibrarySearchParams` schema
+- [ ] Add OR filter logic in `run_library_search()` in `libraries/search.py`
