@@ -199,6 +199,13 @@ class TimeSeriesPointOut(Schema):
     cumulative_count: int = Field(description="Running total of approved libraries up to this period.", examples=[128])
 
 
+class CountryListOut(Schema):
+    """List of all countries that have at least one approved library.
+    Wraps country statistics in a flat items list."""
+
+    items: list[CountryStatOut] = Field(description="All countries with approved libraries, ordered by count descending.")
+
+
 class StatisticsOut(Schema):
     """Aggregate platform statistics for approved libraries.
     Includes totals, geographic breakdown, and growth over time."""

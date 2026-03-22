@@ -1419,3 +1419,22 @@ if search:
 
 - [ ] Add `search` param to `LibrarySearchParams` schema
 - [ ] Add OR filter logic in `run_library_search()` in `libraries/search.py`
+
+#### 9.5 — Add `GET /libraries/countries/` endpoint
+
+The iOS map filter needs a country picker showing all countries that have at least one
+approved library. The current `/statistics/` endpoint only returns the top 10 countries.
+
+Add a lightweight endpoint that returns all distinct countries with counts, using the
+same query pattern as `top_countries` in `stats.py` but without the `[:10]` limit.
+
+Response: `{ "items": [{ "country_code": "FR", "country_name": "France", "flag_emoji": "🇫🇷", "count": 15925 }, ...] }`
+
+The list should be ordered by count descending (most libraries first).
+
+- [x] Add `CountryListOut` schema in `api_schemas.py` (reuse `CountryStatOut`)
+- [x] Add `get_countries()` helper in `stats.py` — same query as `top_countries_raw` but no `[:10]`
+- [x] Add `GET /libraries/countries/` endpoint in `api.py`
+- [x] Add cache header (1 hour — country list changes infrequently)
+- [x] Add test: returns all countries with approved libraries
+- [x] Add test: empty DB returns empty list

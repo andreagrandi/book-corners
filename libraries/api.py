@@ -13,6 +13,7 @@ from config.api_schemas import ErrorOut
 from libraries.api_auth import get_optional_jwt_user
 from libraries.api_pagination import paginate_queryset
 from libraries.api_schemas import (
+    CountryListOut,
     LatestLibrariesOut,
     LibraryListOut,
     LibraryOut,
@@ -25,7 +26,7 @@ from libraries.api_schemas import (
     StatisticsOut,
 )
 from libraries.api_security import is_api_rate_limited
-from libraries.stats import build_stats_data
+from libraries.stats import build_stats_data, get_countries
 from libraries.forms import _validate_uploaded_photo
 from libraries.models import Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
 from libraries.notifications import notify_new_library, notify_new_photo, notify_new_report
@@ -91,6 +92,25 @@ def latest_libraries(
         queryset = queryset.filter(photo="")
     queryset = queryset[:limit]
     return 200, {"items": list(queryset)}
+
+
+@library_router.get("/countries/", response={200: CountryListOut, 429: ErrorOut}, auth=None, summary="List all countries with libraries")
+def list_countries(request):
+    """Return all countries that have at least one approved library.
+    Ordered by library count descending, without a top-N limit."""
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-library-countries",
+        max_requests=settings.API_RATE_LIMIT_READ_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    countries = get_countries()
+    return 200, {"items": countries}
 
 
 @library_router.get("/{slug}", response={200: LibraryOut, 404: ErrorOut, 429: ErrorOut}, auth=None, summary="Get a library by slug")
