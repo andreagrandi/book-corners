@@ -8,7 +8,7 @@ All windows are **5 minutes** (300 seconds).
 
 | Tier | Endpoints | Max requests per window |
 |------|-----------|------------------------|
-| **Read** | `GET /libraries/`, `GET /libraries/latest`, `GET /libraries/{slug}`, `GET /statistics/` | 60 |
+| **Read** | `GET /libraries/`, `GET /libraries/latest`, `GET /libraries/{slug}`, `GET /libraries/countries/`, `GET /statistics/` | 60 |
 | **Write** | `POST /libraries/`, `POST /libraries/{slug}/report`, `POST /libraries/{slug}/photo` | 10 |
 | **Auth — Login** | `POST /auth/login` | 10 |
 | **Auth — Register** | `POST /auth/register` | 5 |

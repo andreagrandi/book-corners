@@ -21,6 +21,30 @@ def country_code_to_flag_emoji(*, country_code: str) -> str:
     return "".join(chr(0x1F1E6 + ord(c) - ord("A")) for c in country_code.upper())
 
 
+def get_countries() -> list[dict]:
+    """Return all countries with at least one approved library.
+    Ordered by count descending, without the top-10 limit."""
+    approved_qs = Library.objects.filter(status=Library.Status.APPROVED)
+    countries_raw = (
+        approved_qs
+        .values("country")
+        .annotate(count=Count("id"))
+        .order_by("-count")
+    )
+    countries = []
+    for entry in countries_raw:
+        code = entry["country"]
+        py_country = pycountry.countries.get(alpha_2=code)
+        country_name = py_country.name if py_country else code
+        countries.append({
+            "country_code": code,
+            "country_name": country_name,
+            "flag_emoji": country_code_to_flag_emoji(country_code=code),
+            "count": entry["count"],
+        })
+    return countries
+
+
 def build_stats_data() -> dict:
     """Compute aggregate statistics about approved libraries.
     Returns cached data with counts, country breakdown, and growth series."""

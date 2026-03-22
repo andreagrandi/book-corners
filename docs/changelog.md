@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.4.0
+
+- Country list endpoint (`GET /api/v1/libraries/countries/`) returns all countries with approved libraries and counts, ordered by count descending
+
 ## v1.3.0
 
 - Community photo endpoint (`POST /api/v1/libraries/{slug}/photo`) is now documented

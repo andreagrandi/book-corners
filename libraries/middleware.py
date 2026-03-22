@@ -6,6 +6,7 @@ from django.utils.cache import patch_cache_control
 # Only applied to GET requests that return 2xx responses.
 _API_CACHE_RULES = [
     ("/api/v1/statistics/", True, 900, 900),
+    ("/api/v1/libraries/countries/", True, 3600, 3600),
     ("/api/v1/libraries/latest", True, 300, 300),
     ("/api/v1/libraries/", True, 120, 120),
 ]

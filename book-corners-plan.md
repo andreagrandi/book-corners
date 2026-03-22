@@ -1432,9 +1432,9 @@ Response: `{ "items": [{ "country_code": "FR", "country_name": "France", "flag_e
 
 The list should be ordered by count descending (most libraries first).
 
-- [ ] Add `CountryListOut` schema in `api_schemas.py` (reuse `CountryStatOut`)
-- [ ] Add `get_countries()` helper in `stats.py` — same query as `top_countries_raw` but no `[:10]`
-- [ ] Add `GET /libraries/countries/` endpoint in `api.py`
-- [ ] Add cache header (1 hour — country list changes infrequently)
-- [ ] Add test: returns all countries with approved libraries
-- [ ] Add test: empty DB returns empty list
+- [x] Add `CountryListOut` schema in `api_schemas.py` (reuse `CountryStatOut`)
+- [x] Add `get_countries()` helper in `stats.py` — same query as `top_countries_raw` but no `[:10]`
+- [x] Add `GET /libraries/countries/` endpoint in `api.py`
+- [x] Add cache header (1 hour — country list changes infrequently)
+- [x] Add test: returns all countries with approved libraries
+- [x] Add test: empty DB returns empty list
