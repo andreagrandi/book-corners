@@ -744,6 +744,39 @@
         ]
       }
     },
+    "/api/v1/libraries/countries/": {
+      "get": {
+        "operationId": "libraries_api_list_countries",
+        "summary": "List all countries with libraries",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CountryListOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return all countries that have at least one approved library.\nOrdered by library count descending, without a top-N limit.",
+        "tags": [
+          "libraries"
+        ]
+      }
+    },
     "/api/v1/libraries/{slug}": {
       "get": {
         "operationId": "libraries_api_get_library",
@@ -1940,6 +1973,69 @@
         "title": "LatestLibrariesOut",
         "type": "object"
       },
+      "CountryListOut": {
+        "description": "List of all countries that have at least one approved library.\nWraps country statistics in a flat items list.",
+        "properties": {
+          "items": {
+            "description": "All countries with approved libraries, ordered by count descending.",
+            "items": {
+              "$ref": "#/components/schemas/CountryStatOut"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "CountryListOut",
+        "type": "object"
+      },
+      "CountryStatOut": {
+        "description": "Statistics for a single country in the top-countries ranking.\nIncludes display-friendly name and flag emoji.",
+        "properties": {
+          "country_code": {
+            "description": "ISO 3166-1 alpha-2 country code.",
+            "examples": [
+              "DE"
+            ],
+            "title": "Country Code",
+            "type": "string"
+          },
+          "country_name": {
+            "description": "Human-readable country name.",
+            "examples": [
+              "Germany"
+            ],
+            "title": "Country Name",
+            "type": "string"
+          },
+          "flag_emoji": {
+            "description": "Unicode flag emoji for the country.",
+            "examples": [
+              "🇩🇪"
+            ],
+            "title": "Flag Emoji",
+            "type": "string"
+          },
+          "count": {
+            "description": "Number of approved libraries in this country.",
+            "examples": [
+              42
+            ],
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "country_code",
+          "country_name",
+          "flag_emoji",
+          "count"
+        ],
+        "title": "CountryStatOut",
+        "type": "object"
+      },
       "ReportOut": {
         "description": "Serialized representation of a submitted report.\nReturns confirmation data after successful report creation.",
         "properties": {
@@ -2077,51 +2173,6 @@
           }
         },
         "title": "LibraryPhotoIn",
-        "type": "object"
-      },
-      "CountryStatOut": {
-        "description": "Statistics for a single country in the top-countries ranking.\nIncludes display-friendly name and flag emoji.",
-        "properties": {
-          "country_code": {
-            "description": "ISO 3166-1 alpha-2 country code.",
-            "examples": [
-              "DE"
-            ],
-            "title": "Country Code",
-            "type": "string"
-          },
-          "country_name": {
-            "description": "Human-readable country name.",
-            "examples": [
-              "Germany"
-            ],
-            "title": "Country Name",
-            "type": "string"
-          },
-          "flag_emoji": {
-            "description": "Unicode flag emoji for the country.",
-            "examples": [
-              "🇩🇪"
-            ],
-            "title": "Flag Emoji",
-            "type": "string"
-          },
-          "count": {
-            "description": "Number of approved libraries in this country.",
-            "examples": [
-              42
-            ],
-            "title": "Count",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "country_code",
-          "country_name",
-          "flag_emoji",
-          "count"
-        ],
-        "title": "CountryStatOut",
         "type": "object"
       },
       "StatisticsOut": {
