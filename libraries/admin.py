@@ -358,6 +358,7 @@ class ReportAdmin(admin.ModelAdmin):
     list_select_related = ["library", "created_by"]
     search_fields = ["details"]
     readonly_fields = ["created_at"]
+    autocomplete_fields = ["library"]
     actions = ["resolve_reports", "dismiss_reports"]
 
     @admin.action(description="Resolve selected reports")
