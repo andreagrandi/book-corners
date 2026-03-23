@@ -1523,3 +1523,187 @@ def _mock_response(*, json_data=None, status_code=200, raise_on_status=False):
         status_code=status_code,
         should_raise=raise_on_status,
     )
+
+
+class TestIsTransientError:
+    """Tests for the _is_transient_error helper function."""
+
+    def test_connection_error_is_transient(self):
+        """Verify that connection errors are classified as transient."""
+        from requests.exceptions import ConnectionError as ReqConnError
+
+        from libraries.management.commands.post_random_library import _is_transient_error
+
+        assert _is_transient_error(ReqConnError()) is True
+
+    def test_timeout_is_transient(self):
+        """Verify that timeouts are classified as transient."""
+        from requests.exceptions import Timeout
+
+        from libraries.management.commands.post_random_library import _is_transient_error
+
+        assert _is_transient_error(Timeout()) is True
+
+    def test_503_http_error_is_transient(self):
+        """Verify that 503 Service Unavailable is classified as transient."""
+        import requests
+
+        from libraries.management.commands.post_random_library import _is_transient_error
+
+        response = _MockResponse(status_code=503, should_raise=True)
+        exc = requests.HTTPError(response=response)
+        assert _is_transient_error(exc) is True
+
+    def test_429_http_error_is_transient(self):
+        """Verify that 429 Too Many Requests is classified as transient."""
+        import requests
+
+        from libraries.management.commands.post_random_library import _is_transient_error
+
+        response = _MockResponse(status_code=429, should_raise=True)
+        exc = requests.HTTPError(response=response)
+        assert _is_transient_error(exc) is True
+
+    def test_401_http_error_is_not_transient(self):
+        """Verify that 401 Unauthorized is not classified as transient."""
+        import requests
+
+        from libraries.management.commands.post_random_library import _is_transient_error
+
+        response = _MockResponse(status_code=401, should_raise=True)
+        exc = requests.HTTPError(response=response)
+        assert _is_transient_error(exc) is False
+
+    def test_value_error_is_not_transient(self):
+        """Verify that non-HTTP errors are not classified as transient."""
+        from libraries.management.commands.post_random_library import _is_transient_error
+
+        assert _is_transient_error(ValueError("bad input")) is False
+
+
+@pytest.mark.django_db
+class TestPostWithRetry:
+    """Tests for the retry logic in the post_random_library command."""
+
+    @override_settings(
+        MASTODON_INSTANCE_URL="https://mastodon.test",
+        MASTODON_ACCESS_TOKEN="test-token",
+        BLUESKY_HANDLE="",
+        BLUESKY_APP_PASSWORD="",
+        INSTAGRAM_USER_ID="",
+        INSTAGRAM_ACCESS_TOKEN="",
+        SITE_URL="https://bookcorners.org",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        ADMIN_NOTIFICATION_EMAIL="admin@test.com",
+    )
+    @patch("libraries.management.commands.post_random_library.time.sleep")
+    @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
+    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    def test_retries_on_transient_error_then_succeeds(
+        self, mock_photo, mock_mastodon, mock_sleep, approved_library,
+    ):
+        """Verify that a transient 503 triggers a retry and succeeds on second attempt."""
+        import requests
+
+        mock_photo.return_value = Path("/tmp/test.jpg")
+        error_response = _MockResponse(status_code=503)
+        mock_mastodon.side_effect = [
+            requests.HTTPError(response=error_response),
+            "https://mastodon.test/@user/123",
+        ]
+
+        call_command("post_random_library")
+
+        assert mock_mastodon.call_count == 2
+        mock_sleep.assert_called_once_with(120)
+        assert SocialPost.objects.count() == 1
+        assert SocialPost.objects.first().mastodon_url == "https://mastodon.test/@user/123"
+
+    @override_settings(
+        MASTODON_INSTANCE_URL="https://mastodon.test",
+        MASTODON_ACCESS_TOKEN="test-token",
+        BLUESKY_HANDLE="",
+        BLUESKY_APP_PASSWORD="",
+        INSTAGRAM_USER_ID="",
+        INSTAGRAM_ACCESS_TOKEN="",
+        SITE_URL="https://bookcorners.org",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        ADMIN_NOTIFICATION_EMAIL="admin@test.com",
+    )
+    @patch("libraries.management.commands.post_random_library.time.sleep")
+    @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
+    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    def test_does_not_retry_on_client_error(
+        self, mock_photo, mock_mastodon, mock_sleep, approved_library,
+    ):
+        """Verify that a 401 client error is not retried."""
+        import requests
+
+        mock_photo.return_value = Path("/tmp/test.jpg")
+        error_response = _MockResponse(status_code=401)
+        mock_mastodon.side_effect = requests.HTTPError(response=error_response)
+
+        call_command("post_random_library")
+
+        assert mock_mastodon.call_count == 1
+        mock_sleep.assert_not_called()
+        assert SocialPost.objects.count() == 0
+
+    @override_settings(
+        MASTODON_INSTANCE_URL="https://mastodon.test",
+        MASTODON_ACCESS_TOKEN="test-token",
+        BLUESKY_HANDLE="",
+        BLUESKY_APP_PASSWORD="",
+        INSTAGRAM_USER_ID="",
+        INSTAGRAM_ACCESS_TOKEN="",
+        SITE_URL="https://bookcorners.org",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        ADMIN_NOTIFICATION_EMAIL="admin@test.com",
+    )
+    @patch("libraries.management.commands.post_random_library.time.sleep")
+    @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
+    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    def test_exhausts_retries_and_reports_error(
+        self, mock_photo, mock_mastodon, mock_sleep, approved_library,
+    ):
+        """Verify that after all retry attempts are exhausted the error is reported."""
+        import requests
+
+        mock_photo.return_value = Path("/tmp/test.jpg")
+        error_response = _MockResponse(status_code=503)
+        mock_mastodon.side_effect = requests.HTTPError(response=error_response)
+
+        call_command("post_random_library")
+
+        assert mock_mastodon.call_count == 3
+        assert mock_sleep.call_count == 2
+        mock_sleep.assert_any_call(120)
+        mock_sleep.assert_any_call(240)
+        assert SocialPost.objects.count() == 0
+
+    @override_settings(
+        MASTODON_INSTANCE_URL="https://mastodon.test",
+        MASTODON_ACCESS_TOKEN="test-token",
+        BLUESKY_HANDLE="",
+        BLUESKY_APP_PASSWORD="",
+        INSTAGRAM_USER_ID="",
+        INSTAGRAM_ACCESS_TOKEN="",
+        SITE_URL="https://bookcorners.org",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        ADMIN_NOTIFICATION_EMAIL="admin@test.com",
+    )
+    @patch("libraries.management.commands.post_random_library.time.sleep")
+    @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
+    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    def test_succeeds_on_first_attempt_no_retry(
+        self, mock_photo, mock_mastodon, mock_sleep, approved_library,
+    ):
+        """Verify that a successful first attempt does not trigger any retry logic."""
+        mock_photo.return_value = Path("/tmp/test.jpg")
+        mock_mastodon.return_value = "https://mastodon.test/@user/123"
+
+        call_command("post_random_library")
+
+        assert mock_mastodon.call_count == 1
+        mock_sleep.assert_not_called()
+        assert SocialPost.objects.count() == 1
