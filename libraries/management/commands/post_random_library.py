@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import logging
 import tempfile
+import time
 from pathlib import Path
+from typing import Callable
+
+from requests.exceptions import ConnectionError as RequestsConnectionError
+from requests.exceptions import HTTPError, Timeout
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -17,6 +22,19 @@ from libraries.social.text import build_hashtag_comment, build_post_text
 logger = logging.getLogger(__name__)
 
 PLATFORM_CHOICES = ("mastodon", "bluesky", "instagram")
+RETRY_MAX_ATTEMPTS = 3
+RETRY_BASE_DELAY_SECONDS = 120
+TRANSIENT_STATUS_CODES = {429, 500, 502, 503, 504}
+
+
+def _is_transient_error(exc: Exception) -> bool:
+    """Determine whether an exception represents a transient failure worth retrying.
+    Returns True for network errors and server-side HTTP errors."""
+    if isinstance(exc, (RequestsConnectionError, Timeout)):
+        return True
+    if isinstance(exc, HTTPError) and exc.response is not None:
+        return exc.response.status_code in TRANSIENT_STATUS_CODES
+    return False
 
 
 class Command(BaseCommand):
@@ -144,8 +162,11 @@ class Command(BaseCommand):
 
         try:
             if mastodon_configured:
-                mastodon_url = self._post_to_mastodon(
-                    library, post_text, image_path, alt_text=alt_text,
+                mastodon_url = self._post_with_retry(
+                    "Mastodon",
+                    lambda: self._post_to_mastodon(
+                        library, post_text, image_path, alt_text=alt_text,
+                    ),
                 )
                 logger.info("Posted to Mastodon: %s", mastodon_url)
             else:
@@ -156,9 +177,12 @@ class Command(BaseCommand):
 
         try:
             if bluesky_configured:
-                bluesky_url = self._post_to_bluesky(
-                    library, post_text, image_path,
-                    alt_text=alt_text, extra_hashtags=ai_hashtags or None,
+                bluesky_url = self._post_with_retry(
+                    "Bluesky",
+                    lambda: self._post_to_bluesky(
+                        library, post_text, image_path,
+                        alt_text=alt_text, extra_hashtags=ai_hashtags or None,
+                    ),
                 )
                 logger.info("Posted to Bluesky: %s", bluesky_url)
             else:
@@ -169,9 +193,12 @@ class Command(BaseCommand):
 
         try:
             if instagram_configured:
-                instagram_url = self._post_to_instagram(
-                    library, instagram_text, image_path,
-                    hashtag_comment=hashtag_comment,
+                instagram_url = self._post_with_retry(
+                    "Instagram",
+                    lambda: self._post_to_instagram(
+                        library, instagram_text, image_path,
+                        hashtag_comment=hashtag_comment,
+                    ),
                 )
                 logger.info("Posted to Instagram: %s", instagram_url)
             else:
@@ -205,6 +232,29 @@ class Command(BaseCommand):
             error_details = "\n".join(errors)
             self.stderr.write(f"Errors:\n{error_details}")
             notify_social_post_error(library, error_details)
+
+    def _post_with_retry(self, platform: str, post_fn: Callable[[], str]) -> str:
+        """Call a platform posting function with retry on transient errors.
+        Retries up to RETRY_MAX_ATTEMPTS times with linear backoff."""
+        last_exc: Exception | None = None
+        for attempt in range(1, RETRY_MAX_ATTEMPTS + 1):
+            try:
+                return post_fn()
+            except Exception as exc:
+                if not _is_transient_error(exc) or attempt == RETRY_MAX_ATTEMPTS:
+                    raise
+                last_exc = exc
+                delay = RETRY_BASE_DELAY_SECONDS * attempt
+                logger.warning(
+                    "%s posting failed (attempt %d/%d), retrying in %ds: %s",
+                    platform,
+                    attempt,
+                    RETRY_MAX_ATTEMPTS,
+                    delay,
+                    last_exc,
+                )
+                time.sleep(delay)
+        raise last_exc  # pragma: no cover
 
     def _is_instagram_configured(self) -> bool:
         """Check whether Instagram credentials are available.
