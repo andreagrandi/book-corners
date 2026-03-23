@@ -6,8 +6,8 @@
     "watch:css": "tailwindcss -i ./assets/css/input.css -o ./static/css/app.css --watch=always"
   },
   "devDependencies": {
-    "@tailwindcss/cli": "^4.2.1",
-    "@tailwindcss/postcss": "^4.2.1",
+    "@tailwindcss/cli": "^4.2.2",
+    "@tailwindcss/postcss": "^4.2.2",
     "autoprefixer": "^10.4.27",
     "daisyui": "^5.5.19",
     "postcss": "^8.5.8",
