@@ -58,6 +58,7 @@ class LibraryAdmin(admin.GISModelAdmin):
     ]
     search_fields = ["name", "address", "city"]
     readonly_fields = ["slug", "photo_preview", "created_at", "updated_at"]
+    autocomplete_fields = ["created_by"]
     fields = [
         "name",
         "description",
@@ -476,8 +477,27 @@ class LibraryPhotoAdmin(admin.ModelAdmin):
     list_filter = ["status"]
     list_select_related = ["library", "created_by"]
     search_fields = ["caption"]
-    readonly_fields = ["created_at"]
+    readonly_fields = ["photo_preview", "created_at"]
+    autocomplete_fields = ["library", "created_by"]
+    fields = [
+        "photo_preview",
+        "photo",
+        "photo_thumbnail",
+        "caption",
+        "status",
+        "library",
+        "created_by",
+        "created_at",
+    ]
     actions = ["approve_photos", "reject_photos"]
+
+    @admin.display(description="Photo preview")
+    def photo_preview(self, obj: LibraryPhoto) -> str:
+        """Render an inline preview of the submitted photo.
+        Lets admins visually review the photo for moderation."""
+        if obj.photo:
+            return format_html('<img src="{}" style="max-height:300px;">', obj.photo.url)
+        return "-"
 
     @admin.action(description="Approve selected photos")
     def approve_photos(
