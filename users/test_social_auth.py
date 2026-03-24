@@ -398,25 +398,40 @@ class TestSocialSignupRaceConditions:
 
 
 class TestContextProcessor:
-    """Verify the google_oauth context processor."""
+    """Verify the social_auth context processor."""
 
-    def test_context_processor_exposes_enabled_flag(self, rf, db, settings):
+    def test_context_processor_exposes_google_enabled(self, rf, db, settings):
         """The context processor adds google_oauth_enabled to template context.
         Templates use this to conditionally render the Google button."""
-        from users.context_processors import google_oauth
+        from users.context_processors import social_auth
 
         settings.GOOGLE_OAUTH_ENABLED = True
-        result = google_oauth(rf.get("/"))
-        assert result == {"google_oauth_enabled": True}
+        settings.APPLE_OAUTH_ENABLED = False
+        result = social_auth(rf.get("/"))
+        assert result["google_oauth_enabled"] is True
+        assert result["apple_oauth_enabled"] is False
 
-    def test_context_processor_exposes_disabled_flag(self, rf, db, settings):
-        """The context processor reflects disabled state in template context.
-        Templates hide the Google button when this is False."""
-        from users.context_processors import google_oauth
+    def test_context_processor_exposes_apple_enabled(self, rf, db, settings):
+        """The context processor adds apple_oauth_enabled to template context.
+        Templates use this to conditionally render the Apple button."""
+        from users.context_processors import social_auth
 
         settings.GOOGLE_OAUTH_ENABLED = False
-        result = google_oauth(rf.get("/"))
-        assert result == {"google_oauth_enabled": False}
+        settings.APPLE_OAUTH_ENABLED = True
+        result = social_auth(rf.get("/"))
+        assert result["google_oauth_enabled"] is False
+        assert result["apple_oauth_enabled"] is True
+
+    def test_context_processor_both_disabled(self, rf, db, settings):
+        """The context processor reflects disabled state for both providers.
+        Templates hide social buttons when no providers are configured."""
+        from users.context_processors import social_auth
+
+        settings.GOOGLE_OAUTH_ENABLED = False
+        settings.APPLE_OAUTH_ENABLED = False
+        result = social_auth(rf.get("/"))
+        assert result["google_oauth_enabled"] is False
+        assert result["apple_oauth_enabled"] is False
 
 
 @pytest.mark.django_db
@@ -622,3 +637,103 @@ class TestUsernameGeneration:
         User.objects.create_user(username="john_smith", password="pass123")
         result = _generate_username(["", "", "john.smith@x.com", "", "user"])
         assert result == "john_smith001"
+
+
+class TestAppleLoginURLResolution:
+    """Verify Apple Sign In URL routing is properly configured."""
+
+    def test_apple_login_url_resolves(self, client, db):
+        """The apple_login named URL resolves to a valid path.
+        Confirms allauth URL configuration is wired correctly."""
+        url = reverse("apple_login")
+        assert url == "/accounts/apple/login/"
+
+    def test_apple_callback_url_resolves(self, db):
+        """The apple_callback named URL resolves to a valid path.
+        Confirms the OAuth callback route is available."""
+        url = reverse("apple_callback")
+        assert url == "/accounts/apple/login/callback/"
+
+
+class TestAppleButtonVisibleWhenEnabled:
+    """Verify the Apple button appears when OAuth credentials are configured."""
+
+    @pytest.fixture(autouse=True)
+    def _enable_apple_oauth(self, settings):
+        """Enable Apple OAuth for all tests in this class."""
+        settings.APPLE_OAUTH_ENABLED = True
+
+    def test_login_page_shows_apple_button(self, client, db):
+        """The login page includes a Continue with Apple button.
+        Users should see the Apple login option alongside the form."""
+        response = client.get(reverse("login"))
+        content = response.content.decode()
+        assert "Continue with Apple" in content
+
+    def test_login_page_apple_form_posts_to_correct_url(self, client, db):
+        """The Apple login form posts to the allauth provider URL.
+        Ensures CSRF-protected POST flow for OAuth initiation."""
+        response = client.get(reverse("login"))
+        content = response.content.decode()
+        assert 'action="/accounts/apple/login/"' in content
+
+    def test_register_page_shows_apple_button(self, client, db):
+        """The register page includes a Continue with Apple button.
+        Users should see the Apple signup option alongside the form."""
+        response = client.get(reverse("register"))
+        content = response.content.decode()
+        assert "Continue with Apple" in content
+
+    def test_register_page_apple_form_posts_to_correct_url(self, client, db):
+        """The Apple login form on register posts to the allauth provider URL.
+        Ensures consistent OAuth entry point from both pages."""
+        response = client.get(reverse("register"))
+        content = response.content.decode()
+        assert 'action="/accounts/apple/login/"' in content
+
+
+class TestAppleButtonHiddenWhenDisabled:
+    """Verify the Apple button is hidden when OAuth credentials are missing."""
+
+    @pytest.fixture(autouse=True)
+    def _disable_apple_oauth(self, settings):
+        """Disable Apple OAuth for all tests in this class."""
+        settings.APPLE_OAUTH_ENABLED = False
+
+    def test_login_page_hides_apple_button(self, client, db):
+        """The login page omits the Apple button without credentials.
+        Avoids showing a broken OAuth flow to users."""
+        response = client.get(reverse("login"))
+        content = response.content.decode()
+        assert "Continue with Apple" not in content
+
+    def test_register_page_hides_apple_button(self, client, db):
+        """The register page omits the Apple button without credentials.
+        Avoids showing a broken OAuth flow to users."""
+        response = client.get(reverse("register"))
+        content = response.content.decode()
+        assert "Continue with Apple" not in content
+
+
+class TestDividerWithMixedProviders:
+    """Verify the divider appears when any social provider is enabled."""
+
+    def test_divider_shown_with_only_apple(self, client, db, settings):
+        """The divider appears when only Apple is enabled.
+        Social section renders for any single active provider."""
+        settings.GOOGLE_OAUTH_ENABLED = False
+        settings.APPLE_OAUTH_ENABLED = True
+        response = client.get(reverse("login"))
+        content = response.content.decode()
+        assert "divider" in content
+        assert "Continue with Apple" in content
+        assert "Continue with Google" not in content
+
+    def test_divider_hidden_with_no_providers(self, client, db, settings):
+        """The divider is hidden when no providers are enabled.
+        Keeps the UI clean when only password auth is available."""
+        settings.GOOGLE_OAUTH_ENABLED = False
+        settings.APPLE_OAUTH_ENABLED = False
+        response = client.get(reverse("login"))
+        content = response.content.decode()
+        assert "divider" not in content

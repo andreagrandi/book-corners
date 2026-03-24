@@ -1438,3 +1438,140 @@ The list should be ordered by count descending (most libraries first).
 - [x] Add cache header (1 hour — country list changes infrequently)
 - [x] Add test: returns all countries with approved libraries
 - [x] Add test: empty DB returns empty list
+
+---
+
+## Sign in with Apple
+
+The project already has username/password login and Google OAuth via django-allauth. Adding Apple as a third login option follows the same pattern. The user enrolled as an Apple Developer on 2026-03-24.
+
+Apple Sign In differs from Google OAuth in one key way: Apple doesn't use a simple client secret string. Instead, you generate a short-lived JWT client secret from a private key (.p8 file) that Apple provides. django-allauth handles this automatically when configured with the key material.
+
+### Apple Developer Portal setup (manual, before code)
+
+Complete these steps in https://developer.apple.com:
+
+1. **Create an App ID** (if not already done):
+   - Identifiers → App IDs → Register
+   - Enable "Sign In with Apple" capability
+
+2. **Create a Services ID** (this becomes the `client_id`):
+   - Identifiers → Services IDs → Register
+   - Description: "Book Corners Web"
+   - Identifier: e.g. `org.bookcorners.web`
+   - Enable "Sign In with Apple"
+   - Configure domains and return URLs:
+     - Domain: `www.bookcorners.org`
+     - Return URL: `https://www.bookcorners.org/accounts/apple/login/callback/`
+   - For local dev:
+     - Apple requires HTTPS, so local testing needs a tunnel (e.g. ngrok) or testing is done in production only
+
+3. **Create a Key** (for generating the client secret JWT):
+   - Keys → Create a Key
+   - Enable "Sign In with Apple", select the App ID
+   - Download the `.p8` file (only downloadable once!)
+   - Note the **Key ID** (10-char string)
+
+4. **Note your Team ID** (visible at top-right of developer portal or in Membership)
+
+### Environment variables needed
+
+```
+APPLE_CLIENT_ID=org.bookcorners.web          # Services ID from step 2
+APPLE_SECRET_KEY=-----BEGIN PRIVATE KEY-----  # Contents of the .p8 file
+APPLE_KEY_ID=ABC1234DEF                       # Key ID from step 3
+APPLE_TEAM_ID=XYZ9876543                      # Team ID
+```
+
+### Code changes
+
+#### 1. `config/settings.py` — Add Apple provider
+
+**Add to INSTALLED_APPS** (after the Google provider):
+```python
+"allauth.socialaccount.providers.apple",
+```
+
+**Add env var reading** (after the Google OAuth block):
+```python
+_APPLE_CLIENT_ID = os.environ.get("APPLE_CLIENT_ID", "")
+_APPLE_SECRET_KEY = os.environ.get("APPLE_SECRET_KEY", "")
+_APPLE_KEY_ID = os.environ.get("APPLE_KEY_ID", "")
+_APPLE_TEAM_ID = os.environ.get("APPLE_TEAM_ID", "")
+APPLE_OAUTH_ENABLED = bool(
+    _APPLE_CLIENT_ID and _APPLE_SECRET_KEY and _APPLE_KEY_ID and _APPLE_TEAM_ID
+)
+```
+
+**Add Apple to SOCIALACCOUNT_PROVIDERS** (alongside Google):
+```python
+"apple": {
+    "APPS": [
+        {
+            "client_id": _APPLE_CLIENT_ID,
+            "secret": _APPLE_KEY_ID,
+            "key": _APPLE_TEAM_ID,
+            "settings": {
+                "certificate_key": _APPLE_SECRET_KEY,
+            },
+        },
+    ],
+},
+```
+
+Note: In allauth's Apple provider, `secret` = Key ID, `key` = Team ID, and `certificate_key` = the .p8 private key contents. This is allauth's convention.
+
+#### 2. `users/context_processors.py` — Expose Apple OAuth flag
+
+Rename the function to be generic and expose both flags:
+
+```python
+def social_auth(request):
+    """Expose social auth availability flags to all templates.
+    Returns False for each provider when its env vars are missing."""
+    return {
+        "google_oauth_enabled": settings.GOOGLE_OAUTH_ENABLED,
+        "apple_oauth_enabled": settings.APPLE_OAUTH_ENABLED,
+    }
+```
+
+Update `config/settings.py` TEMPLATES context_processors reference:
+`"users.context_processors.google_oauth"` → `"users.context_processors.social_auth"`
+
+#### 3. `users/templates/users/login.html` — Add Apple button
+
+After the Google button block, add an Apple button. Show one divider before any social buttons, then list each enabled button without extra dividers.
+
+#### 4. `users/templates/users/register.html` — Same Apple button
+
+Mirror the login.html changes.
+
+#### 5. `.env.example` — Document Apple OAuth env vars
+
+#### 6. `HOSTING.md` — Add production env vars
+
+#### 7. `locale/it/LC_MESSAGES/django.po` — Translation
+
+- `"Continue with Apple"` → `"Continua con Apple"`
+
+#### 8. `users/test_social_auth.py` — Tests
+
+Mirror the Google OAuth tests:
+- Apple login URL resolves when provider is installed
+- Apple button visible/hidden on login page based on `APPLE_OAUTH_ENABLED`
+- Apple button visible/hidden on register page based on `APPLE_OAUTH_ENABLED`
+- Context processor returns both flags correctly
+
+#### No changes needed
+
+- **`users/adapters.py`** — Provider-agnostic, handles Apple automatically
+- **`users/urls.py`** — allauth URLs auto-register Apple routes
+- **`users/api.py`** — JWT API auth is separate
+- **`requirements.txt`** — Apple provider included in `django-allauth[socialaccount]`
+
+### Apple-specific gotchas
+
+- **HTTPS required**: Apple won't redirect to HTTP. Local dev needs a tunnel or test in production only
+- **Name only on first login**: Apple sends the user's name only on the very first authorization. django-allauth handles this
+- **Private relay email**: Users can hide their real email. Apple provides a stable relay address like `abc@privaterelay.appleid.com`
+- **Key rotation**: The .p8 key doesn't expire, but if revoked a new one must be generated

@@ -124,6 +124,7 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
+    "allauth.socialaccount.providers.apple",
     "allauth.socialaccount.providers.google",
     "django_tasks_db",
     "users",
@@ -167,7 +168,7 @@ TEMPLATES = [
                 "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "users.context_processors.google_oauth",
+                "users.context_processors.social_auth",
             ],
         },
     },
@@ -271,7 +272,27 @@ _GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
 _GOOGLE_OAUTH_CLIENT_SECRET = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", "")
 GOOGLE_OAUTH_ENABLED = bool(_GOOGLE_OAUTH_CLIENT_ID and _GOOGLE_OAUTH_CLIENT_SECRET)
 
+_APPLE_CLIENT_ID = os.environ.get("APPLE_CLIENT_ID", "")
+_APPLE_SECRET_KEY = os.environ.get("APPLE_SECRET_KEY", "")
+_APPLE_KEY_ID = os.environ.get("APPLE_KEY_ID", "")
+_APPLE_TEAM_ID = os.environ.get("APPLE_TEAM_ID", "")
+APPLE_OAUTH_ENABLED = bool(
+    _APPLE_CLIENT_ID and _APPLE_SECRET_KEY and _APPLE_KEY_ID and _APPLE_TEAM_ID
+)
+
 SOCIALACCOUNT_PROVIDERS = {
+    "apple": {
+        "APPS": [
+            {
+                "client_id": _APPLE_CLIENT_ID,
+                "secret": _APPLE_KEY_ID,
+                "key": _APPLE_TEAM_ID,
+                "settings": {
+                    "certificate_key": _APPLE_SECRET_KEY,
+                },
+            },
+        ],
+    },
     "google": {
         "APPS": [
             {
