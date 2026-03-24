@@ -2967,6 +2967,31 @@ class TestApprovePhotosAutoPromotion:
         assert library.photo == newer_photo.photo
         assert library.photo_thumbnail == newer_photo.photo_thumbnail
 
+    def test_save_with_approved_status_promotes_to_primary(self, admin_user):
+        """Verify saving a photo with status change to approved promotes it.
+        Covers the inline admin edit path where the admin action is not used."""
+        library = Library.objects.create(
+            name="Inline Approve Library",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Roma 30",
+            city="Florence",
+            country="IT",
+            created_by=admin_user,
+        )
+        photo = LibraryPhoto.objects.create(
+            library=library,
+            created_by=admin_user,
+            photo="libraries/user_photos/2026/02/inline.jpg",
+            photo_thumbnail="libraries/user_photos/thumbnails/2026/02/inline.jpg",
+        )
+
+        photo.status = LibraryPhoto.Status.APPROVED
+        photo.save(update_fields=["status"])
+
+        library.refresh_from_db()
+        assert library.photo == "libraries/user_photos/2026/02/inline.jpg"
+        assert library.photo_thumbnail == "libraries/user_photos/thumbnails/2026/02/inline.jpg"
+
 
 @pytest.mark.django_db
 class TestExtractStreet:
