@@ -23,7 +23,7 @@ from libraries.geolocation import (
     forward_geocode_place,
     reverse_geocode_coordinates,
 )
-from libraries.models import Library, LibraryPhoto
+from libraries.models import Library
 from libraries.search import DEFAULT_SEARCH_RADIUS_KM, apply_text_search, run_library_search
 from libraries.stats import build_stats_data
 
@@ -499,10 +499,6 @@ def library_detail(request: HttpRequest, slug: str) -> HttpResponse:
         if library.status == Library.Status.APPROVED:
             photo_form = LibraryPhotoSubmissionForm(created_by=user, library=library)
 
-    approved_photos = library.user_photos.filter(
-        status=LibraryPhoto.Status.APPROVED,
-    )
-
     return render(
         request,
         "libraries/library_detail.html",
@@ -510,7 +506,6 @@ def library_detail(request: HttpRequest, slug: str) -> HttpResponse:
             "library": library,
             "report_form": report_form,
             "photo_form": photo_form,
-            "approved_photos": approved_photos,
         },
     )
 

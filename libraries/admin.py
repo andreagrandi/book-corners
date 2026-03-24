@@ -477,24 +477,24 @@ class LibraryPhotoAdmin(admin.ModelAdmin):
     list_select_related = ["library", "created_by"]
     search_fields = ["caption"]
     readonly_fields = ["created_at"]
-    actions = ["approve_photos", "reject_photos", "set_as_primary_photo"]
+    actions = ["approve_photos", "reject_photos"]
 
     @admin.action(description="Approve selected photos")
     def approve_photos(
         self, request: HttpRequest, queryset: QuerySet[LibraryPhoto]
     ) -> None:
-        """Approve selected community photos and auto-promote when needed.
-        Copies the first approved photo to the library if it has no primary."""
+        """Approve selected photos and promote to library primary.
+        Copies the first approved photo per library as its main image."""
         photos = list(queryset.select_related("library"))
         promoted_libraries: set[int] = set()
 
         # Batch update all photo statuses at once
         queryset.update(status=LibraryPhoto.Status.APPROVED)
 
-        # Only loop for library promotion logic
+        # Promote first approved photo per library to primary
         for photo in photos:
             library = photo.library
-            if not library.photo and library.pk not in promoted_libraries:
+            if library.pk not in promoted_libraries:
                 library.photo = photo.photo
                 library.photo_thumbnail = photo.photo_thumbnail
                 library.save(update_fields=["photo", "photo_thumbnail"])
@@ -516,30 +516,3 @@ class LibraryPhotoAdmin(admin.ModelAdmin):
             request, f"{count} {'photo' if count == 1 else 'photos'} rejected."
         )
 
-    @admin.action(description="Set selected photo as library primary photo")
-    def set_as_primary_photo(
-        self, request: HttpRequest, queryset: QuerySet[LibraryPhoto]
-    ) -> None:
-        """Promote a single community photo to the library's primary photo.
-        Copies the photo and thumbnail to the parent library record."""
-        if queryset.count() != 1:
-            self.message_user(
-                request,
-                "Please select exactly one photo to set as primary.",
-                level="error",
-            )
-            return
-
-        library_photo = queryset.select_related("library").first()
-        library = library_photo.library
-        library.photo = library_photo.photo
-        library.photo_thumbnail = library_photo.photo_thumbnail
-        library.save(update_fields=["photo", "photo_thumbnail"])
-
-        if library_photo.status != LibraryPhoto.Status.APPROVED:
-            library_photo.status = LibraryPhoto.Status.APPROVED
-            library_photo.save(update_fields=["status"])
-
-        self.message_user(
-            request, f"Primary photo updated for {library}."
-        )

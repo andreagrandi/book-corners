@@ -317,10 +317,11 @@ class LibraryPhoto(models.Model):
         ]
 
     def __init__(self, *args, **kwargs):
-        """Initialize instance and snapshot the current photo name.
+        """Initialize instance and snapshot current photo name and status.
         Allows cheap in-memory change detection on save."""
         super().__init__(*args, **kwargs)
         self._original_photo_name = self.photo.name if self.photo else ""
+        self._original_status = self.status
 
     def __str__(self) -> str:
         """Return a readable string representation.
@@ -330,7 +331,7 @@ class LibraryPhoto(models.Model):
 
     def save(self, *args, **kwargs) -> None:
         """Persist the model instance.
-        Applies photo optimization before writing data."""
+        Applies photo optimization and promotes to primary on approval."""
         save_kwargs = kwargs
 
         if self._photo_needs_processing():
@@ -338,6 +339,25 @@ class LibraryPhoto(models.Model):
             save_kwargs = self._merge_photo_fields_into_update_kwargs(kwargs=kwargs)
 
         super().save(*args, **save_kwargs)
+
+        if self._status_changed_to_approved():
+            self._promote_to_library_primary()
+
+    def _status_changed_to_approved(self) -> bool:
+        """Check whether the status just transitioned to approved.
+        Compares against the snapshot taken at init."""
+        return (
+            self.status == self.Status.APPROVED
+            and self._original_status != self.Status.APPROVED
+        )
+
+    def _promote_to_library_primary(self) -> None:
+        """Copy this photo to the parent library's primary photo fields.
+        Called automatically when the photo is approved."""
+        library = self.library
+        library.photo = self.photo
+        library.photo_thumbnail = self.photo_thumbnail
+        library.save(update_fields=["photo", "photo_thumbnail"])
 
     @property
     def card_photo_url(self) -> str:

@@ -2685,39 +2685,6 @@ class TestLibraryPhotoAdmin:
         admin_library_photo.refresh_from_db()
         assert admin_library_photo.status == LibraryPhoto.Status.REJECTED
 
-    def test_set_as_primary_photo_action(self, admin_client, admin_library_photo):
-        """Verify set as primary copies photo to the library record.
-        Confirms admin can promote a community photo to the primary slot."""
-        url = reverse("admin:libraries_libraryphoto_changelist")
-        response = admin_client.post(url, {
-            "action": "set_as_primary_photo",
-            "_selected_action": [admin_library_photo.pk],
-        })
-
-        assert response.status_code == 302
-        admin_library_photo.refresh_from_db()
-        assert admin_library_photo.status == LibraryPhoto.Status.APPROVED
-        library = admin_library_photo.library
-        library.refresh_from_db()
-        assert library.photo == admin_library_photo.photo
-
-    def test_set_as_primary_rejects_multiple_selection(self, admin_client, admin_library_photo, admin_user, admin_library):
-        """Verify set as primary rejects when multiple photos are selected.
-        Enforces single-selection constraint for primary photo promotion."""
-        second_photo = LibraryPhoto.objects.create(
-            library=admin_library,
-            created_by=admin_user,
-            photo="libraries/user_photos/2026/02/second.jpg",
-        )
-        url = reverse("admin:libraries_libraryphoto_changelist")
-        response = admin_client.post(url, {
-            "action": "set_as_primary_photo",
-            "_selected_action": [admin_library_photo.pk, second_photo.pk],
-        })
-
-        assert response.status_code == 302
-        admin_library.refresh_from_db()
-        assert admin_library.photo == "libraries/photos/2026/02/test.jpg"
 
 
 @pytest.mark.django_db
@@ -2801,43 +2768,6 @@ class TestLibraryPhotoSubmission:
         response = client.get(url)
 
         assert response.status_code == 405
-
-    def test_gallery_shows_approved_photos(self, client, user, approved_library):
-        """Verify approved photos appear in the library detail gallery.
-        Confirms the gallery renders approved community photos."""
-        LibraryPhoto.objects.create(
-            library=approved_library,
-            created_by=user,
-            photo="libraries/user_photos/2026/02/visible.jpg",
-            caption="Visible photo",
-            status=LibraryPhoto.Status.APPROVED,
-        )
-
-        url = reverse("library_detail", kwargs={"slug": approved_library.slug})
-        response = client.get(url)
-
-        content = response.content.decode()
-        assert response.status_code == 200
-        assert "Community photos" in content
-        assert "Visible photo" in content
-
-    def test_gallery_hides_pending_photos(self, client, user, approved_library):
-        """Verify pending photos do not appear in the library detail gallery.
-        Confirms only approved photos are publicly visible."""
-        LibraryPhoto.objects.create(
-            library=approved_library,
-            created_by=user,
-            photo="libraries/user_photos/2026/02/hidden.jpg",
-            caption="Hidden photo",
-            status=LibraryPhoto.Status.PENDING,
-        )
-
-        url = reverse("library_detail", kwargs={"slug": approved_library.slug})
-        response = client.get(url)
-
-        content = response.content.decode()
-        assert response.status_code == 200
-        assert "Hidden photo" not in content
 
     def test_add_photo_button_visible_for_authenticated_users(self, client, user, approved_library):
         """Verify the add photo button is visible for authenticated users.
@@ -2978,14 +2908,14 @@ class TestApprovePhotosAutoPromotion:
         assert library.photo == "libraries/user_photos/2026/02/promote-me.jpg"
         assert library.photo_thumbnail == "libraries/user_photos/thumbnails/2026/02/promote-me.jpg"
 
-    def test_approve_does_not_overwrite_existing_primary_photo(self, admin_client, admin_library, admin_user):
-        """Verify approving a photo does not overwrite an existing primary.
-        Confirms libraries with photos keep their original primary image."""
-        original_photo = admin_library.photo
+    def test_approve_overwrites_existing_primary_photo(self, admin_client, admin_library, admin_user):
+        """Verify approving a photo replaces the library's existing primary.
+        Confirms approved photos always become the library's main image."""
         community_photo = LibraryPhoto.objects.create(
             library=admin_library,
             created_by=admin_user,
             photo="libraries/user_photos/2026/02/community-new.jpg",
+            photo_thumbnail="libraries/user_photos/thumbnails/2026/02/community-new.jpg",
         )
 
         url = reverse("admin:libraries_libraryphoto_changelist")
@@ -2998,7 +2928,69 @@ class TestApprovePhotosAutoPromotion:
         assert community_photo.status == LibraryPhoto.Status.APPROVED
 
         admin_library.refresh_from_db()
-        assert admin_library.photo == original_photo
+        assert admin_library.photo == "libraries/user_photos/2026/02/community-new.jpg"
+        assert admin_library.photo_thumbnail == "libraries/user_photos/thumbnails/2026/02/community-new.jpg"
+
+    def test_approve_multiple_photos_promotes_newest_only(self, admin_client, admin_user):
+        """Verify batch-approving multiple photos promotes only one per library.
+        The newest photo wins because the default ordering is -created_at."""
+        library = Library.objects.create(
+            name="Multi Photo Library",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Roma 20",
+            city="Florence",
+            country="IT",
+            created_by=admin_user,
+        )
+        LibraryPhoto.objects.create(
+            library=library,
+            created_by=admin_user,
+            photo="libraries/user_photos/2026/02/older.jpg",
+            photo_thumbnail="libraries/user_photos/thumbnails/2026/02/older.jpg",
+        )
+        newer_photo = LibraryPhoto.objects.create(
+            library=library,
+            created_by=admin_user,
+            photo="libraries/user_photos/2026/02/newer.jpg",
+            photo_thumbnail="libraries/user_photos/thumbnails/2026/02/newer.jpg",
+        )
+
+        url = reverse("admin:libraries_libraryphoto_changelist")
+        admin_client.post(url, {
+            "action": "approve_photos",
+            "_selected_action": list(
+                LibraryPhoto.objects.filter(library=library).values_list("pk", flat=True)
+            ),
+        })
+
+        library.refresh_from_db()
+        assert library.photo == newer_photo.photo
+        assert library.photo_thumbnail == newer_photo.photo_thumbnail
+
+    def test_save_with_approved_status_promotes_to_primary(self, admin_user):
+        """Verify saving a photo with status change to approved promotes it.
+        Covers the inline admin edit path where the admin action is not used."""
+        library = Library.objects.create(
+            name="Inline Approve Library",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Roma 30",
+            city="Florence",
+            country="IT",
+            created_by=admin_user,
+        )
+        photo = LibraryPhoto.objects.create(
+            library=library,
+            created_by=admin_user,
+            photo="libraries/user_photos/2026/02/inline.jpg",
+            photo_thumbnail="libraries/user_photos/thumbnails/2026/02/inline.jpg",
+        )
+
+        photo.status = LibraryPhoto.Status.APPROVED
+        photo.save(update_fields=["status"])
+
+        library.refresh_from_db()
+        assert library.photo == "libraries/user_photos/2026/02/inline.jpg"
+        assert library.photo_thumbnail == "libraries/user_photos/thumbnails/2026/02/inline.jpg"
 
 
 @pytest.mark.django_db
