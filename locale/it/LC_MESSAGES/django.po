@@ -1197,6 +1197,9 @@ msgstr "oppure"
 msgid "Continue with Google"
 msgstr "Continua con Google"
 
+msgid "Continue with Apple"
+msgstr "Continua con Apple"
+
 #: users/templates/users/login.html:56
 msgid "New here?"
 msgstr "Sei nuovo?"
