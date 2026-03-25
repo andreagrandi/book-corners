@@ -6,6 +6,59 @@
     "description": "REST API for discovering, submitting, and reporting little free libraries. Provides geospatial search, user authentication, and community moderation workflows."
   },
   "paths": {
+    "/api/v1/auth/social": {
+      "post": {
+        "operationId": "users_api_social_login",
+        "summary": "Social login with native identity token",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenPairOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Exchange a native Apple/Google identity token for a JWT token pair.\nCreates or links accounts automatically based on email matching.",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialLoginIn"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
     "/api/v1/auth/register": {
       "post": {
         "operationId": "users_api_register",
@@ -1166,6 +1219,42 @@
           "message"
         ],
         "title": "ErrorOut",
+        "type": "object"
+      },
+      "SocialLoginIn": {
+        "description": "Social login payload for exchanging a native identity token for JWT.\nUsed by iOS/Android apps that authenticate via Apple or Google SDKs.",
+        "properties": {
+          "provider": {
+            "description": "Social provider: 'apple' or 'google'.",
+            "title": "Provider",
+            "type": "string"
+          },
+          "id_token": {
+            "description": "Identity token JWT from the native SDK.",
+            "minLength": 20,
+            "title": "Id Token",
+            "type": "string"
+          },
+          "first_name": {
+            "default": "",
+            "description": "Optional first name (Apple only provides on first sign-in).",
+            "maxLength": 150,
+            "title": "First Name",
+            "type": "string"
+          },
+          "last_name": {
+            "default": "",
+            "description": "Optional last name (Apple only provides on first sign-in).",
+            "maxLength": 150,
+            "title": "Last Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "provider",
+          "id_token"
+        ],
+        "title": "SocialLoginIn",
         "type": "object"
       },
       "RegisterIn": {
