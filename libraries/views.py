@@ -13,7 +13,6 @@ from django.db.models import Q, QuerySet
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.views.decorators.cache import cache_page
 
 from libraries.clustering import CLUSTER_ZOOM_THRESHOLD, build_clustered_features, get_grid_size_for_zoom
 from libraries.forms import LibraryPhotoSubmissionForm, LibrarySearchForm, LibrarySubmissionForm, ReportSubmissionForm
@@ -205,7 +204,6 @@ def _get_map_bounds_polygon(*, request: HttpRequest) -> Polygon | None:
     return bounds_polygon
 
 
-@cache_page(60)
 def home(request: HttpRequest) -> HttpResponse:
     """Render the homepage with the first latest-entries page.
     Loads approved libraries for the initial full-page response."""
