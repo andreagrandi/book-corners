@@ -66,5 +66,17 @@ class APICacheControlMiddleware:
         if rule:
             max_age, s_maxage = rule
             patch_cache_control(response, public=True, max_age=max_age, s_maxage=s_maxage)
+            # Remove Vary: Cookie and Set-Cookie so Cloudflare can cache.
+            # API endpoints use JWT auth, not cookies.
+            if "Cookie" in response.get("Vary", ""):
+                vary_parts = [
+                    v.strip() for v in response["Vary"].split(",")
+                    if v.strip().lower() != "cookie"
+                ]
+                if vary_parts:
+                    response["Vary"] = ", ".join(vary_parts)
+                else:
+                    del response["Vary"]
+            del response["Set-Cookie"]
 
         return response
