@@ -11,6 +11,70 @@ The Book Corners API uses **JWT (JSON Web Tokens)** for authentication. Authenti
 
 ## Endpoints
 
+### Social Login
+
+`POST /api/v1/auth/social`
+
+Exchange a native Apple or Google identity token for a JWT token pair. Designed for iOS/Android apps that authenticate via native SDKs (Sign in with Apple, Google Sign-In).
+
+On first sign-in, a new user account is created automatically. If the email matches an existing account, the social identity is linked to it. Subsequent logins return tokens for the existing user.
+
+**Auth required:** No
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `provider` | string | Yes | Social provider: `"apple"` or `"google"` |
+| `id_token` | string | Yes | Identity token JWT from the native SDK (min 20 characters) |
+| `first_name` | string | No | First name (Apple only provides on first sign-in, max 150 characters) |
+| `last_name` | string | No | Last name (Apple only provides on first sign-in, max 150 characters) |
+
+=== "curl"
+
+    ```bash
+    curl -X POST https://bookcorners.org/api/v1/auth/social \
+      -H "Content-Type: application/json" \
+      -d '{
+        "provider": "apple",
+        "id_token": "eyJraWQiOiJBSURPUEsxIi...",
+        "first_name": "Jane",
+        "last_name": "Doe"
+      }'
+    ```
+
+=== "Swift"
+
+    ```swift
+    let body: [String: Any] = [
+        "provider": "apple",
+        "id_token": identityToken,
+        "first_name": fullName?.givenName ?? "",
+        "last_name": fullName?.familyName ?? ""
+    ]
+    var request = URLRequest(url: URL(string: "https://bookcorners.org/api/v1/auth/social")!)
+    request.httpMethod = "POST"
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.httpBody = try JSONSerialization.data(withJSONObject: body)
+    ```
+
+**Success** (`200 OK`):
+
+```json
+{
+  "access": "eyJhbGciOiJIUzI1NiIs...",
+  "refresh": "eyJhbGciOiJIUzI1NiIs..."
+}
+```
+
+**Errors:**
+
+| Status | Message |
+|--------|---------|
+| `400` | `"Unsupported provider. Use 'apple' or 'google'."` |
+| `400` | `"Invalid identity token."` |
+| `429` | `"Too many social login attempts. Please try again later."` |
+
+---
+
 ### Register
 
 `POST /api/v1/auth/register`

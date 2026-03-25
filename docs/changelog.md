@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.5.0
+
+- Social login endpoint (`POST /auth/social`) exchanges native Apple or Google identity tokens for JWT token pairs. Supports automatic account creation, email-based account linking, and Apple first sign-in name capture.
+
 ## v1.4.0
 
 - Country list endpoint (`GET /api/v1/libraries/countries/`) returns all countries with approved libraries and counts, ordered by count descending
