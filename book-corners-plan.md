@@ -1575,3 +1575,140 @@ Mirror the Google OAuth tests:
 - **Name only on first login**: Apple sends the user's name only on the very first authorization. django-allauth handles this
 - **Private relay email**: Users can hide their real email. Apple provides a stable relay address like `abc@privaterelay.appleid.com`
 - **Key rotation**: The .p8 key doesn't expire, but if revoked a new one must be generated
+
+---
+
+### Phase 10 — Social Login API for iOS
+
+**Goal:** Add a REST API endpoint for the iOS app to exchange native Apple/Google identity
+tokens for JWT token pairs. The web OAuth flows (Phase 3.5 + Apple sign-in above) use
+redirect-based allauth with session cookies — these don't work for native mobile apps which
+get identity tokens directly from Apple/Google SDKs.
+
+**Approach:** A single Ninja endpoint that reuses allauth's `provider.verify_token()` for
+identity token verification, allauth's adapters for user creation/linking, and the existing
+`build_token_pair()` for JWT generation. No allauth headless mode needed — its session token
+system is incompatible with the JWT auth the API uses. No new dependencies.
+
+**Why not allauth headless?** allauth headless returns its own session tokens, not JWT.
+The iOS app and existing API all use JWT `TokenPair` from `ninja-jwt`. Adding headless
+would create a second, incompatible token system. Instead, we call allauth's internal
+verification functions directly and return JWT through `build_token_pair()`.
+
+#### 10.1 — New endpoint: `POST /api/v1/auth/social`
+
+**File:** `users/api.py`
+
+```
+Request:
+{
+  "provider": "apple" | "google",
+  "id_token": "<identity token JWT from native SDK>",
+  "first_name": "",   // optional — Apple only provides name on first sign-in
+  "last_name": ""     // optional — Apple only provides name on first sign-in
+}
+
+Response 200: { "access": "...", "refresh": "..." }
+Response 400: { "message": "..." }
+Response 429: { "message": "..." }
+```
+
+**Implementation flow:**
+
+1. Rate limit check — `is_auth_rate_limited(request, scope="api-social",
+   max_attempts=settings.AUTH_RATE_LIMIT_SOCIAL_ATTEMPTS)`
+2. Get the allauth provider — `get_socialaccount_adapter().get_provider(request, data.provider)`
+3. Verify the identity token — `provider.verify_token(request, {"id_token": data.id_token})`
+   - Apple: decodes JWT, fetches Apple's public keys, validates signature + claims
+     (`allauth/socialaccount/providers/apple/provider.py:71`)
+   - Google: decodes JWT, verifies with Google's certs
+     (`allauth/socialaccount/providers/google/provider.py:93`)
+   - Returns a `SocialLogin` object (unsaved User + SocialAccount)
+4. Look up existing social account — `sociallogin.lookup()`
+5. If `sociallogin.is_existing`: return `build_token_pair(user=sociallogin.user)`
+6. If not existing:
+   - If `first_name`/`last_name` provided (Apple first sign-in), set on the unsaved user
+   - Check if a user with the same email exists →
+     `sociallogin.connect(request, existing_user)` (links social account)
+   - Otherwise → `adapter.save_user(request, sociallogin)` (creates new user + social account;
+     custom adapter handles username generation, email normalization, race conditions)
+7. Return `build_token_pair(user=user)`
+
+**New schema:**
+
+```python
+class SocialLoginIn(Schema):
+    provider: str = Field(description="Social provider: 'apple' or 'google'")
+    id_token: str = Field(min_length=20, description="Identity token from native SDK")
+    first_name: str = Field(default="", max_length=150, description="Optional, Apple first sign-in")
+    last_name: str = Field(default="", max_length=150, description="Optional, Apple first sign-in")
+```
+
+**New imports in `users/api.py`:**
+
+```python
+from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
+from allauth.socialaccount.models import SocialApp
+```
+
+**Key allauth internals reused (no changes to these):**
+
+| Function | Location | What it does |
+|---|---|---|
+| `AppleProvider.verify_token()` | `allauth/.../apple/provider.py:71` | Verifies Apple identity JWT |
+| `GoogleProvider.verify_token()` | `allauth/.../google/provider.py:93` | Verifies Google ID token JWT |
+| `SocialLogin.lookup()` | `allauth/socialaccount/models.py` | Finds existing social account in DB |
+| `SocialLogin.connect()` | `allauth/socialaccount/models.py` | Links social account to existing user |
+| `SocialAccountAdapter.save_user()` | `users/adapters.py:91` | Creates user + social account (race-safe) |
+| `build_token_pair()` | `users/api.py:70` | Generates JWT access + refresh tokens |
+
+#### 10.2 — Update Apple `client_id` for iOS audience
+
+Apple Sign In uses the app bundle ID (`it.andreagrandi.BookCorners`) as the JWT audience
+on iOS, but the Services ID for web. Allauth splits `client_id` by comma in `get_auds()`:
+
+```python
+def get_auds(self):
+    return [aud.strip() for aud in self.app.client_id.split(",")]
+```
+
+**Action:** Check current `APPLE_CLIENT_ID` env var. If it's the Services ID (not the bundle
+ID), update to include both, comma-separated:
+`APPLE_CLIENT_ID=<existing-services-id>,it.andreagrandi.BookCorners`
+
+#### 10.3 — Rate limit setting
+
+**File:** `config/settings.py`
+
+Add alongside existing rate limit settings:
+```python
+AUTH_RATE_LIMIT_SOCIAL_ATTEMPTS = 10
+```
+
+#### 10.4 — Tests
+
+**File:** `users/test_api_auth.py`
+
+Mock `provider.verify_token()` to avoid hitting Apple/Google servers in tests:
+
+- [ ] `test_social_login_apple_returns_tokens` — valid Apple token → 200 + TokenPair
+- [ ] `test_social_login_google_returns_tokens` — valid Google token → 200 + TokenPair
+- [ ] `test_social_login_invalid_token_returns_400`
+- [ ] `test_social_login_unsupported_provider_returns_400`
+- [ ] `test_social_login_existing_account_returns_tokens` — second login → same user
+- [ ] `test_social_login_links_to_existing_email_user` — email match → links accounts
+- [ ] `test_social_login_rate_limit_returns_429`
+- [ ] `test_social_login_apple_captures_name` — first_name/last_name saved on user
+
+#### Files changed
+
+| File | Change |
+|---|---|
+| `users/api.py` | Add `SocialLoginIn` schema + `social_login` endpoint |
+| `config/settings.py` | Add `AUTH_RATE_LIMIT_SOCIAL_ATTEMPTS = 10` |
+| `users/test_api_auth.py` | Add social login tests |
+
+#### Prerequisites
+
+- [ ] Check current `APPLE_CLIENT_ID` value and update if needed
+- [ ] No new Python dependencies required (allauth 65.14.2 supports `verify_token()`)

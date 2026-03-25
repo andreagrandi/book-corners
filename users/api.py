@@ -1,8 +1,9 @@
+import structlog
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.models import AbstractBaseUser
-from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.exceptions import ImproperlyConfigured, ValidationError as DjangoValidationError
 from django.core.validators import validate_email
 from ninja import Router, Schema
 from ninja_jwt.authentication import JWTAuth
@@ -10,9 +11,13 @@ from ninja_jwt.exceptions import TokenError
 from ninja_jwt.tokens import RefreshToken
 from pydantic import Field
 
+from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
+
 from config.api_schemas import ErrorOut
 from users.auth import resolve_login_identifier
 from users.security import is_auth_rate_limited
+
+logger = structlog.get_logger(__name__)
 
 User = get_user_model()
 
@@ -51,6 +56,16 @@ class LoginIn(Schema):
     password: str = Field(min_length=1, max_length=128, description="Account password.", examples=["s3cure!Pass"])
 
 
+class SocialLoginIn(Schema):
+    """Social login payload for exchanging a native identity token for JWT.
+    Used by iOS/Android apps that authenticate via Apple or Google SDKs."""
+
+    provider: str = Field(description="Social provider: 'apple' or 'google'.")
+    id_token: str = Field(min_length=20, description="Identity token JWT from the native SDK.")
+    first_name: str = Field(default="", max_length=150, description="Optional first name (Apple only provides on first sign-in).")
+    last_name: str = Field(default="", max_length=150, description="Optional last name (Apple only provides on first sign-in).")
+
+
 class RefreshIn(Schema):
     """Token refresh payload containing the refresh token.
     Used to obtain a new access token without re-authenticating."""
@@ -75,6 +90,51 @@ def build_token_pair(*, user: AbstractBaseUser) -> TokenPairOut:
         access=str(refresh.access_token),
         refresh=str(refresh),
     )
+
+
+_SUPPORTED_SOCIAL_PROVIDERS = frozenset({"apple", "google"})
+
+
+@auth_router.post("/social", response={200: TokenPairOut, 400: ErrorOut, 429: ErrorOut}, auth=None, summary="Social login with native identity token")
+def social_login(request, payload: SocialLoginIn):
+    """Exchange a native Apple/Google identity token for a JWT token pair.
+    Creates or links accounts automatically based on email matching."""
+    limited, _ = is_auth_rate_limited(
+        request=request,
+        scope="api-social",
+        max_attempts=settings.AUTH_RATE_LIMIT_SOCIAL_ATTEMPTS,
+    )
+    if limited:
+        return 429, {"message": "Too many social login attempts. Please try again later."}
+
+    if payload.provider not in _SUPPORTED_SOCIAL_PROVIDERS:
+        return 400, {"message": "Unsupported provider. Use 'apple' or 'google'."}
+
+    try:
+        adapter = get_socialaccount_adapter()
+        provider = adapter.get_provider(request, payload.provider)
+        sociallogin = provider.verify_token(request, {"id_token": payload.id_token})
+    except (DjangoValidationError, ImproperlyConfigured):
+        return 400, {"message": "Invalid identity token."}
+
+    sociallogin.lookup()
+
+    if sociallogin.is_existing:
+        user = sociallogin.user
+        # Email match without linked social account — connect it now
+        if not sociallogin.account.pk:
+            sociallogin.connect(request, user)
+        return 200, build_token_pair(user=user)
+
+    # New user — set name from Apple first sign-in before saving
+    if payload.first_name:
+        sociallogin.user.first_name = payload.first_name
+    if payload.last_name:
+        sociallogin.user.last_name = payload.last_name
+
+    user = adapter.save_user(request, sociallogin)
+    logger.info("social_login_new_user", provider=payload.provider, user_id=user.pk)
+    return 200, build_token_pair(user=user)
 
 
 @auth_router.post("/register", response={201: TokenPairOut, 400: ErrorOut, 429: ErrorOut}, auth=None, summary="Register a new user")

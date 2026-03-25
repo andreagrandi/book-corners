@@ -13,6 +13,7 @@ All windows are **5 minutes** (300 seconds).
 | **Auth — Login** | `POST /auth/login` | 10 |
 | **Auth — Register** | `POST /auth/register` | 5 |
 | **Auth — Refresh** | `POST /auth/refresh` | 15 |
+| **Auth — Social** | `POST /auth/social` | 10 |
 
 ## 429 response format
 
