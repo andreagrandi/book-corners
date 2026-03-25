@@ -191,6 +191,20 @@ Add the production redirect URI in Google Cloud Console:
 - Authorized origin: `https://bookcorners.org`
 - Redirect URI: `https://bookcorners.org/accounts/google/login/callback/`
 
+### Apple Sign In (optional)
+
+```bash
+sudo dokku config:set --no-restart book-corners \
+  APPLE_CLIENT_ID="<your-services-id>" \
+  APPLE_SECRET_KEY="<contents-of-.p8-file>" \
+  APPLE_KEY_ID="<your-key-id>" \
+  APPLE_TEAM_ID="<your-team-id>"
+```
+
+Configure in the Apple Developer portal:
+- Domain: `www.bookcorners.org`
+- Return URL: `https://www.bookcorners.org/accounts/apple/login/callback/`
+
 ### Social media posting (optional)
 
 ```bash
