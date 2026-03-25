@@ -50,7 +50,9 @@ def test_homepage_load_more_pagination(
     load_more = page.locator("#latest-entries-pagination button")
     if load_more.is_visible():
         load_more.click()
-        page.wait_for_timeout(1000)
+        grid.locator(f".card:nth-child({initial_count + 1})").wait_for(
+            state="visible", timeout=10000,
+        )
 
         new_count = grid.locator(".card").count()
         assert new_count > initial_count
