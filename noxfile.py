@@ -10,6 +10,8 @@ PYTHON_VERSIONS = ["3.14"]
 def tests(session: nox.Session) -> None:
     """Run the test suite (excludes browser E2E tests)."""
     session.install("-r", "requirements.txt")
+    session.run("python", "manage.py", "migrate", "--run-syncdb")
+    session.run("python", "manage.py", "createcachetable")
     session.run("pytest", "-m", "not e2e", *session.posargs)
 
 
