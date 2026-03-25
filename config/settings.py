@@ -141,6 +141,7 @@ TASKS = {
 
 MIDDLEWARE = [
     "django.middleware.gzip.GZipMiddleware",
+    "libraries.middleware.APICacheControlMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -153,7 +154,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
-    "libraries.middleware.APICacheControlMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
