@@ -35,9 +35,9 @@
             {% if request.user.is_authenticated %}
               <li><a href="{% url 'dashboard' %}">{{ request.user.username }}</a></li>
               <li>
-                <form method="post" action="{% url 'logout' %}" class="px-2 py-1">
+                <form id="mobile-logout-form" method="post" action="{% url 'logout' %}" class="px-2 py-1">
                   {% csrf_token %}
-                  <button type="submit" class="w-full text-left">{% trans "Logout" %}</button>
+                  <a role="button" onclick="document.getElementById('mobile-logout-form').submit()" class="w-full text-left">{% trans "Logout" %}</a>
                 </form>
               </li>
             {% else %}
@@ -69,9 +69,9 @@
           {% if request.user.is_authenticated %}
             <li><a href="{% url 'dashboard' %}">{{ request.user.username }}</a></li>
             <li>
-              <form method="post" action="{% url 'logout' %}">
+              <form id="desktop-logout-form" method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
-                <button type="submit">{% trans "Logout" %}</button>
+                <a role="button" onclick="document.getElementById('desktop-logout-form').submit()">{% trans "Logout" %}</a>
               </form>
             </li>
           {% else %}
