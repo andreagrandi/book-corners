@@ -77,6 +77,9 @@ class APICacheControlMiddleware:
                     response["Vary"] = ", ".join(vary_parts)
                 else:
                     del response["Vary"]
-            del response["Set-Cookie"]
+            # Only remove the csrftoken cookie — leave session and others intact.
+            # Django stores cookies in response.cookies (SimpleCookie),
+            # not in _headers, so del response["Set-Cookie"] has no effect.
+            response.cookies.pop("csrftoken", None)
 
         return response
