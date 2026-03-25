@@ -1,5 +1,20 @@
 from django.http import HttpRequest
+from django.middleware.csrf import get_token
 from django.utils import translation
+
+
+class EnsureCsrfCookieMiddleware:
+    """Ensure the CSRF cookie is set on every response.
+    Prevents 403 errors on POST forms when the cookie was not yet issued."""
+
+    def __init__(self, get_response):
+        """Store the next middleware or view callable."""
+        self.get_response = get_response
+
+    def __call__(self, request: HttpRequest):
+        """Force the CSRF cookie onto the response."""
+        get_token(request)
+        return self.get_response(request)
 
 
 class UserLanguageMiddleware:

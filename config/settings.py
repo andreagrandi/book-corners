@@ -147,6 +147,7 @@ MIDDLEWARE = [
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    "users.middleware.EnsureCsrfCookieMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "users.middleware.UserLanguageMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
