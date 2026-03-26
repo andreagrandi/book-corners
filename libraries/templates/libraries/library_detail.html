@@ -61,7 +61,7 @@
           {% if library.operator %}<p><span class="font-semibold">{% trans "Operator:" %}</span> {{ library.operator }}</p>{% endif %}
           {% if library.brand %}<p><span class="font-semibold">{% trans "Brand:" %}</span> {{ library.brand }}</p>{% endif %}
           {% if library.source %}<p><span class="font-semibold">{% trans "Source:" %}</span> {{ library.source }}</p>{% endif %}
-          <p><span class="font-semibold">{% trans "Submitted by:" %}</span> {{ library.created_by.username }}</p>
+          {% if library.created_by %}<p><span class="font-semibold">{% trans "Submitted by:" %}</span> {{ library.created_by.username }}</p>{% endif %}
         </div>
 
         {% if request.user.is_authenticated %}

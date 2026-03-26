@@ -14,8 +14,10 @@ from pydantic import Field
 from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 
 from config.api_schemas import ErrorOut
-from users.auth import resolve_login_identifier
+from users.auth import is_social_only_user, resolve_login_identifier
 from users.security import is_auth_rate_limited
+
+MessageOut = ErrorOut
 
 logger = structlog.get_logger(__name__)
 
@@ -75,11 +77,12 @@ class RefreshIn(Schema):
 
 class MeOut(Schema):
     """Current authenticated user profile.
-    Returns basic account information."""
+    Returns basic account information and authentication type."""
 
     id: int = Field(description="Unique user identifier.", examples=[1])
     username: str = Field(description="Username.", examples=["janedoe"])
     email: str = Field(description="Email address.", examples=["jane@example.com"])
+    is_social_only: bool = Field(description="True when the account uses social login only (no local password). Email and password changes are unavailable for these accounts.", examples=[False])
 
 
 def build_token_pair(*, user: AbstractBaseUser) -> TokenPairOut:
@@ -230,4 +233,100 @@ def me(request):
         id=request.user.id,
         username=request.user.username,
         email=request.user.email,
+        is_social_only=is_social_only_user(request.user),
     )
+
+
+class ChangeEmailIn(Schema):
+    """Payload for changing the user's email address.
+    The new email must be unique across all accounts."""
+
+    email: str = Field(min_length=3, max_length=254, description="New email address.", examples=["new@example.com"])
+
+
+class ChangePasswordIn(Schema):
+    """Payload for changing the user's password.
+    Requires current password for verification and new password with confirmation."""
+
+    current_password: str = Field(min_length=1, max_length=128, description="Current account password.", examples=["oldPass123!"])
+    new_password: str = Field(min_length=8, max_length=128, description="New password (validated against Django password policies).", examples=["newS3cure!Pass"])
+    new_password_confirm: str = Field(min_length=8, max_length=128, description="New password confirmation (must match new_password).", examples=["newS3cure!Pass"])
+
+
+class DeleteAccountIn(Schema):
+    """Payload for confirming account deletion.
+    Regular users must provide their password; social-only users must send confirm_text=DELETE."""
+
+    password: str | None = Field(default=None, max_length=128, description="Current account password (required for non-social accounts).", examples=["s3cure!Pass"])
+    confirm_text: str | None = Field(default=None, max_length=10, description="Type 'DELETE' to confirm (required for social-only accounts that have no password).", examples=["DELETE"])
+
+
+@auth_router.patch("/me/email", response={200: MeOut, 400: ErrorOut, 403: ErrorOut}, auth=JWTAuth(), summary="Change email address")
+def change_email(request, payload: ChangeEmailIn):
+    """Update the authenticated user's email address.
+    Blocked for social-only accounts whose email is managed by their provider."""
+    if is_social_only_user(request.user):
+        return 403, {"message": "Social login accounts cannot change their email address."}
+
+    normalized_email = payload.email.strip().lower()
+
+    try:
+        validate_email(normalized_email)
+    except DjangoValidationError:
+        return 400, {"message": "Provide a valid email address."}
+
+    if request.user.email == normalized_email:
+        return 400, {"message": "This is already your current email address."}
+
+    if User.objects.filter(email__iexact=normalized_email).exclude(pk=request.user.pk).exists():
+        return 400, {"message": "Email already exists."}
+
+    request.user.email = normalized_email
+    request.user.save(update_fields=["email"])
+    return 200, MeOut(
+        id=request.user.id,
+        username=request.user.username,
+        email=request.user.email,
+        is_social_only=is_social_only_user(request.user),
+    )
+
+
+@auth_router.put("/me/password", response={200: MessageOut, 400: ErrorOut, 403: ErrorOut}, auth=JWTAuth(), summary="Change password")
+def change_password(request, payload: ChangePasswordIn):
+    """Change the authenticated user's password.
+    Blocked for social-only accounts who authenticate via their provider instead."""
+    if is_social_only_user(request.user):
+        return 403, {"message": "Social login accounts cannot change their password."}
+
+    if not request.user.check_password(payload.current_password):
+        return 400, {"message": "Current password is incorrect."}
+
+    if payload.new_password != payload.new_password_confirm:
+        return 400, {"message": "New passwords do not match."}
+
+    try:
+        validate_password(payload.new_password, user=request.user)
+    except DjangoValidationError as error:
+        message = str(error.messages[0]) if error.messages else "Password does not meet security requirements."
+        return 400, {"message": message}
+
+    request.user.set_password(payload.new_password)
+    request.user.save(update_fields=["password"])
+    return 200, {"message": "Password changed successfully."}
+
+
+@auth_router.delete("/me", response={200: MessageOut, 400: ErrorOut}, auth=JWTAuth(), summary="Delete account")
+def delete_account(request, payload: DeleteAccountIn):
+    """Permanently delete the authenticated user's account.
+    Regular users verify with password; social-only users must send confirm_text=DELETE."""
+    if is_social_only_user(request.user):
+        if not payload.confirm_text or payload.confirm_text.strip() != "DELETE":
+            return 400, {"message": "Send confirm_text set to 'DELETE' to delete your account."}
+    else:
+        if not payload.password:
+            return 400, {"message": "Password is required."}
+        if not request.user.check_password(payload.password):
+            return 400, {"message": "Incorrect password."}
+
+    request.user.delete()
+    return 200, {"message": "Account deleted successfully."}
