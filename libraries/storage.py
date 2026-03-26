@@ -27,7 +27,8 @@ def get_library_photo_path(library) -> Path | None:
         with storage.open(library.photo.name, "rb") as f:
             content = f.read()
 
-        tmp = tempfile.NamedTemporaryFile(suffix=".jpg", delete=False)
+        suffix = Path(library.photo.name).suffix or ".bin"
+        tmp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
         tmp.write(content)
         tmp.close()
         return Path(tmp.name)

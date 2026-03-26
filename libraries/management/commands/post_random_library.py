@@ -116,7 +116,7 @@ class Command(BaseCommand):
 
             ai_result = analyze_library_image(image_path, library)
 
-        alt_text = library.description or (ai_result["alt_text"] if ai_result else None)
+        alt_text = ai_result["alt_text"] if ai_result else None
         ai_hashtags = ai_result["hashtags"] if ai_result else []
 
         post_text = build_post_text(

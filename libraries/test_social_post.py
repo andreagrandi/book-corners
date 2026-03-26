@@ -1154,8 +1154,7 @@ class TestCommandAIIntegration:
 
         mock_mastodon.assert_called_once()
         call_kwargs = mock_mastodon.call_args
-        # Library description takes priority over AI alt_text
-        assert call_kwargs.kwargs["alt_text"] == "A lovely community library on the corner"
+        assert call_kwargs.kwargs["alt_text"] == "A cozy book nook"
 
     @override_settings(
         MASTODON_INSTANCE_URL="https://mastodon.test",
@@ -1183,8 +1182,7 @@ class TestCommandAIIntegration:
 
         mock_mastodon.assert_called_once()
         call_kwargs = mock_mastodon.call_args
-        # Library description used as alt_text even without AI key
-        assert call_kwargs.kwargs["alt_text"] == "A lovely community library on the corner"
+        assert call_kwargs.kwargs["alt_text"] is None
 
     @override_settings(
         MASTODON_INSTANCE_URL="",
@@ -1209,8 +1207,7 @@ class TestCommandAIIntegration:
         call_command("post_random_library", dry_run=True)
 
         captured = capsys.readouterr()
-        # Library description takes priority over AI alt_text in dry-run output
-        assert "AI alt text: A lovely community library on the corner" in captured.out
+        assert "AI alt text: A wooden library box" in captured.out
         assert "wooden" in captured.out
         assert "cozy" in captured.out
 
