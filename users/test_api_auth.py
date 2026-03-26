@@ -251,6 +251,26 @@ class TestAuthAPI:
         assert body["id"] == user.id
         assert body["username"] == user.username
         assert body["email"] == user.email
+        assert body["is_social_only"] is False
+
+    def test_me_returns_social_only_for_social_user(self, client):
+        """Verify me returns is_social_only=true for social-only users.
+        Allows clients to hide email/password change options."""
+        social_user = User.objects.create_user(username="socialme", email="socialme@example.com")
+        social_user.set_unusable_password()
+        social_user.save()
+        SocialAccount.objects.create(
+            user=social_user, provider="google", uid="google-me-uid", extra_data={},
+        )
+        access_token = str(RefreshToken.for_user(social_user).access_token)
+        response = client.get(
+            "/api/v1/auth/me",
+            HTTP_AUTHORIZATION=f"Bearer {access_token}",
+        )
+
+        body = response.json()
+        assert response.status_code == 200
+        assert body["is_social_only"] is True
 
 
 @pytest.mark.django_db

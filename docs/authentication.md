@@ -291,7 +291,67 @@ Return the profile of the currently authenticated user.
 {
   "id": 1,
   "username": "janedoe",
-  "email": "jane@example.com"
+  "email": "jane@example.com",
+  "is_social_only": false
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | integer | Unique user identifier |
+| `username` | string | Username |
+| `email` | string | Email address |
+| `is_social_only` | boolean | `true` when the account uses social login only (Apple/Google) and has no local password. Email and password change endpoints are unavailable for these accounts. |
+
+**Errors:**
+
+| Status | Message |
+|--------|---------|
+| `401` | Unauthorized (missing or invalid token) |
+
+---
+
+### Change Email
+
+`PATCH /api/v1/auth/me/email`
+
+Update the authenticated user's email address. The new email must be a valid, unique address.
+
+**Not available** for social-only accounts (Apple/Google sign-in without a local password). Returns `403`.
+
+**Auth required:** Yes (`Bearer` token)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `email` | string | Yes | New email address (3–254 characters) |
+
+=== "curl"
+
+    ```bash
+    curl -X PATCH https://bookcorners.org/api/v1/auth/me/email \
+      -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
+      -H "Content-Type: application/json" \
+      -d '{"email": "new@example.com"}'
+    ```
+
+=== "Python"
+
+    ```python
+    resp = requests.patch(
+        "https://bookcorners.org/api/v1/auth/me/email",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={"email": "new@example.com"},
+    )
+    print(resp.json())
+    ```
+
+**Success** (`200 OK`):
+
+```json
+{
+  "id": 1,
+  "username": "janedoe",
+  "email": "new@example.com"
 }
 ```
 
@@ -299,4 +359,142 @@ Return the profile of the currently authenticated user.
 
 | Status | Message |
 |--------|---------|
+| `400` | `"Provide a valid email address."` |
+| `400` | `"This is already your current email address."` |
+| `400` | `"Email already exists."` |
+| `401` | Unauthorized (missing or invalid token) |
+| `403` | `"Social login accounts cannot change their email address."` |
+
+---
+
+### Change Password
+
+`PUT /api/v1/auth/me/password`
+
+Change the authenticated user's password. Requires the current password for verification.
+
+**Not available** for social-only accounts (Apple/Google sign-in without a local password). Returns `403`.
+
+**Auth required:** Yes (`Bearer` token)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `current_password` | string | Yes | Current account password |
+| `new_password` | string | Yes | New password (8–128 characters, validated against Django password policies) |
+| `new_password_confirm` | string | Yes | New password confirmation (must match `new_password`) |
+
+=== "curl"
+
+    ```bash
+    curl -X PUT https://bookcorners.org/api/v1/auth/me/password \
+      -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
+      -H "Content-Type: application/json" \
+      -d '{
+        "current_password": "oldPass123!",
+        "new_password": "newS3cure!Pass",
+        "new_password_confirm": "newS3cure!Pass"
+      }'
+    ```
+
+=== "Python"
+
+    ```python
+    resp = requests.put(
+        "https://bookcorners.org/api/v1/auth/me/password",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={
+            "current_password": "oldPass123!",
+            "new_password": "newS3cure!Pass",
+            "new_password_confirm": "newS3cure!Pass",
+        },
+    )
+    print(resp.json())
+    ```
+
+**Success** (`200 OK`):
+
+```json
+{
+  "message": "Password changed successfully."
+}
+```
+
+**Errors:**
+
+| Status | Message |
+|--------|---------|
+| `400` | `"Current password is incorrect."` |
+| `400` | `"New passwords do not match."` |
+| `400` | Password policy violation message |
+| `401` | Unauthorized (missing or invalid token) |
+| `403` | `"Social login accounts cannot change their password."` |
+
+---
+
+### Delete Account
+
+`DELETE /api/v1/auth/me`
+
+Permanently delete the authenticated user's account. This action is irreversible. Submitted libraries, reports, and photos are preserved with their author unlinked.
+
+Regular users must provide their current `password`. Social-only users (no local password) must set `confirm` to `true` instead.
+
+**Auth required:** Yes (`Bearer` token)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `password` | string | Conditional | Current account password (required for non-social accounts) |
+| `confirm_text` | string | Conditional | Must be `"DELETE"` (required for social-only accounts that have no password) |
+
+=== "curl (password)"
+
+    ```bash
+    curl -X DELETE https://bookcorners.org/api/v1/auth/me \
+      -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
+      -H "Content-Type: application/json" \
+      -d '{"password": "s3cure!Pass"}'
+    ```
+
+=== "curl (social)"
+
+    ```bash
+    curl -X DELETE https://bookcorners.org/api/v1/auth/me \
+      -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
+      -H "Content-Type: application/json" \
+      -d '{"confirm_text": "DELETE"}'
+    ```
+
+=== "Python"
+
+    ```python
+    # Regular account
+    resp = requests.delete(
+        "https://bookcorners.org/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={"password": "s3cure!Pass"},
+    )
+
+    # Social-only account
+    resp = requests.delete(
+        "https://bookcorners.org/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={"confirm_text": "DELETE"},
+    )
+    ```
+
+**Success** (`200 OK`):
+
+```json
+{
+  "message": "Account deleted successfully."
+}
+```
+
+**Errors:**
+
+| Status | Message |
+|--------|---------|
+| `400` | `"Incorrect password."` |
+| `400` | `"Password is required."` |
+| `400` | `"Send confirm_text set to 'DELETE' to delete your account."` |
 | `401` | Unauthorized (missing or invalid token) |

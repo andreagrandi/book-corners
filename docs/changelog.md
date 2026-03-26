@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.7.0
+
+- Change email endpoint (`PATCH /auth/me/email`) allows authenticated users to update their email address with uniqueness validation.
+- Change password endpoint (`PUT /auth/me/password`) allows authenticated users to change their password with current password verification and Django password policy validation.
+- Delete account endpoint (`DELETE /auth/me`) allows authenticated users to permanently delete their account with password confirmation.
+
 ## v1.6.0
 
 - Library submissions are now enriched with AI-generated name and description when the user leaves those fields blank. The description is also used as image alt text for improved accessibility.
