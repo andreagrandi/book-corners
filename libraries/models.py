@@ -15,7 +15,7 @@ LIBRARY_PLACEHOLDER_IMAGE_WEBP = "images/library-placeholder.webp"
 
 
 class Library(models.Model):
-    """A little free library location with its details."""
+    """A community book exchange library location with its details."""
 
     class Status(models.TextChoices):
         PENDING = "pending", _("Pending")

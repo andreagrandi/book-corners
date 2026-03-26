@@ -26,7 +26,7 @@
         {% if library.photo %}
           <img
             src="{{ library.photo.url }}"
-            alt="{{ library.name|default:library.address }}"
+            alt="{{ library.description|default:library.name|default:library.address }}"
             class="h-full w-full object-cover"
           >
         {% else %}
@@ -34,7 +34,7 @@
             <source srcset="{% static 'images/library-placeholder.webp' %}" type="image/webp">
             <img
               src="{% static 'images/library-placeholder.png' %}"
-              alt="{{ library.name|default:library.address }}"
+              alt="{{ library.description|default:library.name|default:library.address }}"
               class="h-full w-full object-cover"
             >
           </picture>

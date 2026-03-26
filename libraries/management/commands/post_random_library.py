@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import tempfile
 import time
 from pathlib import Path
 from typing import Callable
@@ -18,6 +17,7 @@ from django.urls import reverse
 from libraries.models import Library, SocialPost
 from libraries.notifications import notify_social_post, notify_social_post_error
 from libraries.social.text import build_hashtag_comment, build_post_text
+from libraries.storage import get_library_photo_path
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +107,7 @@ class Command(BaseCommand):
         detail_url = f"{base_url}{detail_path}"
 
         # Access the photo from storage (needed for both AI analysis and posting)
-        image_path = self._get_photo_path(library)
+        image_path = get_library_photo_path(library)
 
         # AI image analysis (best-effort, never blocks posting)
         ai_result = None
@@ -116,7 +116,7 @@ class Command(BaseCommand):
 
             ai_result = analyze_library_image(image_path, library)
 
-        alt_text = ai_result["alt_text"] if ai_result else None
+        alt_text = library.description or (ai_result["alt_text"] if ai_result else None)
         ai_hashtags = ai_result["hashtags"] if ai_result else []
 
         post_text = build_post_text(
@@ -266,29 +266,6 @@ class Command(BaseCommand):
         if getattr(settings, "INSTAGRAM_ACCESS_TOKEN", ""):
             return True
         return InstagramToken.objects.exists()
-
-    def _get_photo_path(self, library) -> Path | None:
-        """Retrieve the library photo to a local path for uploading.
-        Writes storage-backed files to a temp file when needed."""
-        try:
-            storage = library.photo.storage
-            if hasattr(storage, "path"):
-                try:
-                    return Path(storage.path(library.photo.name))
-                except NotImplementedError:
-                    pass
-
-            # Fall back to reading from storage into a temp file
-            with storage.open(library.photo.name, "rb") as f:
-                content = f.read()
-
-            tmp = tempfile.NamedTemporaryFile(suffix=".jpg", delete=False)
-            tmp.write(content)
-            tmp.close()
-            return Path(tmp.name)
-        except Exception:
-            logger.exception("Failed to access photo for library %s", library.pk)
-            return None
 
     def _post_to_mastodon(
         self, library, text: str, image_path: Path, *, alt_text: str | None = None,

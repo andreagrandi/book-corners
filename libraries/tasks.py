@@ -1,6 +1,6 @@
 """Background tasks for asynchronous library operations.
 
-Decouples slow I/O (image fetching) from request handling via django.tasks.
+Decouples slow I/O (image fetching, AI enrichment) from request handling via django.tasks.
 """
 
 from __future__ import annotations
@@ -8,13 +8,72 @@ from __future__ import annotations
 import logging
 from io import BytesIO
 
+from django.conf import settings
 from django.tasks import task
 
 from libraries.geojson_import import GeoJSONImporter, fetch_image_from_url, parse_geojson
 from libraries.image_processing import build_library_photo_files
 from libraries.models import Library
+from libraries.notifications import notify_new_library
+from libraries.storage import get_library_photo_path
 
 logger = logging.getLogger(__name__)
+
+
+@task()
+def enrich_library_with_ai(library_id: int) -> None:
+    """Run AI image analysis on a submitted library and send admin notification.
+    Fills blank name/description from AI, then always notifies the admin."""
+    try:
+        library = Library.objects.get(pk=library_id)
+    except Library.DoesNotExist:
+        logger.warning("Library %d not found, skipping AI enrichment", library_id)
+        return
+
+    if not library.photo or not getattr(settings, "OPENROUTER_API_KEY", ""):
+        notify_new_library(library)
+        return
+
+    image_path = get_library_photo_path(library)
+    if not image_path:
+        notify_new_library(library)
+        return
+
+    update_fields: list[str] = []
+    try:
+        from libraries.social.image_ai import enrich_library_from_image
+
+        result = enrich_library_from_image(image_path=image_path, library=library)
+        if result:
+            if not library.name and result["name"]:
+                library.name = result["name"]
+                update_fields.append("name")
+            if not library.description and result["description"]:
+                library.description = result["description"]
+                update_fields.append("description")
+    except Exception:
+        logger.exception("AI enrichment failed for library %d", library_id)
+
+    if update_fields:
+        library.save(update_fields=update_fields)
+
+    notify_new_library(library)
+
+    # Clean up temp file if storage created one
+    try:
+        from pathlib import Path
+
+        storage = library.photo.storage
+        if hasattr(storage, "path"):
+            try:
+                local_path = Path(storage.path(library.photo.name))
+                if local_path == image_path:
+                    return  # Not a temp file
+            except NotImplementedError:
+                pass
+        image_path.unlink(missing_ok=True)
+    except Exception:
+        pass
 
 
 @task()

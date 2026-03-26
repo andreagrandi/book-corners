@@ -1,0 +1,48 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "AI Enrich: Confirm" %} — {{ library }}{% endblock %}
+
+{% block content %}
+<h2>{% trans "AI Enrich: Review Suggestions" %}</h2>
+
+<p>{% trans "Review the AI-generated values below. Click Apply to update the library, or Cancel to discard." %}</p>
+
+{% if library.photo %}
+<div style="margin-bottom: 1em;">
+    <img src="{{ library.photo.url }}" style="max-height: 200px;" alt="{{ library.name|default:library.address }}">
+</div>
+{% endif %}
+
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 1.5em;">
+<thead>
+    <tr>
+        <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd; width: 15%;">{% trans "Field" %}</th>
+        <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd; width: 42.5%;">{% trans "Current value" %}</th>
+        <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd; width: 42.5%;">{% trans "AI suggestion" %}</th>
+    </tr>
+</thead>
+<tbody>
+    <tr>
+        <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">{% trans "Name" %}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee;">{{ library.name|default:"(empty)" }}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee;">{{ ai_name|default:"(empty)" }}</td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">{% trans "Description" %}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee;">{{ library.description|default:"(empty)" }}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #eee;">{{ ai_description|default:"(empty)" }}</td>
+    </tr>
+</tbody>
+</table>
+
+<div style="display: flex; gap: 1em;">
+    <form method="post" action="{{ apply_url }}">
+        {% csrf_token %}
+        <input type="hidden" name="ai_name" value="{{ ai_name }}">
+        <input type="hidden" name="ai_description" value="{{ ai_description }}">
+        <input type="submit" value="{% trans 'Apply' %}" class="default" style="padding: 8px 16px;">
+    </form>
+    <a href="{{ cancel_url }}" class="button" style="padding: 8px 16px;">{% trans "Cancel" %}</a>
+</div>
+{% endblock %}

@@ -30,6 +30,7 @@ from libraries.stats import build_stats_data, get_countries
 from libraries.forms import _validate_uploaded_photo
 from libraries.models import Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
 from libraries.notifications import notify_new_library, notify_new_photo, notify_new_report
+from libraries.tasks import enrich_library_with_ai
 from libraries.search import run_library_search
 
 library_router = Router(tags=["libraries"])
@@ -188,7 +189,10 @@ def submit_library(request, payload: Form[LibrarySubmitIn], photo: UploadedFile 
         created_by=request.user,
     )
     library.save()
-    notify_new_library(library)
+    try:
+        enrich_library_with_ai.enqueue(library_id=library.pk)
+    except Exception:
+        notify_new_library(library)
     return 201, library
 
 

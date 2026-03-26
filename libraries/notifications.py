@@ -36,13 +36,16 @@ def notify_new_library(library) -> None:
         app_label="libraries", model_name="library", object_id=library.pk,
     )
     subject = f"New library submission: {library.name or library.address}"
-    body = (
-        f"A new library has been submitted and needs review.\n\n"
-        f"Name: {library.name or '(unnamed)'}\n"
-        f"City: {library.city}\n"
-        f"Submitted by: {library.created_by}\n\n"
-        f"Review it in admin:\n{admin_url}\n"
-    )
+    lines = [
+        "A new library has been submitted and needs review.\n",
+        f"Name: {library.name or '(unnamed)'}",
+        f"City: {library.city}",
+    ]
+    if library.description:
+        lines.append(f"Description: {library.description}")
+    lines.append(f"Submitted by: {library.created_by}")
+    lines.append(f"\nReview it in admin:\n{admin_url}")
+    body = "\n".join(lines)
 
     try:
         send_mail(

@@ -10,6 +10,8 @@ from django.shortcuts import redirect, render
 from django.urls import path, reverse
 from django.utils.html import format_html
 
+from django.utils.translation import gettext_lazy as _
+
 from libraries.geojson_import import parse_geojson
 from libraries.management.commands.find_duplicates import (
     DEFAULT_RADIUS_METERS,
@@ -46,6 +48,7 @@ class LibraryAdmin(admin.GISModelAdmin):
     """Admin configuration for Library model."""
 
     change_list_template = "admin/libraries/library_changelist.html"
+    change_form_template = "admin/libraries/library/change_form.html"
     list_display = ["name", "city", "country", "status", "created_at"]
     list_filter = [
         "status",
@@ -99,8 +102,18 @@ class LibraryAdmin(admin.GISModelAdmin):
 
     def get_urls(self):
         """Extend admin URLs with custom management endpoints.
-        Adds GeoJSON import and duplicate finder views."""
+        Adds GeoJSON import, duplicate finder, photo grid, and AI enrichment views."""
         custom_urls = [
+            path(
+                "<path:object_id>/ai-enrich/",
+                self.admin_site.admin_view(self.ai_enrich_view),
+                name="libraries_library_ai_enrich",
+            ),
+            path(
+                "<path:object_id>/ai-enrich/apply/",
+                self.admin_site.admin_view(self.ai_enrich_apply_view),
+                name="libraries_library_ai_enrich_apply",
+            ),
             path(
                 "import-geojson/",
                 self.admin_site.admin_view(self.import_geojson_view),
@@ -118,6 +131,84 @@ class LibraryAdmin(admin.GISModelAdmin):
             ),
         ]
         return custom_urls + super().get_urls()
+
+    def ai_enrich_view(self, request: HttpRequest, object_id: str) -> HttpResponse:
+        """Generate AI name and description for a library and show confirmation.
+        Calls the vision model synchronously and renders a preview page."""
+        if request.method != "POST":
+            return redirect(
+                reverse("admin:libraries_library_change", args=[object_id])
+            )
+
+        library = Library.objects.get(pk=object_id)
+        if not library.photo:
+            messages.error(request, _("This library has no photo for AI analysis."))
+            return redirect(
+                reverse("admin:libraries_library_change", args=[object_id])
+            )
+
+        from libraries.social.image_ai import enrich_library_from_image
+        from libraries.storage import get_library_photo_path
+
+        image_path = get_library_photo_path(library)
+        if not image_path:
+            messages.error(request, _("Could not access the library photo."))
+            return redirect(
+                reverse("admin:libraries_library_change", args=[object_id])
+            )
+
+        result = enrich_library_from_image(image_path=image_path, library=library)
+        if not result:
+            messages.error(request, _("AI enrichment failed. Check logs for details."))
+            return redirect(
+                reverse("admin:libraries_library_change", args=[object_id])
+            )
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": _("AI Enrich: Confirm"),
+            "opts": self.model._meta,
+            "library": library,
+            "ai_name": result["name"],
+            "ai_description": result["description"],
+            "apply_url": reverse(
+                "admin:libraries_library_ai_enrich_apply", args=[object_id]
+            ),
+            "cancel_url": reverse(
+                "admin:libraries_library_change", args=[object_id]
+            ),
+        }
+        return render(request, "admin/libraries/ai_enrich_confirm.html", context)
+
+    def ai_enrich_apply_view(self, request: HttpRequest, object_id: str) -> HttpResponse:
+        """Apply AI-generated name and description to a library.
+        Reads values from POST data to avoid a second API call."""
+        if request.method != "POST":
+            return redirect(
+                reverse("admin:libraries_library_change", args=[object_id])
+            )
+
+        library = Library.objects.get(pk=object_id)
+        ai_name = request.POST.get("ai_name", "").strip()
+        ai_description = request.POST.get("ai_description", "").strip()
+
+        update_fields: list[str] = []
+        if ai_name:
+            library.name = ai_name[:255]
+            update_fields.append("name")
+        if ai_description:
+            library.description = ai_description[:2000]
+            update_fields.append("description")
+
+        if update_fields:
+            library.save(update_fields=update_fields)
+            messages.success(request, _("AI-generated name and description applied."))
+        else:
+            messages.warning(request, _("No AI values to apply."))
+
+        return redirect(
+            reverse("admin:libraries_library_change", args=[object_id])
+        )
 
     def import_geojson_view(self, request: HttpRequest) -> HttpResponse:
         """Handle GeoJSON file upload and import into Library records.

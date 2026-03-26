@@ -925,8 +925,9 @@ msgid "ID"
 msgstr ""
 
 #: templates/admin/libraries/find_duplicates.html:88
+#: templates/admin/libraries/ai_enrich_confirm.html
 msgid "Name"
-msgstr ""
+msgstr "Nome"
 
 #: templates/admin/libraries/find_duplicates.html:91
 #: templates/admin/libraries/geojson_import_result.html:57
@@ -1008,8 +1009,9 @@ msgid "Import"
 msgstr ""
 
 #: templates/admin/libraries/geojson_import_form.html:45
+#: templates/admin/libraries/ai_enrich_confirm.html
 msgid "Cancel"
-msgstr ""
+msgstr "Annulla"
 
 #: templates/admin/libraries/geojson_import_result.html:4
 #: templates/admin/libraries/geojson_import_result.html:10
@@ -1272,3 +1274,56 @@ msgstr "Nessuna foto trovata con i filtri selezionati."
 #: templates/admin/libraries/photo_grid.html
 msgid "All"
 msgstr "Tutti"
+
+#: templates/admin/libraries/library/change_form.html
+msgid "AI Enrich"
+msgstr "Arricchisci con IA"
+
+#: libraries/admin.py
+msgid "This library has no photo for AI analysis."
+msgstr "Questa libreria non ha una foto per l'analisi IA."
+
+#: libraries/admin.py
+msgid "Could not access the library photo."
+msgstr "Impossibile accedere alla foto della libreria."
+
+#: libraries/admin.py
+msgid "AI enrichment failed. Check logs for details."
+msgstr "Arricchimento IA fallito. Controlla i log per i dettagli."
+
+#: libraries/admin.py
+msgid "AI Enrich: Confirm"
+msgstr "Arricchisci con IA: Conferma"
+
+#: libraries/admin.py
+msgid "AI-generated name and description applied."
+msgstr "Nome e descrizione generati dall'IA applicati."
+
+#: libraries/admin.py
+msgid "No AI values to apply."
+msgstr "Nessun valore IA da applicare."
+
+#: templates/admin/libraries/ai_enrich_confirm.html
+msgid "AI Enrich: Review Suggestions"
+msgstr "Arricchisci con IA: Rivedi suggerimenti"
+
+#: templates/admin/libraries/ai_enrich_confirm.html
+msgid "Review the AI-generated values below. Click Apply to update the library, or Cancel to discard."
+msgstr "Rivedi i valori generati dall'IA. Clicca Applica per aggiornare la libreria, o Annulla per scartare."
+
+#: templates/admin/libraries/ai_enrich_confirm.html
+msgid "Field"
+msgstr "Campo"
+
+#: templates/admin/libraries/ai_enrich_confirm.html
+msgid "Current value"
+msgstr "Valore attuale"
+
+#: templates/admin/libraries/ai_enrich_confirm.html
+msgid "AI suggestion"
+msgstr "Suggerimento IA"
+
+#: templates/admin/libraries/ai_enrich_confirm.html
+msgid "Apply"
+msgstr "Applica"
+

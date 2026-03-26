@@ -17,6 +17,7 @@ from django.urls import reverse
 from libraries.clustering import CLUSTER_ZOOM_THRESHOLD, build_clustered_features, get_grid_size_for_zoom
 from libraries.forms import LibraryPhotoSubmissionForm, LibrarySearchForm, LibrarySubmissionForm, ReportSubmissionForm
 from libraries.notifications import notify_new_library, notify_new_photo, notify_new_report
+from libraries.tasks import enrich_library_with_ai
 from libraries.geolocation import (
     extract_gps_coordinates,
     forward_geocode_place,
@@ -145,6 +146,7 @@ def _serialize_library_geojson_feature(
             "id": library.id,
             "slug": library.slug,
             "name": library.name or "Neighborhood Library",
+            "description": library.description,
             "city": library.city,
             "country": library.country,
             "address": library.address,
@@ -306,7 +308,7 @@ def _build_all_approved_geojson_json() -> str:
     queryset = (
         Library.objects.filter(status=Library.Status.APPROVED)
         .order_by("-created_at")
-        .only("id", "slug", "name", "city", "country", "address",
+        .only("id", "slug", "name", "description", "city", "country", "address",
               "location", "photo", "photo_thumbnail")
     )
     detail_url_template = reverse("library_detail", kwargs={"slug": "__SLUG__"})
@@ -624,7 +626,10 @@ def submit_library(request: HttpRequest) -> HttpResponse:
 
     if request.method == "POST" and form.is_valid():
         library = form.save()
-        notify_new_library(library)
+        try:
+            enrich_library_with_ai.enqueue(library_id=library.pk)
+        except Exception:
+            notify_new_library(library)
         return redirect("submit_library_confirmation")
 
     return render(

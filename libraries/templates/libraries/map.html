@@ -282,8 +282,10 @@
         const photoUrl = escapeHtml(properties.photo_url || "");
         const detailUrl = escapeHtml(properties.detail_url || "#");
         const locationText = [city, country].filter(Boolean).join(", ");
+        const description = escapeHtml(properties.description || "");
+        const altText = description || name;
         const imageHtml = photoUrl
-          ? `<img src="${photoUrl}" alt="${name}" class="h-28 w-full rounded object-cover" loading="lazy">`
+          ? `<img src="${photoUrl}" alt="${altText}" class="h-28 w-full rounded object-cover" loading="lazy">`
           : "";
         const locationHtml = locationText
           ? `<p class="text-xs text-base-content/70">${locationText}</p>`
