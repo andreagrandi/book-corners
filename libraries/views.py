@@ -594,21 +594,40 @@ def submit_library_photo(request: HttpRequest, slug: str) -> HttpResponse:
 
 @login_required(login_url="login")
 def dashboard(request: HttpRequest) -> HttpResponse:
-    """Render the authenticated dashboard with user submissions.
-    Shows the current user's libraries and moderation statuses."""
+    """Render the authenticated dashboard with user info and paginated submissions.
+    Shows pending libraries first, then by newest creation date."""
+    from django.core.paginator import Paginator
+    from django.db.models import Case, IntegerField, Value, When
+
+    from users.auth import is_social_only_user
+
     submissions = (
         Library.objects.filter(created_by=request.user)
         .only(
             "name", "slug", "address", "city", "country",
             "status", "photo", "photo_thumbnail", "created_at",
         )
-        .order_by("-created_at")
+        .annotate(
+            status_order=Case(
+                When(status=Library.Status.PENDING, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            ),
+        )
+        .order_by("status_order", "-created_at")
     )
+
+    paginator = Paginator(submissions, 10)
+    page_number = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page_number)
+
     return render(
         request,
         "libraries/dashboard.html",
         {
-            "submissions": submissions,
+            "submissions": page_obj,
+            "page_obj": page_obj,
+            "is_social_only": is_social_only_user(request.user),
         },
     )
 

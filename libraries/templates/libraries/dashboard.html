@@ -7,48 +7,112 @@
 {% block content %}
   <section class="space-y-6">
     <header class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm">
-      <h1 class="text-3xl font-bold">{% trans "Your submissions" %}</h1>
+      <h1 class="text-3xl font-bold">{% trans "Dashboard" %}</h1>
       <p class="mt-2 text-base-content/70">
-        {% trans "Track the moderation status of the libraries you submitted." %}
+        {% trans "Manage your account and track your library submissions." %}
       </p>
     </header>
 
-    {% if submissions %}
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {% for library in submissions %}
-          <article class="card overflow-hidden border border-base-300 bg-base-100 shadow-sm">
-            <figure class="h-48 overflow-hidden bg-base-200">
-              <img
-                src="{{ library.card_photo_url }}"
-                alt="{{ library.description|default:library.name|default:library.address }}"
-                class="h-full w-full object-cover"
-                loading="lazy"
-              >
-            </figure>
-            <div class="card-body p-4">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <h2 class="card-title text-lg">{{ library.name|default:library.address }}</h2>
-                <span
-                  class="badge {% if library.status == library.Status.APPROVED %}badge-success{% elif library.status == library.Status.REJECTED %}badge-error{% else %}badge-warning{% endif %}"
-                >
-                  {{ library.get_status_display }}
-                </span>
-              </div>
-              <p class="text-sm text-base-content/70">{{ library.address }}</p>
-              <p class="text-sm text-base-content/70">{{ library.city }}, {{ library.country }}</p>
-              <div class="card-actions mt-2 justify-end">
-                <a href="{% url 'library_detail' slug=library.slug %}" class="btn btn-sm btn-outline">{% trans "View details" %}</a>
-              </div>
-            </div>
-          </article>
-        {% endfor %}
+    {# ── User profile card ── #}
+    <div class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm">
+      <h2 class="text-xl font-semibold">{% trans "Account information" %}</h2>
+      <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <span class="text-sm font-medium text-base-content/60">{% trans "Username" %}</span>
+          <p class="mt-1">{{ request.user.username }}</p>
+        </div>
+        <div>
+          <span class="text-sm font-medium text-base-content/60">{% trans "Email" %}</span>
+          <p class="mt-1">{{ request.user.email|default_if_none:"—" }}</p>
+        </div>
+        {% if request.user.first_name or request.user.last_name %}
+        <div>
+          <span class="text-sm font-medium text-base-content/60">{% trans "Name" %}</span>
+          <p class="mt-1">{{ request.user.first_name }} {{ request.user.last_name }}</p>
+        </div>
+        {% endif %}
+        <div>
+          <span class="text-sm font-medium text-base-content/60">{% trans "Member since" %}</span>
+          <p class="mt-1">{{ request.user.date_joined|date:"N j, Y" }}</p>
+        </div>
       </div>
-    {% else %}
-      <article class="rounded-box border border-dashed border-base-300 bg-base-100 p-8 text-center">
-        <h2 class="text-xl font-semibold">{% trans "No submissions yet" %}</h2>
-        <p class="mt-2 text-base-content/70">{% trans "Share your first little free library to start your dashboard history." %}</p>
-        <a href="{% url 'submit_library' %}" class="btn btn-primary mt-4">{% trans "Submit a library" %}</a>
-      </article>
-    {% endif %}
+      <div class="mt-6 flex flex-wrap gap-3">
+        {% if not is_social_only %}
+          <a href="{% url 'change_email' %}" class="btn btn-sm btn-outline">{% trans "Change email" %}</a>
+          <a href="{% url 'change_password' %}" class="btn btn-sm btn-outline">{% trans "Change password" %}</a>
+        {% endif %}
+        <a href="{% url 'delete_account' %}" class="btn btn-sm btn-outline btn-error">{% trans "Delete account" %}</a>
+      </div>
+    </div>
+
+    {# ── Submissions list ── #}
+    <div>
+      <h2 class="mb-4 text-xl font-semibold">{% trans "Your submissions" %}</h2>
+      {% if submissions %}
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {% for library in submissions %}
+            <article class="card overflow-hidden border border-base-300 bg-base-100 shadow-sm">
+              <figure class="h-48 overflow-hidden bg-base-200">
+                <img
+                  src="{{ library.card_photo_url }}"
+                  alt="{{ library.description|default:library.name|default:library.address }}"
+                  class="h-full w-full object-cover"
+                  loading="lazy"
+                >
+              </figure>
+              <div class="card-body p-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <h3 class="card-title text-lg">{{ library.name|default:library.address }}</h3>
+                  <span
+                    class="badge {% if library.status == library.Status.APPROVED %}badge-success{% elif library.status == library.Status.REJECTED %}badge-error{% else %}badge-warning{% endif %}"
+                  >
+                    {{ library.get_status_display }}
+                  </span>
+                </div>
+                <p class="text-sm text-base-content/70">{{ library.address }}</p>
+                <p class="text-sm text-base-content/70">{{ library.city }}, {{ library.country }}</p>
+                <div class="card-actions mt-2 justify-end">
+                  <a href="{% url 'library_detail' slug=library.slug %}" class="btn btn-sm btn-outline">{% trans "View details" %}</a>
+                </div>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+
+        {# ── Pagination controls ── #}
+        {% if page_obj.has_other_pages %}
+          <div class="mt-6 flex justify-center">
+            <div class="join">
+              {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm join-item">«</a>
+              {% else %}
+                <button class="btn btn-sm btn-disabled join-item">«</button>
+              {% endif %}
+
+              {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                  <button class="btn btn-sm btn-active join-item">{{ num }}</button>
+                {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                  <a href="?page={{ num }}" class="btn btn-sm join-item">{{ num }}</a>
+                {% endif %}
+              {% endfor %}
+
+              {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm join-item">»</a>
+              {% else %}
+                <button class="btn btn-sm btn-disabled join-item">»</button>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+
+      {% else %}
+        <article class="rounded-box border border-dashed border-base-300 bg-base-100 p-8 text-center">
+          <h3 class="text-xl font-semibold">{% trans "No submissions yet" %}</h3>
+          <p class="mt-2 text-base-content/70">{% trans "Share your first book exchange spot to start your dashboard history." %}</p>
+          <a href="{% url 'submit_library' %}" class="btn btn-primary mt-4">{% trans "Submit a library" %}</a>
+        </article>
+      {% endif %}
+    </div>
   </section>
 {% endblock %}
