@@ -1,5 +1,7 @@
 from django.conf import settings
-from django.contrib.auth import login, logout
+from django.contrib import messages
+from django.contrib.auth import login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -7,7 +9,15 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 from django.views.i18n import set_language
 
-from users.forms import RegistrationForm, UsernameOrEmailAuthenticationForm
+from users.auth import is_social_only_user
+from users.forms import (
+    ChangeEmailForm,
+    ChangePasswordForm,
+    DeleteAccountForm,
+    RegistrationForm,
+    SocialDeleteAccountForm,
+    UsernameOrEmailAuthenticationForm,
+)
 from users.notifications import notify_new_registration
 from users.security import is_auth_rate_limited
 
@@ -131,3 +141,56 @@ def set_language_view(request: HttpRequest) -> HttpResponse:
             request.user.language = language
             request.user.save(update_fields=["language"])
     return response
+
+
+@login_required(login_url="login")
+def change_email_view(request: HttpRequest) -> HttpResponse:
+    """Allow the authenticated user to change their email address.
+    Blocks social-only users whose email is managed by their provider."""
+    if is_social_only_user(request.user):
+        messages.error(request, _("Social login accounts cannot change their email address."))
+        return redirect("dashboard")
+    form = ChangeEmailForm(request.POST or None, user=request.user)
+    if request.method == "POST" and form.is_valid():
+        request.user.email = form.cleaned_data["email"]
+        request.user.save(update_fields=["email"])
+        messages.success(request, _("Your email address has been updated."))
+        return redirect("dashboard")
+    return render(request, "users/change_email.html", {"form": form})
+
+
+@login_required(login_url="login")
+def change_password_view(request: HttpRequest) -> HttpResponse:
+    """Allow the authenticated user to change their password.
+    Blocks social-only users who authenticate via their provider instead."""
+    if is_social_only_user(request.user):
+        messages.error(request, _("Social login accounts cannot change their password."))
+        return redirect("dashboard")
+    form = ChangePasswordForm(user=request.user, data=request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        update_session_auth_hash(request, request.user)
+        messages.success(request, _("Your password has been changed."))
+        return redirect("dashboard")
+    return render(request, "users/change_password.html", {"form": form})
+
+
+@login_required(login_url="login")
+def delete_account_view(request: HttpRequest) -> HttpResponse:
+    """Allow the authenticated user to permanently delete their account.
+    Uses password confirmation for regular users, checkbox for social-only users."""
+    social_only = is_social_only_user(request.user)
+    if social_only:
+        form = SocialDeleteAccountForm(request.POST or None)
+    else:
+        form = DeleteAccountForm(request.POST or None, user=request.user)
+    if request.method == "POST" and form.is_valid():
+        user = request.user
+        logout(request)
+        user.delete()
+        messages.success(request, _("Your account has been deleted."))
+        return redirect("home")
+    return render(request, "users/delete_account.html", {
+        "form": form,
+        "is_social_only": social_only,
+    })

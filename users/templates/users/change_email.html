@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Change email" %} - Book Corners{% endblock %}
+{% block meta_description %}{% trans "Update the email address associated with your Book Corners account." %}{% endblock %}
+
+{% block content %}
+  <section class="mx-auto w-full max-w-md">
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h1 class="card-title text-2xl">{% trans "Change email" %}</h1>
+        <p class="text-base-content/70">{% trans "Enter your new email address below." %}</p>
+
+        <form method="post" class="mt-2 space-y-4" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-error text-sm">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <label class="flex w-full flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "Current email" %}</span>
+            <input type="email" value="{{ request.user.email }}" class="input w-full" disabled>
+          </label>
+
+          <label class="flex w-full flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "New email address" %}</span>
+            {{ form.email }}
+            {% if form.email.errors %}<span class="mt-1 text-sm text-error">{{ form.email.errors.0 }}</span>{% endif %}
+          </label>
+
+          <div class="flex gap-3">
+            <button type="submit" class="btn btn-primary">{% trans "Update email" %}</button>
+            <a href="{% url 'dashboard' %}" class="btn btn-ghost">{% trans "Cancel" %}</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+{% endblock %}

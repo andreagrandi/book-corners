@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete account" %} - Book Corners{% endblock %}
+{% block meta_description %}{% trans "Permanently delete your Book Corners account and all associated data." %}{% endblock %}
+
+{% block content %}
+  <section class="mx-auto w-full max-w-md">
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h1 class="card-title text-2xl text-error">{% trans "Delete account" %}</h1>
+        <div class="alert alert-warning text-sm">
+          {% trans "This action is permanent and cannot be undone. Your submitted libraries will remain visible but will no longer be linked to your profile." %}
+        </div>
+
+        <form method="post" class="mt-2 space-y-4" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-error text-sm">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          {% if is_social_only %}
+            <label class="flex w-full flex-col gap-1">
+              <span class="text-sm font-medium">{% trans "Type DELETE to confirm" %}</span>
+              {{ form.confirm_text }}
+              {% if form.confirm_text.errors %}<span class="mt-1 text-sm text-error">{{ form.confirm_text.errors.0 }}</span>{% endif %}
+            </label>
+          {% else %}
+            <label class="flex w-full flex-col gap-1">
+              <span class="text-sm font-medium">{% trans "Enter your password to confirm" %}</span>
+              {{ form.password }}
+              {% if form.password.errors %}<span class="mt-1 text-sm text-error">{{ form.password.errors.0 }}</span>{% endif %}
+            </label>
+          {% endif %}
+
+          <div class="flex gap-3">
+            <button type="submit" class="btn btn-error">{% trans "Delete my account" %}</button>
+            <a href="{% url 'dashboard' %}" class="btn btn-ghost">{% trans "Cancel" %}</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+{% endblock %}
