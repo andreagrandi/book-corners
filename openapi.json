@@ -244,6 +244,168 @@
             "JWTAuth": []
           }
         ]
+      },
+      "delete": {
+        "operationId": "users_api_delete_account",
+        "summary": "Delete account",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Permanently delete the authenticated user's account.\nRegular users verify with password; social-only users must send confirm_text=DELETE.",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteAccountIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/me/email": {
+      "patch": {
+        "operationId": "users_api_change_email",
+        "summary": "Change email address",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Update the authenticated user's email address.\nBlocked for social-only accounts whose email is managed by their provider.",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeEmailIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/me/password": {
+      "put": {
+        "operationId": "users_api_change_password",
+        "summary": "Change password",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Change the authenticated user's password.\nBlocked for social-only accounts who authenticate via their provider instead.",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
       }
     },
     "/api/v1/libraries/": {
@@ -1369,7 +1531,7 @@
         "type": "object"
       },
       "MeOut": {
-        "description": "Current authenticated user profile.\nReturns basic account information.",
+        "description": "Current authenticated user profile.\nReturns basic account information and authentication type.",
         "properties": {
           "id": {
             "description": "Unique user identifier.",
@@ -1394,14 +1556,124 @@
             ],
             "title": "Email",
             "type": "string"
+          },
+          "is_social_only": {
+            "description": "True when the account uses social login only (no local password). Email and password changes are unavailable for these accounts.",
+            "examples": [
+              false
+            ],
+            "title": "Is Social Only",
+            "type": "boolean"
           }
         },
         "required": [
           "id",
           "username",
-          "email"
+          "email",
+          "is_social_only"
         ],
         "title": "MeOut",
+        "type": "object"
+      },
+      "DeleteAccountIn": {
+        "description": "Payload for confirming account deletion.\nRegular users must provide their password; social-only users must send confirm_text=DELETE.",
+        "properties": {
+          "password": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Current account password (required for non-social accounts).",
+            "examples": [
+              "s3cure!Pass"
+            ],
+            "title": "Password"
+          },
+          "confirm_text": {
+            "anyOf": [
+              {
+                "maxLength": 10,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Type 'DELETE' to confirm (required for social-only accounts that have no password).",
+            "examples": [
+              "DELETE"
+            ],
+            "title": "Confirm Text"
+          }
+        },
+        "title": "DeleteAccountIn",
+        "type": "object"
+      },
+      "ChangeEmailIn": {
+        "description": "Payload for changing the user's email address.\nThe new email must be unique across all accounts.",
+        "properties": {
+          "email": {
+            "description": "New email address.",
+            "examples": [
+              "new@example.com"
+            ],
+            "maxLength": 254,
+            "minLength": 3,
+            "title": "Email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "ChangeEmailIn",
+        "type": "object"
+      },
+      "ChangePasswordIn": {
+        "description": "Payload for changing the user's password.\nRequires current password for verification and new password with confirmation.",
+        "properties": {
+          "current_password": {
+            "description": "Current account password.",
+            "examples": [
+              "oldPass123!"
+            ],
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Current Password",
+            "type": "string"
+          },
+          "new_password": {
+            "description": "New password (validated against Django password policies).",
+            "examples": [
+              "newS3cure!Pass"
+            ],
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "New Password",
+            "type": "string"
+          },
+          "new_password_confirm": {
+            "description": "New password confirmation (must match new_password).",
+            "examples": [
+              "newS3cure!Pass"
+            ],
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "New Password Confirm",
+            "type": "string"
+          }
+        },
+        "required": [
+          "current_password",
+          "new_password",
+          "new_password_confirm"
+        ],
+        "title": "ChangePasswordIn",
         "type": "object"
       },
       "LibrarySearchParams": {

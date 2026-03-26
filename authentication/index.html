@@ -408,6 +408,39 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#change-email" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change Email
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#change-password" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change Password
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delete Account
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -888,6 +921,39 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#change-email" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change Email
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#change-password" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change Password
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Delete Account
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1302,8 +1368,106 @@ This matches the web login flow.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="p">{</span>
 <a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
 <a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span><span class="nt">&quot;username&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;janedoe&quot;</span><span class="p">,</span>
-<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">  </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;jane@example.com&quot;</span>
-<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="p">}</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">  </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;jane@example.com&quot;</span><span class="p">,</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">  </span><span class="nt">&quot;is_social_only&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="p">}</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>integer</td>
+<td>Unique user identifier</td>
+</tr>
+<tr>
+<td><code>username</code></td>
+<td>string</td>
+<td>Username</td>
+</tr>
+<tr>
+<td><code>email</code></td>
+<td>string</td>
+<td>Email address</td>
+</tr>
+<tr>
+<td><code>is_social_only</code></td>
+<td>boolean</td>
+<td><code>true</code> when the account uses social login only (Apple/Google) and has no local password. Email and password change endpoints are unavailable for these accounts.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Errors:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Message</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>401</code></td>
+<td>Unauthorized (missing or invalid token)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="change-email">Change Email<a class="headerlink" href="#change-email" title="Permanent link">&para;</a></h3>
+<p><code>PATCH /api/v1/auth/me/email</code></p>
+<p>Update the authenticated user's email address. The new email must be a valid, unique address.</p>
+<p><strong>Not available</strong> for social-only accounts (Apple/Google sign-in without a local password). Returns <code>403</code>.</p>
+<p><strong>Auth required:</strong> Yes (<code>Bearer</code> token)</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>email</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>New email address (3–254 characters)</td>
+</tr>
+</tbody>
+</table>
+<div class="tabbed-set tabbed-alternate" data-tabs="6:2"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><input id="__tabbed_6_2" name="__tabbed_6" type="radio" /><div class="tabbed-labels"><label for="__tabbed_6_1">curl</label><label for="__tabbed_6_2">Python</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>PATCH<span class="w"> </span>https://bookcorners.org/api/v1/auth/me/email<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer eyJhbGciOiJIUzI1NiIs...&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;email&quot;: &quot;new@example.com&quot;}&#39;</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>    <span class="s2">&quot;https://bookcorners.org/api/v1/auth/me/email&quot;</span><span class="p">,</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>    <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">access_token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">},</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>    <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="s2">&quot;new@example.com&quot;</span><span class="p">},</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="p">)</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="nb">print</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<p><strong>Success</strong> (<code>200 OK</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="p">{</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">  </span><span class="nt">&quot;username&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;janedoe&quot;</span><span class="p">,</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">  </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;new@example.com&quot;</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="p">}</span>
 </code></pre></div>
 <p><strong>Errors:</strong></p>
 <table>
@@ -1314,6 +1478,218 @@ This matches the web login flow.</p>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>400</code></td>
+<td><code>"Provide a valid email address."</code></td>
+</tr>
+<tr>
+<td><code>400</code></td>
+<td><code>"This is already your current email address."</code></td>
+</tr>
+<tr>
+<td><code>400</code></td>
+<td><code>"Email already exists."</code></td>
+</tr>
+<tr>
+<td><code>401</code></td>
+<td>Unauthorized (missing or invalid token)</td>
+</tr>
+<tr>
+<td><code>403</code></td>
+<td><code>"Social login accounts cannot change their email address."</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="change-password">Change Password<a class="headerlink" href="#change-password" title="Permanent link">&para;</a></h3>
+<p><code>PUT /api/v1/auth/me/password</code></p>
+<p>Change the authenticated user's password. Requires the current password for verification.</p>
+<p><strong>Not available</strong> for social-only accounts (Apple/Google sign-in without a local password). Returns <code>403</code>.</p>
+<p><strong>Auth required:</strong> Yes (<code>Bearer</code> token)</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>current_password</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Current account password</td>
+</tr>
+<tr>
+<td><code>new_password</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>New password (8–128 characters, validated against Django password policies)</td>
+</tr>
+<tr>
+<td><code>new_password_confirm</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>New password confirmation (must match <code>new_password</code>)</td>
+</tr>
+</tbody>
+</table>
+<div class="tabbed-set tabbed-alternate" data-tabs="7:2"><input checked="checked" id="__tabbed_7_1" name="__tabbed_7" type="radio" /><input id="__tabbed_7_2" name="__tabbed_7" type="radio" /><div class="tabbed-labels"><label for="__tabbed_7_1">curl</label><label for="__tabbed_7_2">Python</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>PUT<span class="w"> </span>https://bookcorners.org/api/v1/auth/me/password<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer eyJhbGciOiJIUzI1NiIs...&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="s1">    &quot;current_password&quot;: &quot;oldPass123!&quot;,</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="s1">    &quot;new_password&quot;: &quot;newS3cure!Pass&quot;,</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="s1">    &quot;new_password_confirm&quot;: &quot;newS3cure!Pass&quot;</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="s1">  }&#39;</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>    <span class="s2">&quot;https://bookcorners.org/api/v1/auth/me/password&quot;</span><span class="p">,</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>    <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">access_token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">},</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>    <span class="n">json</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>        <span class="s2">&quot;current_password&quot;</span><span class="p">:</span> <span class="s2">&quot;oldPass123!&quot;</span><span class="p">,</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>        <span class="s2">&quot;new_password&quot;</span><span class="p">:</span> <span class="s2">&quot;newS3cure!Pass&quot;</span><span class="p">,</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a>        <span class="s2">&quot;new_password_confirm&quot;</span><span class="p">:</span> <span class="s2">&quot;newS3cure!Pass&quot;</span><span class="p">,</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>    <span class="p">},</span>
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="p">)</span>
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="nb">print</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<p><strong>Success</strong> (<code>200 OK</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="p">{</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Password changed successfully.&quot;</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Errors:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Message</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>400</code></td>
+<td><code>"Current password is incorrect."</code></td>
+</tr>
+<tr>
+<td><code>400</code></td>
+<td><code>"New passwords do not match."</code></td>
+</tr>
+<tr>
+<td><code>400</code></td>
+<td>Password policy violation message</td>
+</tr>
+<tr>
+<td><code>401</code></td>
+<td>Unauthorized (missing or invalid token)</td>
+</tr>
+<tr>
+<td><code>403</code></td>
+<td><code>"Social login accounts cannot change their password."</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="delete-account">Delete Account<a class="headerlink" href="#delete-account" title="Permanent link">&para;</a></h3>
+<p><code>DELETE /api/v1/auth/me</code></p>
+<p>Permanently delete the authenticated user's account. This action is irreversible. Submitted libraries, reports, and photos are preserved with their author unlinked.</p>
+<p>Regular users must provide their current <code>password</code>. Social-only users (no local password) must set <code>confirm</code> to <code>true</code> instead.</p>
+<p><strong>Auth required:</strong> Yes (<code>Bearer</code> token)</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>password</code></td>
+<td>string</td>
+<td>Conditional</td>
+<td>Current account password (required for non-social accounts)</td>
+</tr>
+<tr>
+<td><code>confirm_text</code></td>
+<td>string</td>
+<td>Conditional</td>
+<td>Must be <code>"DELETE"</code> (required for social-only accounts that have no password)</td>
+</tr>
+</tbody>
+</table>
+<div class="tabbed-set tabbed-alternate" data-tabs="8:3"><input checked="checked" id="__tabbed_8_1" name="__tabbed_8" type="radio" /><input id="__tabbed_8_2" name="__tabbed_8" type="radio" /><input id="__tabbed_8_3" name="__tabbed_8" type="radio" /><div class="tabbed-labels"><label for="__tabbed_8_1">curl (password)</label><label for="__tabbed_8_2">curl (social)</label><label for="__tabbed_8_3">Python</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>DELETE<span class="w"> </span>https://bookcorners.org/api/v1/auth/me<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer eyJhbGciOiJIUzI1NiIs...&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;password&quot;: &quot;s3cure!Pass&quot;}&#39;</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>DELETE<span class="w"> </span>https://bookcorners.org/api/v1/auth/me<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer eyJhbGciOiJIUzI1NiIs...&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;confirm_text&quot;: &quot;DELETE&quot;}&#39;</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># Regular account</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>    <span class="s2">&quot;https://bookcorners.org/api/v1/auth/me&quot;</span><span class="p">,</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>    <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">access_token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">},</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>    <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;s3cure!Pass&quot;</span><span class="p">},</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="p">)</span>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a><span class="c1"># Social-only account</span>
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span>
+<a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a>    <span class="s2">&quot;https://bookcorners.org/api/v1/auth/me&quot;</span><span class="p">,</span>
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a>    <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">access_token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">},</span>
+<a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a>    <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;confirm_text&quot;</span><span class="p">:</span> <span class="s2">&quot;DELETE&quot;</span><span class="p">},</span>
+<a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a><span class="p">)</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<p><strong>Success</strong> (<code>200 OK</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="p">{</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Account deleted successfully.&quot;</span>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Errors:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Message</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>400</code></td>
+<td><code>"Incorrect password."</code></td>
+</tr>
+<tr>
+<td><code>400</code></td>
+<td><code>"Password is required."</code></td>
+</tr>
+<tr>
+<td><code>400</code></td>
+<td><code>"Send confirm_text set to 'DELETE' to delete your account."</code></td>
+</tr>
 <tr>
 <td><code>401</code></td>
 <td>Unauthorized (missing or invalid token)</td>
