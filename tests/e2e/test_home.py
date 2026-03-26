@@ -1,4 +1,5 @@
 import pytest
+from playwright.sync_api import expect
 
 
 pytestmark = [pytest.mark.e2e, pytest.mark.django_db(transaction=True)]
@@ -43,16 +44,21 @@ def test_homepage_load_more_pagination(
     page.goto(f"{live_server.url}/")
 
     grid = page.locator("#latest-entries-grid")
-    grid.wait_for(state="visible")
+    grid.wait_for(state="visible", timeout=10000)
 
-    initial_count = grid.locator(".card").count()
+    # Wait for HTMX to finish loading the first page of cards and for
+    # all network activity to settle (HTMX initial load + DOM processing)
+    cards = grid.locator("article.card")
+    expect(cards.first).to_be_visible(timeout=10000)
+    page.wait_for_load_state("networkidle")
+    initial_count = cards.count()
 
     load_more = page.locator("#latest-entries-pagination button")
     if load_more.is_visible():
+        # Ensure HTMX has processed hx-get on the dynamically inserted button
+        page.evaluate("htmx.process(document.querySelector('#latest-entries-pagination button'))")
         load_more.click()
-        grid.locator(f".card:nth-child({initial_count + 1})").wait_for(
-            state="visible", timeout=10000,
-        )
+        expect(cards.nth(initial_count)).to_be_visible(timeout=10000)
 
-        new_count = grid.locator(".card").count()
+        new_count = cards.count()
         assert new_count > initial_count

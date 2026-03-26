@@ -7,7 +7,7 @@
           <source srcset="{{ library.card_photo_url_webp }}" type="image/webp">
           <img
             src="{{ library.card_photo_url }}"
-            alt="{{ library.name|default:library.address }}"
+            alt="{{ library.description|default:library.name|default:library.address }}"
             class="h-full w-full object-cover"
             loading="lazy"
           >
@@ -15,7 +15,7 @@
       {% else %}
         <img
           src="{{ library.card_photo_url }}"
-          alt="{{ library.name|default:library.address }}"
+          alt="{{ library.description|default:library.name|default:library.address }}"
           class="h-full w-full object-cover"
           loading="lazy"
         >

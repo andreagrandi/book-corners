@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.6.0
+
+- Library submissions are now enriched with AI-generated name and description when the user leaves those fields blank. The description is also used as image alt text for improved accessibility.
+
 ## v1.5.0
 
 - Social login endpoint (`POST /auth/social`) exchanges native Apple or Google identity tokens for JWT token pairs. Supports automatic account creation, email-based account linking, and Apple first sign-in name capture.

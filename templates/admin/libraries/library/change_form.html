@@ -1,0 +1,14 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+{% if original and original.photo %}
+<li>
+    <form method="post" action="{% url 'admin:libraries_library_ai_enrich' original.pk %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="button">{% trans "AI Enrich" %}</button>
+    </form>
+</li>
+{% endif %}
+{{ block.super }}
+{% endblock %}

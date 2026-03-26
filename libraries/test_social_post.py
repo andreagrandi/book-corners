@@ -58,7 +58,7 @@ def approved_library(social_user):
     Represents the typical candidate for social media sharing."""
     return Library.objects.create(
         name="Cozy Corner Library",
-        description="A lovely little free library on the corner",
+        description="A lovely community library on the corner",
         photo=_build_uploaded_photo(),
         location=Point(2.3522, 48.8566),
         address="123 Rue de Rivoli",
@@ -172,7 +172,7 @@ class TestBuildPostText:
         """Verify the post text includes description, location, and URL.
         Checks that all required components appear in the output."""
         text = build_post_text(approved_library, "https://example.com/library/test")
-        assert "A lovely little free library" in text
+        assert "A lovely community library" in text
         assert "Paris" in text
         assert "France" in text
         assert "https://example.com/library/test" in text
@@ -274,7 +274,7 @@ class TestPostRandomLibraryCommand:
     )
     @patch("libraries.management.commands.post_random_library.Command._post_to_bluesky")
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_posts_to_both_platforms(
         self, mock_photo, mock_mastodon, mock_bluesky, approved_library, capsys
     ):
@@ -307,7 +307,7 @@ class TestPostRandomLibraryCommand:
     @patch("libraries.management.commands.post_random_library.Command._post_to_instagram")
     @patch("libraries.management.commands.post_random_library.Command._post_to_bluesky")
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_posts_to_all_three_platforms(
         self, mock_photo, mock_mastodon, mock_bluesky, mock_instagram, approved_library, capsys
     ):
@@ -337,7 +337,7 @@ class TestPostRandomLibraryCommand:
     )
     @patch("libraries.management.commands.post_random_library.Command._post_to_bluesky")
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_does_not_repeat_posted_library(
         self, mock_photo, mock_mastodon, mock_bluesky, approved_library, capsys
     ):
@@ -386,7 +386,7 @@ class TestPostRandomLibraryCommand:
     )
     @patch("libraries.management.commands.post_random_library.Command._post_to_bluesky")
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_one_platform_fails_still_posts_other(
         self, mock_photo, mock_mastodon, mock_bluesky, approved_library, capsys
     ):
@@ -452,7 +452,7 @@ class TestOnlyPlatformFlag:
     @patch("libraries.management.commands.post_random_library.Command._post_to_instagram")
     @patch("libraries.management.commands.post_random_library.Command._post_to_bluesky")
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_only_instagram(
         self, mock_photo, mock_mastodon, mock_bluesky, mock_instagram, approved_library
     ):
@@ -483,7 +483,7 @@ class TestOnlyPlatformFlag:
     @patch("libraries.management.commands.post_random_library.Command._post_to_instagram")
     @patch("libraries.management.commands.post_random_library.Command._post_to_bluesky")
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_only_mastodon(
         self, mock_photo, mock_mastodon, mock_bluesky, mock_instagram, approved_library
     ):
@@ -510,7 +510,7 @@ class TestOnlyPlatformFlag:
     @patch("libraries.management.commands.post_random_library.Command._post_to_instagram")
     @patch("libraries.management.commands.post_random_library.Command._post_to_bluesky")
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_only_bluesky(
         self, mock_photo, mock_mastodon, mock_bluesky, mock_instagram, approved_library
     ):
@@ -559,7 +559,7 @@ class TestCredentialGating:
         ADMIN_NOTIFICATION_EMAIL="admin@test.com",
     )
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_only_mastodon_configured(
         self, mock_photo, mock_mastodon, approved_library, capsys
     ):
@@ -588,7 +588,7 @@ class TestCredentialGating:
         ADMIN_NOTIFICATION_EMAIL="admin@test.com",
     )
     @patch("libraries.management.commands.post_random_library.Command._post_to_instagram")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_only_instagram_configured(
         self, mock_photo, mock_instagram, approved_library, capsys
     ):
@@ -617,7 +617,7 @@ class TestCredentialGating:
         ADMIN_NOTIFICATION_EMAIL="admin@test.com",
     )
     @patch("libraries.management.commands.post_random_library.Command._post_to_instagram")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_instagram_configured_via_db_token(
         self, mock_photo, mock_instagram, approved_library
     ):
@@ -1140,7 +1140,7 @@ class TestCommandAIIntegration:
     )
     @patch("libraries.social.image_ai.analyze_library_image")
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_ai_alt_text_passed_to_mastodon(
         self, mock_photo, mock_mastodon, mock_ai, approved_library,
     ):
@@ -1169,7 +1169,7 @@ class TestCommandAIIntegration:
         ADMIN_NOTIFICATION_EMAIL="admin@test.com",
     )
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_no_ai_key_falls_back(
         self, mock_photo, mock_mastodon, approved_library,
     ):
@@ -1195,7 +1195,7 @@ class TestCommandAIIntegration:
         SITE_URL="https://bookcorners.org",
     )
     @patch("libraries.social.image_ai.analyze_library_image")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_dry_run_shows_ai_results(
         self, mock_photo, mock_ai, approved_library, capsys,
     ):
@@ -1243,7 +1243,7 @@ class TestCommandAIIntegration:
     )
     @patch("libraries.social.image_ai.analyze_library_image")
     @patch("libraries.management.commands.post_random_library.Command._post_to_instagram")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_instagram_uses_separate_text_with_hashtag_cap(
         self, mock_photo, mock_instagram, mock_ai, approved_library,
     ):
@@ -1356,7 +1356,7 @@ class TestBuildPostTextPhotoDescription:
             max_length=2200,
             photo_description=None,
         )
-        assert result.startswith("A lovely little free library")
+        assert result.startswith("A lovely community library")
 
     def test_photo_description_truncated_when_too_long(self, approved_library):
         """Verify long photo descriptions are truncated gracefully.
@@ -1598,7 +1598,7 @@ class TestPostWithRetry:
     )
     @patch("libraries.management.commands.post_random_library.time.sleep")
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_retries_on_transient_error_then_succeeds(
         self, mock_photo, mock_mastodon, mock_sleep, approved_library,
     ):
@@ -1632,7 +1632,7 @@ class TestPostWithRetry:
     )
     @patch("libraries.management.commands.post_random_library.time.sleep")
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_does_not_retry_on_client_error(
         self, mock_photo, mock_mastodon, mock_sleep, approved_library,
     ):
@@ -1662,7 +1662,7 @@ class TestPostWithRetry:
     )
     @patch("libraries.management.commands.post_random_library.time.sleep")
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_exhausts_retries_and_reports_error(
         self, mock_photo, mock_mastodon, mock_sleep, approved_library,
     ):
@@ -1694,7 +1694,7 @@ class TestPostWithRetry:
     )
     @patch("libraries.management.commands.post_random_library.time.sleep")
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
-    @patch("libraries.management.commands.post_random_library.Command._get_photo_path")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_succeeds_on_first_attempt_no_retry(
         self, mock_photo, mock_mastodon, mock_sleep, approved_library,
     ):
