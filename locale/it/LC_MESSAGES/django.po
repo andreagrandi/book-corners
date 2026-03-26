@@ -1327,3 +1327,127 @@ msgstr "Suggerimento IA"
 msgid "Apply"
 msgstr "Applica"
 
+#: libraries/templates/libraries/dashboard.html
+msgid "Manage your account and track your library submissions."
+msgstr "Gestisci il tuo account e segui le tue librerie inviate."
+
+#: libraries/templates/libraries/dashboard.html
+msgid "Account information"
+msgstr "Informazioni account"
+
+#: libraries/templates/libraries/dashboard.html
+msgid "Member since"
+msgstr "Membro dal"
+
+#: libraries/templates/libraries/dashboard.html
+msgid "Change email"
+msgstr "Cambia email"
+
+#: libraries/templates/libraries/dashboard.html
+msgid "Change password"
+msgstr "Cambia password"
+
+#: libraries/templates/libraries/dashboard.html
+msgid "Delete account"
+msgstr "Elimina account"
+
+#: libraries/templates/libraries/dashboard.html
+msgid "Share your first book exchange spot to start your dashboard history."
+msgstr "Condividi il tuo primo punto di scambio libri per iniziare la cronologia della tua dashboard."
+
+#: users/templates/users/change_email.html
+msgid "Update the email address associated with your Book Corners account."
+msgstr "Aggiorna l'indirizzo email associato al tuo account Book Corners."
+
+#: users/templates/users/change_email.html
+msgid "Enter your new email address below."
+msgstr "Inserisci il tuo nuovo indirizzo email qui sotto."
+
+#: users/templates/users/change_email.html
+msgid "Current email"
+msgstr "Email attuale"
+
+#: users/templates/users/change_email.html
+msgid "New email address"
+msgstr "Nuovo indirizzo email"
+
+#: users/templates/users/change_email.html
+msgid "Update email"
+msgstr "Aggiorna email"
+
+#: users/templates/users/change_password.html
+msgid "Change the password for your Book Corners account."
+msgstr "Cambia la password del tuo account Book Corners."
+
+#: users/templates/users/change_password.html
+msgid "Enter your current password and choose a new one."
+msgstr "Inserisci la tua password attuale e scegline una nuova."
+
+#: users/templates/users/change_password.html
+msgid "Current password"
+msgstr "Password attuale"
+
+#: users/templates/users/change_password.html
+msgid "New password"
+msgstr "Nuova password"
+
+#: users/templates/users/change_password.html
+msgid "Confirm new password"
+msgstr "Conferma nuova password"
+
+#: users/templates/users/delete_account.html
+msgid "Permanently delete your Book Corners account and all associated data."
+msgstr "Elimina definitivamente il tuo account Book Corners e tutti i dati associati."
+
+#: users/templates/users/delete_account.html
+msgid "This action is permanent and cannot be undone. Your submitted libraries will remain visible but will no longer be linked to your profile."
+msgstr "Questa azione è permanente e non può essere annullata. Le librerie che hai inviato resteranno visibili ma non saranno più collegate al tuo profilo."
+
+#: users/templates/users/delete_account.html
+msgid "Enter your password to confirm"
+msgstr "Inserisci la tua password per confermare"
+
+#: users/templates/users/delete_account.html
+msgid "Delete my account"
+msgstr "Elimina il mio account"
+
+#: users/views.py
+msgid "Your email address has been updated."
+msgstr "Il tuo indirizzo email è stato aggiornato."
+
+#: users/views.py
+msgid "Your password has been changed."
+msgstr "La tua password è stata cambiata."
+
+#: users/views.py
+msgid "Your account has been deleted."
+msgstr "Il tuo account è stato eliminato."
+
+#: users/forms.py
+msgid "This is already your current email address."
+msgstr "Questo è già il tuo indirizzo email attuale."
+
+#: users/forms.py
+msgid "Your current password is incorrect."
+msgstr "La tua password attuale non è corretta."
+
+#: users/forms.py
+msgid "Incorrect password."
+msgstr "Password non corretta."
+
+#: users/forms.py
+msgid "Type DELETE to confirm"
+msgstr "Digita DELETE per confermare"
+
+#: users/forms.py
+msgid "Please type DELETE to confirm."
+msgstr "Per favore digita DELETE per confermare."
+
+#: users/views.py
+msgid "Social login accounts cannot change their email address."
+msgstr "Gli account con accesso social non possono cambiare il proprio indirizzo email."
+
+#: users/views.py
+msgid "Social login accounts cannot change their password."
+msgstr "Gli account con accesso social non possono cambiare la propria password."
+

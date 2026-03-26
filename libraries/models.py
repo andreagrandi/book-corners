@@ -63,7 +63,9 @@ class Library(models.Model):
     )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name="libraries",
     )
     created_at = models.DateTimeField(auto_now_add=True)
@@ -246,7 +248,9 @@ class Report(models.Model):
     )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name="reports",
     )
     reason = models.CharField(max_length=20, choices=Reason.choices)
@@ -291,7 +295,9 @@ class LibraryPhoto(models.Model):
     )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name="library_photos",
     )
     photo = models.ImageField(upload_to="libraries/user_photos/%Y/%m/")
