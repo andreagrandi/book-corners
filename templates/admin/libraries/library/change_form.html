@@ -4,10 +4,10 @@
 {% block object-tools-items %}
 {% if original and original.photo %}
 <li>
-    <form method="post" action="{% url 'admin:libraries_library_ai_enrich' original.pk %}" style="display:inline;">
+    <form id="ai-enrich-form" method="post" action="{% url 'admin:libraries_library_ai_enrich' original.pk %}" style="display:none;">
         {% csrf_token %}
-        <button type="submit" class="button">{% trans "AI Enrich" %}</button>
     </form>
+    <a href="#" class="historylink" onclick="document.getElementById('ai-enrich-form').submit(); return false;">{% trans "AI Enrich" %}</a>
 </li>
 {% endif %}
 {{ block.super }}
