@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Book Corners 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-02 10:13+0000\n"
+"POT-Creation-Date: 2026-04-01 08:32+0000\n"
 "PO-Revision-Date: 2026-02-28 15:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Italian\n"
@@ -15,6 +15,30 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: libraries/admin.py:145
+msgid "This library has no photo for AI analysis."
+msgstr "Questa libreria non ha una foto per l'analisi IA."
+
+#: libraries/admin.py:155
+msgid "Could not access the library photo."
+msgstr "Impossibile accedere alla foto della libreria."
+
+#: libraries/admin.py:162
+msgid "AI enrichment failed. Check logs for details."
+msgstr "Arricchimento IA fallito. Controlla i log per i dettagli."
+
+#: libraries/admin.py:169 templates/admin/libraries/ai_enrich_confirm.html:4
+msgid "AI Enrich: Confirm"
+msgstr "Arricchisci con IA: Conferma"
+
+#: libraries/admin.py:205
+msgid "AI-generated name and description applied."
+msgstr "Nome e descrizione generati dall'IA applicati."
+
+#: libraries/admin.py:207
+msgid "No AI values to apply."
+msgstr "Nessun valore IA da applicare."
 
 #: libraries/forms.py:17 libraries/templates/libraries/submit_library.html:289
 msgid "Select a country"
@@ -87,63 +111,66 @@ msgstr "Didascalia opzionale per la tua foto"
 msgid "You can submit at most %(max)s photos per library."
 msgstr "Puoi inviare al massimo %(max)s foto per libreria."
 
-#: libraries/models.py:19 libraries/models.py:278
+#: libraries/models.py:21 libraries/models.py:287
 #: templates/admin/libraries/geojson_import_form.html:37
+#: templates/admin/libraries/photo_grid.html:145
 msgid "Pending"
 msgstr "In attesa"
 
-#: libraries/models.py:20 libraries/models.py:279
+#: libraries/models.py:22 libraries/models.py:288
 #: templates/admin/libraries/geojson_import_form.html:36
+#: templates/admin/libraries/photo_grid.html:146
 msgid "Approved"
 msgstr "Approvato"
 
-#: libraries/models.py:21 libraries/models.py:280
+#: libraries/models.py:23 libraries/models.py:289
+#: templates/admin/libraries/photo_grid.html:147
 msgid "Rejected"
 msgstr "Rifiutato"
 
-#: libraries/models.py:24 libraries/templates/libraries/library_detail.html:57
+#: libraries/models.py:26 libraries/templates/libraries/library_detail.html:57
 #: libraries/templates/libraries/library_detail.html:58
 msgid "Yes"
 msgstr "Sì"
 
-#: libraries/models.py:25 libraries/templates/libraries/library_detail.html:57
+#: libraries/models.py:27 libraries/templates/libraries/library_detail.html:57
 #: libraries/templates/libraries/library_detail.html:58
 msgid "No"
 msgstr "No"
 
-#: libraries/models.py:26
+#: libraries/models.py:28
 msgid "Limited"
 msgstr "Limitato"
 
-#: libraries/models.py:226
+#: libraries/models.py:233
 msgid "Damaged"
 msgstr "Danneggiato"
 
-#: libraries/models.py:227
+#: libraries/models.py:234
 msgid "Missing"
 msgstr "Mancante"
 
-#: libraries/models.py:228
+#: libraries/models.py:235
 msgid "Incorrect Info"
 msgstr "Informazioni errate"
 
-#: libraries/models.py:229
+#: libraries/models.py:236
 msgid "Inappropriate"
 msgstr "Inappropriato"
 
-#: libraries/models.py:230
+#: libraries/models.py:237
 msgid "Other"
 msgstr "Altro"
 
-#: libraries/models.py:233
+#: libraries/models.py:240
 msgid "Open"
 msgstr "Aperto"
 
-#: libraries/models.py:234
+#: libraries/models.py:241
 msgid "Resolved"
 msgstr "Risolto"
 
-#: libraries/models.py:235
+#: libraries/models.py:242
 msgid "Dismissed"
 msgstr "Archiviato"
 
@@ -169,8 +196,8 @@ msgid "%(km)s km away"
 msgstr "a %(km)s km"
 
 #: libraries/templates/libraries/_library_card.html:35
-#: libraries/templates/libraries/dashboard.html:40
-#: libraries/templates/libraries/map.html:297
+#: libraries/templates/libraries/dashboard.html:75
+#: libraries/templates/libraries/map.html:299
 msgid "View details"
 msgstr "Dettagli"
 
@@ -291,6 +318,7 @@ msgid "Use a place like London for nearby results, or add keywords and filters."
 msgstr "Usa un luogo come Roma per risultati nelle vicinanze, oppure aggiungi parole chiave e filtri."
 
 #: libraries/templates/libraries/dashboard.html:4
+#: libraries/templates/libraries/dashboard.html:10
 msgid "Dashboard"
 msgstr "Bacheca"
 
@@ -298,23 +326,66 @@ msgstr "Bacheca"
 msgid "Review your submitted libraries and track each moderation status from your dashboard."
 msgstr "Controlla le librerie che hai inviato e segui lo stato di moderazione dalla tua bacheca."
 
-#: libraries/templates/libraries/dashboard.html:10
+#: libraries/templates/libraries/dashboard.html:12
+msgid "Manage your account and track your library submissions."
+msgstr "Gestisci il tuo account e segui le tue librerie inviate."
+
+#: libraries/templates/libraries/dashboard.html:18
+msgid "Account information"
+msgstr "Informazioni account"
+
+#: libraries/templates/libraries/dashboard.html:21
+#: users/templates/users/register.html:22
+msgid "Username"
+msgstr "Nome utente"
+
+#: libraries/templates/libraries/dashboard.html:25
+#: users/templates/users/register.html:28
+msgid "Email"
+msgstr "Email"
+
+#: libraries/templates/libraries/dashboard.html:30
+#: templates/admin/libraries/ai_enrich_confirm.html:27
+#: templates/admin/libraries/find_duplicates.html:88
+msgid "Name"
+msgstr "Nome"
+
+#: libraries/templates/libraries/dashboard.html:35
+msgid "Member since"
+msgstr "Membro dal"
+
+#: libraries/templates/libraries/dashboard.html:41
+#: users/templates/users/change_email.html:4
+#: users/templates/users/change_email.html:11
+msgid "Change email"
+msgstr "Cambia email"
+
+#: libraries/templates/libraries/dashboard.html:42
+#: users/templates/users/change_password.html:4
+#: users/templates/users/change_password.html:11
+#: users/templates/users/change_password.html:40
+msgid "Change password"
+msgstr "Cambia password"
+
+#: libraries/templates/libraries/dashboard.html:44
+#: users/templates/users/delete_account.html:4
+#: users/templates/users/delete_account.html:11
+msgid "Delete account"
+msgstr "Elimina account"
+
+#: libraries/templates/libraries/dashboard.html:50
 msgid "Your submissions"
 msgstr "Le tue librerie"
 
-#: libraries/templates/libraries/dashboard.html:12
-msgid "Track the moderation status of the libraries you submitted."
-msgstr "Segui lo stato di moderazione delle librerie che hai inviato."
-
-#: libraries/templates/libraries/dashboard.html:48
+#: libraries/templates/libraries/dashboard.html:111
 msgid "No submissions yet"
 msgstr "Nessun invio"
 
-#: libraries/templates/libraries/dashboard.html:49
-msgid "Share your first little free library to start your dashboard history."
-msgstr "Condividi la tua prima casetta dei libri per iniziare la cronologia della bacheca."
+#: libraries/templates/libraries/dashboard.html:112
+msgid "Share your first book exchange spot to start your dashboard history."
+msgstr "Condividi il tuo primo punto di scambio libri per iniziare la cronologia della tua dashboard."
 
-#: libraries/templates/libraries/dashboard.html:50
+#: libraries/templates/libraries/dashboard.html:113
 #: libraries/templates/libraries/submit_library.html:4
 #: libraries/templates/libraries/submit_library.html:55 templates/about.html:76
 #: templates/home.html:36
@@ -465,7 +536,7 @@ msgid "Libraries list"
 msgstr "Elenco librerie"
 
 #: libraries/templates/libraries/map.html:131
-#: libraries/templates/libraries/map.html:569
+#: libraries/templates/libraries/map.html:571
 msgid "Loading libraries..."
 msgstr "Caricamento librerie..."
 
@@ -496,15 +567,15 @@ msgstr "sulla mappa."
 msgid "Neighborhood Library"
 msgstr "Casetta dei Libri"
 
-#: libraries/templates/libraries/map.html:566
+#: libraries/templates/libraries/map.html:568
 msgid "Loading libraries on the map..."
 msgstr "Caricamento librerie sulla mappa..."
 
-#: libraries/templates/libraries/map.html:633
+#: libraries/templates/libraries/map.html:635
 msgid "Could not load library list right now."
 msgstr "Impossibile caricare l'elenco delle librerie al momento."
 
-#: libraries/templates/libraries/map.html:637
+#: libraries/templates/libraries/map.html:639
 msgid "Could not load map markers right now. Please try again."
 msgstr "Impossibile caricare i marcatori sulla mappa. Riprova."
 
@@ -867,22 +938,62 @@ msgstr ""
 msgid "Recent Pending Photos"
 msgstr ""
 
+#: templates/admin/libraries/ai_enrich_confirm.html:7
+msgid "AI Enrich: Review Suggestions"
+msgstr "Arricchisci con IA: Rivedi suggerimenti"
+
+#: templates/admin/libraries/ai_enrich_confirm.html:9
+msgid "Review the AI-generated values below. Click Apply to update the library, or Cancel to discard."
+msgstr "Rivedi i valori generati dall'IA. Clicca Applica per aggiornare la libreria, o Annulla per scartare."
+
+#: templates/admin/libraries/ai_enrich_confirm.html:20
+msgid "Field"
+msgstr "Campo"
+
+#: templates/admin/libraries/ai_enrich_confirm.html:21
+msgid "Current value"
+msgstr "Valore attuale"
+
+#: templates/admin/libraries/ai_enrich_confirm.html:22
+msgid "AI suggestion"
+msgstr "Suggerimento IA"
+
+#: templates/admin/libraries/ai_enrich_confirm.html:32
+#, fuzzy
+#| msgid "Description (optional)"
+msgid "Description"
+msgstr "Descrizione (opzionale)"
+
+#: templates/admin/libraries/ai_enrich_confirm.html:44
+msgid "Apply"
+msgstr "Applica"
+
+#: templates/admin/libraries/ai_enrich_confirm.html:46
+#: templates/admin/libraries/geojson_import_form.html:45
+#: users/templates/users/change_email.html:34
+#: users/templates/users/change_password.html:41
+#: users/templates/users/delete_account.html:39
+msgid "Cancel"
+msgstr "Annulla"
+
 #: templates/admin/libraries/find_duplicates.html:4
 #: templates/admin/libraries/find_duplicates.html:47
-#: templates/admin/libraries/library_changelist.html:9
+#: templates/admin/libraries/library_changelist.html:12
 msgid "Find Duplicates"
 msgstr ""
 
 #: templates/admin/libraries/find_duplicates.html:4
 #: templates/admin/libraries/geojson_import_form.html:4
 #: templates/admin/libraries/geojson_import_result.html:4
+#: templates/admin/libraries/photo_grid.html:4
 msgid "Django site admin"
 msgstr ""
 
 #: templates/admin/libraries/find_duplicates.html:45
 #: templates/admin/libraries/geojson_import_form.html:8
 #: templates/admin/libraries/geojson_import_result.html:8
-#: templates/base.html:30 templates/base.html:64 templates/home.html:4
+#: templates/admin/libraries/photo_grid.html:123 templates/base.html:30
+#: templates/base.html:64 templates/home.html:4
 msgid "Home"
 msgstr "Home"
 
@@ -924,11 +1035,6 @@ msgstr ""
 msgid "ID"
 msgstr ""
 
-#: templates/admin/libraries/find_duplicates.html:88
-#: templates/admin/libraries/ai_enrich_confirm.html
-msgid "Name"
-msgstr "Nome"
-
 #: templates/admin/libraries/find_duplicates.html:91
 #: templates/admin/libraries/geojson_import_result.html:57
 msgid "External ID"
@@ -967,6 +1073,7 @@ msgstr ""
 
 #: templates/admin/libraries/find_duplicates.html:138
 #: templates/admin/libraries/geojson_import_result.html:74
+#: templates/admin/libraries/photo_grid.html:213
 #, fuzzy
 #| msgid "Search libraries"
 msgid "Back to library list"
@@ -974,7 +1081,7 @@ msgstr "Cerca librerie"
 
 #: templates/admin/libraries/geojson_import_form.html:4
 #: templates/admin/libraries/geojson_import_form.html:10
-#: templates/admin/libraries/library_changelist.html:6
+#: templates/admin/libraries/library_changelist.html:9
 msgid "Import GeoJSON"
 msgstr ""
 
@@ -995,6 +1102,7 @@ msgid "Applied to all imported libraries. Leave blank if not needed."
 msgstr ""
 
 #: templates/admin/libraries/geojson_import_form.html:34
+#: templates/admin/libraries/photo_grid.html:142
 #, fuzzy
 #| msgid "Status"
 msgid "Status:"
@@ -1007,11 +1115,6 @@ msgstr ""
 #: templates/admin/libraries/geojson_import_form.html:44
 msgid "Import"
 msgstr ""
-
-#: templates/admin/libraries/geojson_import_form.html:45
-#: templates/admin/libraries/ai_enrich_confirm.html
-msgid "Cancel"
-msgstr "Annulla"
 
 #: templates/admin/libraries/geojson_import_result.html:4
 #: templates/admin/libraries/geojson_import_result.html:10
@@ -1054,6 +1157,43 @@ msgstr "Errore 404"
 #: templates/admin/libraries/geojson_import_result.html:76
 msgid "Import another file"
 msgstr ""
+
+#: templates/admin/libraries/library/change_form.html:10
+msgid "AI Enrich"
+msgstr "Arricchisci con IA"
+
+#: templates/admin/libraries/library_changelist.html:6
+#: templates/admin/libraries/photo_grid.html:4
+#: templates/admin/libraries/photo_grid.html:125
+msgid "Photo Grid"
+msgstr "Griglia foto"
+
+#: templates/admin/libraries/photo_grid.html:132
+msgid "Grid:"
+msgstr "Griglia:"
+
+#: templates/admin/libraries/photo_grid.html:144
+#: templates/admin/libraries/photo_grid.html:153
+msgid "All"
+msgstr "Tutti"
+
+#: templates/admin/libraries/photo_grid.html:151
+msgid "Type:"
+msgstr "Tipo:"
+
+#: templates/admin/libraries/photo_grid.html:154
+#: templates/admin/libraries/photo_grid.html:172
+msgid "Primary"
+msgstr "Principale"
+
+#: templates/admin/libraries/photo_grid.html:155
+#: templates/admin/libraries/photo_grid.html:174
+msgid "Community"
+msgstr "Comunità"
+
+#: templates/admin/libraries/photo_grid.html:208
+msgid "No photos found matching the selected filters."
+msgstr "Nessuna foto trovata con i filtri selezionati."
 
 #: templates/base.html:7 templates/base.html:11 templates/base.html:106
 msgid "Community map of neighborhood book exchange spots."
@@ -1105,7 +1245,15 @@ msgstr "Legale"
 msgid "Privacy"
 msgstr "Privacy"
 
-#: templates/base.html:161
+#: templates/base.html:160
+msgid "App"
+msgstr "App"
+
+#: templates/base.html:163
+msgid "Download on the App Store"
+msgstr "Scarica dall'App Store"
+
+#: templates/base.html:172
 msgid "Language"
 msgstr "Lingua"
 
@@ -1166,20 +1314,101 @@ msgstr "Solo un altro passo — scegli un nome utente per completare la registra
 msgid "Complete sign up"
 msgstr "Completa la registrazione"
 
-#: users/forms.py:45
+#: users/forms.py:47 users/forms.py:71
 msgid "A user with this email already exists."
 msgstr "Un utente con questa email esiste già."
 
-#: users/forms.py:50 users/templates/users/login.html:23
+#: users/forms.py:55 users/templates/users/change_email.html:27
+msgid "New email address"
+msgstr "Nuovo indirizzo email"
+
+#: users/forms.py:69
+msgid "This is already your current email address."
+msgstr "Questo è già il tuo indirizzo email attuale."
+
+#: users/forms.py:80 users/templates/users/change_password.html:22
+msgid "Current password"
+msgstr "Password attuale"
+
+#: users/forms.py:100
+msgid "Your current password is incorrect."
+msgstr "La tua password attuale non è corretta."
+
+#: users/forms.py:109 users/templates/users/login.html:29
+#: users/templates/users/register.html:34
+msgid "Password"
+msgstr "Password"
+
+#: users/forms.py:125
+msgid "Incorrect password."
+msgstr "Password non corretta."
+
+#: users/forms.py:134 users/templates/users/delete_account.html:25
+msgid "Type DELETE to confirm"
+msgstr "Digita DELETE per confermare"
+
+#: users/forms.py:149
+msgid "Please type DELETE to confirm."
+msgstr "Per favore digita DELETE per confermare."
+
+#: users/forms.py:154 users/templates/users/login.html:23
 msgid "Username or email"
 msgstr "Nome utente o email"
+
+#: users/templates/users/change_email.html:5
+msgid "Update the email address associated with your Book Corners account."
+msgstr "Aggiorna l'indirizzo email associato al tuo account Book Corners."
+
+#: users/templates/users/change_email.html:12
+msgid "Enter your new email address below."
+msgstr "Inserisci il tuo nuovo indirizzo email qui sotto."
+
+#: users/templates/users/change_email.html:22
+msgid "Current email"
+msgstr "Email attuale"
+
+#: users/templates/users/change_email.html:33
+msgid "Update email"
+msgstr "Aggiorna email"
+
+#: users/templates/users/change_password.html:5
+msgid "Change the password for your Book Corners account."
+msgstr "Cambia la password del tuo account Book Corners."
+
+#: users/templates/users/change_password.html:12
+msgid "Enter your current password and choose a new one."
+msgstr "Inserisci la tua password attuale e scegline una nuova."
+
+#: users/templates/users/change_password.html:28
+msgid "New password"
+msgstr "Nuova password"
+
+#: users/templates/users/change_password.html:34
+msgid "Confirm new password"
+msgstr "Conferma nuova password"
+
+#: users/templates/users/delete_account.html:5
+msgid "Permanently delete your Book Corners account and all associated data."
+msgstr "Elimina definitivamente il tuo account Book Corners e tutti i dati associati."
+
+#: users/templates/users/delete_account.html:13
+msgid "This action is permanent and cannot be undone. Your submitted libraries will remain visible but will no longer be linked to your profile."
+msgstr "Questa azione è permanente e non può essere annullata. Le librerie che hai inviato resteranno visibili ma non saranno più collegate al tuo profilo."
+
+#: users/templates/users/delete_account.html:31
+msgid "Enter your password to confirm"
+msgstr "Inserisci la tua password per confermare"
+
+#: users/templates/users/delete_account.html:38
+msgid "Delete my account"
+msgstr "Elimina il mio account"
 
 #: users/templates/users/login.html:5
 msgid "Log in to Book Corners to submit libraries, report issues, and manage your contributions."
 msgstr "Accedi a Book Corners per inviare librerie, segnalare problemi e gestire i tuoi contributi."
 
 #: users/templates/users/login.html:11 users/templates/users/login.html:34
-#: users/templates/users/register.html:67
+#: users/templates/users/register.html:81
 msgid "Log in"
 msgstr "Accedi"
 
@@ -1187,26 +1416,23 @@ msgstr "Accedi"
 msgid "Use your username or email address to access your account."
 msgstr "Usa il tuo nome utente o indirizzo email per accedere al tuo account."
 
-#: users/templates/users/login.html:29 users/templates/users/register.html:34
-msgid "Password"
-msgstr "Password"
-
 #: users/templates/users/login.html:38 users/templates/users/register.html:49
 msgid "or"
 msgstr "oppure"
 
-#: users/templates/users/login.html:50 users/templates/users/register.html:60
+#: users/templates/users/login.html:51 users/templates/users/register.html:61
 msgid "Continue with Google"
 msgstr "Continua con Google"
 
+#: users/templates/users/login.html:63 users/templates/users/register.html:72
 msgid "Continue with Apple"
 msgstr "Continua con Apple"
 
-#: users/templates/users/login.html:56
+#: users/templates/users/login.html:71
 msgid "New here?"
 msgstr "Sei nuovo?"
 
-#: users/templates/users/login.html:57 users/templates/users/register.html:11
+#: users/templates/users/login.html:72 users/templates/users/register.html:11
 msgid "Create an account"
 msgstr "Crea un account"
 
@@ -1218,14 +1444,6 @@ msgstr "Crea un account Book Corners per aggiungere nuove librerie e mantenere a
 msgid "Join to submit libraries and help keep information up to date."
 msgstr "Registrati per inviare librerie e aiutare a mantenere le informazioni aggiornate."
 
-#: users/templates/users/register.html:22
-msgid "Username"
-msgstr "Nome utente"
-
-#: users/templates/users/register.html:28
-msgid "Email"
-msgstr "Email"
-
 #: users/templates/users/register.html:40
 msgid "Confirm password"
 msgstr "Conferma password"
@@ -1234,220 +1452,40 @@ msgstr "Conferma password"
 msgid "Create account"
 msgstr "Crea account"
 
-#: users/templates/users/register.html:66
+#: users/templates/users/register.html:80
 msgid "Already have an account?"
 msgstr "Hai già un account?"
 
-#: users/views.py:68
+#: users/views.py:79
 msgid "Too many registration attempts. Please try again in a few minutes."
 msgstr "Troppi tentativi di registrazione. Riprova tra qualche minuto."
 
-#: users/views.py:99
+#: users/views.py:111
 msgid "Too many login attempts. Please try again in a few minutes."
 msgstr "Troppi tentativi di accesso. Riprova tra qualche minuto."
 
-#: templates/admin/libraries/photo_grid.html
-#: templates/admin/libraries/library_changelist.html
-msgid "Photo Grid"
-msgstr "Griglia foto"
-
-#: templates/admin/libraries/photo_grid.html
-msgid "Grid:"
-msgstr "Griglia:"
-
-#: templates/admin/libraries/photo_grid.html
-msgid "Type:"
-msgstr "Tipo:"
-
-#: templates/admin/libraries/photo_grid.html
-msgid "Primary"
-msgstr "Principale"
-
-#: templates/admin/libraries/photo_grid.html
-msgid "Community"
-msgstr "Comunità"
-
-#: templates/admin/libraries/photo_grid.html
-msgid "No photos found matching the selected filters."
-msgstr "Nessuna foto trovata con i filtri selezionati."
-
-#: templates/admin/libraries/photo_grid.html
-msgid "All"
-msgstr "Tutti"
-
-#: templates/admin/libraries/library/change_form.html
-msgid "AI Enrich"
-msgstr "Arricchisci con IA"
-
-#: libraries/admin.py
-msgid "This library has no photo for AI analysis."
-msgstr "Questa libreria non ha una foto per l'analisi IA."
-
-#: libraries/admin.py
-msgid "Could not access the library photo."
-msgstr "Impossibile accedere alla foto della libreria."
-
-#: libraries/admin.py
-msgid "AI enrichment failed. Check logs for details."
-msgstr "Arricchimento IA fallito. Controlla i log per i dettagli."
-
-#: libraries/admin.py
-msgid "AI Enrich: Confirm"
-msgstr "Arricchisci con IA: Conferma"
-
-#: libraries/admin.py
-msgid "AI-generated name and description applied."
-msgstr "Nome e descrizione generati dall'IA applicati."
-
-#: libraries/admin.py
-msgid "No AI values to apply."
-msgstr "Nessun valore IA da applicare."
-
-#: templates/admin/libraries/ai_enrich_confirm.html
-msgid "AI Enrich: Review Suggestions"
-msgstr "Arricchisci con IA: Rivedi suggerimenti"
-
-#: templates/admin/libraries/ai_enrich_confirm.html
-msgid "Review the AI-generated values below. Click Apply to update the library, or Cancel to discard."
-msgstr "Rivedi i valori generati dall'IA. Clicca Applica per aggiornare la libreria, o Annulla per scartare."
-
-#: templates/admin/libraries/ai_enrich_confirm.html
-msgid "Field"
-msgstr "Campo"
-
-#: templates/admin/libraries/ai_enrich_confirm.html
-msgid "Current value"
-msgstr "Valore attuale"
-
-#: templates/admin/libraries/ai_enrich_confirm.html
-msgid "AI suggestion"
-msgstr "Suggerimento IA"
-
-#: templates/admin/libraries/ai_enrich_confirm.html
-msgid "Apply"
-msgstr "Applica"
-
-#: libraries/templates/libraries/dashboard.html
-msgid "Manage your account and track your library submissions."
-msgstr "Gestisci il tuo account e segui le tue librerie inviate."
-
-#: libraries/templates/libraries/dashboard.html
-msgid "Account information"
-msgstr "Informazioni account"
-
-#: libraries/templates/libraries/dashboard.html
-msgid "Member since"
-msgstr "Membro dal"
-
-#: libraries/templates/libraries/dashboard.html
-msgid "Change email"
-msgstr "Cambia email"
-
-#: libraries/templates/libraries/dashboard.html
-msgid "Change password"
-msgstr "Cambia password"
-
-#: libraries/templates/libraries/dashboard.html
-msgid "Delete account"
-msgstr "Elimina account"
-
-#: libraries/templates/libraries/dashboard.html
-msgid "Share your first book exchange spot to start your dashboard history."
-msgstr "Condividi il tuo primo punto di scambio libri per iniziare la cronologia della tua dashboard."
-
-#: users/templates/users/change_email.html
-msgid "Update the email address associated with your Book Corners account."
-msgstr "Aggiorna l'indirizzo email associato al tuo account Book Corners."
-
-#: users/templates/users/change_email.html
-msgid "Enter your new email address below."
-msgstr "Inserisci il tuo nuovo indirizzo email qui sotto."
-
-#: users/templates/users/change_email.html
-msgid "Current email"
-msgstr "Email attuale"
-
-#: users/templates/users/change_email.html
-msgid "New email address"
-msgstr "Nuovo indirizzo email"
-
-#: users/templates/users/change_email.html
-msgid "Update email"
-msgstr "Aggiorna email"
-
-#: users/templates/users/change_password.html
-msgid "Change the password for your Book Corners account."
-msgstr "Cambia la password del tuo account Book Corners."
-
-#: users/templates/users/change_password.html
-msgid "Enter your current password and choose a new one."
-msgstr "Inserisci la tua password attuale e scegline una nuova."
-
-#: users/templates/users/change_password.html
-msgid "Current password"
-msgstr "Password attuale"
-
-#: users/templates/users/change_password.html
-msgid "New password"
-msgstr "Nuova password"
-
-#: users/templates/users/change_password.html
-msgid "Confirm new password"
-msgstr "Conferma nuova password"
-
-#: users/templates/users/delete_account.html
-msgid "Permanently delete your Book Corners account and all associated data."
-msgstr "Elimina definitivamente il tuo account Book Corners e tutti i dati associati."
-
-#: users/templates/users/delete_account.html
-msgid "This action is permanent and cannot be undone. Your submitted libraries will remain visible but will no longer be linked to your profile."
-msgstr "Questa azione è permanente e non può essere annullata. Le librerie che hai inviato resteranno visibili ma non saranno più collegate al tuo profilo."
-
-#: users/templates/users/delete_account.html
-msgid "Enter your password to confirm"
-msgstr "Inserisci la tua password per confermare"
-
-#: users/templates/users/delete_account.html
-msgid "Delete my account"
-msgstr "Elimina il mio account"
-
-#: users/views.py
-msgid "Your email address has been updated."
-msgstr "Il tuo indirizzo email è stato aggiornato."
-
-#: users/views.py
-msgid "Your password has been changed."
-msgstr "La tua password è stata cambiata."
-
-#: users/views.py
-msgid "Your account has been deleted."
-msgstr "Il tuo account è stato eliminato."
-
-#: users/forms.py
-msgid "This is already your current email address."
-msgstr "Questo è già il tuo indirizzo email attuale."
-
-#: users/forms.py
-msgid "Your current password is incorrect."
-msgstr "La tua password attuale non è corretta."
-
-#: users/forms.py
-msgid "Incorrect password."
-msgstr "Password non corretta."
-
-#: users/forms.py
-msgid "Type DELETE to confirm"
-msgstr "Digita DELETE per confermare"
-
-#: users/forms.py
-msgid "Please type DELETE to confirm."
-msgstr "Per favore digita DELETE per confermare."
-
-#: users/views.py
+#: users/views.py:151
 msgid "Social login accounts cannot change their email address."
 msgstr "Gli account con accesso social non possono cambiare il proprio indirizzo email."
 
-#: users/views.py
+#: users/views.py:157
+msgid "Your email address has been updated."
+msgstr "Il tuo indirizzo email è stato aggiornato."
+
+#: users/views.py:167
 msgid "Social login accounts cannot change their password."
 msgstr "Gli account con accesso social non possono cambiare la propria password."
 
+#: users/views.py:173
+msgid "Your password has been changed."
+msgstr "La tua password è stata cambiata."
+
+#: users/views.py:191
+msgid "Your account has been deleted."
+msgstr "Il tuo account è stato eliminato."
+
+#~ msgid "Track the moderation status of the libraries you submitted."
+#~ msgstr "Segui lo stato di moderazione delle librerie che hai inviato."
+
+#~ msgid "Share your first little free library to start your dashboard history."
+#~ msgstr "Condividi la tua prima casetta dei libri per iniziare la cronologia della bacheca."
