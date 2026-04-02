@@ -18,7 +18,7 @@ from libraries.management.commands.find_duplicates import (
     find_duplicate_groups,
 )
 from libraries.models import Library, LibraryPhoto, Report, SocialPost
-from libraries.notifications import notify_library_approved
+from libraries.notifications import notify_library_approved, notify_library_rejected
 from libraries.views import GEOJSON_CACHE_KEY, HOMEPAGE_COUNT_CACHE_KEY, invalidate_cluster_cache
 
 
@@ -84,6 +84,7 @@ class LibraryAdmin(admin.GISModelAdmin):
         "brand",
         "external_id",
         "status",
+        "rejection_reason",
         "created_by",
         "slug",
         "created_at",
@@ -413,18 +414,19 @@ class LibraryAdmin(admin.GISModelAdmin):
         )
 
     def save_model(self, request, obj, form, change):
-        """Save library and notify submitter when status changes to approved.
-        Detects the pending-to-approved transition by comparing with the DB."""
-        was_pending = False
+        """Save library and notify submitter on status transitions.
+        Detects pending-to-approved and *-to-rejected transitions."""
+        old_status = None
         if change and obj.pk:
             old_status = Library.objects.filter(pk=obj.pk).values_list("status", flat=True).first()
-            was_pending = old_status == Library.Status.PENDING
         super().save_model(request, obj, form, change)
         cache.delete(GEOJSON_CACHE_KEY)
         cache.delete(HOMEPAGE_COUNT_CACHE_KEY)
         invalidate_cluster_cache()
-        if was_pending and obj.status == Library.Status.APPROVED:
+        if old_status == Library.Status.PENDING and obj.status == Library.Status.APPROVED:
             notify_library_approved(obj)
+        if old_status != Library.Status.REJECTED and obj.status == Library.Status.REJECTED and obj.rejection_reason:
+            notify_library_rejected(obj)
 
     @admin.action(description="Reject selected libraries")
     def reject_libraries(

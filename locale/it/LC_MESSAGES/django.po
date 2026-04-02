@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Book Corners 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-01 08:32+0000\n"
+"POT-Creation-Date: 2026-04-02 19:26+0000\n"
 "PO-Revision-Date: 2026-02-28 15:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Italian\n"
@@ -16,27 +16,27 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: libraries/admin.py:145
+#: libraries/admin.py:146
 msgid "This library has no photo for AI analysis."
 msgstr "Questa libreria non ha una foto per l'analisi IA."
 
-#: libraries/admin.py:155
+#: libraries/admin.py:156
 msgid "Could not access the library photo."
 msgstr "Impossibile accedere alla foto della libreria."
 
-#: libraries/admin.py:162
+#: libraries/admin.py:163
 msgid "AI enrichment failed. Check logs for details."
 msgstr "Arricchimento IA fallito. Controlla i log per i dettagli."
 
-#: libraries/admin.py:169 templates/admin/libraries/ai_enrich_confirm.html:4
+#: libraries/admin.py:170 templates/admin/libraries/ai_enrich_confirm.html:4
 msgid "AI Enrich: Confirm"
 msgstr "Arricchisci con IA: Conferma"
 
-#: libraries/admin.py:205
+#: libraries/admin.py:206
 msgid "AI-generated name and description applied."
 msgstr "Nome e descrizione generati dall'IA applicati."
 
-#: libraries/admin.py:207
+#: libraries/admin.py:208
 msgid "No AI values to apply."
 msgstr "Nessun valore IA da applicare."
 
@@ -111,19 +111,19 @@ msgstr "Didascalia opzionale per la tua foto"
 msgid "You can submit at most %(max)s photos per library."
 msgstr "Puoi inviare al massimo %(max)s foto per libreria."
 
-#: libraries/models.py:21 libraries/models.py:287
+#: libraries/models.py:21 libraries/models.py:292
 #: templates/admin/libraries/geojson_import_form.html:37
 #: templates/admin/libraries/photo_grid.html:145
 msgid "Pending"
 msgstr "In attesa"
 
-#: libraries/models.py:22 libraries/models.py:288
+#: libraries/models.py:22 libraries/models.py:293
 #: templates/admin/libraries/geojson_import_form.html:36
 #: templates/admin/libraries/photo_grid.html:146
 msgid "Approved"
 msgstr "Approvato"
 
-#: libraries/models.py:23 libraries/models.py:289
+#: libraries/models.py:23 libraries/models.py:294
 #: templates/admin/libraries/photo_grid.html:147
 msgid "Rejected"
 msgstr "Rifiutato"
@@ -142,35 +142,39 @@ msgstr "No"
 msgid "Limited"
 msgstr "Limitato"
 
-#: libraries/models.py:233
+#: libraries/models.py:65
+msgid "Rejection reason"
+msgstr "Motivo del rifiuto"
+
+#: libraries/models.py:238
 msgid "Damaged"
 msgstr "Danneggiato"
 
-#: libraries/models.py:234
+#: libraries/models.py:239
 msgid "Missing"
 msgstr "Mancante"
 
-#: libraries/models.py:235
+#: libraries/models.py:240
 msgid "Incorrect Info"
 msgstr "Informazioni errate"
 
-#: libraries/models.py:236
+#: libraries/models.py:241
 msgid "Inappropriate"
 msgstr "Inappropriato"
 
-#: libraries/models.py:237
+#: libraries/models.py:242
 msgid "Other"
 msgstr "Altro"
 
-#: libraries/models.py:240
+#: libraries/models.py:245
 msgid "Open"
 msgstr "Aperto"
 
-#: libraries/models.py:241
+#: libraries/models.py:246
 msgid "Resolved"
 msgstr "Risolto"
 
-#: libraries/models.py:242
+#: libraries/models.py:247
 msgid "Dismissed"
 msgstr "Archiviato"
 

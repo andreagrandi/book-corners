@@ -216,3 +216,30 @@ def notify_library_approved(library) -> None:
         )
     except Exception:
         logger.exception("Failed to send approval notification for library %s", library.pk)
+
+
+def notify_library_rejected(library) -> None:
+    """Email the submitter when their library is rejected with the reason.
+    Fails silently so email outages never block the rejection workflow."""
+    if not library.created_by or not library.created_by.email:
+        return
+
+    library_label = library.name or library.address
+    subject = "Update on your Book Corners submission"
+    body = (
+        f"Thank you for your submission of \"{library_label}\" "
+        f"in {library.city}, but unfortunately we could not add "
+        f"the library you submitted, for the following reason:\n\n"
+        f"{library.rejection_reason}\n\n"
+        f"If you have any questions, feel free to reach out.\n"
+    )
+
+    try:
+        send_mail(
+            subject=subject,
+            message=body,
+            from_email="no-reply@bookcorners.org",
+            recipient_list=[library.created_by.email],
+        )
+    except Exception:
+        logger.exception("Failed to send rejection notification for library %s", library.pk)

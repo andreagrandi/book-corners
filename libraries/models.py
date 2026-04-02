@@ -61,6 +61,11 @@ class Library(models.Model):
         choices=Status.choices,
         default=Status.PENDING,
     )
+    rejection_reason = models.TextField(
+        verbose_name=_("Rejection reason"),
+        blank=True,
+        default="",
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

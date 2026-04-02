@@ -672,6 +672,181 @@ class TestLibraryApprovalNotification:
 
 
 @pytest.mark.django_db
+class TestLibraryRejectionNotification:
+    """Tests for email notifications when libraries are rejected."""
+
+    def test_notify_library_rejected_sends_email(self, user):
+        """Verify rejection notification sends email with reason.
+        Checks subject, recipient, and rejection reason in body."""
+        from django.core import mail
+        from libraries.notifications import notify_library_rejected
+
+        user.email = "submitter@example.com"
+        user.save()
+        library = Library.objects.create(
+            name="Corner Shelf",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            rejection_reason="Location does not exist",
+            created_by=user,
+        )
+
+        notify_library_rejected(library)
+
+        assert len(mail.outbox) == 1
+        email = mail.outbox[0]
+        assert email.subject == "Update on your Book Corners submission"
+        assert email.to == ["submitter@example.com"]
+        assert email.from_email == "no-reply@bookcorners.org"
+        assert "Location does not exist" in email.body
+
+    def test_notify_library_rejected_skips_no_email(self, user):
+        """Verify no email is sent when the submitter has no email address.
+        Ensures the function exits gracefully without raising."""
+        from django.core import mail
+        from libraries.notifications import notify_library_rejected
+
+        user.email = ""
+        user.save()
+        library = Library.objects.create(
+            name="Silent Shelf",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Roma 1",
+            city="Florence",
+            country="IT",
+            rejection_reason="Bad location",
+            created_by=user,
+        )
+
+        notify_library_rejected(library)
+
+        assert len(mail.outbox) == 0
+
+    def test_save_model_sends_notification_on_rejection(self, admin_client, admin_user):
+        """Verify single-edit rejection triggers notification email.
+        Covers the save_model override path for rejection transitions."""
+        from django.core import mail
+
+        admin_user.email = "admin@example.com"
+        admin_user.save()
+        library = Library.objects.create(
+            name="Reject Shelf",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Roma 5",
+            city="Florence",
+            country="IT",
+            status=Library.Status.PENDING,
+            created_by=admin_user,
+        )
+
+        change_url = reverse("admin:libraries_library_change", args=[library.pk])
+        form_data = {
+            "name": library.name,
+            "description": "",
+            "address": library.address,
+            "city": library.city,
+            "country": library.country,
+            "postal_code": "",
+            "location": library.location.wkt,
+            "status": Library.Status.REJECTED,
+            "rejection_reason": "Duplicate entry",
+            "created_by": admin_user.pk,
+            "wheelchair_accessible": "",
+            "website": "",
+            "contact": "",
+            "source": "",
+            "operator": "",
+            "brand": "",
+            "external_id": "",
+            "user_photos-TOTAL_FORMS": "0",
+            "user_photos-INITIAL_FORMS": "0",
+            "user_photos-MIN_NUM_FORMS": "0",
+            "user_photos-MAX_NUM_FORMS": "1000",
+            "_save": "Save",
+        }
+        admin_client.post(change_url, form_data)
+
+        library.refresh_from_db()
+        assert library.status == Library.Status.REJECTED
+        assert len(mail.outbox) == 1
+        assert "Duplicate entry" in mail.outbox[0].body
+
+    def test_save_model_no_notification_when_already_rejected(self, admin_client, admin_user):
+        """Verify no email when editing an already-rejected library.
+        Prevents notification spam on non-transition saves."""
+        from django.core import mail
+
+        admin_user.email = "admin@example.com"
+        admin_user.save()
+        library = Library.objects.create(
+            name="Already Rejected Shelf",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Roma 6",
+            city="Florence",
+            country="IT",
+            status=Library.Status.REJECTED,
+            rejection_reason="Old reason",
+            created_by=admin_user,
+        )
+
+        change_url = reverse("admin:libraries_library_change", args=[library.pk])
+        form_data = {
+            "name": library.name,
+            "description": "",
+            "address": library.address,
+            "city": library.city,
+            "country": library.country,
+            "postal_code": "",
+            "location": library.location.wkt,
+            "status": Library.Status.REJECTED,
+            "rejection_reason": "Updated reason",
+            "created_by": admin_user.pk,
+            "wheelchair_accessible": "",
+            "website": "",
+            "contact": "",
+            "source": "",
+            "operator": "",
+            "brand": "",
+            "external_id": "",
+            "user_photos-TOTAL_FORMS": "0",
+            "user_photos-INITIAL_FORMS": "0",
+            "user_photos-MIN_NUM_FORMS": "0",
+            "user_photos-MAX_NUM_FORMS": "1000",
+            "_save": "Save",
+        }
+        admin_client.post(change_url, form_data)
+
+        assert len(mail.outbox) == 0
+
+    def test_bulk_reject_does_not_send_notification(self, admin_client, admin_user):
+        """Verify bulk reject action does not send email.
+        Bulk actions cannot collect a rejection reason per library."""
+        from django.core import mail
+
+        admin_user.email = "admin@example.com"
+        admin_user.save()
+        library = Library.objects.create(
+            name="Bulk Reject Shelf",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Roma 7",
+            city="Florence",
+            country="IT",
+            status=Library.Status.PENDING,
+            created_by=admin_user,
+        )
+
+        url = reverse("admin:libraries_library_changelist")
+        admin_client.post(url, {
+            "action": "reject_libraries",
+            "_selected_action": [library.pk],
+        })
+
+        assert len(mail.outbox) == 0
+
+
+@pytest.mark.django_db
 class TestReportAdmin:
     """Tests for Report admin actions."""
 
