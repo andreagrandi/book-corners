@@ -15,8 +15,14 @@
     </div>
     {% if report.status == 'open' %}
       <div class="flex gap-1">
-        <button hx-post="{% url 'manage:report_resolve' pk=report.pk %}" hx-target="#library-report-{{ report.pk }}" hx-swap="outerHTML" class="btn btn-success btn-xs">{% trans "Resolve" %}</button>
-        <button hx-post="{% url 'manage:report_dismiss' pk=report.pk %}" hx-target="#library-report-{{ report.pk }}" hx-swap="outerHTML" class="btn btn-ghost btn-xs">{% trans "Dismiss" %}</button>
+        <form method="post" action="{% url 'manage:report_resolve' pk=report.pk %}">
+          {% csrf_token %}
+          <button type="submit" hx-post="{% url 'manage:report_resolve' pk=report.pk %}" hx-target="#library-report-{{ report.pk }}" hx-swap="outerHTML" class="btn btn-success btn-xs">{% trans "Resolve" %}</button>
+        </form>
+        <form method="post" action="{% url 'manage:report_dismiss' pk=report.pk %}">
+          {% csrf_token %}
+          <button type="submit" hx-post="{% url 'manage:report_dismiss' pk=report.pk %}" hx-target="#library-report-{{ report.pk }}" hx-swap="outerHTML" class="btn btn-ghost btn-xs">{% trans "Dismiss" %}</button>
+        </form>
       </div>
     {% endif %}
   </div>
