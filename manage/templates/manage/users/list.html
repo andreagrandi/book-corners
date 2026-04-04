@@ -6,6 +6,32 @@
 {% block page_title %}{% trans "Users" %}{% endblock %}
 
 {% block manage_content %}
-  <h1 class="hidden text-2xl font-bold lg:block">{% trans "Users" %}</h1>
-  <p class="mt-2 text-base-content/60">{% trans "Manage user accounts." %}</p>
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <h1 class="hidden text-2xl font-bold lg:block">{% trans "Users" %}</h1>
+    <span class="text-sm text-base-content/60">{{ total_count }} {% trans "results" %}</span>
+  </div>
+
+  {# --- Filters --- #}
+  <form hx-get="{% url 'manage:user_list' %}" hx-target="#user-table-container" hx-swap="innerHTML" hx-push-url="true" class="mt-4 flex flex-wrap items-end gap-3">
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "Search" %}</span>
+      <input type="text" name="q" value="{{ current_q }}" class="input input-sm input-bordered" placeholder="{% trans 'Username or email' %}">
+    </label>
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "Role" %}</span>
+      <select name="role" class="select select-sm select-bordered">
+        <option value="">{% trans "All users" %}</option>
+        <option value="staff" {% if current_role == "staff" %}selected{% endif %}>{% trans "Staff" %}</option>
+        <option value="active" {% if current_role == "active" %}selected{% endif %}>{% trans "Active" %}</option>
+        <option value="inactive" {% if current_role == "inactive" %}selected{% endif %}>{% trans "Inactive" %}</option>
+      </select>
+    </label>
+    <button type="submit" class="btn btn-primary btn-sm">{% trans "Filter" %}</button>
+    <a href="{% url 'manage:user_list' %}" class="btn btn-ghost btn-sm">{% trans "Clear" %}</a>
+  </form>
+
+  {# --- Table --- #}
+  <div id="user-table-container" class="mt-6">
+    {% include "manage/users/_table.html" %}
+  </div>
 {% endblock %}

@@ -19,7 +19,7 @@ from manage.views.reports import (
     report_list,
     report_resolve,
 )
-from manage.views.users import user_list
+from manage.views.users import user_detail, user_list
 
 app_name = "manage"
 
@@ -43,4 +43,5 @@ urlpatterns = [
     path("reports/<int:pk>/dismiss/", report_dismiss, name="report_dismiss"),
     path("reports/bulk-action/", report_bulk_action, name="report_bulk_action"),
     path("users/", user_list, name="user_list"),
+    path("users/<int:pk>/", user_detail, name="user_detail"),
 ]

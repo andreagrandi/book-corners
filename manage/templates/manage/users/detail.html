@@ -1,0 +1,131 @@
+{% extends "manage/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ profile_user.username }} - {% trans "Manage" %} - Book Corners{% endblock %}
+
+{% block page_title %}{{ profile_user.username }}{% endblock %}
+
+{% block manage_content %}
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <h1 class="hidden text-2xl font-bold lg:block">{{ profile_user.username }}</h1>
+    <div class="flex gap-2">
+      {% if profile_user.is_staff %}
+        <span class="badge badge-primary">{% trans "Staff" %}</span>
+      {% endif %}
+      {% if profile_user.is_active %}
+        <span class="badge badge-success">{% trans "Active" %}</span>
+      {% else %}
+        <span class="badge badge-ghost">{% trans "Inactive" %}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+    {# --- User info --- #}
+    <div class="rounded-box border border-base-300 bg-base-100 p-5">
+      <h2 class="text-lg font-semibold">{% trans "Account" %}</h2>
+      <div class="mt-4 space-y-3">
+        <div>
+          <p class="text-xs font-medium text-base-content/60">{% trans "Email" %}</p>
+          <p class="mt-1">{{ profile_user.email|default:"-" }}</p>
+        </div>
+        <div>
+          <p class="text-xs font-medium text-base-content/60">{% trans "Name" %}</p>
+          <p class="mt-1">{{ profile_user.get_full_name|default:"-" }}</p>
+        </div>
+        <div>
+          <p class="text-xs font-medium text-base-content/60">{% trans "Joined" %}</p>
+          <p class="mt-1">{{ profile_user.date_joined|date:"Y-m-d H:i" }}</p>
+        </div>
+        <div>
+          <p class="text-xs font-medium text-base-content/60">{% trans "Last login" %}</p>
+          <p class="mt-1">{% if profile_user.last_login %}{{ profile_user.last_login|date:"Y-m-d H:i" }}{% else %}-{% endif %}</p>
+        </div>
+        <div>
+          <p class="text-xs font-medium text-base-content/60">{% trans "Language" %}</p>
+          <p class="mt-1">{{ profile_user.get_language_display }}</p>
+        </div>
+      </div>
+      <div class="mt-4">
+        <a href="/admin/users/user/{{ profile_user.pk }}/change/" class="btn btn-ghost btn-sm btn-block">{% trans "Edit in Django Admin" %}</a>
+      </div>
+    </div>
+
+    {# --- Submissions --- #}
+    <div class="lg:col-span-2 space-y-6">
+      <div class="rounded-box border border-base-300 bg-base-100 p-5">
+        <h2 class="text-lg font-semibold">{% trans "Library Submissions" %}</h2>
+        {% if libraries %}
+          <div class="mt-4 overflow-x-auto">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>{% trans "Name" %}</th>
+                  <th>{% trans "City" %}</th>
+                  <th>{% trans "Status" %}</th>
+                  <th>{% trans "Created" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for library in libraries %}
+                  <tr>
+                    <td>
+                      <a href="{% url 'manage:library_detail' pk=library.pk %}" class="link link-hover">
+                        {{ library.name|default:library.address|truncatechars:30 }}
+                      </a>
+                    </td>
+                    <td>{{ library.city }}</td>
+                    <td>
+                      <span class="badge badge-sm {% if library.status == 'approved' %}badge-success{% elif library.status == 'rejected' %}badge-error{% else %}badge-warning{% endif %}">
+                        {{ library.get_status_display }}
+                      </span>
+                    </td>
+                    <td class="text-xs text-base-content/60">{{ library.created_at|date:"Y-m-d" }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="mt-4 text-sm text-base-content/60">{% trans "No library submissions." %}</p>
+        {% endif %}
+      </div>
+
+      {% if reports %}
+        <div class="rounded-box border border-base-300 bg-base-100 p-5">
+          <h2 class="text-lg font-semibold">{% trans "Reports Submitted" %}</h2>
+          <div class="mt-4 overflow-x-auto">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>{% trans "Library" %}</th>
+                  <th>{% trans "Reason" %}</th>
+                  <th>{% trans "Status" %}</th>
+                  <th>{% trans "Date" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for report in reports %}
+                  <tr>
+                    <td>
+                      <a href="{% url 'manage:library_detail' pk=report.library.pk %}" class="link link-hover">
+                        {{ report.library.name|default:report.library.address|truncatechars:30 }}
+                      </a>
+                    </td>
+                    <td>{{ report.get_reason_display }}</td>
+                    <td>
+                      <span class="badge badge-sm {% if report.status == 'resolved' %}badge-success{% elif report.status == 'dismissed' %}badge-ghost{% else %}badge-warning{% endif %}">
+                        {{ report.get_status_display }}
+                      </span>
+                    </td>
+                    <td class="text-xs text-base-content/60">{{ report.created_at|date:"Y-m-d" }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
