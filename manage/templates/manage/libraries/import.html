@@ -1,0 +1,60 @@
+{% extends "manage/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Import GeoJSON" %} - {% trans "Manage" %} - Book Corners{% endblock %}
+
+{% block page_title %}{% trans "Import GeoJSON" %}{% endblock %}
+
+{% block breadcrumbs %}
+  <div class="breadcrumbs text-sm mb-4 hidden lg:block">
+    <ul>
+      <li><a href="{% url 'manage:dashboard' %}">{% trans "Dashboard" %}</a></li>
+      <li><a href="{% url 'manage:library_list' %}">{% trans "Libraries" %}</a></li>
+      <li>{% trans "Import GeoJSON" %}</li>
+    </ul>
+  </div>
+{% endblock %}
+
+{% block manage_content %}
+  <h1 class="hidden text-2xl font-bold lg:block">{% trans "Import GeoJSON" %}</h1>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% else %}alert-warning{% endif %} mt-4 text-sm">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="mt-6 max-w-xl rounded-box border border-base-300 bg-base-100 p-6">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <label class="flex w-full flex-col gap-1">
+        <span class="text-sm font-medium">{% trans "GeoJSON file" %}</span>
+        <input type="file" name="geojson_file" accept=".geojson,.json" class="file-input file-input-bordered file-input-sm w-full" required>
+        <span class="text-xs text-base-content/60">{% trans "Upload a GeoJSON file with addr:street, addr:city, and addr:country properties." %}</span>
+      </label>
+
+      <label class="mt-4 flex w-full flex-col gap-1">
+        <span class="text-sm font-medium">{% trans "Source" %}</span>
+        <input type="text" name="source" class="input input-sm input-bordered w-full" placeholder="{% trans 'e.g. OpenStreetMap / MapComplete' %}">
+        <span class="text-xs text-base-content/60">{% trans "Applied to all imported libraries. Leave blank if not needed." %}</span>
+      </label>
+
+      <label class="mt-4 flex w-full flex-col gap-1">
+        <span class="text-sm font-medium">{% trans "Status" %}</span>
+        <select name="status" class="select select-sm select-bordered w-full">
+          <option value="approved">{% trans "Approved" %}</option>
+          <option value="pending" selected>{% trans "Pending" %}</option>
+        </select>
+        <span class="text-xs text-base-content/60">{% trans "Status applied to all imported libraries." %}</span>
+      </label>
+
+      <div class="mt-6 flex gap-2">
+        <button type="submit" class="btn btn-primary btn-sm">{% trans "Import" %}</button>
+        <a href="{% url 'manage:library_list' %}" class="btn btn-ghost btn-sm">{% trans "Cancel" %}</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

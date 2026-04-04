@@ -1,0 +1,30 @@
+{% load i18n %}
+
+<tr id="report-row-{{ report.pk }}">
+  <td><input type="checkbox" name="selected" value="{{ report.pk }}" class="checkbox checkbox-sm"></td>
+  <td>
+    <a href="{% url 'manage:library_detail' pk=report.library.pk %}" class="link link-hover font-medium">
+      {{ report.library.name|default:report.library.address|truncatechars:30 }}
+    </a>
+  </td>
+  <td>{{ report.get_reason_display }}</td>
+  <td>
+    <span class="badge badge-sm {% if report.status == 'resolved' %}badge-success{% elif report.status == 'dismissed' %}badge-ghost{% else %}badge-warning{% endif %}">
+      {{ report.get_status_display }}
+    </span>
+  </td>
+  <td>{{ report.created_by.username|default:"—" }}</td>
+  <td class="text-xs text-base-content/60">{{ report.created_at|date:"Y-m-d" }}</td>
+  <td>
+    <div class="flex gap-1">
+      {% if report.status == 'open' %}
+        <button hx-post="{% url 'manage:report_resolve' pk=report.pk %}" hx-target="#report-row-{{ report.pk }}" hx-swap="outerHTML" class="btn btn-success btn-xs" title="{% trans 'Resolve' %}">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+        </button>
+        <button hx-post="{% url 'manage:report_dismiss' pk=report.pk %}" hx-target="#report-row-{{ report.pk }}" hx-swap="outerHTML" class="btn btn-ghost btn-xs" title="{% trans 'Dismiss' %}">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      {% endif %}
+    </div>
+  </td>
+</tr>

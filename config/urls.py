@@ -56,6 +56,7 @@ urlpatterns = [
     path("i18n/setlang/", set_language_view, name="set_language"),
     path("health/", health, name="health"),
     path("admin/", admin.site.urls),
+    path("manage/", include("manage.urls")),
     path("accounts/", include("allauth.urls")),
     path("", include("users.urls")),
     path("", home, name="home"),

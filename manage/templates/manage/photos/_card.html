@@ -1,0 +1,38 @@
+{% load i18n %}
+
+<div id="photo-card-{{ photo.pk|default:photo.library_pk }}-{{ photo.photo_type }}" class="rounded-box border border-base-300 bg-base-100 overflow-hidden">
+  <figure class="relative">
+    <img src="{{ photo.thumbnail_url }}" alt="{{ photo.library_name }}" class="aspect-square w-full object-cover" loading="lazy">
+    <div class="absolute right-2 top-2 flex gap-1">
+      <span class="badge badge-sm {% if photo.photo_type == 'primary' %}badge-primary{% else %}badge-secondary{% endif %}">
+        {% if photo.photo_type == 'primary' %}{% trans "Primary" %}{% else %}{% trans "Community" %}{% endif %}
+      </span>
+      <span class="badge badge-sm {% if photo.status_raw == 'approved' %}badge-success{% elif photo.status_raw == 'rejected' %}badge-error{% else %}badge-warning{% endif %}">
+        {{ photo.status_display }}
+      </span>
+    </div>
+    {% if photo.pk %}
+      <div class="absolute left-2 top-2">
+        <input type="checkbox" name="selected" value="{{ photo.pk }}" class="checkbox checkbox-sm bg-base-100">
+      </div>
+    {% endif %}
+  </figure>
+  <div class="p-3">
+    <p class="truncate text-sm font-medium">
+      <a href="{{ photo.library_url }}" class="link link-hover">{{ photo.library_name|truncatechars:30 }}</a>
+    </p>
+    <p class="mt-1 truncate text-xs text-base-content/60">
+      {{ photo.submitted_by|default:"—" }} &middot; {{ photo.date|date:"Y-m-d" }}
+    </p>
+    {% if photo.approve_url %}
+      <div class="mt-2 flex gap-1">
+        {% if photo.status_raw != 'approved' %}
+          <button hx-post="{{ photo.approve_url }}" hx-target="#photo-card-{{ photo.pk }}-community" hx-swap="outerHTML" class="btn btn-success btn-xs flex-1">{% trans "Approve" %}</button>
+        {% endif %}
+        {% if photo.status_raw != 'rejected' %}
+          <button hx-post="{{ photo.reject_url }}" hx-target="#photo-card-{{ photo.pk }}-community" hx-swap="outerHTML" class="btn btn-error btn-xs flex-1">{% trans "Reject" %}</button>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>

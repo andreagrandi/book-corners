@@ -1,0 +1,50 @@
+{% extends "manage/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Photos" %} - {% trans "Manage" %} - Book Corners{% endblock %}
+
+{% block page_title %}{% trans "Photos" %}{% endblock %}
+
+{% block breadcrumbs %}
+  <div class="breadcrumbs text-sm mb-4 hidden lg:block">
+    <ul>
+      <li><a href="{% url 'manage:dashboard' %}">{% trans "Dashboard" %}</a></li>
+      <li>{% trans "Photos" %}</li>
+    </ul>
+  </div>
+{% endblock %}
+
+{% block manage_content %}
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <h1 class="hidden text-2xl font-bold lg:block">{% trans "Photos" %}</h1>
+    <span class="text-sm text-base-content/60">{{ total_count }} {% trans "results" %}</span>
+  </div>
+
+  {# --- Filters --- #}
+  <form hx-get="{% url 'manage:photo_list' %}" hx-target="#photo-grid-container" hx-swap="innerHTML" hx-push-url="true" class="mt-4 flex flex-wrap items-end gap-3">
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "Status" %}</span>
+      <select name="status" class="select select-sm select-bordered">
+        <option value="all" {% if status_filter == "all" %}selected{% endif %}>{% trans "All statuses" %}</option>
+        <option value="pending" {% if status_filter == "pending" %}selected{% endif %}>{% trans "Pending" %}</option>
+        <option value="approved" {% if status_filter == "approved" %}selected{% endif %}>{% trans "Approved" %}</option>
+        <option value="rejected" {% if status_filter == "rejected" %}selected{% endif %}>{% trans "Rejected" %}</option>
+      </select>
+    </label>
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "Type" %}</span>
+      <select name="type" class="select select-sm select-bordered">
+        <option value="all" {% if type_filter == "all" %}selected{% endif %}>{% trans "All types" %}</option>
+        <option value="primary" {% if type_filter == "primary" %}selected{% endif %}>{% trans "Primary" %}</option>
+        <option value="community" {% if type_filter == "community" %}selected{% endif %}>{% trans "Community" %}</option>
+      </select>
+    </label>
+    <button type="submit" class="btn btn-primary btn-sm">{% trans "Filter" %}</button>
+    <a href="{% url 'manage:photo_list' %}" class="btn btn-ghost btn-sm">{% trans "Clear" %}</a>
+  </form>
+
+  {# --- Grid --- #}
+  <div id="photo-grid-container" class="mt-6">
+    {% include "manage/photos/_grid.html" %}
+  </div>
+{% endblock %}

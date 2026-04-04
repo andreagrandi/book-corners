@@ -1,0 +1,53 @@
+{% extends "manage/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Libraries" %} - {% trans "Manage" %} - Book Corners{% endblock %}
+
+{% block page_title %}{% trans "Libraries" %}{% endblock %}
+
+{% block breadcrumbs %}
+  <div class="breadcrumbs text-sm mb-4 hidden lg:block">
+    <ul>
+      <li><a href="{% url 'manage:dashboard' %}">{% trans "Dashboard" %}</a></li>
+      <li>{% trans "Libraries" %}</li>
+    </ul>
+  </div>
+{% endblock %}
+
+{% block manage_content %}
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <h1 class="hidden text-2xl font-bold lg:block">{% trans "Libraries" %}</h1>
+    <div class="flex items-center gap-2">
+      <span class="text-sm text-base-content/60">{{ total_count }} {% trans "results" %}</span>
+      <a href="{% url 'manage:import_geojson' %}" class="btn btn-outline btn-sm">{% trans "Import GeoJSON" %}</a>
+      <a href="{% url 'manage:find_duplicates' %}" class="btn btn-outline btn-sm">{% trans "Find Duplicates" %}</a>
+    </div>
+  </div>
+
+  {# --- Filters --- #}
+  <form hx-get="{% url 'manage:library_list' %}" hx-target="#library-table-container" hx-swap="innerHTML" hx-push-url="true" class="mt-4 flex flex-wrap items-end gap-3">
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "Status" %}</span>
+      {{ form.status }}
+    </label>
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "Country" %}</span>
+      {{ form.country }}
+    </label>
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "Source" %}</span>
+      {{ form.source }}
+    </label>
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "Search" %}</span>
+      {{ form.q }}
+    </label>
+    <button type="submit" class="btn btn-primary btn-sm">{% trans "Filter" %}</button>
+    <a href="{% url 'manage:library_list' %}" class="btn btn-ghost btn-sm">{% trans "Clear" %}</a>
+  </form>
+
+  {# --- Table with bulk actions --- #}
+  <div id="library-table-container" class="mt-6">
+    {% include "manage/libraries/_table.html" %}
+  </div>
+{% endblock %}

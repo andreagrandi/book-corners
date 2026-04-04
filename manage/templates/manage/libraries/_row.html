@@ -1,0 +1,32 @@
+{% load i18n %}
+
+<tr id="library-row-{{ library.pk }}">
+  <td><input type="checkbox" name="selected" value="{{ library.pk }}" class="checkbox checkbox-sm"></td>
+  <td>
+    <a href="{% url 'manage:library_detail' pk=library.pk %}" class="link link-hover font-medium">
+      {{ library.name|default:library.address|truncatechars:40 }}
+    </a>
+  </td>
+  <td>{{ library.city }}</td>
+  <td>{{ library.country }}</td>
+  <td>
+    <span class="badge badge-sm {% if library.status == 'approved' %}badge-success{% elif library.status == 'rejected' %}badge-error{% else %}badge-warning{% endif %}">
+      {{ library.get_status_display }}
+    </span>
+  </td>
+  <td class="text-xs text-base-content/60">{{ library.created_at|date:"Y-m-d" }}</td>
+  <td>
+    <div class="flex gap-1">
+      {% if library.status != 'approved' %}
+        <button hx-post="{% url 'manage:library_approve' pk=library.pk %}" hx-target="#library-row-{{ library.pk }}" hx-swap="outerHTML" class="btn btn-success btn-xs" title="{% trans 'Approve' %}">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+        </button>
+      {% endif %}
+      {% if library.status != 'rejected' %}
+        <button hx-post="{% url 'manage:library_reject' pk=library.pk %}" hx-target="#library-row-{{ library.pk }}" hx-swap="outerHTML" class="btn btn-error btn-xs" title="{% trans 'Reject' %}">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      {% endif %}
+    </div>
+  </td>
+</tr>

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Book Corners 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-02 19:26+0000\n"
+"POT-Creation-Date: 2026-04-04 11:30+0000\n"
 "PO-Revision-Date: 2026-02-28 15:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Italian\n"
@@ -16,27 +16,29 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: libraries/admin.py:146
+#: libraries/admin.py:146 manage/views/libraries.py:273
 msgid "This library has no photo for AI analysis."
 msgstr "Questa libreria non ha una foto per l'analisi IA."
 
-#: libraries/admin.py:156
+#: libraries/admin.py:156 manage/views/libraries.py:281
 msgid "Could not access the library photo."
 msgstr "Impossibile accedere alla foto della libreria."
 
-#: libraries/admin.py:163
+#: libraries/admin.py:163 manage/views/libraries.py:286
 msgid "AI enrichment failed. Check logs for details."
 msgstr "Arricchimento IA fallito. Controlla i log per i dettagli."
 
-#: libraries/admin.py:170 templates/admin/libraries/ai_enrich_confirm.html:4
+#: libraries/admin.py:170
+#: manage/templates/manage/libraries/ai_enrich_confirm.html:20
+#: templates/admin/libraries/ai_enrich_confirm.html:4
 msgid "AI Enrich: Confirm"
 msgstr "Arricchisci con IA: Conferma"
 
-#: libraries/admin.py:206
+#: libraries/admin.py:206 manage/views/libraries.py:315
 msgid "AI-generated name and description applied."
 msgstr "Nome e descrizione generati dall'IA applicati."
 
-#: libraries/admin.py:208
+#: libraries/admin.py:208 manage/views/libraries.py:317
 msgid "No AI values to apply."
 msgstr "Nessun valore IA da applicare."
 
@@ -112,29 +114,38 @@ msgid "You can submit at most %(max)s photos per library."
 msgstr "Puoi inviare al massimo %(max)s foto per libreria."
 
 #: libraries/models.py:21 libraries/models.py:292
+#: manage/templates/manage/libraries/import.html:49
+#: manage/templates/manage/photos/list.html:29
 #: templates/admin/libraries/geojson_import_form.html:37
 #: templates/admin/libraries/photo_grid.html:145
 msgid "Pending"
 msgstr "In attesa"
 
 #: libraries/models.py:22 libraries/models.py:293
+#: manage/templates/manage/libraries/import.html:48
+#: manage/templates/manage/photos/list.html:30
 #: templates/admin/libraries/geojson_import_form.html:36
 #: templates/admin/libraries/photo_grid.html:146
 msgid "Approved"
 msgstr "Approvato"
 
 #: libraries/models.py:23 libraries/models.py:294
+#: manage/templates/manage/photos/list.html:31
 #: templates/admin/libraries/photo_grid.html:147
 msgid "Rejected"
 msgstr "Rifiutato"
 
 #: libraries/models.py:26 libraries/templates/libraries/library_detail.html:57
 #: libraries/templates/libraries/library_detail.html:58
+#: manage/templates/manage/libraries/detail.html:119
+#: manage/templates/manage/libraries/detail.html:123
 msgid "Yes"
 msgstr "Sì"
 
 #: libraries/models.py:27 libraries/templates/libraries/library_detail.html:57
 #: libraries/templates/libraries/library_detail.html:58
+#: manage/templates/manage/libraries/detail.html:119
+#: manage/templates/manage/libraries/detail.html:123
 msgid "No"
 msgstr "No"
 
@@ -142,7 +153,7 @@ msgstr "No"
 msgid "Limited"
 msgstr "Limitato"
 
-#: libraries/models.py:65
+#: libraries/models.py:65 manage/templates/manage/libraries/detail.html:98
 msgid "Rejection reason"
 msgstr "Motivo del rifiuto"
 
@@ -293,11 +304,15 @@ msgid "Tell us what is wrong with this library entry so moderators can review an
 msgstr "Dicci cosa non va con questa libreria in modo che i moderatori possano verificare e correggere."
 
 #: libraries/templates/libraries/_report_form.html:33
+#: manage/templates/manage/reports/_table.html:20
+#: manage/templates/manage/reports/list.html:35
+#: manage/templates/manage/users/detail.html:112
 #: templates/admin/libraries/geojson_import_result.html:58
 msgid "Reason"
 msgstr "Motivo"
 
 #: libraries/templates/libraries/_report_form.html:39
+#: manage/templates/manage/libraries/detail.html:72
 msgid "Details"
 msgstr "Dettagli"
 
@@ -323,6 +338,18 @@ msgstr "Usa un luogo come Roma per risultati nelle vicinanze, oppure aggiungi pa
 
 #: libraries/templates/libraries/dashboard.html:4
 #: libraries/templates/libraries/dashboard.html:10
+#: manage/templates/manage/base.html:39
+#: manage/templates/manage/dashboard.html:7
+#: manage/templates/manage/dashboard.html:10
+#: manage/templates/manage/libraries/ai_enrich_confirm.html:11
+#: manage/templates/manage/libraries/detail.html:11
+#: manage/templates/manage/libraries/duplicates.html:11
+#: manage/templates/manage/libraries/import.html:11
+#: manage/templates/manage/libraries/list.html:11
+#: manage/templates/manage/photos/list.html:11
+#: manage/templates/manage/reports/list.html:11
+#: manage/templates/manage/users/detail.html:11
+#: manage/templates/manage/users/list.html:11
 msgid "Dashboard"
 msgstr "Bacheca"
 
@@ -339,16 +366,24 @@ msgid "Account information"
 msgstr "Informazioni account"
 
 #: libraries/templates/libraries/dashboard.html:21
+#: manage/templates/manage/users/_table.html:7
 #: users/templates/users/register.html:22
 msgid "Username"
 msgstr "Nome utente"
 
 #: libraries/templates/libraries/dashboard.html:25
+#: manage/templates/manage/users/_table.html:8
+#: manage/templates/manage/users/detail.html:39
 #: users/templates/users/register.html:28
 msgid "Email"
 msgstr "Email"
 
 #: libraries/templates/libraries/dashboard.html:30
+#: manage/templates/manage/libraries/_table.html:19
+#: manage/templates/manage/libraries/ai_enrich_confirm.html:40
+#: manage/templates/manage/libraries/duplicates.html:66
+#: manage/templates/manage/users/detail.html:43
+#: manage/templates/manage/users/detail.html:73
 #: templates/admin/libraries/ai_enrich_confirm.html:27
 #: templates/admin/libraries/find_duplicates.html:88
 msgid "Name"
@@ -480,7 +515,7 @@ msgid "Report an issue with this library"
 msgstr "Segnala un problema con questa libreria"
 
 #: libraries/templates/libraries/map.html:4 templates/base.html:32
-#: templates/base.html:66
+#: templates/base.html:69
 msgid "Map"
 msgstr "Mappa"
 
@@ -532,6 +567,10 @@ msgstr "Applica filtri"
 
 #: libraries/templates/libraries/map.html:95
 #: libraries/templates/libraries/search.html:61
+#: manage/templates/manage/libraries/list.html:46
+#: manage/templates/manage/photos/list.html:43
+#: manage/templates/manage/reports/list.html:44
+#: manage/templates/manage/users/list.html:39
 msgid "Clear"
 msgstr "Pulisci"
 
@@ -584,7 +623,9 @@ msgid "Could not load map markers right now. Please try again."
 msgstr "Impossibile caricare i marcatori sulla mappa. Riprova."
 
 #: libraries/templates/libraries/search.html:4
-#: libraries/templates/libraries/search.html:60 templates/home.html:29
+#: libraries/templates/libraries/search.html:60 manage/forms.py:16
+#: manage/templates/manage/libraries/list.html:42
+#: manage/templates/manage/users/list.html:26 templates/home.html:29
 msgid "Search"
 msgstr "Cerca"
 
@@ -603,7 +644,7 @@ msgstr "Cerca per parole chiave, per luogo con un raggio, o restringi i risultat
 #: libraries/templates/libraries/stats.html:4
 #: libraries/templates/libraries/stats.html:6
 #: libraries/templates/libraries/stats.html:11 templates/base.html:34
-#: templates/base.html:68
+#: templates/base.html:71
 msgid "Statistics"
 msgstr "Statistiche"
 
@@ -658,16 +699,26 @@ msgid "Description (optional)"
 msgstr "Descrizione (opzionale)"
 
 #: libraries/templates/libraries/submit_library.html:89
+#: manage/templates/manage/libraries/_table.html:21
+#: manage/templates/manage/libraries/detail.html:83
+#: manage/templates/manage/libraries/duplicates.html:38
+#: manage/templates/manage/libraries/list.html:34
 msgid "Country"
 msgstr "Paese"
 
 #: libraries/templates/libraries/submit_library.html:95
-#: templates/admin/index.html:92
+#: manage/templates/manage/libraries/_table.html:20
+#: manage/templates/manage/libraries/detail.html:79
+#: manage/templates/manage/libraries/duplicates.html:34
+#: manage/templates/manage/libraries/duplicates.html:68
+#: manage/templates/manage/users/detail.html:74 templates/admin/index.html:92
 #: templates/admin/libraries/find_duplicates.html:90
 msgid "City"
 msgstr "Città"
 
 #: libraries/templates/libraries/submit_library.html:101
+#: manage/templates/manage/libraries/detail.html:75
+#: manage/templates/manage/libraries/duplicates.html:67
 #: templates/admin/libraries/find_duplicates.html:89
 msgid "Address"
 msgstr "Indirizzo"
@@ -765,6 +816,615 @@ msgstr "Grazie per il contributo. La tua libreria è stata inviata ai moderatori
 msgid "Continue"
 msgstr "Continua"
 
+#: manage/forms.py:11 manage/templates/manage/photos/list.html:28
+#: manage/templates/manage/reports/list.html:28
+msgid "All statuses"
+msgstr "Tutti gli stati"
+
+#: manage/templates/manage/base.html:10
+msgid "Open admin menu"
+msgstr "Apri menu amministrazione"
+
+#: manage/templates/manage/base.html:15 manage/templates/manage/base.html:29
+#: manage/templates/manage/dashboard.html:4
+#: manage/templates/manage/libraries/ai_enrich_confirm.html:4
+#: manage/templates/manage/libraries/detail.html:4
+#: manage/templates/manage/libraries/duplicates.html:4
+#: manage/templates/manage/libraries/import.html:4
+#: manage/templates/manage/libraries/list.html:4
+#: manage/templates/manage/photos/list.html:4
+#: manage/templates/manage/reports/list.html:4
+#: manage/templates/manage/users/detail.html:4
+#: manage/templates/manage/users/list.html:4 templates/base.html:37
+#: templates/base.html:74
+msgid "Manage"
+msgstr "Gestione"
+
+#: manage/templates/manage/base.html:26
+msgid "Close admin menu"
+msgstr "Chiudi menu amministrazione"
+
+#: manage/templates/manage/base.html:30
+msgid "Administration"
+msgstr "Amministrazione"
+
+#: manage/templates/manage/base.html:47
+#: manage/templates/manage/libraries/ai_enrich_confirm.html:12
+#: manage/templates/manage/libraries/detail.html:12
+#: manage/templates/manage/libraries/duplicates.html:12
+#: manage/templates/manage/libraries/import.html:12
+#: manage/templates/manage/libraries/list.html:4
+#: manage/templates/manage/libraries/list.html:6
+#: manage/templates/manage/libraries/list.html:12
+#: manage/templates/manage/libraries/list.html:19
+#: manage/templates/manage/users/_table.html:11
+msgid "Libraries"
+msgstr "Librerie"
+
+#: manage/templates/manage/base.html:55
+#: manage/templates/manage/photos/list.html:4
+#: manage/templates/manage/photos/list.html:6
+#: manage/templates/manage/photos/list.html:12
+#: manage/templates/manage/photos/list.html:19
+msgid "Photos"
+msgstr "Foto"
+
+#: manage/templates/manage/base.html:63
+#: manage/templates/manage/libraries/detail.html:168
+#: manage/templates/manage/reports/list.html:4
+#: manage/templates/manage/reports/list.html:6
+#: manage/templates/manage/reports/list.html:12
+#: manage/templates/manage/reports/list.html:19
+msgid "Reports"
+msgstr "Segnalazioni"
+
+#: manage/templates/manage/base.html:71
+#: manage/templates/manage/users/detail.html:12
+#: manage/templates/manage/users/list.html:4
+#: manage/templates/manage/users/list.html:6
+#: manage/templates/manage/users/list.html:12
+#: manage/templates/manage/users/list.html:19
+msgid "Users"
+msgstr "Utenti"
+
+#: manage/templates/manage/base.html:85
+msgid "Django Admin"
+msgstr "Django Admin"
+
+#: manage/templates/manage/base.html:93
+msgid "View Site"
+msgstr "Visualizza sito"
+
+#: manage/templates/manage/dashboard.html:5
+msgid "Book Corners administration dashboard."
+msgstr "Pannello di amministrazione di Book Corners."
+
+#: manage/templates/manage/dashboard.html:15
+msgid "Total Approved"
+msgstr "Totale approvate"
+
+#: manage/templates/manage/dashboard.html:17
+msgid "libraries"
+msgstr "librerie"
+
+#: manage/templates/manage/dashboard.html:21
+msgid "Total Users"
+msgstr "Utenti totali"
+
+#: manage/templates/manage/dashboard.html:26
+msgid "Pending Moderation"
+msgstr "In attesa di moderazione"
+
+#: manage/templates/manage/dashboard.html:28
+msgid "items awaiting review"
+msgstr "elementi in attesa di revisione"
+
+#: manage/templates/manage/dashboard.html:32
+#: manage/templates/manage/dashboard.html:73 templates/admin/index.html:76
+msgid "Open Reports"
+msgstr "Segnalazioni aperte"
+
+#: manage/templates/manage/dashboard.html:43 templates/admin/index.html:71
+msgid "Pending Libraries"
+msgstr "Librerie in attesa"
+
+#: manage/templates/manage/dashboard.html:55
+#: manage/templates/manage/dashboard.html:85
+#: manage/templates/manage/dashboard.html:115
+msgid "ago"
+msgstr "fa"
+
+#: manage/templates/manage/dashboard.html:62
+#: manage/templates/manage/dashboard.html:92
+#: manage/templates/manage/dashboard.html:122
+msgid "View all"
+msgstr "Vedi tutte"
+
+#: manage/templates/manage/dashboard.html:66
+msgid "No pending libraries."
+msgstr "Nessuna libreria in attesa."
+
+#: manage/templates/manage/dashboard.html:96
+msgid "No open reports."
+msgstr "Nessuna segnalazione aperta."
+
+#: manage/templates/manage/dashboard.html:103 templates/admin/index.html:81
+msgid "Pending Photos"
+msgstr "Foto in attesa"
+
+#: manage/templates/manage/dashboard.html:113
+msgid "No caption"
+msgstr "Senza didascalia"
+
+#: manage/templates/manage/dashboard.html:126
+msgid "No pending photos."
+msgstr "Nessuna foto in attesa."
+
+#: manage/templates/manage/libraries/_report_card.html:20
+#: manage/templates/manage/reports/_row.html:21
+msgid "Resolve"
+msgstr "Risolvi"
+
+#: manage/templates/manage/libraries/_report_card.html:24
+#: manage/templates/manage/reports/_row.html:24
+msgid "Dismiss"
+msgstr "Archivia"
+
+#: manage/templates/manage/libraries/_report_card.html:32
+msgid "Report photo"
+msgstr "Foto della segnalazione"
+
+#: manage/templates/manage/libraries/_row.html:21
+#: manage/templates/manage/libraries/detail.html:49
+#: manage/templates/manage/photos/_card.html:30
+msgid "Approve"
+msgstr "Approva"
+
+#: manage/templates/manage/libraries/_row.html:26
+#: manage/templates/manage/libraries/detail.html:55
+#: manage/templates/manage/photos/_card.html:33
+msgid "Reject"
+msgstr "Rifiuta"
+
+#: manage/templates/manage/libraries/_table.html:7
+#: manage/templates/manage/photos/_grid.html:7
+#: manage/templates/manage/reports/_table.html:7
+msgid "Bulk actions..."
+msgstr "Azioni di massa..."
+
+#: manage/templates/manage/libraries/_table.html:8
+#: manage/templates/manage/photos/_grid.html:8
+msgid "Approve selected"
+msgstr "Approva selezionate"
+
+#: manage/templates/manage/libraries/_table.html:9
+#: manage/templates/manage/photos/_grid.html:9
+msgid "Reject selected"
+msgstr "Rifiuta selezionate"
+
+#: manage/templates/manage/libraries/_table.html:11
+#: manage/templates/manage/libraries/ai_enrich_confirm.html:58
+#: manage/templates/manage/photos/_grid.html:11
+#: manage/templates/manage/reports/_table.html:11
+#: templates/admin/libraries/ai_enrich_confirm.html:44
+msgid "Apply"
+msgstr "Applica"
+
+#: manage/templates/manage/libraries/_table.html:22
+#: manage/templates/manage/libraries/duplicates.html:70
+#: manage/templates/manage/libraries/import.html:46
+#: manage/templates/manage/libraries/list.html:30
+#: manage/templates/manage/photos/list.html:26
+#: manage/templates/manage/reports/_table.html:21
+#: manage/templates/manage/reports/list.html:26
+#: manage/templates/manage/users/detail.html:75
+#: manage/templates/manage/users/detail.html:113
+#: templates/admin/libraries/find_duplicates.html:92 templates/base.html:149
+msgid "Status"
+msgstr "Stato"
+
+#: manage/templates/manage/libraries/_table.html:23
+#: manage/templates/manage/libraries/detail.html:22
+#: manage/templates/manage/libraries/duplicates.html:71
+#: manage/templates/manage/users/detail.html:76
+#: templates/admin/libraries/find_duplicates.html:93
+#: templates/admin/libraries/geojson_import_result.html:24
+msgid "Created"
+msgstr "Creata"
+
+#: manage/templates/manage/libraries/_table.html:24
+#: manage/templates/manage/reports/_table.html:24
+msgid "Actions"
+msgstr "Azioni"
+
+#: manage/templates/manage/libraries/_table.html:32
+msgid "No libraries found."
+msgstr "Nessuna libreria trovata."
+
+#: manage/templates/manage/libraries/ai_enrich_confirm.html:4
+#: manage/templates/manage/libraries/ai_enrich_confirm.html:6
+#: manage/templates/manage/libraries/ai_enrich_confirm.html:14
+#: manage/templates/manage/libraries/detail.html:61
+#: templates/admin/libraries/library/change_form.html:10
+msgid "AI Enrich"
+msgstr "Arricchisci con IA"
+
+#: manage/templates/manage/libraries/ai_enrich_confirm.html:34
+msgid "Current"
+msgstr "Attuale"
+
+#: manage/templates/manage/libraries/ai_enrich_confirm.html:35
+msgid "AI Suggestion"
+msgstr "Suggerimento IA"
+
+#: manage/templates/manage/libraries/ai_enrich_confirm.html:45
+#: manage/templates/manage/libraries/detail.html:92
+#: templates/admin/libraries/ai_enrich_confirm.html:32
+msgid "Description"
+msgstr "Descrizione"
+
+#: manage/templates/manage/libraries/ai_enrich_confirm.html:60
+#: manage/templates/manage/libraries/import.html:56
+#: templates/admin/libraries/ai_enrich_confirm.html:46
+#: templates/admin/libraries/geojson_import_form.html:45
+#: users/templates/users/change_email.html:34
+#: users/templates/users/change_password.html:41
+#: users/templates/users/delete_account.html:39
+msgid "Cancel"
+msgstr "Annulla"
+
+#: manage/templates/manage/libraries/detail.html:28
+msgid "View on site"
+msgstr "Visualizza sul sito"
+
+#: manage/templates/manage/libraries/detail.html:41
+msgid "No photo"
+msgstr "Nessuna foto"
+
+#: manage/templates/manage/libraries/detail.html:64
+#: manage/templates/manage/users/detail.html:60
+msgid "Edit in Django Admin"
+msgstr "Modifica in Django Admin"
+
+#: manage/templates/manage/libraries/detail.html:87
+msgid "Postal code"
+msgstr "CAP"
+
+#: manage/templates/manage/libraries/detail.html:107
+msgid "Additional info"
+msgstr "Informazioni aggiuntive"
+
+#: manage/templates/manage/libraries/detail.html:110
+msgid "Wheelchair accessible"
+msgstr "Accessibile in sedia a rotelle"
+
+#: manage/templates/manage/libraries/detail.html:114
+msgid "Capacity"
+msgstr "Capacità"
+
+#: manage/templates/manage/libraries/detail.html:118
+msgid "Indoor"
+msgstr "Al chiuso"
+
+#: manage/templates/manage/libraries/detail.html:122
+msgid "Lit"
+msgstr "Illuminata"
+
+#: manage/templates/manage/libraries/detail.html:126
+#: manage/templates/manage/libraries/import.html:40
+#: manage/templates/manage/libraries/list.html:38
+msgid "Source"
+msgstr "Fonte"
+
+#: manage/templates/manage/libraries/detail.html:130
+msgid "Operator"
+msgstr "Gestore"
+
+#: manage/templates/manage/libraries/detail.html:134
+msgid "Brand"
+msgstr "Marchio"
+
+#: manage/templates/manage/libraries/detail.html:138
+#: manage/templates/manage/libraries/duplicates.html:69
+#: templates/admin/libraries/find_duplicates.html:91
+#: templates/admin/libraries/geojson_import_result.html:57
+msgid "External ID"
+msgstr "ID esterno"
+
+#: manage/templates/manage/libraries/detail.html:142
+msgid "Submitted by"
+msgstr "Inviata da"
+
+#: manage/templates/manage/libraries/detail.html:151
+msgid "Community Photos"
+msgstr "Foto della community"
+
+#: manage/templates/manage/libraries/duplicates.html:4
+#: manage/templates/manage/libraries/duplicates.html:6
+#: manage/templates/manage/libraries/duplicates.html:13
+#: manage/templates/manage/libraries/duplicates.html:19
+#: manage/templates/manage/libraries/list.html:23
+#: templates/admin/libraries/find_duplicates.html:4
+#: templates/admin/libraries/find_duplicates.html:47
+#: templates/admin/libraries/library_changelist.html:12
+msgid "Find Duplicates"
+msgstr "Trova duplicati"
+
+#: manage/templates/manage/libraries/duplicates.html:23
+#, python-format
+msgid "%(count)s library deleted."
+msgid_plural "%(count)s libraries deleted."
+msgstr[0] "%(count)s libreria eliminata."
+msgstr[1] "%(count)s librerie eliminate."
+
+#: manage/templates/manage/libraries/duplicates.html:30
+msgid "Radius (meters)"
+msgstr "Raggio (metri)"
+
+#: manage/templates/manage/libraries/duplicates.html:43
+#: templates/admin/libraries/find_duplicates.html:62
+msgid "Include proximity matches"
+msgstr "Includi corrispondenze per prossimità"
+
+#: manage/templates/manage/libraries/duplicates.html:45
+#: templates/admin/libraries/find_duplicates.html:64
+msgid "Scan"
+msgstr "Scansiona"
+
+#: manage/templates/manage/libraries/duplicates.html:53
+msgid "groups"
+msgstr "gruppi"
+
+#: manage/templates/manage/libraries/duplicates.html:53
+msgid "duplicates found"
+msgstr "duplicati trovati"
+
+#: manage/templates/manage/libraries/duplicates.html:54
+msgid "The oldest entry in each group (highlighted) is kept by default."
+msgstr "La voce più vecchia in ogni gruppo (evidenziata) viene mantenuta per impostazione predefinita."
+
+#: manage/templates/manage/libraries/duplicates.html:64
+#: templates/admin/libraries/find_duplicates.html:86
+msgid "Delete"
+msgstr "Elimina"
+
+#: manage/templates/manage/libraries/duplicates.html:65
+#: templates/admin/libraries/find_duplicates.html:87
+msgid "ID"
+msgstr "ID"
+
+#: manage/templates/manage/libraries/duplicates.html:102
+#: templates/admin/libraries/find_duplicates.html:118
+msgid "Are you sure you want to delete the selected libraries?"
+msgstr "Sei sicuro di voler eliminare le librerie selezionate?"
+
+#: manage/templates/manage/libraries/duplicates.html:103
+#: templates/admin/libraries/find_duplicates.html:117
+msgid "Delete selected duplicates"
+msgstr "Elimina duplicati selezionati"
+
+#: manage/templates/manage/libraries/duplicates.html:107
+#: templates/admin/libraries/find_duplicates.html:123
+msgid "No duplicates found."
+msgstr "Nessun duplicato trovato."
+
+#: manage/templates/manage/libraries/import.html:4
+#: manage/templates/manage/libraries/import.html:6
+#: manage/templates/manage/libraries/import.html:13
+#: manage/templates/manage/libraries/import.html:19
+#: manage/templates/manage/libraries/list.html:22
+#: templates/admin/libraries/geojson_import_form.html:4
+#: templates/admin/libraries/geojson_import_form.html:10
+#: templates/admin/libraries/library_changelist.html:9
+msgid "Import GeoJSON"
+msgstr "Importa GeoJSON"
+
+#: manage/templates/manage/libraries/import.html:34
+msgid "GeoJSON file"
+msgstr "File GeoJSON"
+
+#: manage/templates/manage/libraries/import.html:36
+msgid "Upload a GeoJSON file with addr:street, addr:city, and addr:country properties."
+msgstr "Carica un file GeoJSON con le proprietà addr:street, addr:city e addr:country."
+
+#: manage/templates/manage/libraries/import.html:41
+msgid "e.g. OpenStreetMap / MapComplete"
+msgstr "es. OpenStreetMap / MapComplete"
+
+#: manage/templates/manage/libraries/import.html:42
+#: templates/admin/libraries/geojson_import_form.html:30
+msgid "Applied to all imported libraries. Leave blank if not needed."
+msgstr "Applicato a tutte le librerie importate. Lascia vuoto se non necessario."
+
+#: manage/templates/manage/libraries/import.html:51
+#: templates/admin/libraries/geojson_import_form.html:39
+msgid "Status applied to all imported libraries."
+msgstr "Stato applicato a tutte le librerie importate."
+
+#: manage/templates/manage/libraries/import.html:55
+#: templates/admin/libraries/geojson_import_form.html:44
+msgid "Import"
+msgstr "Importa"
+
+#: manage/templates/manage/libraries/list.html:21
+#: manage/templates/manage/photos/list.html:20
+#: manage/templates/manage/reports/list.html:20
+#: manage/templates/manage/users/list.html:20
+msgid "results"
+msgstr "risultati"
+
+#: manage/templates/manage/libraries/list.html:45
+#: manage/templates/manage/photos/list.html:42
+#: manage/templates/manage/reports/list.html:43
+#: manage/templates/manage/users/list.html:38
+msgid "Filter"
+msgstr "Filtra"
+
+#: manage/templates/manage/photos/_card.html:8
+#: manage/templates/manage/photos/list.html:38
+#: templates/admin/libraries/photo_grid.html:154
+#: templates/admin/libraries/photo_grid.html:172
+msgid "Primary"
+msgstr "Principale"
+
+#: manage/templates/manage/photos/_card.html:8
+#: manage/templates/manage/photos/list.html:39
+#: templates/admin/libraries/photo_grid.html:155
+#: templates/admin/libraries/photo_grid.html:174
+msgid "Community"
+msgstr "Comunità"
+
+#: manage/templates/manage/photos/_grid.html:12
+msgid "Bulk actions apply to community photos only."
+msgstr "Le azioni di massa si applicano solo alle foto della community."
+
+#: manage/templates/manage/photos/_grid.html:20
+msgid "No photos found."
+msgstr "Nessuna foto trovata."
+
+#: manage/templates/manage/photos/list.html:35
+msgid "Type"
+msgstr "Tipo"
+
+#: manage/templates/manage/photos/list.html:37
+msgid "All types"
+msgstr "Tutti i tipi"
+
+#: manage/templates/manage/reports/_table.html:8
+msgid "Resolve selected"
+msgstr "Risolvi selezionate"
+
+#: manage/templates/manage/reports/_table.html:9
+msgid "Dismiss selected"
+msgstr "Archivia selezionate"
+
+#: manage/templates/manage/reports/_table.html:19
+#: manage/templates/manage/users/detail.html:111 templates/admin/index.html:114
+#: templates/admin/index.html:136
+msgid "Library"
+msgstr "Libreria"
+
+#: manage/templates/manage/reports/_table.html:22
+msgid "Reporter"
+msgstr "Segnalatore"
+
+#: manage/templates/manage/reports/_table.html:23
+#: manage/templates/manage/users/detail.html:114
+msgid "Date"
+msgstr "Data"
+
+#: manage/templates/manage/reports/_table.html:32
+msgid "No reports found."
+msgstr "Nessuna segnalazione trovata."
+
+#: manage/templates/manage/reports/list.html:37
+msgid "All reasons"
+msgstr "Tutti i motivi"
+
+#: manage/templates/manage/users/_table.html:9
+#: manage/templates/manage/users/_table.html:24
+#: manage/templates/manage/users/detail.html:23
+#: manage/templates/manage/users/list.html:33
+msgid "Staff"
+msgstr "Staff"
+
+#: manage/templates/manage/users/_table.html:10
+#: manage/templates/manage/users/_table.html:29
+#: manage/templates/manage/users/detail.html:26
+#: manage/templates/manage/users/list.html:34
+msgid "Active"
+msgstr "Attivo"
+
+#: manage/templates/manage/users/_table.html:12
+#: manage/templates/manage/users/detail.html:47
+msgid "Joined"
+msgstr "Iscritto"
+
+#: manage/templates/manage/users/_table.html:31
+#: manage/templates/manage/users/detail.html:28
+#: manage/templates/manage/users/list.html:35
+msgid "Inactive"
+msgstr "Inattivo"
+
+#: manage/templates/manage/users/_table.html:39
+msgid "No users found."
+msgstr "Nessun utente trovato."
+
+#: manage/templates/manage/users/detail.html:36
+msgid "Account"
+msgstr "Account"
+
+#: manage/templates/manage/users/detail.html:51
+msgid "Last login"
+msgstr "Ultimo accesso"
+
+#: manage/templates/manage/users/detail.html:55 templates/base.html:178
+msgid "Language"
+msgstr "Lingua"
+
+#: manage/templates/manage/users/detail.html:67
+msgid "Library Submissions"
+msgstr "Librerie inviate"
+
+#: manage/templates/manage/users/detail.html:100
+msgid "No library submissions."
+msgstr "Nessuna libreria inviata."
+
+#: manage/templates/manage/users/detail.html:106
+msgid "Reports Submitted"
+msgstr "Segnalazioni inviate"
+
+#: manage/templates/manage/users/list.html:27 users/forms.py:154
+#: users/templates/users/login.html:23
+msgid "Username or email"
+msgstr "Nome utente o email"
+
+#: manage/templates/manage/users/list.html:30
+msgid "Role"
+msgstr "Ruolo"
+
+#: manage/templates/manage/users/list.html:32
+msgid "All users"
+msgstr "Tutti gli utenti"
+
+#: manage/views/libraries.py:99
+msgid "Library approved."
+msgstr "Libreria approvata."
+
+#: manage/views/libraries.py:121
+msgid "Library rejected."
+msgstr "Libreria rifiutata."
+
+#: manage/views/libraries.py:177
+msgid "Please select a GeoJSON file to upload."
+msgstr "Seleziona un file GeoJSON da caricare."
+
+#: manage/views/libraries.py:184
+#, python-format
+msgid "Invalid GeoJSON file: %(error)s"
+msgstr "File GeoJSON non valido: %(error)s"
+
+#: manage/views/libraries.py:213
+#, python-format
+msgid "Import of %(count)d features has been queued for background processing."
+msgstr "L'importazione di %(count)d elementi è stata messa in coda per l'elaborazione."
+
+#: manage/views/photos.py:98
+msgid "Photo approved."
+msgstr "Foto approvata."
+
+#: manage/views/photos.py:116
+msgid "Photo rejected."
+msgstr "Foto rifiutata."
+
+#: manage/views/reports.py:67
+msgid "Report resolved."
+msgstr "Segnalazione risolta."
+
+#: manage/views/reports.py:82
+msgid "Report dismissed."
+msgstr "Segnalazione archiviata."
+
 #: templates/404.html:4 templates/404.html:12
 msgid "Page not found"
 msgstr "Pagina non trovata"
@@ -810,7 +1470,7 @@ msgstr "Qualcosa è andato storto"
 msgid "Sorry, an unexpected error occurred on our side. Please try again in a moment."
 msgstr "Ci scusiamo, si è verificato un errore imprevisto. Riprova tra un momento."
 
-#: templates/about.html:4 templates/base.html:31 templates/base.html:65
+#: templates/about.html:4 templates/base.html:31 templates/base.html:68
 msgid "About"
 msgstr "Chi siamo"
 
@@ -886,28 +1546,10 @@ msgstr "Codice sorgente"
 msgid "Moderation Queue"
 msgstr ""
 
-#: templates/admin/index.html:71
-#, fuzzy
-#| msgid "Loading libraries..."
-msgid "Pending Libraries"
-msgstr "Caricamento librerie..."
-
 #: templates/admin/index.html:72 templates/admin/index.html:77
 #: templates/admin/index.html:82
 msgid "View all &rarr;"
 msgstr ""
-
-#: templates/admin/index.html:76
-#, fuzzy
-#| msgid "Send report"
-msgid "Open Reports"
-msgstr "Invia segnalazione"
-
-#: templates/admin/index.html:81
-#, fuzzy
-#| msgid "Pending"
-msgid "Pending Photos"
-msgstr "In attesa"
 
 #: templates/admin/index.html:88
 msgid "Recent Pending Libraries"
@@ -934,10 +1576,6 @@ msgstr ""
 msgid "Report"
 msgstr ""
 
-#: templates/admin/index.html:114 templates/admin/index.html:136
-msgid "Library"
-msgstr ""
-
 #: templates/admin/index.html:132
 msgid "Recent Pending Photos"
 msgstr ""
@@ -962,30 +1600,6 @@ msgstr "Valore attuale"
 msgid "AI suggestion"
 msgstr "Suggerimento IA"
 
-#: templates/admin/libraries/ai_enrich_confirm.html:32
-#, fuzzy
-#| msgid "Description (optional)"
-msgid "Description"
-msgstr "Descrizione (opzionale)"
-
-#: templates/admin/libraries/ai_enrich_confirm.html:44
-msgid "Apply"
-msgstr "Applica"
-
-#: templates/admin/libraries/ai_enrich_confirm.html:46
-#: templates/admin/libraries/geojson_import_form.html:45
-#: users/templates/users/change_email.html:34
-#: users/templates/users/change_password.html:41
-#: users/templates/users/delete_account.html:39
-msgid "Cancel"
-msgstr "Annulla"
-
-#: templates/admin/libraries/find_duplicates.html:4
-#: templates/admin/libraries/find_duplicates.html:47
-#: templates/admin/libraries/library_changelist.html:12
-msgid "Find Duplicates"
-msgstr ""
-
 #: templates/admin/libraries/find_duplicates.html:4
 #: templates/admin/libraries/geojson_import_form.html:4
 #: templates/admin/libraries/geojson_import_result.html:4
@@ -997,7 +1611,7 @@ msgstr ""
 #: templates/admin/libraries/geojson_import_form.html:8
 #: templates/admin/libraries/geojson_import_result.html:8
 #: templates/admin/libraries/photo_grid.html:123 templates/base.html:30
-#: templates/base.html:64 templates/home.html:4
+#: templates/base.html:67 templates/home.html:4
 msgid "Home"
 msgstr "Home"
 
@@ -1006,14 +1620,6 @@ msgstr "Home"
 #| msgid "Radius (km)"
 msgid "Radius (m):"
 msgstr "Raggio (km)"
-
-#: templates/admin/libraries/find_duplicates.html:62
-msgid "Include proximity matches"
-msgstr ""
-
-#: templates/admin/libraries/find_duplicates.html:64
-msgid "Scan"
-msgstr ""
 
 #: templates/admin/libraries/find_duplicates.html:71
 #, python-format
@@ -1031,42 +1637,6 @@ msgstr ""
 msgid "Group"
 msgstr ""
 
-#: templates/admin/libraries/find_duplicates.html:86
-msgid "Delete"
-msgstr ""
-
-#: templates/admin/libraries/find_duplicates.html:87
-msgid "ID"
-msgstr ""
-
-#: templates/admin/libraries/find_duplicates.html:91
-#: templates/admin/libraries/geojson_import_result.html:57
-msgid "External ID"
-msgstr ""
-
-#: templates/admin/libraries/find_duplicates.html:92 templates/base.html:143
-msgid "Status"
-msgstr "Stato"
-
-#: templates/admin/libraries/find_duplicates.html:93
-#: templates/admin/libraries/geojson_import_result.html:24
-msgid "Created"
-msgstr ""
-
-#: templates/admin/libraries/find_duplicates.html:117
-msgid "Delete selected duplicates"
-msgstr ""
-
-#: templates/admin/libraries/find_duplicates.html:118
-msgid "Are you sure you want to delete the selected libraries?"
-msgstr ""
-
-#: templates/admin/libraries/find_duplicates.html:123
-#, fuzzy
-#| msgid "No libraries found"
-msgid "No duplicates found."
-msgstr "Nessuna libreria trovata"
-
 #: templates/admin/libraries/find_duplicates.html:130
 #, python-format
 msgid ""
@@ -1083,12 +1653,6 @@ msgstr ""
 msgid "Back to library list"
 msgstr "Cerca librerie"
 
-#: templates/admin/libraries/geojson_import_form.html:4
-#: templates/admin/libraries/geojson_import_form.html:10
-#: templates/admin/libraries/library_changelist.html:9
-msgid "Import GeoJSON"
-msgstr ""
-
 #: templates/admin/libraries/geojson_import_form.html:19
 msgid "Upload GeoJSON File"
 msgstr ""
@@ -1101,24 +1665,12 @@ msgstr ""
 msgid "Upload an enriched GeoJSON file with addr:street, addr:city, and addr:country properties."
 msgstr ""
 
-#: templates/admin/libraries/geojson_import_form.html:30
-msgid "Applied to all imported libraries. Leave blank if not needed."
-msgstr ""
-
 #: templates/admin/libraries/geojson_import_form.html:34
 #: templates/admin/libraries/photo_grid.html:142
 #, fuzzy
 #| msgid "Status"
 msgid "Status:"
 msgstr "Stato"
-
-#: templates/admin/libraries/geojson_import_form.html:39
-msgid "Status applied to all imported libraries."
-msgstr ""
-
-#: templates/admin/libraries/geojson_import_form.html:44
-msgid "Import"
-msgstr ""
 
 #: templates/admin/libraries/geojson_import_result.html:4
 #: templates/admin/libraries/geojson_import_result.html:10
@@ -1162,10 +1714,6 @@ msgstr "Errore 404"
 msgid "Import another file"
 msgstr ""
 
-#: templates/admin/libraries/library/change_form.html:10
-msgid "AI Enrich"
-msgstr "Arricchisci con IA"
-
 #: templates/admin/libraries/library_changelist.html:6
 #: templates/admin/libraries/photo_grid.html:4
 #: templates/admin/libraries/photo_grid.html:125
@@ -1185,21 +1733,11 @@ msgstr "Tutti"
 msgid "Type:"
 msgstr "Tipo:"
 
-#: templates/admin/libraries/photo_grid.html:154
-#: templates/admin/libraries/photo_grid.html:172
-msgid "Primary"
-msgstr "Principale"
-
-#: templates/admin/libraries/photo_grid.html:155
-#: templates/admin/libraries/photo_grid.html:174
-msgid "Community"
-msgstr "Comunità"
-
 #: templates/admin/libraries/photo_grid.html:208
 msgid "No photos found matching the selected filters."
 msgstr "Nessuna foto trovata con i filtri selezionati."
 
-#: templates/base.html:7 templates/base.html:11 templates/base.html:106
+#: templates/base.html:7 templates/base.html:11 templates/base.html:112
 msgid "Community map of neighborhood book exchange spots."
 msgstr "Mappa comunitaria dei punti di scambio libri di quartiere."
 
@@ -1207,59 +1745,55 @@ msgstr "Mappa comunitaria dei punti di scambio libri di quartiere."
 msgid "Open navigation menu"
 msgstr "Apri menu di navigazione"
 
-#: templates/base.html:33 templates/base.html:67
+#: templates/base.html:33 templates/base.html:70
 msgid "Submit"
 msgstr "Invia"
 
-#: templates/base.html:40 templates/base.html:74
+#: templates/base.html:43 templates/base.html:80
 msgid "Logout"
 msgstr "Esci"
 
-#: templates/base.html:44 templates/base.html:78
+#: templates/base.html:47 templates/base.html:84
 #: users/templates/users/login.html:4
 msgid "Login"
 msgstr "Accedi"
 
-#: templates/base.html:45 templates/base.html:79
+#: templates/base.html:48 templates/base.html:85
 #: users/templates/users/register.html:4
 msgid "Register"
 msgstr "Registrati"
 
-#: templates/base.html:107
+#: templates/base.html:113
 msgid "Made with ❤️ by <a href=\"https://www.andreagrandi.it\" class=\"link link-hover\" target=\"_blank\" rel=\"noopener noreferrer\">Andrea Grandi</a>"
 msgstr "Fatto con ❤️ da <a href=\"https://www.andreagrandi.it\" class=\"link link-hover\" target=\"_blank\" rel=\"noopener noreferrer\">Andrea Grandi</a>"
 
-#: templates/base.html:114
+#: templates/base.html:120
 msgid "Socials"
 msgstr "Social"
 
-#: templates/base.html:140
+#: templates/base.html:146
 msgid "Resources"
 msgstr "Risorse"
 
-#: templates/base.html:142
+#: templates/base.html:148
 msgid "Developers API"
 msgstr "API per sviluppatori"
 
-#: templates/base.html:151
+#: templates/base.html:157
 msgid "Legal"
 msgstr "Legale"
 
-#: templates/base.html:153
+#: templates/base.html:159
 msgid "Privacy"
 msgstr "Privacy"
 
-#: templates/base.html:160
+#: templates/base.html:166
 msgid "App"
 msgstr "App"
 
-#: templates/base.html:163
+#: templates/base.html:169
 msgid "Download on the App Store"
 msgstr "Scarica dall'App Store"
-
-#: templates/base.html:172
-msgid "Language"
-msgstr "Lingua"
 
 #: templates/home.html:5
 msgid "Discover and share little free libraries in your neighborhood with Book Corners."
@@ -1354,10 +1888,6 @@ msgstr "Digita DELETE per confermare"
 #: users/forms.py:149
 msgid "Please type DELETE to confirm."
 msgstr "Per favore digita DELETE per confermare."
-
-#: users/forms.py:154 users/templates/users/login.html:23
-msgid "Username or email"
-msgstr "Nome utente o email"
 
 #: users/templates/users/change_email.html:5
 msgid "Update the email address associated with your Book Corners account."
@@ -1487,6 +2017,21 @@ msgstr "La tua password è stata cambiata."
 #: users/views.py:191
 msgid "Your account has been deleted."
 msgstr "Il tuo account è stato eliminato."
+
+#~ msgid "Manage user accounts."
+#~ msgstr "Gestisci gli account utente."
+
+#~ msgid "Moderate community-submitted photos."
+#~ msgstr "Modera le foto inviate dalla comunità."
+
+#~ msgid "Review and resolve user-submitted reports."
+#~ msgstr "Rivedi e risolvi le segnalazioni degli utenti."
+
+#~ msgid "Manage and moderate library submissions."
+#~ msgstr "Gestisci e modera le librerie inviate."
+
+#~ msgid "Welcome to the Book Corners management area."
+#~ msgstr "Benvenuto nell'area di gestione di Book Corners."
 
 #~ msgid "Track the moderation status of the libraries you submitted."
 #~ msgstr "Segui lo stato di moderazione delle librerie che hai inviato."

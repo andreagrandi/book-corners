@@ -1,0 +1,178 @@
+{% extends "manage/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ library.name|default:library.address }} - {% trans "Manage" %} - Book Corners{% endblock %}
+
+{% block page_title %}{{ library.name|default:library.address|truncatechars:30 }}{% endblock %}
+
+{% block breadcrumbs %}
+  <div class="breadcrumbs text-sm mb-4 hidden lg:block">
+    <ul>
+      <li><a href="{% url 'manage:dashboard' %}">{% trans "Dashboard" %}</a></li>
+      <li><a href="{% url 'manage:library_list' %}">{% trans "Libraries" %}</a></li>
+      <li>{{ library.name|default:library.address|truncatechars:30 }}</li>
+    </ul>
+  </div>
+{% endblock %}
+
+{% block manage_content %}
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="hidden text-2xl font-bold lg:block">{{ library.name|default:library.address }}</h1>
+      <p class="mt-1 text-sm text-base-content/60">{{ library.city }}, {{ library.country }} &middot; {% trans "Created" %} {{ library.created_at|date:"Y-m-d H:i" }}</p>
+    </div>
+    <div class="flex gap-2">
+      <span class="badge {% if library.status == 'approved' %}badge-success{% elif library.status == 'rejected' %}badge-error{% else %}badge-warning{% endif %}">
+        {{ library.get_status_display }}
+      </span>
+      <a href="{% url 'library_detail' slug=library.slug %}" class="btn btn-ghost btn-sm" target="_blank">{% trans "View on site" %}</a>
+    </div>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+    {# --- Left column: photo + actions --- #}
+    <div class="space-y-4">
+      {% if library.photo %}
+        <figure class="overflow-hidden rounded-box border border-base-300">
+          <img src="{{ library.photo.url }}" alt="{{ library.name }}" class="w-full object-cover" style="max-height: 300px;">
+        </figure>
+      {% else %}
+        <div class="flex h-48 items-center justify-center rounded-box border border-dashed border-base-300 bg-base-200">
+          <span class="text-sm text-base-content/40">{% trans "No photo" %}</span>
+        </div>
+      {% endif %}
+
+      <div class="flex flex-col gap-2">
+        {% if library.status != 'approved' %}
+          <form method="post" action="{% url 'manage:library_approve' pk=library.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success btn-sm btn-block">{% trans "Approve" %}</button>
+          </form>
+        {% endif %}
+        {% if library.status != 'rejected' %}
+          <form method="post" action="{% url 'manage:library_reject' pk=library.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-error btn-sm btn-block">{% trans "Reject" %}</button>
+          </form>
+        {% endif %}
+        {% if library.photo %}
+          <form method="post" action="{% url 'manage:ai_enrich' pk=library.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline btn-sm btn-block">{% trans "AI Enrich" %}</button>
+          </form>
+        {% endif %}
+        <a href="/admin/libraries/library/{{ library.pk }}/change/" class="btn btn-ghost btn-sm btn-block">{% trans "Edit in Django Admin" %}</a>
+      </div>
+    </div>
+
+    {# --- Right column: details --- #}
+    <div class="lg:col-span-2 space-y-6">
+      {# Core info #}
+      <div class="rounded-box border border-base-300 bg-base-100 p-5">
+        <h2 class="text-lg font-semibold">{% trans "Details" %}</h2>
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <p class="text-xs font-medium text-base-content/60">{% trans "Address" %}</p>
+            <p class="mt-1">{{ library.address }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-base-content/60">{% trans "City" %}</p>
+            <p class="mt-1">{{ library.city }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-base-content/60">{% trans "Country" %}</p>
+            <p class="mt-1">{{ library.country }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-base-content/60">{% trans "Postal code" %}</p>
+            <p class="mt-1">{{ library.postal_code|default:"-" }}</p>
+          </div>
+          {% if library.description %}
+            <div class="sm:col-span-2">
+              <p class="text-xs font-medium text-base-content/60">{% trans "Description" %}</p>
+              <p class="mt-1">{{ library.description }}</p>
+            </div>
+          {% endif %}
+          {% if library.rejection_reason %}
+            <div class="sm:col-span-2">
+              <p class="text-xs font-medium text-error">{% trans "Rejection reason" %}</p>
+              <p class="mt-1">{{ library.rejection_reason }}</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {# Extra fields #}
+      <div class="rounded-box border border-base-300 bg-base-100 p-5">
+        <h2 class="text-lg font-semibold">{% trans "Additional info" %}</h2>
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div>
+            <p class="text-xs font-medium text-base-content/60">{% trans "Wheelchair accessible" %}</p>
+            <p class="mt-1">{{ library.get_wheelchair_accessible_display|default:"-" }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-base-content/60">{% trans "Capacity" %}</p>
+            <p class="mt-1">{{ library.capacity|default:"-" }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-base-content/60">{% trans "Indoor" %}</p>
+            <p class="mt-1">{% if library.is_indoor is None %}-{% elif library.is_indoor %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-base-content/60">{% trans "Lit" %}</p>
+            <p class="mt-1">{% if library.is_lit is None %}-{% elif library.is_lit %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-base-content/60">{% trans "Source" %}</p>
+            <p class="mt-1">{{ library.source|default:"-" }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-base-content/60">{% trans "Operator" %}</p>
+            <p class="mt-1">{{ library.operator|default:"-" }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-base-content/60">{% trans "Brand" %}</p>
+            <p class="mt-1">{{ library.brand|default:"-" }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-base-content/60">{% trans "External ID" %}</p>
+            <p class="mt-1">{{ library.external_id|default:"-" }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-base-content/60">{% trans "Submitted by" %}</p>
+            <p class="mt-1">{{ library.created_by.username|default:"-" }}</p>
+          </div>
+        </div>
+      </div>
+
+      {# Community photos #}
+      {% if photos %}
+        <div class="rounded-box border border-base-300 bg-base-100 p-5">
+          <h2 class="text-lg font-semibold">{% trans "Community Photos" %}</h2>
+          <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {% for photo in photos %}
+              <div class="relative overflow-hidden rounded-box border border-base-300">
+                <img src="{{ photo.card_photo_url }}" alt="{{ photo.caption }}" class="aspect-square w-full object-cover" loading="lazy">
+                <span class="badge badge-sm absolute right-1 top-1 {% if photo.status == 'approved' %}badge-success{% elif photo.status == 'rejected' %}badge-error{% else %}badge-warning{% endif %}">
+                  {{ photo.get_status_display }}
+                </span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      {# Reports #}
+      {% if reports %}
+        <div class="rounded-box border border-base-300 bg-base-100 p-5">
+          <h2 class="text-lg font-semibold">{% trans "Reports" %}</h2>
+          <div class="mt-4 space-y-3">
+            {% for report in reports %}
+              {% include "manage/libraries/_report_card.html" %}
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

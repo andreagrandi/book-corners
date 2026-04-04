@@ -1,0 +1,63 @@
+{% load i18n %}
+
+<div class="overflow-x-auto">
+  <table class="table table-sm">
+    <thead>
+      <tr>
+        <th>{% trans "Username" %}</th>
+        <th>{% trans "Email" %}</th>
+        <th>{% trans "Staff" %}</th>
+        <th>{% trans "Active" %}</th>
+        <th>{% trans "Libraries" %}</th>
+        <th>{% trans "Joined" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in page_obj %}
+        <tr>
+          <td>
+            <a href="{% url 'manage:user_detail' pk=u.pk %}" class="link link-hover font-medium">{{ u.username }}</a>
+          </td>
+          <td class="text-sm text-base-content/60">{{ u.email|default:"-" }}</td>
+          <td>
+            {% if u.is_staff %}
+              <span class="badge badge-sm badge-primary">{% trans "Staff" %}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.is_active %}
+              <span class="badge badge-sm badge-success">{% trans "Active" %}</span>
+            {% else %}
+              <span class="badge badge-sm badge-ghost">{% trans "Inactive" %}</span>
+            {% endif %}
+          </td>
+          <td>{{ u.library_count }}</td>
+          <td class="text-xs text-base-content/60">{{ u.date_joined|date:"Y-m-d" }}</td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-base-content/60">{% trans "No users found." %}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# --- Pagination --- #}
+{% if page_obj.has_other_pages %}
+  <div class="mt-4 flex justify-center">
+    <div class="join">
+      {% if page_obj.has_previous %}
+        <a href="?q={{ current_q }}&role={{ current_role }}&page={{ page_obj.previous_page_number }}" class="btn btn-sm join-item" hx-get="{% url 'manage:user_list' %}?q={{ current_q }}&role={{ current_role }}&page={{ page_obj.previous_page_number }}" hx-target="#user-table-container" hx-swap="innerHTML">&laquo;</a>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if num > page_obj.number|add:"-4" and num < page_obj.number|add:"4" %}
+          <a href="?q={{ current_q }}&role={{ current_role }}&page={{ num }}" class="btn btn-sm join-item {% if num == page_obj.number %}btn-active{% endif %}" hx-get="{% url 'manage:user_list' %}?q={{ current_q }}&role={{ current_role }}&page={{ num }}" hx-target="#user-table-container" hx-swap="innerHTML">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+        <a href="?q={{ current_q }}&role={{ current_role }}&page={{ page_obj.next_page_number }}" class="btn btn-sm join-item" hx-get="{% url 'manage:user_list' %}?q={{ current_q }}&role={{ current_role }}&page={{ page_obj.next_page_number }}" hx-target="#user-table-container" hx-swap="innerHTML">&raquo;</a>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}

@@ -33,6 +33,9 @@
             <li><a href="/submit/">{% trans "Submit" %}</a></li>
             <li><a href="{% url 'stats_page' %}">{% trans "Statistics" %}</a></li>
             {% if request.user.is_authenticated %}
+              {% if request.user.is_staff %}
+                <li><a href="{% url 'manage:dashboard' %}">{% trans "Manage" %}</a></li>
+              {% endif %}
               <li><a href="{% url 'dashboard' %}">{{ request.user.username }}</a></li>
               <li>
                 <form id="mobile-logout-form" method="post" action="{% url 'logout' %}" class="px-2 py-1">
@@ -67,6 +70,9 @@
           <li><a href="/submit/">{% trans "Submit" %}</a></li>
           <li><a href="{% url 'stats_page' %}">{% trans "Statistics" %}</a></li>
           {% if request.user.is_authenticated %}
+            {% if request.user.is_staff %}
+              <li><a href="{% url 'manage:dashboard' %}">{% trans "Manage" %}</a></li>
+            {% endif %}
             <li><a href="{% url 'dashboard' %}">{{ request.user.username }}</a></li>
             <li>
               <form id="desktop-logout-form" method="post" action="{% url 'logout' %}">

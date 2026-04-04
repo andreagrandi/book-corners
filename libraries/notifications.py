@@ -18,11 +18,11 @@ def _get_admin_email() -> str | None:
     return email if email else None
 
 
-def _get_admin_url(*, app_label: str, model_name: str, object_id: int) -> str:
-    """Build a full admin change-page URL for the given object.
+def _get_manage_library_url(library_pk: int) -> str:
+    """Build a full manage URL for a library detail page.
     Uses SITE_URL so links work in production emails."""
     site_url = getattr(settings, "SITE_URL", "").rstrip("/")
-    return f"{site_url}/admin/{app_label}/{model_name}/{object_id}/change/"
+    return f"{site_url}/manage/libraries/{library_pk}/"
 
 
 def notify_new_library(library) -> None:
@@ -32,9 +32,7 @@ def notify_new_library(library) -> None:
     if not recipient:
         return
 
-    admin_url = _get_admin_url(
-        app_label="libraries", model_name="library", object_id=library.pk,
-    )
+    manage_url = _get_manage_library_url(library.pk)
     subject = f"New library submission: {library.name or library.address}"
     lines = [
         "A new library has been submitted and needs review.\n",
@@ -44,7 +42,7 @@ def notify_new_library(library) -> None:
     if library.description:
         lines.append(f"Description: {library.description}")
     lines.append(f"Submitted by: {library.created_by}")
-    lines.append(f"\nReview it in admin:\n{admin_url}")
+    lines.append(f"\nReview it:\n{manage_url}")
     body = "\n".join(lines)
 
     try:
@@ -65,9 +63,7 @@ def notify_new_report(report) -> None:
     if not recipient:
         return
 
-    admin_url = _get_admin_url(
-        app_label="libraries", model_name="report", object_id=report.pk,
-    )
+    manage_url = _get_manage_library_url(report.library.pk)
     details_excerpt = (report.details or "")[:200]
     subject = f"New report: {report.library}"
     body = (
@@ -76,7 +72,7 @@ def notify_new_report(report) -> None:
         f"Reason: {report.get_reason_display()}\n"
         f"Details: {details_excerpt}\n"
         f"Submitted by: {report.created_by}\n\n"
-        f"Review it in admin:\n{admin_url}\n"
+        f"Review it:\n{manage_url}\n"
     )
 
     try:
@@ -97,16 +93,14 @@ def notify_new_photo(photo) -> None:
     if not recipient:
         return
 
-    admin_url = _get_admin_url(
-        app_label="libraries", model_name="libraryphoto", object_id=photo.pk,
-    )
+    manage_url = _get_manage_library_url(photo.library.pk)
     subject = f"New photo submission: {photo.library}"
     body = (
         f"A new community photo has been submitted and needs review.\n\n"
         f"Library: {photo.library}\n"
         f"Caption: {photo.caption or '(none)'}\n"
         f"Submitted by: {photo.created_by}\n\n"
-        f"Review it in admin:\n{admin_url}\n"
+        f"Review it:\n{manage_url}\n"
     )
 
     try:
@@ -128,9 +122,7 @@ def notify_social_post(social_post) -> None:
         return
 
     library = social_post.library
-    admin_url = _get_admin_url(
-        app_label="libraries", model_name="socialpost", object_id=social_post.pk,
-    )
+    manage_url = _get_manage_library_url(library.pk)
     subject = f"Social post published: {library.name or library.address}"
     lines = [
         "A library has been posted to social media.\n",
@@ -144,7 +136,7 @@ def notify_social_post(social_post) -> None:
         lines.append(f"\nBluesky: {social_post.bluesky_url}")
     if social_post.instagram_url:
         lines.append(f"\nInstagram: {social_post.instagram_url}")
-    lines.append(f"\nView in admin:\n{admin_url}")
+    lines.append(f"\nView library:\n{manage_url}")
     body = "\n".join(lines)
 
     try:
@@ -165,16 +157,14 @@ def notify_social_post_error(library, error_details: str) -> None:
     if not recipient:
         return
 
-    admin_url = _get_admin_url(
-        app_label="libraries", model_name="library", object_id=library.pk,
-    )
+    manage_url = _get_manage_library_url(library.pk)
     subject = f"Social post failed: {library.name or library.address}"
     body = (
         f"Social media posting failed for a library.\n\n"
         f"Library: {library.name or library.address}\n"
         f"City: {library.city}\n\n"
         f"Errors:\n{error_details}\n\n"
-        f"View library in admin:\n{admin_url}\n"
+        f"View library:\n{manage_url}\n"
     )
 
     try:
