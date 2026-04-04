@@ -6,6 +6,37 @@
 {% block page_title %}{% trans "Reports" %}{% endblock %}
 
 {% block manage_content %}
-  <h1 class="hidden text-2xl font-bold lg:block">{% trans "Reports" %}</h1>
-  <p class="mt-2 text-base-content/60">{% trans "Review and resolve user-submitted reports." %}</p>
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <h1 class="hidden text-2xl font-bold lg:block">{% trans "Reports" %}</h1>
+    <span class="text-sm text-base-content/60">{{ total_count }} {% trans "results" %}</span>
+  </div>
+
+  {# --- Filters --- #}
+  <form hx-get="{% url 'manage:report_list' %}" hx-target="#report-table-container" hx-swap="innerHTML" hx-push-url="true" class="mt-4 flex flex-wrap items-end gap-3">
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "Status" %}</span>
+      <select name="status" class="select select-sm select-bordered">
+        <option value="">{% trans "All statuses" %}</option>
+        {% for value, label in status_choices %}
+          <option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "Reason" %}</span>
+      <select name="reason" class="select select-sm select-bordered">
+        <option value="">{% trans "All reasons" %}</option>
+        {% for value, label in reason_choices %}
+          <option value="{{ value }}" {% if value == current_reason %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button type="submit" class="btn btn-primary btn-sm">{% trans "Filter" %}</button>
+    <a href="{% url 'manage:report_list' %}" class="btn btn-ghost btn-sm">{% trans "Clear" %}</a>
+  </form>
+
+  {# --- Table --- #}
+  <div id="report-table-container" class="mt-6">
+    {% include "manage/reports/_table.html" %}
+  </div>
 {% endblock %}
