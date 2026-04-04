@@ -1,12 +1,28 @@
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
+from django.test import Client
 from playwright.sync_api import Page, expect
 
 from libraries.models import Library, LibraryPhoto, Report
 from tests.e2e.conftest import _make_test_image
 
 User = get_user_model()
+
+
+def _force_login_browser(page: Page, live_server, user):
+    """Log a user in by injecting a session cookie from Django's test client.
+    Avoids the login form so rate limiting is never triggered."""
+    client = Client()
+    client.force_login(user)
+    session_cookie = client.cookies["sessionid"]
+    page.goto(f"{live_server.url}/")
+    page.context.add_cookies([{
+        "name": "sessionid",
+        "value": session_cookie.value,
+        "domain": "localhost",
+        "path": "/",
+    }])
 
 pytestmark = [pytest.mark.e2e, pytest.mark.django_db(transaction=True)]
 
@@ -35,11 +51,7 @@ def regular_user(db):
 @pytest.fixture
 def staff_page(page: Page, live_server, staff_user):
     """Provide a Playwright page logged in as a staff user."""
-    page.goto(f"{live_server.url}/login/")
-    page.fill("#id_username", "staffuser")
-    page.fill("#id_password", "StaffPass123!")
-    page.locator("form button[type='submit']").first.click()
-    page.wait_for_url(f"{live_server.url}/")
+    _force_login_browser(page, live_server, staff_user)
     return page
 
 
@@ -91,12 +103,7 @@ def sample_photo(staff_user, sample_libraries):
 
 def test_manage_redirects_non_staff(live_server, page, regular_user):
     """Verify non-staff users are redirected away from /manage/."""
-    page.goto(f"{live_server.url}/login/")
-    page.fill("#id_username", "regularuser")
-    page.fill("#id_password", "RegularPass123!")
-    page.locator("form button[type='submit']").first.click()
-    page.wait_for_url(f"{live_server.url}/")
-
+    _force_login_browser(page, live_server, regular_user)
     page.goto(f"{live_server.url}/manage/")
     expect(page).not_to_have_url(f"{live_server.url}/manage/")
 
@@ -212,11 +219,8 @@ def test_manage_link_visible_for_staff(live_server, staff_page):
 
 def test_manage_link_hidden_for_regular_user(live_server, page, regular_user):
     """Verify the Manage navbar link is hidden for non-staff users."""
-    page.goto(f"{live_server.url}/login/")
-    page.fill("#id_username", "regularuser")
-    page.fill("#id_password", "RegularPass123!")
-    page.locator("form button[type='submit']").first.click()
-    page.wait_for_url(f"{live_server.url}/")
+    _force_login_browser(page, live_server, regular_user)
+    page.goto(f"{live_server.url}/")
 
     manage_link = page.locator(".navbar-end a[href='/manage/']")
     expect(manage_link).not_to_be_visible()
