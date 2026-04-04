@@ -64,7 +64,7 @@ class TestNotifyNewLibrary:
         assert len(mail.outbox) == 1
         message = mail.outbox[0]
         assert "Corner Library" in message.subject
-        assert f"/admin/libraries/library/{library.pk}/change/" in message.body
+        assert f"/manage/libraries/{library.pk}/" in message.body
         assert "https://example.com" in message.body
         assert message.to == ["admin@example.com"]
 
@@ -132,7 +132,7 @@ class TestNotifyNewReport:
         assert len(mail.outbox) == 1
         message = mail.outbox[0]
         assert str(approved_library) in message.subject
-        assert f"/admin/libraries/report/{report.pk}/change/" in message.body
+        assert f"/manage/libraries/{report.library.pk}/" in message.body
         assert "Damaged" in message.body
 
     @override_settings(ADMIN_NOTIFICATION_EMAIL="")
@@ -177,7 +177,7 @@ class TestNotifyNewPhoto:
         assert len(mail.outbox) == 1
         message = mail.outbox[0]
         assert str(approved_library) in message.subject
-        assert f"/admin/libraries/libraryphoto/{library_photo.pk}/change/" in message.body
+        assert f"/manage/libraries/{approved_library.pk}/" in message.body
         assert "Nice shelves" in message.body
 
     @override_settings(ADMIN_NOTIFICATION_EMAIL="")
