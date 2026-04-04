@@ -6,6 +6,35 @@
 {% block page_title %}{% trans "Libraries" %}{% endblock %}
 
 {% block manage_content %}
-  <h1 class="hidden text-2xl font-bold lg:block">{% trans "Libraries" %}</h1>
-  <p class="mt-2 text-base-content/60">{% trans "Manage and moderate library submissions." %}</p>
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <h1 class="hidden text-2xl font-bold lg:block">{% trans "Libraries" %}</h1>
+    <span class="text-sm text-base-content/60">{{ total_count }} {% trans "results" %}</span>
+  </div>
+
+  {# --- Filters --- #}
+  <form hx-get="{% url 'manage:library_list' %}" hx-target="#library-table-container" hx-swap="innerHTML" hx-push-url="true" class="mt-4 flex flex-wrap items-end gap-3">
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "Status" %}</span>
+      {{ form.status }}
+    </label>
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "Country" %}</span>
+      {{ form.country }}
+    </label>
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "Source" %}</span>
+      {{ form.source }}
+    </label>
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "Search" %}</span>
+      {{ form.q }}
+    </label>
+    <button type="submit" class="btn btn-primary btn-sm">{% trans "Filter" %}</button>
+    <a href="{% url 'manage:library_list' %}" class="btn btn-ghost btn-sm">{% trans "Clear" %}</a>
+  </form>
+
+  {# --- Table with bulk actions --- #}
+  <div id="library-table-container" class="mt-6">
+    {% include "manage/libraries/_table.html" %}
+  </div>
 {% endblock %}

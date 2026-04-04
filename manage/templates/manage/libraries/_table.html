@@ -1,0 +1,63 @@
+{% load i18n %}
+
+<form method="post" action="{% url 'manage:library_bulk_action' %}">
+  {% csrf_token %}
+  <div class="mb-3 flex flex-wrap items-center gap-2">
+    <select name="action" class="select select-sm select-bordered">
+      <option value="">{% trans "Bulk actions..." %}</option>
+      <option value="approve">{% trans "Approve selected" %}</option>
+      <option value="reject">{% trans "Reject selected" %}</option>
+    </select>
+    <button type="submit" class="btn btn-sm btn-outline">{% trans "Apply" %}</button>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="table table-sm">
+      <thead>
+        <tr>
+          <th><input type="checkbox" class="checkbox checkbox-sm" id="select-all"></th>
+          <th>{% trans "Name" %}</th>
+          <th>{% trans "City" %}</th>
+          <th>{% trans "Country" %}</th>
+          <th>{% trans "Status" %}</th>
+          <th>{% trans "Created" %}</th>
+          <th>{% trans "Actions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for library in page_obj %}
+          {% include "manage/libraries/_row.html" %}
+        {% empty %}
+          <tr>
+            <td colspan="7" class="text-center text-base-content/60">{% trans "No libraries found." %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</form>
+
+{# --- Pagination --- #}
+{% if page_obj.has_other_pages %}
+  <div class="mt-4 flex justify-center">
+    <div class="join">
+      {% if page_obj.has_previous %}
+        <a href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}" class="btn btn-sm join-item" hx-get="{% url 'manage:library_list' %}?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}" hx-target="#library-table-container" hx-swap="innerHTML">&laquo;</a>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if num > page_obj.number|add:"-4" and num < page_obj.number|add:"4" %}
+          <a href="?{{ request.GET.urlencode }}&page={{ num }}" class="btn btn-sm join-item {% if num == page_obj.number %}btn-active{% endif %}" hx-get="{% url 'manage:library_list' %}?{{ request.GET.urlencode }}&page={{ num }}" hx-target="#library-table-container" hx-swap="innerHTML">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+        <a href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}" class="btn btn-sm join-item" hx-get="{% url 'manage:library_list' %}?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}" hx-target="#library-table-container" hx-swap="innerHTML">&raquo;</a>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+
+<script>
+document.getElementById("select-all")?.addEventListener("change", function() {
+  document.querySelectorAll('input[name="selected"]').forEach(cb => cb.checked = this.checked);
+});
+</script>
