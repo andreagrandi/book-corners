@@ -5,6 +5,15 @@
 
 {% block page_title %}{% trans "Libraries" %}{% endblock %}
 
+{% block breadcrumbs %}
+  <div class="breadcrumbs text-sm mb-4 hidden lg:block">
+    <ul>
+      <li><a href="{% url 'manage:dashboard' %}">{% trans "Dashboard" %}</a></li>
+      <li>{% trans "Libraries" %}</li>
+    </ul>
+  </div>
+{% endblock %}
+
 {% block manage_content %}
   <div class="flex flex-wrap items-center justify-between gap-4">
     <h1 class="hidden text-2xl font-bold lg:block">{% trans "Libraries" %}</h1>

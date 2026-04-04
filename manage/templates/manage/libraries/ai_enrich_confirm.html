@@ -5,6 +5,17 @@
 
 {% block page_title %}{% trans "AI Enrich" %}{% endblock %}
 
+{% block breadcrumbs %}
+  <div class="breadcrumbs text-sm mb-4 hidden lg:block">
+    <ul>
+      <li><a href="{% url 'manage:dashboard' %}">{% trans "Dashboard" %}</a></li>
+      <li><a href="{% url 'manage:library_list' %}">{% trans "Libraries" %}</a></li>
+      <li><a href="{% url 'manage:library_detail' pk=library.pk %}">{{ library.name|default:library.address|truncatechars:20 }}</a></li>
+      <li>{% trans "AI Enrich" %}</li>
+    </ul>
+  </div>
+{% endblock %}
+
 {% block manage_content %}
   <h1 class="hidden text-2xl font-bold lg:block">{% trans "AI Enrich: Confirm" %}</h1>
 

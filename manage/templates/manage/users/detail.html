@@ -5,6 +5,16 @@
 
 {% block page_title %}{{ profile_user.username }}{% endblock %}
 
+{% block breadcrumbs %}
+  <div class="breadcrumbs text-sm mb-4 hidden lg:block">
+    <ul>
+      <li><a href="{% url 'manage:dashboard' %}">{% trans "Dashboard" %}</a></li>
+      <li><a href="{% url 'manage:user_list' %}">{% trans "Users" %}</a></li>
+      <li>{{ profile_user.username }}</li>
+    </ul>
+  </div>
+{% endblock %}
+
 {% block manage_content %}
   <div class="flex flex-wrap items-center justify-between gap-4">
     <h1 class="hidden text-2xl font-bold lg:block">{{ profile_user.username }}</h1>
