@@ -8,7 +8,11 @@
 {% block manage_content %}
   <div class="flex flex-wrap items-center justify-between gap-4">
     <h1 class="hidden text-2xl font-bold lg:block">{% trans "Libraries" %}</h1>
-    <span class="text-sm text-base-content/60">{{ total_count }} {% trans "results" %}</span>
+    <div class="flex items-center gap-2">
+      <span class="text-sm text-base-content/60">{{ total_count }} {% trans "results" %}</span>
+      <a href="{% url 'manage:import_geojson' %}" class="btn btn-outline btn-sm">{% trans "Import GeoJSON" %}</a>
+      <a href="{% url 'manage:find_duplicates' %}" class="btn btn-outline btn-sm">{% trans "Find Duplicates" %}</a>
+    </div>
   </div>
 
   {# --- Filters --- #}

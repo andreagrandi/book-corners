@@ -1,0 +1,101 @@
+{% extends "manage/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Find Duplicates" %} - {% trans "Manage" %} - Book Corners{% endblock %}
+
+{% block page_title %}{% trans "Find Duplicates" %}{% endblock %}
+
+{% block manage_content %}
+  <h1 class="hidden text-2xl font-bold lg:block">{% trans "Find Duplicates" %}</h1>
+
+  {% if deleted_count is not None %}
+    <div class="alert alert-success mt-4 text-sm">
+      {% blocktrans count count=deleted_count %}{{ count }} library deleted.{% plural %}{{ count }} libraries deleted.{% endblocktrans %}
+    </div>
+  {% endif %}
+
+  {# --- Scan form --- #}
+  <form method="get" class="mt-6 flex flex-wrap items-end gap-3">
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "Radius (meters)" %}</span>
+      <input type="number" name="radius" value="{{ radius }}" class="input input-sm input-bordered w-28" min="1">
+    </label>
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "City" %}</span>
+      <input type="text" name="city" value="{{ filter_city }}" class="input input-sm input-bordered">
+    </label>
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "Country" %}</span>
+      <input type="text" name="country" value="{{ filter_country }}" class="input input-sm input-bordered w-20">
+    </label>
+    <label class="flex items-center gap-2">
+      <input type="checkbox" name="proximity" class="checkbox checkbox-sm" {% if use_proximity %}checked{% endif %}>
+      <span class="text-sm">{% trans "Include proximity matches" %}</span>
+    </label>
+    <button type="submit" class="btn btn-primary btn-sm">{% trans "Scan" %}</button>
+  </form>
+
+  {# --- Results --- #}
+  {% if scanned %}
+    <div class="mt-6">
+      {% if groups %}
+        <p class="text-sm text-base-content/60">
+          {{ groups|length }} {% trans "groups" %}, {{ total_duplicates }} {% trans "duplicates found" %}.
+          {% trans "The oldest entry in each group (highlighted) is kept by default." %}
+        </p>
+
+        <form method="post" class="mt-4">
+          {% csrf_token %}
+          {% for group in groups %}
+            <div class="mb-4 rounded-box border border-base-300 bg-base-100 overflow-x-auto">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>{% trans "Delete" %}</th>
+                    <th>{% trans "ID" %}</th>
+                    <th>{% trans "Name" %}</th>
+                    <th>{% trans "Address" %}</th>
+                    <th>{% trans "City" %}</th>
+                    <th>{% trans "External ID" %}</th>
+                    <th>{% trans "Status" %}</th>
+                    <th>{% trans "Created" %}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for lib in group %}
+                    <tr class="{% if forloop.first %}bg-success/10{% endif %}">
+                      <td>
+                        {% if not forloop.first %}
+                          <input type="checkbox" name="delete_ids" value="{{ lib.pk }}" class="checkbox checkbox-sm" checked>
+                        {% endif %}
+                      </td>
+                      <td>{{ lib.pk }}</td>
+                      <td>
+                        <a href="{% url 'manage:library_detail' pk=lib.pk %}" class="link link-hover">{{ lib.name|default:"-" }}</a>
+                      </td>
+                      <td>{{ lib.address }}</td>
+                      <td>{{ lib.city }}</td>
+                      <td>{{ lib.external_id|default:"-" }}</td>
+                      <td>
+                        <span class="badge badge-sm {% if lib.status == 'approved' %}badge-success{% elif lib.status == 'rejected' %}badge-error{% else %}badge-warning{% endif %}">
+                          {{ lib.get_status_display }}
+                        </span>
+                      </td>
+                      <td class="text-xs">{{ lib.created_at|date:"Y-m-d" }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endfor %}
+
+          <button type="submit" class="btn btn-error btn-sm" onclick="return confirm('{% trans "Are you sure you want to delete the selected libraries?" %}')">
+            {% trans "Delete selected duplicates" %}
+          </button>
+        </form>
+      {% else %}
+        <p class="mt-4 text-sm text-base-content/60">{% trans "No duplicates found." %}</p>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endblock %}

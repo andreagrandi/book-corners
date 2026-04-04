@@ -45,6 +45,12 @@
             <button type="submit" class="btn btn-error btn-sm btn-block">{% trans "Reject" %}</button>
           </form>
         {% endif %}
+        {% if library.photo %}
+          <form method="post" action="{% url 'manage:ai_enrich' pk=library.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline btn-sm btn-block">{% trans "AI Enrich" %}</button>
+          </form>
+        {% endif %}
         <a href="/admin/libraries/library/{{ library.pk }}/change/" class="btn btn-ghost btn-sm btn-block">{% trans "Edit in Django Admin" %}</a>
       </div>
     </div>

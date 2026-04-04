@@ -1,0 +1,52 @@
+{% extends "manage/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "AI Enrich" %} - {{ library.name|default:library.address }} - {% trans "Manage" %}{% endblock %}
+
+{% block page_title %}{% trans "AI Enrich" %}{% endblock %}
+
+{% block manage_content %}
+  <h1 class="hidden text-2xl font-bold lg:block">{% trans "AI Enrich: Confirm" %}</h1>
+
+  <div class="mt-6 max-w-2xl space-y-6">
+    {% if library.photo %}
+      <figure class="overflow-hidden rounded-box border border-base-300">
+        <img src="{{ library.photo.url }}" alt="{{ library.name }}" class="w-full object-cover" style="max-height: 300px;">
+      </figure>
+    {% endif %}
+
+    <div class="overflow-x-auto rounded-box border border-base-300 bg-base-100">
+      <table class="table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>{% trans "Current" %}</th>
+            <th>{% trans "AI Suggestion" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>{% trans "Name" %}</th>
+            <td>{{ library.name|default:"-" }}</td>
+            <td class="font-medium">{{ ai_name|default:"-" }}</td>
+          </tr>
+          <tr>
+            <th>{% trans "Description" %}</th>
+            <td>{{ library.description|default:"-"|truncatechars:200 }}</td>
+            <td class="font-medium">{{ ai_description|default:"-"|truncatechars:200 }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex gap-2">
+      <form method="post" action="{% url 'manage:ai_enrich_apply' pk=library.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="ai_name" value="{{ ai_name }}">
+        <input type="hidden" name="ai_description" value="{{ ai_description }}">
+        <button type="submit" class="btn btn-primary btn-sm">{% trans "Apply" %}</button>
+      </form>
+      <a href="{% url 'manage:library_detail' pk=library.pk %}" class="btn btn-ghost btn-sm">{% trans "Cancel" %}</a>
+    </div>
+  </div>
+{% endblock %}
