@@ -88,7 +88,7 @@
       </div>
     </div>
 
-    <main class="mx-auto w-full max-w-6xl flex-1 p-4 lg:p-8">
+    <main class="{% block main_class %}mx-auto w-full max-w-6xl flex-1 p-4 lg:p-8{% endblock %}">
       {% block content %}{% endblock %}
     </main>
 
