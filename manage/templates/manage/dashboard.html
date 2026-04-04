@@ -8,5 +8,117 @@
 
 {% block manage_content %}
   <h1 class="hidden text-2xl font-bold lg:block">{% trans "Dashboard" %}</h1>
-  <p class="mt-2 text-base-content/60">{% trans "Welcome to the Book Corners management area." %}</p>
+
+  {# --- Stat cards --- #}
+  <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="stat rounded-box border border-base-300 bg-base-100 shadow-sm">
+      <div class="stat-title">{% trans "Total Approved" %}</div>
+      <div class="stat-value text-primary">{{ total_libraries }}</div>
+      <div class="stat-desc">{% trans "libraries" %}</div>
+    </div>
+
+    <div class="stat rounded-box border border-base-300 bg-base-100 shadow-sm">
+      <div class="stat-title">{% trans "Total Users" %}</div>
+      <div class="stat-value">{{ total_users }}</div>
+    </div>
+
+    <div class="stat rounded-box border border-base-300 bg-base-100 shadow-sm">
+      <div class="stat-title">{% trans "Pending Moderation" %}</div>
+      <div class="stat-value {% if total_pending > 0 %}text-warning{% endif %}">{{ total_pending }}</div>
+      <div class="stat-desc">{% trans "items awaiting review" %}</div>
+    </div>
+
+    <div class="stat rounded-box border border-base-300 bg-base-100 shadow-sm">
+      <div class="stat-title">{% trans "Open Reports" %}</div>
+      <div class="stat-value {% if open_reports_count > 0 %}text-error{% endif %}">{{ open_reports_count }}</div>
+    </div>
+  </div>
+
+  {# --- Moderation queues --- #}
+  <div class="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-3">
+
+    {# Pending libraries #}
+    <div class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold">{% trans "Pending Libraries" %}</h2>
+        <span class="badge {% if pending_libraries_count > 0 %}badge-warning{% endif %}">{{ pending_libraries_count }}</span>
+      </div>
+      {% if pending_libraries_recent %}
+        <ul class="mt-4 space-y-3">
+          {% for library in pending_libraries_recent %}
+            <li class="flex items-center justify-between gap-2 text-sm">
+              <div class="min-w-0">
+                <p class="truncate font-medium">{{ library.name|default:library.address }}</p>
+                <p class="text-base-content/60">{{ library.city }}, {{ library.country }}</p>
+              </div>
+              <span class="shrink-0 text-xs text-base-content/50">{{ library.created_at|timesince }} {% trans "ago" %}</span>
+            </li>
+          {% endfor %}
+        </ul>
+        {% if pending_libraries_count > 5 %}
+          <div class="mt-4">
+            <a href="{% url 'manage:library_list' %}?status=pending" class="btn btn-outline btn-sm btn-block">{% trans "View all" %}</a>
+          </div>
+        {% endif %}
+      {% else %}
+        <p class="mt-4 text-sm text-base-content/60">{% trans "No pending libraries." %}</p>
+      {% endif %}
+    </div>
+
+    {# Open reports #}
+    <div class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold">{% trans "Open Reports" %}</h2>
+        <span class="badge {% if open_reports_count > 0 %}badge-error{% endif %}">{{ open_reports_count }}</span>
+      </div>
+      {% if open_reports_recent %}
+        <ul class="mt-4 space-y-3">
+          {% for report in open_reports_recent %}
+            <li class="flex items-center justify-between gap-2 text-sm">
+              <div class="min-w-0">
+                <p class="truncate font-medium">{{ report.library.name|default:report.library.address }}</p>
+                <p class="text-base-content/60">{{ report.get_reason_display }}</p>
+              </div>
+              <span class="shrink-0 text-xs text-base-content/50">{{ report.created_at|timesince }} {% trans "ago" %}</span>
+            </li>
+          {% endfor %}
+        </ul>
+        {% if open_reports_count > 5 %}
+          <div class="mt-4">
+            <a href="{% url 'manage:report_list' %}?status=open" class="btn btn-outline btn-sm btn-block">{% trans "View all" %}</a>
+          </div>
+        {% endif %}
+      {% else %}
+        <p class="mt-4 text-sm text-base-content/60">{% trans "No open reports." %}</p>
+      {% endif %}
+    </div>
+
+    {# Pending photos #}
+    <div class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold">{% trans "Pending Photos" %}</h2>
+        <span class="badge {% if pending_photos_count > 0 %}badge-warning{% endif %}">{{ pending_photos_count }}</span>
+      </div>
+      {% if pending_photos_recent %}
+        <ul class="mt-4 space-y-3">
+          {% for photo in pending_photos_recent %}
+            <li class="flex items-center justify-between gap-2 text-sm">
+              <div class="min-w-0">
+                <p class="truncate font-medium">{{ photo.library.name|default:photo.library.address }}</p>
+                <p class="text-base-content/60">{% if photo.caption %}{{ photo.caption }}{% else %}{% trans "No caption" %}{% endif %}</p>
+              </div>
+              <span class="shrink-0 text-xs text-base-content/50">{{ photo.created_at|timesince }} {% trans "ago" %}</span>
+            </li>
+          {% endfor %}
+        </ul>
+        {% if pending_photos_count > 5 %}
+          <div class="mt-4">
+            <a href="{% url 'manage:photo_list' %}?status=pending" class="btn btn-outline btn-sm btn-block">{% trans "View all" %}</a>
+          </div>
+        {% endif %}
+      {% else %}
+        <p class="mt-4 text-sm text-base-content/60">{% trans "No pending photos." %}</p>
+      {% endif %}
+    </div>
+  </div>
 {% endblock %}
