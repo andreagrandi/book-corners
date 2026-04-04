@@ -11,27 +11,27 @@
 
   {# --- Stat cards --- #}
   <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-    <div class="stat rounded-box border border-base-300 bg-base-100 shadow-sm">
+    <a href="{% url 'manage:library_list' %}?status=approved" class="stat rounded-box border border-base-300 bg-base-100 shadow-sm hover:bg-base-200">
       <div class="stat-title">{% trans "Total Approved" %}</div>
       <div class="stat-value text-primary">{{ total_libraries }}</div>
       <div class="stat-desc">{% trans "libraries" %}</div>
-    </div>
+    </a>
 
-    <div class="stat rounded-box border border-base-300 bg-base-100 shadow-sm">
+    <a href="{% url 'manage:user_list' %}" class="stat rounded-box border border-base-300 bg-base-100 shadow-sm hover:bg-base-200">
       <div class="stat-title">{% trans "Total Users" %}</div>
       <div class="stat-value">{{ total_users }}</div>
-    </div>
+    </a>
 
-    <div class="stat rounded-box border border-base-300 bg-base-100 shadow-sm">
+    <a href="{% url 'manage:library_list' %}?status=pending" class="stat rounded-box border border-base-300 bg-base-100 shadow-sm hover:bg-base-200">
       <div class="stat-title">{% trans "Pending Moderation" %}</div>
       <div class="stat-value {% if total_pending > 0 %}text-warning{% endif %}">{{ total_pending }}</div>
       <div class="stat-desc">{% trans "items awaiting review" %}</div>
-    </div>
+    </a>
 
-    <div class="stat rounded-box border border-base-300 bg-base-100 shadow-sm">
+    <a href="{% url 'manage:report_list' %}?status=open" class="stat rounded-box border border-base-300 bg-base-100 shadow-sm hover:bg-base-200">
       <div class="stat-title">{% trans "Open Reports" %}</div>
       <div class="stat-value {% if open_reports_count > 0 %}text-error{% endif %}">{{ open_reports_count }}</div>
-    </div>
+    </a>
   </div>
 
   {# --- Moderation queues --- #}
@@ -46,12 +46,14 @@
       {% if pending_libraries_recent %}
         <ul class="mt-4 space-y-3">
           {% for library in pending_libraries_recent %}
-            <li class="flex items-center justify-between gap-2 text-sm">
-              <div class="min-w-0">
-                <p class="truncate font-medium">{{ library.name|default:library.address }}</p>
-                <p class="text-base-content/60">{{ library.city }}, {{ library.country }}</p>
-              </div>
-              <span class="shrink-0 text-xs text-base-content/50">{{ library.created_at|timesince }} {% trans "ago" %}</span>
+            <li>
+              <a href="{% url 'manage:library_detail' pk=library.pk %}" class="flex items-center justify-between gap-2 rounded-lg p-2 text-sm hover:bg-base-200">
+                <div class="min-w-0">
+                  <p class="truncate font-medium">{{ library.name|default:library.address }}</p>
+                  <p class="text-base-content/60">{{ library.city }}, {{ library.country }}</p>
+                </div>
+                <span class="shrink-0 text-xs text-base-content/50">{{ library.created_at|timesince }} {% trans "ago" %}</span>
+              </a>
             </li>
           {% endfor %}
         </ul>
@@ -74,12 +76,14 @@
       {% if open_reports_recent %}
         <ul class="mt-4 space-y-3">
           {% for report in open_reports_recent %}
-            <li class="flex items-center justify-between gap-2 text-sm">
-              <div class="min-w-0">
-                <p class="truncate font-medium">{{ report.library.name|default:report.library.address }}</p>
-                <p class="text-base-content/60">{{ report.get_reason_display }}</p>
-              </div>
-              <span class="shrink-0 text-xs text-base-content/50">{{ report.created_at|timesince }} {% trans "ago" %}</span>
+            <li>
+              <a href="{% url 'manage:library_detail' pk=report.library.pk %}" class="flex items-center justify-between gap-2 rounded-lg p-2 text-sm hover:bg-base-200">
+                <div class="min-w-0">
+                  <p class="truncate font-medium">{{ report.library.name|default:report.library.address }}</p>
+                  <p class="text-base-content/60">{{ report.get_reason_display }}</p>
+                </div>
+                <span class="shrink-0 text-xs text-base-content/50">{{ report.created_at|timesince }} {% trans "ago" %}</span>
+              </a>
             </li>
           {% endfor %}
         </ul>
@@ -102,12 +106,14 @@
       {% if pending_photos_recent %}
         <ul class="mt-4 space-y-3">
           {% for photo in pending_photos_recent %}
-            <li class="flex items-center justify-between gap-2 text-sm">
-              <div class="min-w-0">
-                <p class="truncate font-medium">{{ photo.library.name|default:photo.library.address }}</p>
-                <p class="text-base-content/60">{% if photo.caption %}{{ photo.caption }}{% else %}{% trans "No caption" %}{% endif %}</p>
-              </div>
-              <span class="shrink-0 text-xs text-base-content/50">{{ photo.created_at|timesince }} {% trans "ago" %}</span>
+            <li>
+              <a href="{% url 'manage:library_detail' pk=photo.library.pk %}" class="flex items-center justify-between gap-2 rounded-lg p-2 text-sm hover:bg-base-200">
+                <div class="min-w-0">
+                  <p class="truncate font-medium">{{ photo.library.name|default:photo.library.address }}</p>
+                  <p class="text-base-content/60">{% if photo.caption %}{{ photo.caption }}{% else %}{% trans "No caption" %}{% endif %}</p>
+                </div>
+                <span class="shrink-0 text-xs text-base-content/50">{{ photo.created_at|timesince }} {% trans "ago" %}</span>
+              </a>
             </li>
           {% endfor %}
         </ul>
