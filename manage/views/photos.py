@@ -53,6 +53,8 @@ def photo_list(request: HttpRequest) -> HttpResponse:
                 "status_raw": photo.status,
                 "submitted_by": str(photo.created_by) if photo.created_by else "",
                 "date": photo.created_at,
+                "approve_url": reverse("manage:photo_approve", args=[photo.pk]),
+                "reject_url": reverse("manage:photo_reject", args=[photo.pk]),
             })
 
     photos.sort(key=lambda p: p["date"], reverse=True)
@@ -151,4 +153,6 @@ def _community_photo_dict(photo: LibraryPhoto) -> dict:
         "status_raw": photo.status,
         "submitted_by": str(photo.created_by) if photo.created_by else "",
         "date": photo.created_at,
+        "approve_url": reverse("manage:photo_approve", args=[photo.pk]),
+        "reject_url": reverse("manage:photo_reject", args=[photo.pk]),
     }
