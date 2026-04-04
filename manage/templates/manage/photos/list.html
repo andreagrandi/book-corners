@@ -16,17 +16,25 @@
     <label class="flex flex-col gap-1">
       <span class="text-xs font-medium">{% trans "Status" %}</span>
       <select name="status" class="select select-sm select-bordered">
-        <option value="">{% trans "All statuses" %}</option>
-        {% for value, label in status_choices %}
-          <option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
+        <option value="all" {% if status_filter == "all" %}selected{% endif %}>{% trans "All statuses" %}</option>
+        <option value="pending" {% if status_filter == "pending" %}selected{% endif %}>{% trans "Pending" %}</option>
+        <option value="approved" {% if status_filter == "approved" %}selected{% endif %}>{% trans "Approved" %}</option>
+        <option value="rejected" {% if status_filter == "rejected" %}selected{% endif %}>{% trans "Rejected" %}</option>
+      </select>
+    </label>
+    <label class="flex flex-col gap-1">
+      <span class="text-xs font-medium">{% trans "Type" %}</span>
+      <select name="type" class="select select-sm select-bordered">
+        <option value="all" {% if type_filter == "all" %}selected{% endif %}>{% trans "All types" %}</option>
+        <option value="primary" {% if type_filter == "primary" %}selected{% endif %}>{% trans "Primary" %}</option>
+        <option value="community" {% if type_filter == "community" %}selected{% endif %}>{% trans "Community" %}</option>
       </select>
     </label>
     <button type="submit" class="btn btn-primary btn-sm">{% trans "Filter" %}</button>
     <a href="{% url 'manage:photo_list' %}" class="btn btn-ghost btn-sm">{% trans "Clear" %}</a>
   </form>
 
-  {# --- Grid with bulk actions --- #}
+  {# --- Grid --- #}
   <div id="photo-grid-container" class="mt-6">
     {% include "manage/photos/_grid.html" %}
   </div>

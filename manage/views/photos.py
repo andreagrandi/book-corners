@@ -1,31 +1,70 @@
 from django.core.paginator import Paginator
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from libraries.models import LibraryPhoto
+from libraries.models import Library, LibraryPhoto
 from manage.decorators import staff_required
 
-PHOTOS_PER_PAGE = 24
+PHOTOS_PER_PAGE = 60
 
 
 @staff_required
 def photo_list(request: HttpRequest) -> HttpResponse:
-    """List library photos in a grid with status filtering."""
-    status = request.GET.get("status", "")
-    qs = LibraryPhoto.objects.select_related("library", "created_by").all()
+    """Show combined photo grid with primary library photos and community submissions."""
+    status_filter = request.GET.get("status", "all")
+    type_filter = request.GET.get("type", "all")
 
-    if status:
-        qs = qs.filter(status=status)
+    photos = []
 
-    paginator = Paginator(qs, PHOTOS_PER_PAGE)
+    if type_filter in ("all", "primary"):
+        qs = Library.objects.exclude(photo="").select_related("created_by")
+        if status_filter != "all":
+            qs = qs.filter(status=status_filter)
+        for lib in qs.order_by("-created_at"):
+            thumb = lib.photo_thumbnail.url if lib.photo_thumbnail else lib.photo.url
+            photos.append({
+                "thumbnail_url": thumb,
+                "library_name": lib.name or lib.address,
+                "library_pk": lib.pk,
+                "library_url": reverse("manage:library_detail", args=[lib.pk]),
+                "photo_type": "primary",
+                "status_display": lib.get_status_display(),
+                "status_raw": lib.status,
+                "submitted_by": str(lib.created_by) if lib.created_by else "",
+                "date": lib.created_at,
+            })
+
+    if type_filter in ("all", "community"):
+        qs = LibraryPhoto.objects.select_related("library", "created_by")
+        if status_filter != "all":
+            qs = qs.filter(status=status_filter)
+        for photo in qs.order_by("-created_at"):
+            thumb = photo.photo_thumbnail.url if photo.photo_thumbnail else photo.photo.url
+            photos.append({
+                "pk": photo.pk,
+                "thumbnail_url": thumb,
+                "library_name": photo.library.name or photo.library.address,
+                "library_pk": photo.library.pk,
+                "library_url": reverse("manage:library_detail", args=[photo.library.pk]),
+                "photo_type": "community",
+                "status_display": photo.get_status_display(),
+                "status_raw": photo.status,
+                "submitted_by": str(photo.created_by) if photo.created_by else "",
+                "date": photo.created_at,
+            })
+
+    photos.sort(key=lambda p: p["date"], reverse=True)
+
+    paginator = Paginator(photos, PHOTOS_PER_PAGE)
     page = paginator.get_page(request.GET.get("page"))
 
     context = {
         "page_obj": page,
-        "current_status": status,
+        "status_filter": status_filter,
+        "type_filter": type_filter,
         "total_count": paginator.count,
-        "status_choices": LibraryPhoto.Status.choices,
     }
 
     if request.headers.get("HX-Request"):
@@ -43,7 +82,6 @@ def photo_approve(request: HttpRequest, pk: int) -> HttpResponse:
     photo.status = LibraryPhoto.Status.APPROVED
     photo.save(update_fields=["status"])
 
-    # Promote to library primary if library has no photo
     library = photo.library
     if not library.photo:
         library.photo = photo.photo
@@ -51,7 +89,7 @@ def photo_approve(request: HttpRequest, pk: int) -> HttpResponse:
         library.save(update_fields=["photo", "photo_thumbnail"])
 
     if request.headers.get("HX-Request"):
-        return render(request, "manage/photos/_card.html", {"photo": photo})
+        return render(request, "manage/photos/_card.html", {"photo": _community_photo_dict(photo)})
     return redirect("manage:photo_list")
 
 
@@ -59,12 +97,14 @@ def photo_approve(request: HttpRequest, pk: int) -> HttpResponse:
 @require_POST
 def photo_reject(request: HttpRequest, pk: int) -> HttpResponse:
     """Reject a single photo."""
-    photo = get_object_or_404(LibraryPhoto, pk=pk)
+    photo = get_object_or_404(
+        LibraryPhoto.objects.select_related("library", "created_by"), pk=pk
+    )
     photo.status = LibraryPhoto.Status.REJECTED
     photo.save(update_fields=["status"])
 
     if request.headers.get("HX-Request"):
-        return render(request, "manage/photos/_card.html", {"photo": photo})
+        return render(request, "manage/photos/_card.html", {"photo": _community_photo_dict(photo)})
     return redirect("manage:photo_list")
 
 
@@ -95,3 +135,20 @@ def photo_bulk_action(request: HttpRequest) -> HttpResponse:
         qs.update(status=LibraryPhoto.Status.REJECTED)
 
     return redirect("manage:photo_list")
+
+
+def _community_photo_dict(photo: LibraryPhoto) -> dict:
+    """Build a photo dict from a LibraryPhoto for the grid card template."""
+    thumb = photo.photo_thumbnail.url if photo.photo_thumbnail else photo.photo.url
+    return {
+        "pk": photo.pk,
+        "thumbnail_url": thumb,
+        "library_name": photo.library.name or photo.library.address,
+        "library_pk": photo.library.pk,
+        "library_url": reverse("manage:library_detail", args=[photo.library.pk]),
+        "photo_type": "community",
+        "status_display": photo.get_status_display(),
+        "status_raw": photo.status,
+        "submitted_by": str(photo.created_by) if photo.created_by else "",
+        "date": photo.created_at,
+    }
