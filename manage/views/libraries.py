@@ -25,6 +25,7 @@ from libraries.views import (
 )
 from manage.decorators import staff_required
 from manage.forms import LibraryFilterForm
+from manage.helpers import render_with_toast
 
 LIBRARIES_PER_PAGE = 25
 
@@ -93,7 +94,10 @@ def library_approve(request: HttpRequest, pk: int) -> HttpResponse:
         notify_library_approved(library)
 
     if request.headers.get("HX-Request"):
-        return render(request, "manage/libraries/_row.html", {"library": library})
+        return render_with_toast(
+            request, "manage/libraries/_row.html", {"library": library},
+            toast_message=_("Library approved."),
+        )
     return redirect("manage:library_list")
 
 
@@ -112,7 +116,10 @@ def library_reject(request: HttpRequest, pk: int) -> HttpResponse:
         notify_library_rejected(library)
 
     if request.headers.get("HX-Request"):
-        return render(request, "manage/libraries/_row.html", {"library": library})
+        return render_with_toast(
+            request, "manage/libraries/_row.html", {"library": library},
+            toast_message=_("Library rejected."),
+        )
     return redirect("manage:library_list")
 
 

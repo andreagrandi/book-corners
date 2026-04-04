@@ -2,10 +2,12 @@ from django.core.paginator import Paginator
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from libraries.models import Library, LibraryPhoto
 from manage.decorators import staff_required
+from manage.helpers import render_with_toast
 
 PHOTOS_PER_PAGE = 60
 
@@ -91,7 +93,10 @@ def photo_approve(request: HttpRequest, pk: int) -> HttpResponse:
         library.save(update_fields=["photo", "photo_thumbnail"])
 
     if request.headers.get("HX-Request"):
-        return render(request, "manage/photos/_card.html", {"photo": _community_photo_dict(photo)})
+        return render_with_toast(
+            request, "manage/photos/_card.html", {"photo": _community_photo_dict(photo)},
+            toast_message=_("Photo approved."),
+        )
     return redirect("manage:photo_list")
 
 
@@ -106,7 +111,10 @@ def photo_reject(request: HttpRequest, pk: int) -> HttpResponse:
     photo.save(update_fields=["status"])
 
     if request.headers.get("HX-Request"):
-        return render(request, "manage/photos/_card.html", {"photo": _community_photo_dict(photo)})
+        return render_with_toast(
+            request, "manage/photos/_card.html", {"photo": _community_photo_dict(photo)},
+            toast_message=_("Photo rejected."),
+        )
     return redirect("manage:photo_list")
 
 

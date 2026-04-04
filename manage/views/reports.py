@@ -1,22 +1,27 @@
 from django.core.paginator import Paginator
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from libraries.models import Report
 from manage.decorators import staff_required
+from manage.helpers import render_with_toast
 
 REPORTS_PER_PAGE = 25
 
 
-def _report_htmx_response(request: HttpRequest, report: Report) -> HttpResponse:
+def _report_htmx_response(request: HttpRequest, report: Report, *, toast_message: str) -> HttpResponse:
     """Return the appropriate HTMX partial for a report action."""
     target = request.headers.get("HX-Target", "")
     if target.startswith("library-report-"):
         template = "manage/libraries/_report_card.html"
     else:
         template = "manage/reports/_row.html"
-    return render(request, template, {"report": report})
+    return render_with_toast(
+        request, template, {"report": report},
+        toast_message=toast_message,
+    )
 
 
 @staff_required
@@ -59,7 +64,7 @@ def report_resolve(request: HttpRequest, pk: int) -> HttpResponse:
     report.save(update_fields=["status"])
 
     if request.headers.get("HX-Request"):
-        return _report_htmx_response(request, report)
+        return _report_htmx_response(request, report, toast_message=_("Report resolved."))
     return redirect("manage:report_list")
 
 
@@ -74,7 +79,7 @@ def report_dismiss(request: HttpRequest, pk: int) -> HttpResponse:
     report.save(update_fields=["status"])
 
     if request.headers.get("HX-Request"):
-        return _report_htmx_response(request, report)
+        return _report_htmx_response(request, report, toast_message=_("Report dismissed."))
     return redirect("manage:report_list")
 
 

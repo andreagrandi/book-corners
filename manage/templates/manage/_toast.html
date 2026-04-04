@@ -1,0 +1,8 @@
+{% load i18n %}
+
+<div id="manage-toast" hx-swap-oob="innerHTML" class="toast toast-end toast-top z-50">
+  <div class="alert {% if toast_type == 'success' %}alert-success{% elif toast_type == 'error' %}alert-error{% else %}alert-info{% endif %} text-sm shadow-lg">
+    <span>{{ toast_message }}</span>
+  </div>
+  <script>setTimeout(function() { document.getElementById('manage-toast').innerHTML = ''; }, 3000);</script>
+</div>
