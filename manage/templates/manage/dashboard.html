@@ -1,0 +1,12 @@
+{% extends "manage/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Manage" %} - Book Corners{% endblock %}
+{% block meta_description %}{% trans "Book Corners administration dashboard." %}{% endblock %}
+
+{% block page_title %}{% trans "Dashboard" %}{% endblock %}
+
+{% block manage_content %}
+  <h1 class="hidden text-2xl font-bold lg:block">{% trans "Dashboard" %}</h1>
+  <p class="mt-2 text-base-content/60">{% trans "Welcome to the Book Corners management area." %}</p>
+{% endblock %}

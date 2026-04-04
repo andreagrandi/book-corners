@@ -130,6 +130,7 @@ INSTALLED_APPS = [
     "django_tasks_db",
     "users",
     "libraries",
+    "manage",
 ]
 
 TASKS = {

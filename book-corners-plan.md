@@ -1542,3 +1542,129 @@ system is incompatible with the JWT auth the API uses. No new dependencies.
 - [x] Add social login section to `docs/authentication.md`
 - [x] Add Auth — Social tier to `docs/rate-limiting.md`
 - [x] Add v1.5.0 entry to `docs/changelog.md`
+
+---
+
+## 11 — Custom Admin Interface (`/manage/`)
+
+### Context
+
+The Django admin at `/admin/` works but doesn't match the public site's design and is clunky on mobile. The goal is a responsive, Tailwind/DaisyUI-styled management interface that covers core workflows: dashboard, libraries, photos, reports, and users. The Django admin stays as a power-user fallback.
+
+### Architectural decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| URL | `/manage/` | `/admin/` is taken; start here, swap to `/admin/` later when the custom UI is mature (move Django admin to `/djangoadmin/`) |
+| App structure | New `manage` Django app | Presentation-only layer, no new models. Keeps admin views separate from public `libraries` views |
+| Access control | `@staff_required` decorator | Checks `request.user.is_staff`. Can add `has_perm()` later |
+| Templates | `manage/base.html` extends `base.html` | Inherits navbar, footer, Tailwind, DaisyUI, HTMX. Overrides content block with DaisyUI drawer sidebar |
+| Interactivity | HTMX | Same patterns as public site: `hx-get` for filters, `hx-post` for actions, `hx-swap-oob` for toasts |
+
+### App structure
+
+```
+manage/
+  __init__.py
+  apps.py
+  urls.py
+  decorators.py
+  forms.py
+  views/
+    dashboard.py
+    libraries.py
+    photos.py
+    reports.py
+    users.py
+  templates/manage/
+    base.html                         (sidebar layout extending base.html)
+    dashboard.html
+    libraries/
+      list.html, detail.html, import.html, duplicates.html
+      _table_rows.html, _filters.html
+    photos/
+      list.html, _grid.html
+    reports/
+      list.html, _table_rows.html
+    users/
+      list.html, detail.html
+```
+
+### Reuse map
+
+| Area | Reuse from | New code needed |
+|------|-----------|-----------------|
+| Models | 100% — no changes | — |
+| Dashboard queries | `config/admin.py` lines 16-36 | Template |
+| Approve/reject/resolve/dismiss | `libraries/admin.py` action methods | View wrappers + HTMX partials |
+| Notifications | `libraries/notifications.py` | — |
+| GeoJSON import | `libraries/geojson_import.py` + `libraries/tasks.py` | Upload form template |
+| Duplicate finder | `find_duplicate_groups()` from management command | Results template |
+| AI enrichment | `libraries/tasks.py` + `libraries/social/image_ai.py` | Confirm template |
+| Cache invalidation | Extract from admin actions into shared helper | Thin helper function |
+| Forms | Public submit forms not reusable for admin edit | New ModelForms |
+
+### Phase 0 — Foundation (scaffolding)
+
+- [ ] Create `manage` app (`__init__.py`, `apps.py`, `urls.py`, placeholder view)
+- [ ] Add to `INSTALLED_APPS`, wire `/manage/` in `config/urls.py`
+- [ ] Write `@staff_required` decorator
+- [ ] Create `manage/base.html` with DaisyUI drawer sidebar extending `base.html`
+- [ ] Add "Manage" link in navbar (`{% if user.is_staff %}`)
+
+### Phase 1 — Dashboard
+
+- [ ] Port moderation queries from `config/admin.py` `BookCornersAdminSite.index()`
+- [ ] DaisyUI stat cards: pending libraries, open reports, pending photos, total
+- [ ] Recent items tables (5 most recent of each) linking to list pages
+- [ ] Quick-action buttons to jump to filtered lists
+
+### Phase 2 — Library moderation
+
+- [ ] **List view**: table (name, city, country, status, created_at)
+  - HTMX filters: status, country, source, brand
+  - Text search on name/address/city
+  - Pagination
+- [ ] **Inline approve/reject**: per-row buttons via HTMX
+- [ ] **Bulk approve/reject**: checkboxes + action button
+- [ ] **Detail/edit view**: ModelForm with lat/lng + Leaflet map, all Library fields
+- [ ] Reuse: approve/reject from `libraries/admin.py:398-443`, notifications, cache invalidation
+
+### Phase 3 — Photos and reports
+
+- [ ] **Photos grid**: DaisyUI cards (thumbnail, library, status badge, submitter). Status filter. Per-card approve/reject via HTMX. Reuse auto-promote logic from `libraries/admin.py:596`
+- [ ] **Reports table**: library, reason, status, reporter, date. Status/reason filters. Per-row resolve/dismiss via HTMX. Logic from `libraries/admin.py:459-478`
+
+### Phase 4 — Import and power tools
+
+- [ ] **GeoJSON import**: file upload + source/status selectors → `run_geojson_import.enqueue()`
+- [ ] **Find duplicates**: radius/city/country filters, grouped results, bulk delete. Reuse `find_duplicate_groups()` from `libraries/management/commands/find_duplicates.py`
+- [ ] **AI enrichment**: button on library detail, preview/confirm flow. Reuse `libraries/tasks.py` and view logic from `libraries/admin.py:136-210`
+
+### Phase 5 — User management
+
+- [ ] **List view**: table (username, email, staff, active, date_joined). Search + filters
+- [ ] **Detail view**: read-only overview, toggle staff/active, link to their submissions
+
+### Phase 6 — Polish
+
+- [ ] Toast notifications (DaisyUI toast + `hx-swap-oob`)
+- [ ] Breadcrumb navigation
+- [ ] Mobile responsiveness QA
+- [ ] Update notification email links to `/manage/` URLs
+- [ ] Add manage-specific E2E tests
+
+### Things to watch out for
+
+- **Cache invalidation**: views must call same clears as Django admin (`GEOJSON_CACHE_KEY`, `HOMEPAGE_COUNT_CACHE_KEY`, cluster cache). Extract into shared helper.
+- **Location editing**: use lat/lng inputs + Leaflet map (like public submit form), not `GISModelAdmin`.
+- **Translations**: all strings in `{% trans %}` / `gettext_lazy` from day one.
+- **No new dependencies**: everything already loaded via `base.html`.
+
+### Verification (per phase)
+
+1. `nox -s tests` — all existing tests pass
+2. Visit `/manage/` as staff → works; as non-staff → redirected
+3. After Phase 2+: test moderation actions, verify cache invalidation + emails
+4. `nox -s e2e` after template/HTMX changes
+5. Full Docker smoke test per `CLAUDE.md`
