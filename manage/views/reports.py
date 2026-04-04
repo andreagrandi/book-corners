@@ -9,6 +9,16 @@ from manage.decorators import staff_required
 REPORTS_PER_PAGE = 25
 
 
+def _report_htmx_response(request: HttpRequest, report: Report) -> HttpResponse:
+    """Return the appropriate HTMX partial for a report action."""
+    target = request.headers.get("HX-Target", "")
+    if target.startswith("library-report-"):
+        template = "manage/libraries/_report_card.html"
+    else:
+        template = "manage/reports/_row.html"
+    return render(request, template, {"report": report})
+
+
 @staff_required
 def report_list(request: HttpRequest) -> HttpResponse:
     """List reports with status and reason filtering."""
@@ -49,7 +59,7 @@ def report_resolve(request: HttpRequest, pk: int) -> HttpResponse:
     report.save(update_fields=["status"])
 
     if request.headers.get("HX-Request"):
-        return render(request, "manage/reports/_row.html", {"report": report})
+        return _report_htmx_response(request, report)
     return redirect("manage:report_list")
 
 
@@ -64,7 +74,7 @@ def report_dismiss(request: HttpRequest, pk: int) -> HttpResponse:
     report.save(update_fields=["status"])
 
     if request.headers.get("HX-Request"):
-        return render(request, "manage/reports/_row.html", {"report": report})
+        return _report_htmx_response(request, report)
     return redirect("manage:report_list")
 
 

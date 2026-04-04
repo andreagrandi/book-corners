@@ -156,31 +156,10 @@
       {% if reports %}
         <div class="rounded-box border border-base-300 bg-base-100 p-5">
           <h2 class="text-lg font-semibold">{% trans "Reports" %}</h2>
-          <div class="mt-4 overflow-x-auto">
-            <table class="table table-sm">
-              <thead>
-                <tr>
-                  <th>{% trans "Reason" %}</th>
-                  <th>{% trans "Status" %}</th>
-                  <th>{% trans "Reporter" %}</th>
-                  <th>{% trans "Date" %}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for report in reports %}
-                  <tr>
-                    <td>{{ report.get_reason_display }}</td>
-                    <td>
-                      <span class="badge badge-sm {% if report.status == 'resolved' %}badge-success{% elif report.status == 'dismissed' %}badge-ghost{% else %}badge-warning{% endif %}">
-                        {{ report.get_status_display }}
-                      </span>
-                    </td>
-                    <td>{{ report.created_by.username|default:"-" }}</td>
-                    <td class="text-xs text-base-content/60">{{ report.created_at|date:"Y-m-d" }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+          <div class="mt-4 space-y-3">
+            {% for report in reports %}
+              {% include "manage/libraries/_report_card.html" %}
+            {% endfor %}
           </div>
         </div>
       {% endif %}

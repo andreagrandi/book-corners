@@ -1,0 +1,29 @@
+{% load i18n %}
+
+<div id="library-report-{{ report.pk }}" class="rounded-box border border-base-300 p-4">
+  <div class="flex flex-wrap items-start justify-between gap-2">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="font-medium">{{ report.get_reason_display }}</span>
+        <span class="badge badge-sm {% if report.status == 'resolved' %}badge-success{% elif report.status == 'dismissed' %}badge-ghost{% else %}badge-warning{% endif %}">
+          {{ report.get_status_display }}
+        </span>
+      </div>
+      <p class="mt-1 text-xs text-base-content/60">
+        {{ report.created_by.username|default:"—" }} &middot; {{ report.created_at|date:"Y-m-d" }}
+      </p>
+    </div>
+    {% if report.status == 'open' %}
+      <div class="flex gap-1">
+        <button hx-post="{% url 'manage:report_resolve' pk=report.pk %}" hx-target="#library-report-{{ report.pk }}" hx-swap="outerHTML" class="btn btn-success btn-xs">{% trans "Resolve" %}</button>
+        <button hx-post="{% url 'manage:report_dismiss' pk=report.pk %}" hx-target="#library-report-{{ report.pk }}" hx-swap="outerHTML" class="btn btn-ghost btn-xs">{% trans "Dismiss" %}</button>
+      </div>
+    {% endif %}
+  </div>
+  <p class="mt-2 text-sm">{{ report.details }}</p>
+  {% if report.photo %}
+    <figure class="mt-2 overflow-hidden rounded-box border border-base-300" style="max-width: 200px;">
+      <img src="{{ report.photo.url }}" alt="{% trans 'Report photo' %}" class="w-full object-cover">
+    </figure>
+  {% endif %}
+</div>

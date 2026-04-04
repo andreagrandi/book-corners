@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Book Corners 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-04 10:04+0000\n"
+"POT-Creation-Date: 2026-04-04 10:19+0000\n"
 "PO-Revision-Date: 2026-02-28 15:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Italian\n"
@@ -301,7 +301,6 @@ msgid "Tell us what is wrong with this library entry so moderators can review an
 msgstr "Dicci cosa non va con questa libreria in modo che i moderatori possano verificare e correggere."
 
 #: libraries/templates/libraries/_report_form.html:33
-#: manage/templates/manage/libraries/detail.html:163
 #: manage/templates/manage/reports/_table.html:20
 #: manage/templates/manage/reports/list.html:26
 #: manage/templates/manage/users/detail.html:102
@@ -941,6 +940,20 @@ msgstr "Senza didascalia"
 msgid "No pending photos."
 msgstr "Nessuna foto in attesa."
 
+#: manage/templates/manage/libraries/_report_card.html:18
+#: manage/templates/manage/reports/_row.html:21
+msgid "Resolve"
+msgstr "Risolvi"
+
+#: manage/templates/manage/libraries/_report_card.html:19
+#: manage/templates/manage/reports/_row.html:24
+msgid "Dismiss"
+msgstr "Archivia"
+
+#: manage/templates/manage/libraries/_report_card.html:26
+msgid "Report photo"
+msgstr "Foto della segnalazione"
+
 #: manage/templates/manage/libraries/_row.html:21
 #: manage/templates/manage/libraries/detail.html:39
 #: manage/templates/manage/photos/_card.html:25
@@ -978,7 +991,6 @@ msgid "Apply"
 msgstr "Applica"
 
 #: manage/templates/manage/libraries/_table.html:22
-#: manage/templates/manage/libraries/detail.html:164
 #: manage/templates/manage/libraries/duplicates.html:60
 #: manage/templates/manage/libraries/import.html:36
 #: manage/templates/manage/libraries/list.html:21
@@ -1106,17 +1118,6 @@ msgstr "Inviata da"
 msgid "Community Photos"
 msgstr "Foto della community"
 
-#: manage/templates/manage/libraries/detail.html:165
-#: manage/templates/manage/reports/_table.html:22
-msgid "Reporter"
-msgstr "Segnalatore"
-
-#: manage/templates/manage/libraries/detail.html:166
-#: manage/templates/manage/reports/_table.html:23
-#: manage/templates/manage/users/detail.html:104
-msgid "Date"
-msgstr "Data"
-
 #: manage/templates/manage/libraries/duplicates.html:4
 #: manage/templates/manage/libraries/duplicates.html:6
 #: manage/templates/manage/libraries/duplicates.html:9
@@ -1240,14 +1241,6 @@ msgstr "Filtra"
 msgid "No photos found."
 msgstr "Nessuna foto trovata."
 
-#: manage/templates/manage/reports/_row.html:21
-msgid "Resolve"
-msgstr "Risolvi"
-
-#: manage/templates/manage/reports/_row.html:24
-msgid "Dismiss"
-msgstr "Archivia"
-
 #: manage/templates/manage/reports/_table.html:8
 msgid "Resolve selected"
 msgstr "Risolvi selezionate"
@@ -1261,6 +1254,15 @@ msgstr "Archivia selezionate"
 #: templates/admin/index.html:136
 msgid "Library"
 msgstr "Libreria"
+
+#: manage/templates/manage/reports/_table.html:22
+msgid "Reporter"
+msgstr "Segnalatore"
+
+#: manage/templates/manage/reports/_table.html:23
+#: manage/templates/manage/users/detail.html:104
+msgid "Date"
+msgstr "Data"
 
 #: manage/templates/manage/reports/_table.html:32
 msgid "No reports found."
