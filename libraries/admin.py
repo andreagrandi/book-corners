@@ -17,7 +17,7 @@ from libraries.management.commands.find_duplicates import (
     DEFAULT_RADIUS_METERS,
     find_duplicate_groups,
 )
-from libraries.models import Library, LibraryPhoto, Report, SocialPost
+from libraries.models import Favourite, Library, LibraryPhoto, Report, SocialPost
 from libraries.notifications import notify_library_approved, notify_library_rejected
 from libraries.views import GEOJSON_CACHE_KEY, HOMEPAGE_COUNT_CACHE_KEY, invalidate_cluster_cache
 
@@ -628,4 +628,14 @@ class LibraryPhotoAdmin(admin.ModelAdmin):
         self.message_user(
             request, f"{count} {'photo' if count == 1 else 'photos'} rejected."
         )
+
+
+@admin.register(Favourite)
+class FavouriteAdmin(admin.ModelAdmin):
+    """Admin configuration for user library favourites."""
+
+    list_display = ["user", "library", "created_at"]
+    list_select_related = ["user", "library"]
+    autocomplete_fields = ["user", "library"]
+    readonly_fields = ["created_at"]
 

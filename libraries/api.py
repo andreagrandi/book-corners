@@ -3,7 +3,7 @@ from __future__ import annotations
 from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q, Value
 from django.shortcuts import get_object_or_404
 from ninja import File, Form, Query, Router
 from ninja.files import UploadedFile
@@ -14,6 +14,8 @@ from libraries.api_auth import get_optional_jwt_user
 from libraries.api_pagination import paginate_queryset
 from libraries.api_schemas import (
     CountryListOut,
+    FavouriteListOut,
+    FavouritePaginationParams,
     LatestLibrariesOut,
     LibraryListOut,
     LibraryOut,
@@ -28,12 +30,24 @@ from libraries.api_schemas import (
 from libraries.api_security import is_api_rate_limited
 from libraries.stats import build_stats_data, get_countries
 from libraries.forms import _validate_uploaded_photo
-from libraries.models import Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
+from libraries.models import Favourite, Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
 from libraries.notifications import notify_new_library, notify_new_photo, notify_new_report
 from libraries.tasks import enrich_library_with_ai
 from libraries.search import run_library_search
 
 library_router = Router(tags=["libraries"])
+
+
+def _annotate_is_favourited(queryset, user):
+    """Annotate a Library queryset with the current user's favourite status.
+    Returns the queryset unchanged when user is None."""
+    if user is None:
+        return queryset
+    return queryset.annotate(
+        _is_favourited=Exists(
+            Favourite.objects.filter(user=user, library_id=OuterRef("pk"))
+        )
+    )
 
 
 @library_router.get("/", response={200: LibraryListOut, 429: ErrorOut}, auth=None, summary="List and search libraries")
@@ -61,6 +75,8 @@ def list_libraries(request, filters: Query[LibrarySearchParams]):
         radius_km=filters.radius_km,
         has_photo=filters.has_photo,
     )
+    jwt_user = get_optional_jwt_user(request=request)
+    queryset = _annotate_is_favourited(queryset, jwt_user)
     items, pagination = paginate_queryset(
         queryset=queryset, page=filters.page, page_size=filters.page_size,
     )
@@ -91,6 +107,8 @@ def latest_libraries(
         queryset = queryset.exclude(photo="")
     elif has_photo is False:
         queryset = queryset.filter(photo="")
+    jwt_user = get_optional_jwt_user(request=request)
+    queryset = _annotate_is_favourited(queryset, jwt_user)
     queryset = queryset[:limit]
     return 200, {"items": list(queryset)}
 
@@ -114,6 +132,35 @@ def list_countries(request):
     return 200, {"items": countries}
 
 
+@library_router.get("/favourites", response={200: FavouriteListOut, 429: ErrorOut}, auth=JWTAuth(), summary="List favourite libraries")
+def list_favourites(request, filters: Query[FavouritePaginationParams]):
+    """Return the authenticated user's favourite libraries, newest-favourited first.
+    Only includes libraries that are still in approved status."""
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-library-favourites-list",
+        max_requests=settings.API_RATE_LIMIT_READ_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    queryset = (
+        Library.objects.filter(
+            status=Library.Status.APPROVED,
+            favourites__user=request.user,
+        )
+        .order_by("-favourites__created_at")
+        .annotate(_is_favourited=Value(True))
+    )
+    items, pagination = paginate_queryset(
+        queryset=queryset, page=filters.page, page_size=filters.page_size,
+    )
+    return 200, {"items": items, "pagination": pagination}
+
+
 @library_router.get("/{slug}", response={200: LibraryOut, 404: ErrorOut, 429: ErrorOut}, auth=None, summary="Get a library by slug")
 def get_library(request, slug: str):
     """Return a single library by its slug.
@@ -134,7 +181,9 @@ def get_library(request, slug: str):
     if jwt_user is not None:
         visibility_filter |= Q(status=Library.Status.PENDING, created_by=jwt_user)
 
-    library = get_object_or_404(Library, visibility_filter, slug=slug)
+    qs = Library.objects.filter(visibility_filter, slug=slug)
+    qs = _annotate_is_favourited(qs, jwt_user)
+    library = get_object_or_404(qs)
     return 200, library
 
 
@@ -304,6 +353,58 @@ def submit_library_photo(
     library_photo.save()
     notify_new_photo(library_photo)
     return 201, library_photo
+
+
+@library_router.post(
+    "/{slug}/favourite",
+    response={201: ErrorOut, 200: ErrorOut, 404: ErrorOut, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="Mark a library as favourite",
+)
+def mark_favourite(request, slug: str):
+    """Add an approved library to the authenticated user's favourites.
+    Returns 201 if newly added, 200 if already favourited."""
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-library-favourite",
+        max_requests=settings.API_RATE_LIMIT_WRITE_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    library = get_object_or_404(Library, slug=slug, status=Library.Status.APPROVED)
+    _, created = Favourite.objects.get_or_create(user=request.user, library=library)
+    if created:
+        return 201, ErrorOut(message="Library added to favourites.")
+    return 200, ErrorOut(message="Library is already in your favourites.")
+
+
+@library_router.delete(
+    "/{slug}/favourite",
+    response={204: None, 404: ErrorOut, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="Remove a library from favourites",
+)
+def unmark_favourite(request, slug: str):
+    """Remove an approved library from the authenticated user's favourites.
+    Returns 204 whether the favourite existed or not (idempotent)."""
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-library-favourite",
+        max_requests=settings.API_RATE_LIMIT_WRITE_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    library = get_object_or_404(Library, slug=slug, status=Library.Status.APPROVED)
+    Favourite.objects.filter(user=request.user, library=library).delete()
+    return 204, None
 
 
 statistics_router = Router(tags=["statistics"])

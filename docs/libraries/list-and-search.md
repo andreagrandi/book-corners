@@ -108,7 +108,8 @@ Find libraries within 5 km of a point:
       "source": "",
       "operator": "",
       "brand": "Little Free Library",
-      "created_at": "2025-06-15T14:30:00Z"
+      "created_at": "2025-06-15T14:30:00Z",
+      "is_favourited": false
     }
   ],
   "pagination": {
@@ -185,7 +186,8 @@ Return the most recently approved libraries as a flat list (no pagination).
       "source": "",
       "operator": "",
       "brand": "Little Free Library",
-      "created_at": "2025-06-15T14:30:00Z"
+      "created_at": "2025-06-15T14:30:00Z",
+      "is_favourited": false
     }
   ]
 }

@@ -480,3 +480,40 @@ class InstagramToken(models.Model):
         """Return a readable string representation.
         Shows the refresh timestamp for admin display."""
         return f"InstagramToken (refreshed {self.refreshed_at})"
+
+
+class Favourite(models.Model):
+    """A user's bookmark of an approved library."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="favourites",
+    )
+    library = models.ForeignKey(
+        "Library",
+        on_delete=models.CASCADE,
+        related_name="favourites",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "favourites"
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "library"],
+                name="unique_user_library_favourite",
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["user", "-created_at"],
+                name="idx_fav_user_created",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        """Return a readable string representation.
+        Identifies the user-library favourite relationship."""
+        return f"Favourite: {self.user} -> {self.library}"
