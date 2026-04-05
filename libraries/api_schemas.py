@@ -47,6 +47,13 @@ class LibraryOut(Schema):
     operator: str = Field(description="Organisation that maintains the library.", examples=["City Library Association"])
     brand: str = Field(description="Network or brand name.", examples=["Little Free Library"])
     created_at: datetime = Field(description="Timestamp when the library was created (UTC).", examples=["2025-06-15T14:30:00Z"])
+    is_favourited: bool = Field(default=False, description="Whether the current authenticated user has favourited this library. Always false for unauthenticated requests.", examples=[False])
+
+    @staticmethod
+    def resolve_is_favourited(obj: Library) -> bool:
+        """Return whether the current user has favourited this library.
+        Reads from a queryset annotation; defaults to False for anonymous requests."""
+        return getattr(obj, "_is_favourited", False)
 
     @staticmethod
     def resolve_photo_url(obj: Library) -> str:
@@ -96,6 +103,22 @@ class LatestLibrariesOut(Schema):
     Used by the /latest endpoint for lightweight newest-first results."""
 
     items: list[LibraryOut] = Field(description="List of the most recently approved libraries.")
+
+
+class FavouriteListOut(Schema):
+    """Paginated list of a user's favourite libraries with navigation metadata.
+    Wraps items and pagination in a single response envelope."""
+
+    items: list[LibraryOut] = Field(description="Favourite libraries for the current page, newest-favourited first.")
+    pagination: PaginationMeta = Field(description="Pagination metadata for navigating the result set.")
+
+
+class FavouritePaginationParams(Schema):
+    """Query parameters for paginating the favourites list.
+    Provides page and page_size controls without search filters."""
+
+    page: int = Field(default=1, ge=1, le=1000, description="Page number to retrieve (1-indexed).", json_schema_extra={"example": 1})
+    page_size: int = Field(default=20, ge=1, le=50, description="Number of items per page.", json_schema_extra={"example": 20})
 
 
 class LibrarySearchParams(Schema):

@@ -82,9 +82,12 @@ If you're the owner of a pending library, include your `Authorization: Bearer` h
   "source": "OpenStreetMap",
   "operator": "City Library Association",
   "brand": "Little Free Library",
-  "created_at": "2025-06-15T14:30:00Z"
+  "created_at": "2025-06-15T14:30:00Z",
+  "is_favourited": false
 }
 ```
+
+The `is_favourited` field is `true` when the authenticated user has favourited this library, and `false` otherwise. For unauthenticated requests it is always `false`.
 
 ## Errors
 

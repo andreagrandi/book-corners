@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.8.0
+
+- Favourites: authenticated users can mark (`POST /libraries/{slug}/favourite`) and unmark (`DELETE /libraries/{slug}/favourite`) approved libraries as favourites.
+- Favourites list endpoint (`GET /api/v1/libraries/favourites`) returns the user's favourited libraries with pagination, ordered by when they were favourited.
+- Library detail, list, and latest endpoints now include an `is_favourited` field indicating whether the authenticated user has favourited the library.
+
 ## v1.7.0
 
 - Change email endpoint (`PATCH /auth/me/email`) allows authenticated users to update their email address with uniqueness validation.

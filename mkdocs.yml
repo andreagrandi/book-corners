@@ -46,6 +46,7 @@ nav:
       - Report: libraries/report.md
       - Submit Photo: libraries/submit-photo.md
       - Countries: libraries/countries.md
+      - Favourites: libraries/favourites.md
   - Statistics: statistics.md
   - Errors: errors.md
   - Rate Limiting: rate-limiting.md

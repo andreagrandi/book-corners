@@ -91,7 +91,7 @@ class TestSubmitLibraryEndpoint:
             "lat", "lng", "address", "city", "country", "postal_code",
             "wheelchair_accessible", "capacity", "is_indoor", "is_lit",
             "website", "contact", "source", "operator", "brand",
-            "created_at",
+            "created_at", "is_favourited",
         }
         assert set(body.keys()) == expected_fields
 
