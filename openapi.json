@@ -992,6 +992,77 @@
         ]
       }
     },
+    "/api/v1/libraries/favourites": {
+      "get": {
+        "operationId": "libraries_api_list_favourites",
+        "summary": "List favourite libraries",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "default": 1,
+              "description": "Page number to retrieve (1-indexed).",
+              "example": 1,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Page number to retrieve (1-indexed).",
+            "example": 1
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "schema": {
+              "default": 20,
+              "description": "Number of items per page.",
+              "example": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Number of items per page.",
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavouriteListOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return the authenticated user's favourite libraries, newest-favourited first.\nOnly includes libraries that are still in approved status.",
+        "tags": [
+          "libraries"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
     "/api/v1/libraries/{slug}": {
       "get": {
         "operationId": "libraries_api_get_library",
@@ -1268,6 +1339,123 @@
           },
           "required": true
         },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/libraries/{slug}/favourite": {
+      "post": {
+        "operationId": "libraries_api_mark_favourite",
+        "summary": "Mark a library as favourite",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Add an approved library to the authenticated user's favourites.\nReturns 201 if newly added, 200 if already favourited.",
+        "tags": [
+          "libraries"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "libraries_api_unmark_favourite",
+        "summary": "Remove a library from favourites",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Remove an approved library from the authenticated user's favourites.\nReturns 204 whether the favourite existed or not (idempotent).",
+        "tags": [
+          "libraries"
+        ],
         "security": [
           {
             "JWTAuth": []
@@ -2037,6 +2225,15 @@
             "format": "date-time",
             "title": "Created At",
             "type": "string"
+          },
+          "is_favourited": {
+            "default": false,
+            "description": "Whether the current authenticated user has favourited this library. Always false for unauthenticated requests.",
+            "examples": [
+              false
+            ],
+            "title": "Is Favourited",
+            "type": "boolean"
           }
         },
         "required": [
@@ -2395,6 +2592,54 @@
           "count"
         ],
         "title": "CountryStatOut",
+        "type": "object"
+      },
+      "FavouritePaginationParams": {
+        "description": "Query parameters for paginating the favourites list.\nProvides page and page_size controls without search filters.",
+        "properties": {
+          "page": {
+            "default": 1,
+            "description": "Page number to retrieve (1-indexed).",
+            "example": 1,
+            "maximum": 1000,
+            "minimum": 1,
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "default": 20,
+            "description": "Number of items per page.",
+            "example": 20,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "title": "FavouritePaginationParams",
+        "type": "object"
+      },
+      "FavouriteListOut": {
+        "description": "Paginated list of a user's favourite libraries with navigation metadata.\nWraps items and pagination in a single response envelope.",
+        "properties": {
+          "items": {
+            "description": "Favourite libraries for the current page, newest-favourited first.",
+            "items": {
+              "$ref": "#/components/schemas/LibraryOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMeta",
+            "description": "Pagination metadata for navigating the result set."
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "FavouriteListOut",
         "type": "object"
       },
       "ReportOut": {

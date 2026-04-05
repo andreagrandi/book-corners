@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.29">
+      <meta name="generator" content="zensical-0.0.31">
     
     
       
@@ -32,7 +32,7 @@
       
         
       
-      <link rel="stylesheet" href="../assets/stylesheets/modern/main.6f2fbb28.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.53a7feaf.min.css">
       
         
           
@@ -508,6 +508,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../libraries/favourites/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Favourites
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -633,7 +661,7 @@
   
     <li class="md-nav__item md-nav__item--active">
       
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
       
       
         
@@ -689,6 +717,17 @@
       On this page
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v180" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v1.8.0
+      
+    </span>
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#v170" class="md-nav__link">
@@ -796,6 +835,19 @@
               
               <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
                 <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
                   <div class="md-sidebar__inner">
                     
 
@@ -812,6 +864,17 @@
       On this page
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#v180" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v1.8.0
+      
+    </span>
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#v170" class="md-nav__link">
@@ -917,6 +980,12 @@
                   
 
 <h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
+<h2 id="v180">v1.8.0<a class="headerlink" href="#v180" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Favourites: authenticated users can mark (<code>POST /libraries/{slug}/favourite</code>) and unmark (<code>DELETE /libraries/{slug}/favourite</code>) approved libraries as favourites.</li>
+<li>Favourites list endpoint (<code>GET /api/v1/libraries/favourites</code>) returns the user's favourited libraries with pagination, ordered by when they were favourited.</li>
+<li>Library detail, list, and latest endpoints now include an <code>is_favourited</code> field indicating whether the authenticated user has favourited the library.</li>
+</ul>
 <h2 id="v170">v1.7.0<a class="headerlink" href="#v170" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Change email endpoint (<code>PATCH /auth/me/email</code>) allows authenticated users to update their email address with uniqueness validation.</li>
@@ -1026,7 +1095,7 @@
       <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["navigation.sections","navigation.top","search.suggest","content.code.copy","content.tabs.link"],"search":"../assets/javascripts/workers/search.e2d2d235.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
     
     
-      <script src="../assets/javascripts/bundle.c2b142ea.min.js"></script>
+      <script src="../assets/javascripts/bundle.91a19a9e.min.js"></script>
       
     
   </body>
