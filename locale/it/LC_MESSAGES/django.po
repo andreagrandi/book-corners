@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Book Corners 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-04 11:30+0000\n"
+"POT-Creation-Date: 2026-04-05 14:36+0000\n"
 "PO-Revision-Date: 2026-02-28 15:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Italian\n"
@@ -189,6 +189,16 @@ msgstr "Risolto"
 msgid "Dismissed"
 msgstr "Archiviato"
 
+#: libraries/templates/libraries/_favourite_button.html:10
+#: libraries/templates/libraries/_favourite_button.html:11
+msgid "Remove from favourites"
+msgstr "Rimuovi dai preferiti"
+
+#: libraries/templates/libraries/_favourite_button.html:10
+#: libraries/templates/libraries/_favourite_button.html:11
+msgid "Add to favourites"
+msgstr "Aggiungi ai preferiti"
+
 #: libraries/templates/libraries/_latest_entries.html:11
 msgid "No approved libraries yet"
 msgstr "Nessuna libreria approvata"
@@ -211,7 +221,8 @@ msgid "%(km)s km away"
 msgstr "a %(km)s km"
 
 #: libraries/templates/libraries/_library_card.html:35
-#: libraries/templates/libraries/dashboard.html:75
+#: libraries/templates/libraries/dashboard.html:67
+#: libraries/templates/libraries/dashboard.html:109
 #: libraries/templates/libraries/map.html:299
 msgid "View details"
 msgstr "Dettagli"
@@ -338,7 +349,7 @@ msgstr "Usa un luogo come Roma per risultati nelle vicinanze, oppure aggiungi pa
 
 #: libraries/templates/libraries/dashboard.html:4
 #: libraries/templates/libraries/dashboard.html:10
-#: manage/templates/manage/base.html:39
+#: manage/templates/manage/base.html:41
 #: manage/templates/manage/dashboard.html:7
 #: manage/templates/manage/dashboard.html:10
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:11
@@ -413,18 +424,35 @@ msgid "Delete account"
 msgstr "Elimina account"
 
 #: libraries/templates/libraries/dashboard.html:50
+msgid "My favourites"
+msgstr "I miei preferiti"
+
+#: libraries/templates/libraries/dashboard.html:75
+msgid "No favourites yet"
+msgstr "Nessun preferito"
+
+#: libraries/templates/libraries/dashboard.html:76
+msgid "Tap the heart icon on any library to save it here."
+msgstr "Tocca l'icona del cuore su qualsiasi libreria per salvarla qui."
+
+#: libraries/templates/libraries/dashboard.html:77
+#: libraries/templates/libraries/map.html:53
+msgid "Explore libraries"
+msgstr "Esplora le librerie"
+
+#: libraries/templates/libraries/dashboard.html:84
 msgid "Your submissions"
 msgstr "Le tue librerie"
 
-#: libraries/templates/libraries/dashboard.html:111
+#: libraries/templates/libraries/dashboard.html:145
 msgid "No submissions yet"
 msgstr "Nessun invio"
 
-#: libraries/templates/libraries/dashboard.html:112
+#: libraries/templates/libraries/dashboard.html:146
 msgid "Share your first book exchange spot to start your dashboard history."
 msgstr "Condividi il tuo primo punto di scambio libri per iniziare la cronologia della tua dashboard."
 
-#: libraries/templates/libraries/dashboard.html:113
+#: libraries/templates/libraries/dashboard.html:147
 #: libraries/templates/libraries/submit_library.html:4
 #: libraries/templates/libraries/submit_library.html:55 templates/about.html:76
 #: templates/home.html:36
@@ -494,23 +522,23 @@ msgstr "Fonte:"
 msgid "Submitted by:"
 msgstr "Inviata da:"
 
-#: libraries/templates/libraries/library_detail.html:77
+#: libraries/templates/libraries/library_detail.html:80
 msgid "Add a photo"
 msgstr "Aggiungi una foto"
 
-#: libraries/templates/libraries/library_detail.html:87
+#: libraries/templates/libraries/library_detail.html:90
 msgid "Report an issue"
 msgstr "Segnala un problema"
 
-#: libraries/templates/libraries/library_detail.html:94
+#: libraries/templates/libraries/library_detail.html:97
 msgid "Location map"
 msgstr "Mappa della posizione"
 
-#: libraries/templates/libraries/library_detail.html:114
+#: libraries/templates/libraries/library_detail.html:117
 msgid "Add a photo of this library"
 msgstr "Aggiungi una foto di questa libreria"
 
-#: libraries/templates/libraries/library_detail.html:125
+#: libraries/templates/libraries/library_detail.html:128
 msgid "Report an issue with this library"
 msgstr "Segnala un problema con questa libreria"
 
@@ -522,10 +550,6 @@ msgstr "Mappa"
 #: libraries/templates/libraries/map.html:5
 msgid "Explore the Book Corners map to find little free libraries near you and across nearby cities."
 msgstr "Esplora la mappa di Book Corners per trovare casette dei libri vicino a te e nelle città limitrofe."
-
-#: libraries/templates/libraries/map.html:53
-msgid "Explore libraries"
-msgstr "Esplora le librerie"
 
 #: libraries/templates/libraries/map.html:55
 msgid "Use one filter set and switch between map, list, or split view without reloading the page."
@@ -821,11 +845,11 @@ msgstr "Continua"
 msgid "All statuses"
 msgstr "Tutti gli stati"
 
-#: manage/templates/manage/base.html:10
+#: manage/templates/manage/base.html:12
 msgid "Open admin menu"
 msgstr "Apri menu amministrazione"
 
-#: manage/templates/manage/base.html:15 manage/templates/manage/base.html:29
+#: manage/templates/manage/base.html:17 manage/templates/manage/base.html:31
 #: manage/templates/manage/dashboard.html:4
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:4
 #: manage/templates/manage/libraries/detail.html:4
@@ -840,15 +864,15 @@ msgstr "Apri menu amministrazione"
 msgid "Manage"
 msgstr "Gestione"
 
-#: manage/templates/manage/base.html:26
+#: manage/templates/manage/base.html:28
 msgid "Close admin menu"
 msgstr "Chiudi menu amministrazione"
 
-#: manage/templates/manage/base.html:30
+#: manage/templates/manage/base.html:32
 msgid "Administration"
 msgstr "Amministrazione"
 
-#: manage/templates/manage/base.html:47
+#: manage/templates/manage/base.html:49
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:12
 #: manage/templates/manage/libraries/detail.html:12
 #: manage/templates/manage/libraries/duplicates.html:12
@@ -861,7 +885,7 @@ msgstr "Amministrazione"
 msgid "Libraries"
 msgstr "Librerie"
 
-#: manage/templates/manage/base.html:55
+#: manage/templates/manage/base.html:57
 #: manage/templates/manage/photos/list.html:4
 #: manage/templates/manage/photos/list.html:6
 #: manage/templates/manage/photos/list.html:12
@@ -869,7 +893,7 @@ msgstr "Librerie"
 msgid "Photos"
 msgstr "Foto"
 
-#: manage/templates/manage/base.html:63
+#: manage/templates/manage/base.html:65
 #: manage/templates/manage/libraries/detail.html:168
 #: manage/templates/manage/reports/list.html:4
 #: manage/templates/manage/reports/list.html:6
@@ -878,7 +902,7 @@ msgstr "Foto"
 msgid "Reports"
 msgstr "Segnalazioni"
 
-#: manage/templates/manage/base.html:71
+#: manage/templates/manage/base.html:73
 #: manage/templates/manage/users/detail.html:12
 #: manage/templates/manage/users/list.html:4
 #: manage/templates/manage/users/list.html:6
@@ -887,11 +911,11 @@ msgstr "Segnalazioni"
 msgid "Users"
 msgstr "Utenti"
 
-#: manage/templates/manage/base.html:85
+#: manage/templates/manage/base.html:87
 msgid "Django Admin"
 msgstr "Django Admin"
 
-#: manage/templates/manage/base.html:93
+#: manage/templates/manage/base.html:95
 msgid "View Site"
 msgstr "Visualizza sito"
 
@@ -1260,14 +1284,14 @@ msgstr "risultati"
 msgid "Filter"
 msgstr "Filtra"
 
-#: manage/templates/manage/photos/_card.html:8
+#: manage/templates/manage/photos/_card.html:15
 #: manage/templates/manage/photos/list.html:38
 #: templates/admin/libraries/photo_grid.html:154
 #: templates/admin/libraries/photo_grid.html:172
 msgid "Primary"
 msgstr "Principale"
 
-#: manage/templates/manage/photos/_card.html:8
+#: manage/templates/manage/photos/_card.html:15
 #: manage/templates/manage/photos/list.html:39
 #: templates/admin/libraries/photo_grid.html:155
 #: templates/admin/libraries/photo_grid.html:174
