@@ -42,6 +42,7 @@ from libraries.views import (
     submit_library_photo,
     submit_library_report,
     submit_library_photo_metadata,
+    toggle_favourite,
 )
 
 sitemaps = {
@@ -77,6 +78,7 @@ urlpatterns = [
     path("library/<slug:slug>/", library_detail, name="library_detail"),
     path("library/<slug:slug>/report/", submit_library_report, name="submit_library_report"),
     path("library/<slug:slug>/submit-photo/", submit_library_photo, name="submit_library_photo"),
+    path("library/<slug:slug>/favourite/", toggle_favourite, name="toggle_favourite"),
     path("submit/", submit_library, name="submit_library"),
     path(
         "submit/confirmation/",

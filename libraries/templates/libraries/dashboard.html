@@ -45,6 +45,40 @@
       </div>
     </div>
 
+    {# ── Favourites list ── #}
+    <div>
+      <h2 class="mb-4 text-xl font-semibold">{% trans "My favourites" %}</h2>
+      {% if favourites %}
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {% for library in favourites %}
+            <article class="card overflow-hidden border border-base-300 bg-base-100 shadow-sm">
+              <figure class="h-48 overflow-hidden bg-base-200">
+                <img
+                  src="{{ library.card_photo_url }}"
+                  alt="{{ library.description|default:library.name|default:library.address }}"
+                  class="h-full w-full object-cover"
+                  loading="lazy"
+                >
+              </figure>
+              <div class="card-body p-4">
+                <h3 class="card-title text-lg">{{ library.name|default:library.address }}</h3>
+                <p class="text-sm text-base-content/70">{{ library.city }}, {{ library.country }}</p>
+                <div class="card-actions mt-2 justify-end">
+                  <a href="{% url 'library_detail' slug=library.slug %}" class="btn btn-sm btn-outline">{% trans "View details" %}</a>
+                </div>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <article class="rounded-box border border-dashed border-base-300 bg-base-100 p-8 text-center">
+          <h3 class="text-xl font-semibold">{% trans "No favourites yet" %}</h3>
+          <p class="mt-2 text-base-content/70">{% trans "Tap the heart icon on any library to save it here." %}</p>
+          <a href="{% url 'map_page' %}" class="btn btn-primary mt-4">{% trans "Explore libraries" %}</a>
+        </article>
+      {% endif %}
+    </div>
+
     {# ── Submissions list ── #}
     <div>
       <h2 class="mb-4 text-xl font-semibold">{% trans "Your submissions" %}</h2>

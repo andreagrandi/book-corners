@@ -4,6 +4,7 @@ import json
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.measure import D
@@ -23,7 +24,7 @@ from libraries.geolocation import (
     forward_geocode_place,
     reverse_geocode_coordinates,
 )
-from libraries.models import Library
+from libraries.models import Favourite, Library
 from libraries.search import DEFAULT_SEARCH_RADIUS_KM, apply_text_search, run_library_search
 from libraries.stats import build_stats_data
 
@@ -487,17 +488,37 @@ def _get_detail_visible_library(*, request: HttpRequest, slug: str) -> Library:
     )
 
 
+@login_required(login_url="login")
+@require_POST
+def toggle_favourite(request: HttpRequest, slug: str) -> HttpResponse:
+    """Toggle favourite status and return the updated heart button partial."""
+    library = get_object_or_404(Library, slug=slug, status=Library.Status.APPROVED)
+    deleted_count, _ = Favourite.objects.filter(user=request.user, library=library).delete()
+    is_favourited = deleted_count == 0
+    if is_favourited:
+        Favourite.objects.get_or_create(user=request.user, library=library)
+    if not request.headers.get("HX-Request"):
+        return redirect("library_detail", slug=slug)
+    return render(
+        request,
+        "libraries/_favourite_button.html",
+        {"library": library, "is_favourited": is_favourited},
+    )
+
+
 def library_detail(request: HttpRequest, slug: str) -> HttpResponse:
     """Render one public library detail or the creator's own submission.
     Keeps non-approved entries private while allowing author review."""
     library = _get_detail_visible_library(request=request, slug=slug)
     report_form: ReportSubmissionForm | None = None
     photo_form: LibraryPhotoSubmissionForm | None = None
+    is_favourited = False
     user = getattr(request, "user", None)
     if user is not None and user.is_authenticated:
         report_form = ReportSubmissionForm(created_by=user, library=library)
         if library.status == Library.Status.APPROVED:
             photo_form = LibraryPhotoSubmissionForm(created_by=user, library=library)
+            is_favourited = Favourite.objects.filter(user=user, library=library).exists()
 
     return render(
         request,
@@ -506,6 +527,7 @@ def library_detail(request: HttpRequest, slug: str) -> HttpResponse:
             "library": library,
             "report_form": report_form,
             "photo_form": photo_form,
+            "is_favourited": is_favourited,
         },
     )
 
@@ -621,6 +643,18 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
 
+    favourites = (
+        Library.objects.filter(
+            status=Library.Status.APPROVED,
+            favourites__user=request.user,
+        )
+        .only(
+            "name", "slug", "address", "city", "country",
+            "status", "photo", "photo_thumbnail", "created_at",
+        )
+        .order_by("-favourites__created_at")
+    )
+
     return render(
         request,
         "libraries/dashboard.html",
@@ -628,6 +662,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
             "submissions": page_obj,
             "page_obj": page_obj,
             "is_social_only": is_social_only_user(request.user),
+            "favourites": favourites,
         },
     )
 

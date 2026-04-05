@@ -44,7 +44,12 @@
 
     <div class="space-y-4">
       <div class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
-        <h1 class="text-3xl font-bold">{{ library.name|default:"Neighborhood Library" }}</h1>
+        <div class="flex items-center justify-between gap-2">
+          <h1 class="text-3xl font-bold">{{ library.name|default:"Neighborhood Library" }}</h1>
+          {% if request.user.is_authenticated and library.status == library.Status.APPROVED %}
+            {% include "libraries/_favourite_button.html" with library=library is_favourited=is_favourited %}
+          {% endif %}
+        </div>
         <p class="mt-2 text-base-content/80">{{ library.description|default:"A community little free library." }}</p>
 
         <div class="mt-4 space-y-2 text-sm sm:text-base">
