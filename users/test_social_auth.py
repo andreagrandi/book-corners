@@ -737,3 +737,56 @@ class TestDividerWithMixedProviders:
         response = client.get(reverse("login"))
         content = response.content.decode()
         assert "divider" not in content
+
+
+@pytest.mark.django_db
+class TestRegistrationNotificationProviderLabel:
+    """Verify the admin notification email reports the actual social provider.
+    Guards against mislabelling (e.g. Apple signups labelled as Google)."""
+
+    def _run_save_user(self, rf, provider, email, uid):
+        """Invoke SocialAccountAdapter.save_user with a provider-specific sociallogin.
+        Returns the saved user for further assertions."""
+        from django.core import mail
+
+        from users.adapters import SocialAccountAdapter
+
+        mail.outbox = []
+        request = _sociallogin_request(rf)
+        user = User(email=email, username="")
+        account = SocialAccount(
+            provider=provider,
+            uid=uid,
+            extra_data={"email": email},
+        )
+        email_obj = EmailAddress(email=email, verified=True, primary=True)
+        sociallogin = SocialLogin(
+            user=user,
+            account=account,
+            email_addresses=[email_obj],
+        )
+        return SocialAccountAdapter().save_user(request, sociallogin)
+
+    def test_google_signup_labels_notification_as_google_oauth(self, rf, settings):
+        """A Google sociallogin produces a 'Google OAuth' registration method.
+        Ensures backwards-compatible label for Google signups."""
+        from django.core import mail
+
+        settings.ADMIN_NOTIFICATION_EMAIL = "admin@example.com"
+        self._run_save_user(
+            rf, provider="google", email="g@example.com", uid="g-uid-1",
+        )
+        assert len(mail.outbox) == 1
+        assert "Registration method: Google OAuth" in mail.outbox[0].body
+
+    def test_apple_signup_labels_notification_as_apple_sign_in(self, rf, settings):
+        """An Apple sociallogin produces an 'Apple Sign In' registration method.
+        Prevents Apple signups from being misreported as Google OAuth."""
+        from django.core import mail
+
+        settings.ADMIN_NOTIFICATION_EMAIL = "admin@example.com"
+        self._run_save_user(
+            rf, provider="apple", email="a@privaterelay.appleid.com", uid="a-uid-1",
+        )
+        assert len(mail.outbox) == 1
+        assert "Registration method: Apple Sign In" in mail.outbox[0].body

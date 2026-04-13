@@ -11,6 +11,11 @@ from users.notifications import notify_new_registration
 
 User = get_user_model()
 
+_PROVIDER_LABELS = {
+    "google": "Google OAuth",
+    "apple": "Apple Sign In",
+}
+
 
 def _normalize(text):
     """Strip to ASCII lowercase, replace non-alphanumeric with underscores."""
@@ -73,11 +78,11 @@ class AccountAdapter(DefaultAccountAdapter):
 
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
-    """Custom social account adapter for Google OAuth.
+    """Custom social account adapter for Google and Apple sign-in.
     Normalizes emails and allows social signup."""
 
     def is_open_for_signup(self, request, sociallogin):
-        """Allow new users to sign up via Google OAuth."""
+        """Allow new users to sign up via any configured social provider."""
         return True
 
     def populate_user(self, request, sociallogin, data):
@@ -94,7 +99,9 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         try:
             with transaction.atomic():
                 user = super().save_user(request, sociallogin, form=form)
-            notify_new_registration(user, via="Google OAuth")
+            provider_id = sociallogin.account.provider
+            via = _PROVIDER_LABELS.get(provider_id, provider_id.title())
+            notify_new_registration(user, via=via)
             return user
         except IntegrityError:
             # Another request created the user between our check and insert.
