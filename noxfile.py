@@ -12,7 +12,7 @@ def tests(session: nox.Session) -> None:
     session.install("-r", "requirements.txt")
     session.run("python", "manage.py", "migrate", "--run-syncdb")
     session.run("python", "manage.py", "createcachetable")
-    session.run("pytest", "-m", "not e2e", *session.posargs)
+    session.run("pytest", "-n", "auto", "-m", "not e2e", *session.posargs)
 
 
 @nox.session(python=PYTHON_VERSIONS)

@@ -44,7 +44,11 @@ def _env_int(*, name: str, default: int) -> int:
 
 
 DEBUG = _env_bool(name="DJANGO_DEBUG", default=True)
-IS_TEST_ENVIRONMENT = any("pytest" in arg for arg in sys.argv) or "PYTEST_CURRENT_TEST" in os.environ
+IS_TEST_ENVIRONMENT = (
+    any("pytest" in arg for arg in sys.argv)
+    or "PYTEST_CURRENT_TEST" in os.environ
+    or "PYTEST_XDIST_WORKER" in os.environ
+)
 
 SECRET_KEY = os.environ.get(
     "DJANGO_SECRET_KEY",

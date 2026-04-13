@@ -2,7 +2,12 @@ name: CI
 
 on:
   push:
+    branches: [master]
   pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   tests:
@@ -41,10 +46,11 @@ jobs:
         uses: astral-sh/setup-uv@v7
 
       - name: Install GIS dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends gdal-bin libgdal-dev libgeos-dev libproj-dev
-          sudo rm -rf /var/lib/apt/lists/*
+        uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: gdal-bin libgdal-dev libgeos-dev libproj-dev
+          version: 2.0
+          execute_install_scripts: true
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -99,10 +105,11 @@ jobs:
         uses: astral-sh/setup-uv@v7
 
       - name: Install GIS dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends gdal-bin libgdal-dev libgeos-dev libproj-dev
-          sudo rm -rf /var/lib/apt/lists/*
+        uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: gdal-bin libgdal-dev libgeos-dev libproj-dev
+          version: 2.0
+          execute_install_scripts: true
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
