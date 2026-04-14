@@ -48,8 +48,8 @@ jobs:
       - name: Install GIS dependencies
         uses: awalsh128/cache-apt-pkgs-action@v1
         with:
-          packages: gdal-bin libgdal-dev libgeos-dev libproj-dev
-          version: 2.0
+          packages: gdal-bin libgdal-dev libgeos-dev libproj-dev libblas3 liblapack3
+          version: 2.1
           execute_install_scripts: true
 
       - name: Set up Node.js
@@ -107,8 +107,8 @@ jobs:
       - name: Install GIS dependencies
         uses: awalsh128/cache-apt-pkgs-action@v1
         with:
-          packages: gdal-bin libgdal-dev libgeos-dev libproj-dev
-          version: 2.0
+          packages: gdal-bin libgdal-dev libgeos-dev libproj-dev libblas3 liblapack3
+          version: 2.1
           execute_install_scripts: true
 
       - name: Set up Node.js
