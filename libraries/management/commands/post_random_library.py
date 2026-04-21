@@ -7,6 +7,8 @@ import time
 from pathlib import Path
 from typing import Callable
 
+import httpx
+from atproto_client.exceptions import NetworkError as AtProtoNetworkError
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from requests.exceptions import HTTPError, Timeout
 
@@ -34,6 +36,10 @@ def _is_transient_error(exc: Exception) -> bool:
         return True
     if isinstance(exc, HTTPError) and exc.response is not None:
         return exc.response.status_code in TRANSIENT_STATUS_CODES
+    if isinstance(exc, (httpx.TimeoutException, httpx.TransportError)):
+        return True
+    if isinstance(exc, AtProtoNetworkError):
+        return True
     return False
 
 
