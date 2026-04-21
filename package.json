@@ -8,9 +8,9 @@
   "devDependencies": {
     "@tailwindcss/cli": "^4.2.2",
     "@tailwindcss/postcss": "^4.2.2",
-    "autoprefixer": "^10.4.27",
+    "autoprefixer": "^10.5.0",
     "daisyui": "^5.5.19",
-    "postcss": "^8.5.8",
+    "postcss": "^8.5.10",
     "tailwindcss": "^4.2.1"
   }
 }
