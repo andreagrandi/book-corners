@@ -1580,6 +1580,42 @@ class TestIsTransientError:
 
         assert _is_transient_error(ValueError("bad input")) is False
 
+    def test_httpx_read_timeout_is_transient(self):
+        """Verify that httpx read timeouts are classified as transient.
+        Bluesky's atproto client wraps httpx, so these leak through on timeout."""
+        import httpx
+
+        from libraries.management.commands.post_random_library import _is_transient_error
+
+        assert _is_transient_error(httpx.ReadTimeout("timed out")) is True
+
+    def test_httpx_connect_error_is_transient(self):
+        """Verify that httpx connection errors are classified as transient.
+        Network-level failures from atproto/httpx should retry like requests equivalents."""
+        import httpx
+
+        from libraries.management.commands.post_random_library import _is_transient_error
+
+        assert _is_transient_error(httpx.ConnectError("connection refused")) is True
+
+    def test_atproto_invoke_timeout_is_transient(self):
+        """Verify that atproto InvokeTimeoutError is classified as transient.
+        This was the original Sentry-reported failure that bypassed retry logic."""
+        from atproto_client.exceptions import InvokeTimeoutError
+
+        from libraries.management.commands.post_random_library import _is_transient_error
+
+        assert _is_transient_error(InvokeTimeoutError()) is True
+
+    def test_atproto_bad_request_is_not_transient(self):
+        """Verify that atproto BadRequestError is not classified as transient.
+        Prevents retrying 4xx-equivalent errors that will fail the same way every time."""
+        from atproto_client.exceptions import BadRequestError
+
+        from libraries.management.commands.post_random_library import _is_transient_error
+
+        assert _is_transient_error(BadRequestError("invalid payload")) is False
+
 
 @pytest.mark.django_db
 class TestPostWithRetry:
