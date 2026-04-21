@@ -3,8 +3,8 @@ atproto==0.0.65
 dj-database-url==3.1.2
 django==6.0.4
 django-tasks-db==0.12.0
-django-allauth[socialaccount]==65.16.0
-django-anymail[resend]==14.0
+django-allauth[socialaccount]==65.16.1
+django-anymail[resend]==15.0
 django-ninja==1.6.2
 django-ninja-jwt==5.4.4
 geopy==2.4.1
@@ -19,6 +19,6 @@ pytest-xdist==3.8.0
 sqlparse==0.5.5
 structlog==25.5.0
 sentry-sdk[django]==2.58.0
-openai==2.31.0
+openai==2.32.0
 openapi-spec-validator==0.8.4
 whitenoise==6.12.0
