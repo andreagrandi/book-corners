@@ -61,13 +61,10 @@ def run_library_search(
         queryset = apply_text_search(queryset=queryset, query_text=q)
 
     if lat is not None and lng is not None:
-        effective_radius = radius_km if isinstance(radius_km, int) and radius_km > 0 else DEFAULT_SEARCH_RADIUS_KM
         center_point = Point(x=lng, y=lat, srid=4326)
-        queryset = (
-            queryset
-            .annotate(distance=Distance("location", center_point))
-            .filter(location__distance_lte=(center_point, D(km=effective_radius)))
-            .order_by("distance", "-created_at")
-        )
+        queryset = queryset.annotate(distance=Distance("location", center_point))
+        if isinstance(radius_km, int) and radius_km > 0:
+            queryset = queryset.filter(location__distance_lte=(center_point, D(km=radius_km)))
+        queryset = queryset.order_by("distance", "-created_at")
 
     return queryset
