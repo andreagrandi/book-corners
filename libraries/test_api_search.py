@@ -283,15 +283,30 @@ class TestLibrarySearchProximity:
         assert len(items) == 1
         assert items[0]["name"] == "Nearby"
 
-    def test_distant_excluded(self, client, make_library):
-        """Verify a library beyond default radius is excluded.
-        Confirms proximity filter rejects distant results."""
+    def test_distant_included_when_no_radius(self, client, make_library):
+        """Verify a far library is returned when no radius_km is given.
+        Without radius_km, lat/lng switch to distance-ordering instead of filtering."""
         make_library(name="Far Away", lat=52.52, lng=13.405)
 
         response = client.get("/api/v1/libraries/?lat=48.8566&lng=2.3522")
 
         assert response.status_code == 200
-        assert len(response.json()["items"]) == 0
+        items = response.json()["items"]
+        assert len(items) == 1
+        assert items[0]["name"] == "Far Away"
+
+    def test_orders_closest_first_when_no_radius(self, client, make_library):
+        """Verify results are ordered by distance when lat/lng given without radius_km.
+        Confirms the closest library appears first regardless of insertion order."""
+        make_library(name="Far Away", lat=52.52, lng=13.405)
+        make_library(name="Medium", lat=48.95, lng=2.35)
+        make_library(name="Close", lat=48.8566, lng=2.3522)
+
+        response = client.get("/api/v1/libraries/?lat=48.8566&lng=2.3522")
+
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert [item["name"] for item in items] == ["Close", "Medium", "Far Away"]
 
     def test_custom_radius(self, client, make_library):
         """Verify custom radius_km expands the search area.
@@ -326,8 +341,8 @@ class TestLibrarySearchProximity:
         assert len(response.json()["items"]) == 2
 
     def test_proximity_with_text_search(self, client, make_library):
-        """Verify proximity combined with text search.
-        Confirms both filters narrow results together."""
+        """Verify proximity ordering combines with text-search filtering.
+        Text filters the set; lat/lng without radius_km orders by distance."""
         make_library(name="Sunshine Corner", lat=48.8566, lng=2.3522)
         make_library(name="Oak Street", lat=48.8570, lng=2.3525)
         make_library(name="Sunshine Far", lat=52.52, lng=13.405)
@@ -336,8 +351,7 @@ class TestLibrarySearchProximity:
 
         assert response.status_code == 200
         items = response.json()["items"]
-        assert len(items) == 1
-        assert items[0]["name"] == "Sunshine Corner"
+        assert [item["name"] for item in items] == ["Sunshine Corner", "Sunshine Far"]
 
 
 @pytest.mark.django_db
