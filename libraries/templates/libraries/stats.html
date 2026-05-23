@@ -28,9 +28,11 @@
 <div class="grid gap-8 lg:grid-cols-2">
   <div class="rounded-box border border-base-300 bg-base-100 p-6">
     <h2 class="mb-4 text-lg font-semibold">{% trans "Top countries" %}</h2>
-    <div class="relative h-80">
-      <canvas id="countries-chart"></canvas>
-      <ul id="countries-labels" class="pointer-events-none absolute inset-0 m-0 list-none p-0"></ul>
+    <div class="flex h-80 gap-3">
+      <ul id="countries-labels" class="m-0 flex min-w-[110px] flex-col justify-around p-0 pr-1 text-right text-xs leading-tight text-base-content/70"></ul>
+      <div class="relative flex-1 min-w-0">
+        <canvas id="countries-chart"></canvas>
+      </div>
     </div>
   </div>
   <div class="rounded-box border border-base-300 bg-base-100 p-6">
@@ -58,30 +60,20 @@
   if (countriesRaw.length > 0) {
     var countriesCtx = document.getElementById("countries-chart").getContext("2d");
     var countriesLabelsEl = document.getElementById("countries-labels");
-    var labelColumnWidth = 140;
 
-    var htmlLabelsPlugin = {
-      id: "htmlCountryLabels",
-      afterDraw: function (chart) {
-        var bars = chart.getDatasetMeta(0).data;
-        countriesLabelsEl.innerHTML = "";
-        bars.forEach(function (bar, i) {
-          var c = countriesRaw[i];
-          var li = document.createElement("li");
-          li.style.position = "absolute";
-          li.style.top = (bar.y - 9) + "px";
-          li.style.left = "0";
-          li.style.width = (labelColumnWidth - 8) + "px";
-          li.style.textAlign = "right";
-          li.style.fontSize = "12px";
-          li.style.lineHeight = "18px";
-          li.style.color = "#666";
-          li.style.whiteSpace = "nowrap";
-          li.style.overflow = "hidden";
-          li.style.textOverflow = "ellipsis";
-          li.textContent = c.flag_emoji + " " + c.country_name;
-          countriesLabelsEl.appendChild(li);
-        });
+    countriesLabelsEl.innerHTML = "";
+    countriesRaw.forEach(function (c) {
+      var li = document.createElement("li");
+      li.textContent = c.flag_emoji + " " + c.country_name;
+      countriesLabelsEl.appendChild(li);
+    });
+
+    var alignLabelsPlugin = {
+      id: "alignLabelsToChartArea",
+      afterLayout: function (chart) {
+        var area = chart.chartArea;
+        countriesLabelsEl.style.paddingTop = area.top + "px";
+        countriesLabelsEl.style.paddingBottom = (chart.height - area.bottom) + "px";
       }
     };
 
@@ -99,7 +91,6 @@
         indexAxis: "y",
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { left: labelColumnWidth } },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -121,7 +112,7 @@
           }
         }
       },
-      plugins: [htmlLabelsPlugin]
+      plugins: [alignLabelsPlugin]
     });
   }
 
