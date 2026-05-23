@@ -37,7 +37,7 @@ class Library(models.Model):
         default="",
     )
     location = PointField(srid=4326)
-    address = models.CharField(max_length=255)
+    address = models.CharField(max_length=255, blank=True, default="")
     city = models.CharField(max_length=100)
     country = models.CharField(max_length=2)
     postal_code = models.CharField(max_length=20, blank=True, default="")
@@ -102,7 +102,9 @@ class Library(models.Model):
         Keeps output clear in logs and admin screens."""
         if self.name:
             return f"{self.name} ({self.city})"
-        return f"{self.address}, {self.city}"
+        if self.address:
+            return f"{self.address}, {self.city}"
+        return self.city
 
     def save(self, *args, **kwargs) -> None:
         """Persist the model instance.

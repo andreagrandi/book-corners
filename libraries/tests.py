@@ -314,6 +314,34 @@ class TestLibraryModel:
 
         assert str(library) == "Via Rosina 15, Florence"
 
+    def test_library_str_without_name_or_address(self, user):
+        """Verify str falls back to city when both name and address are empty.
+        Supports libraries in parks where only coordinates are available."""
+        library = Library.objects.create(
+            photo="libraries/photos/2026/02/test.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            city="Florence",
+            country="IT",
+            created_by=user,
+        )
+
+        assert str(library) == "Florence"
+
+    def test_create_library_without_address_succeeds(self, user):
+        """Verify a library can be created with coordinates and no street address.
+        Mirrors the case of libraries placed inside parks."""
+        library = Library.objects.create(
+            name="Park Bookshelf",
+            photo="libraries/photos/2026/02/test.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            city="Florence",
+            country="IT",
+            created_by=user,
+        )
+
+        assert library.address == ""
+        assert library.slug != ""
+
     def test_slug_truncated_for_long_inputs(self, user):
         """Verify slug truncated for long inputs.
         Confirms the expected behavior stays stable."""
@@ -2468,7 +2496,7 @@ class TestSubmitLibraryView:
 
         country_position = content.find(">Country<")
         city_position = content.find(">City<")
-        address_position = content.find(">Address<")
+        address_position = content.find(">Address (optional)<")
         postal_code_position = content.find(">Postal code (optional)<")
         assert country_position < city_position < address_position < postal_code_position
 
@@ -2503,6 +2531,31 @@ class TestSubmitLibraryView:
         assert library.location.x == pytest.approx(4.9041, abs=1e-6)
         assert library.photo.name
         assert library.photo_thumbnail.name
+
+    def test_submit_without_address_succeeds_when_coordinates_provided(self, client, user):
+        """Verify submission succeeds without an address when coordinates are given.
+        Supports libraries in parks where only coordinates identify the location."""
+        client.force_login(user)
+
+        response = client.post(
+            reverse("submit_library"),
+            data={
+                "photo": _build_uploaded_photo(),
+                "name": "Park Shelf",
+                "description": "Library inside the park.",
+                "address": "",
+                "city": "Amsterdam",
+                "country": "NL",
+                "postal_code": "",
+                "latitude": "52.3676",
+                "longitude": "4.9041",
+            },
+        )
+
+        assert response.status_code == 302
+        assert response.url == reverse("submit_library_confirmation")
+        library = Library.objects.get(name="Park Shelf")
+        assert library.address == ""
 
     def test_submit_upload_resizes_photo_compresses_and_generates_thumbnail(
         self,

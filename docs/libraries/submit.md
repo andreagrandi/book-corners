@@ -14,7 +14,7 @@ Submit a new library location with a photo. The library starts in **pending** st
 |-------|------|----------|-------------|
 | `name` | string | No | Display name (max 255 chars) |
 | `description` | string | No | Free-text description (max 2000 chars) |
-| `address` | string | Yes | Street address (max 255 chars) |
+| `address` | string | Conditional | Street address (max 255 chars). May be empty only when coordinates (`latitude` + `longitude`) are provided — for example, libraries inside parks that have no street address. |
 | `city` | string | Yes | City name (max 100 chars) |
 | `country` | string | Yes | ISO 3166-1 alpha-2 country code (max 2 chars) |
 | `postal_code` | string | No | Postal or ZIP code (max 20 chars) |
