@@ -719,7 +719,8 @@
                     "type": "string"
                   },
                   "address": {
-                    "description": "Street address of the library.",
+                    "default": "",
+                    "description": "Street address of the library. May be empty only when coordinates (latitude and longitude) are provided — e.g. libraries inside a park with no street address.",
                     "examples": [
                       "Friedrichstr. 12"
                     ],
@@ -878,7 +879,6 @@
                   }
                 },
                 "required": [
-                  "address",
                   "city",
                   "country",
                   "latitude",
@@ -2093,7 +2093,7 @@
             "type": "number"
           },
           "address": {
-            "description": "Street address.",
+            "description": "Street address, or empty string when the library has no street address (e.g. inside a park).",
             "examples": [
               "Friedrichstr. 12"
             ],
@@ -2350,7 +2350,8 @@
             "type": "string"
           },
           "address": {
-            "description": "Street address of the library.",
+            "default": "",
+            "description": "Street address of the library. May be empty only when coordinates (latitude and longitude) are provided — e.g. libraries inside a park with no street address.",
             "examples": [
               "Friedrichstr. 12"
             ],
@@ -2504,7 +2505,6 @@
           }
         },
         "required": [
-          "address",
           "city",
           "country",
           "latitude",
