@@ -28,8 +28,9 @@
 <div class="grid gap-8 lg:grid-cols-2">
   <div class="rounded-box border border-base-300 bg-base-100 p-6">
     <h2 class="mb-4 text-lg font-semibold">{% trans "Top countries" %}</h2>
-    <div class="h-80">
+    <div class="relative h-80">
       <canvas id="countries-chart"></canvas>
+      <ul id="countries-labels" class="pointer-events-none absolute inset-0 m-0 list-none p-0"></ul>
     </div>
   </div>
   <div class="rounded-box border border-base-300 bg-base-100 p-6">
@@ -56,6 +57,34 @@
 
   if (countriesRaw.length > 0) {
     var countriesCtx = document.getElementById("countries-chart").getContext("2d");
+    var countriesLabelsEl = document.getElementById("countries-labels");
+    var labelColumnWidth = 140;
+
+    var htmlLabelsPlugin = {
+      id: "htmlCountryLabels",
+      afterDraw: function (chart) {
+        var bars = chart.getDatasetMeta(0).data;
+        countriesLabelsEl.innerHTML = "";
+        bars.forEach(function (bar, i) {
+          var c = countriesRaw[i];
+          var li = document.createElement("li");
+          li.style.position = "absolute";
+          li.style.top = (bar.y - 9) + "px";
+          li.style.left = "0";
+          li.style.width = (labelColumnWidth - 8) + "px";
+          li.style.textAlign = "right";
+          li.style.fontSize = "12px";
+          li.style.lineHeight = "18px";
+          li.style.color = "#666";
+          li.style.whiteSpace = "nowrap";
+          li.style.overflow = "hidden";
+          li.style.textOverflow = "ellipsis";
+          li.textContent = c.flag_emoji + " " + c.country_name;
+          countriesLabelsEl.appendChild(li);
+        });
+      }
+    };
+
     new Chart(countriesCtx, {
       type: "bar",
       data: {
@@ -70,6 +99,7 @@
         indexAxis: "y",
         responsive: true,
         maintainAspectRatio: false,
+        layout: { padding: { left: labelColumnWidth } },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -84,9 +114,14 @@
         },
         scales: {
           x: { beginAtZero: true, ticks: { precision: 0 } },
-          y: { ticks: { padding: 8, autoSkip: false } }
+          y: {
+            ticks: { display: false },
+            grid: { display: false },
+            border: { display: false }
+          }
         }
-      }
+      },
+      plugins: [htmlLabelsPlugin]
     });
   }
 
