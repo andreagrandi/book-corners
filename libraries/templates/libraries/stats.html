@@ -59,7 +59,7 @@
     new Chart(countriesCtx, {
       type: "bar",
       data: {
-        labels: countriesRaw.map(function (c) { return c.flag_emoji + " " + c.country_name; }),
+        labels: countriesRaw.map(function (c) { return c.country_name; }),
         datasets: [{
           data: countriesRaw.map(function (c) { return c.count; }),
           backgroundColor: primaryColor,
@@ -70,10 +70,21 @@
         indexAxis: "y",
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: function (items) {
+                var idx = items[0].dataIndex;
+                var c = countriesRaw[idx];
+                return c.flag_emoji + " " + c.country_name;
+              }
+            }
+          }
+        },
         scales: {
           x: { beginAtZero: true, ticks: { precision: 0 } },
-          y: { ticks: { padding: 8 } }
+          y: { ticks: { padding: 8, autoSkip: false } }
         }
       }
     });
