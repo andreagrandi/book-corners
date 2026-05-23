@@ -53,7 +53,7 @@
         <p class="mt-2 text-base-content/80">{{ library.description|default:"A community little free library." }}</p>
 
         <div class="mt-4 space-y-2 text-sm sm:text-base">
-          <p><span class="font-semibold">{% trans "Address:" %}</span> {{ library.address }}</p>
+          {% if library.address %}<p><span class="font-semibold">{% trans "Address:" %}</span> {{ library.address }}</p>{% endif %}
           <p><span class="font-semibold">{% trans "City:" %}</span> {{ library.city }}</p>
           <p><span class="font-semibold">{% trans "Country:" %}</span> {{ library.country }}</p>
           {% if library.postal_code %}<p><span class="font-semibold">{% trans "Postal code:" %}</span> {{ library.postal_code }}</p>{% endif %}

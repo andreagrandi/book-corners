@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.9.0
+
+- Library submit endpoint (`POST /api/v1/libraries/`): the `address` field is now conditionally optional. It may be empty only when coordinates (`latitude` and `longitude`) are provided, which supports libraries located in places without a classic street address (e.g. inside a park). Coordinates remain mandatory; an empty address with no coordinates is rejected. The `address` field in library response payloads may now be an empty string.
+
 ## v1.8.0
 
 - Favourites: authenticated users can mark (`POST /libraries/{slug}/favourite`) and unmark (`DELETE /libraries/{slug}/favourite`) approved libraries as favourites.

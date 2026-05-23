@@ -33,7 +33,7 @@ class LibraryOut(Schema):
     thumbnail_url: str = Field(description="Thumbnail photo URL, or empty string if unavailable.", examples=["/media/libraries/thumbnails/corner-books.jpg"])
     lat: float = Field(description="Latitude of the library location (WGS 84).", examples=[52.5200])
     lng: float = Field(description="Longitude of the library location (WGS 84).", examples=[13.4050])
-    address: str = Field(description="Street address.", examples=["Friedrichstr. 12"])
+    address: str = Field(description="Street address, or empty string when the library has no street address (e.g. inside a park).", examples=["Friedrichstr. 12"])
     city: str = Field(description="City name.", examples=["Berlin"])
     country: str = Field(description="ISO 3166-1 alpha-2 country code.", examples=["DE"])
     postal_code: str = Field(description="Postal or ZIP code.", examples=["10117"])
@@ -143,7 +143,7 @@ class LibrarySubmitIn(Schema):
 
     name: str = Field(default="", max_length=255, description="Display name of the library.", examples=["Corner Books"])
     description: str = Field(default="", max_length=2000, description="Free-text description of the library.", examples=["A cozy little free library near the park entrance."])
-    address: str = Field(max_length=255, description="Street address of the library.", examples=["Friedrichstr. 12"])
+    address: str = Field(default="", max_length=255, description="Street address of the library. May be empty only when coordinates (latitude and longitude) are provided — e.g. libraries inside a park with no street address.", examples=["Friedrichstr. 12"])
     city: str = Field(max_length=100, description="City where the library is located.", examples=["Berlin"])
     country: str = Field(max_length=2, description="ISO 3166-1 alpha-2 country code.", examples=["DE"])
     postal_code: str = Field(default="", max_length=20, description="Postal or ZIP code.", examples=["10117"])

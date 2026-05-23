@@ -219,7 +219,23 @@ class TestSubmitLibraryEndpoint:
 
     def test_missing_required_field_returns_422(self, client, user_jwt, tmp_path, settings):
         """Verify omitting a required field returns 422.
-        Address is mandatory and schema validation enforces it."""
+        City is mandatory and schema validation enforces it."""
+        settings.MEDIA_ROOT = tmp_path
+        photo = _build_uploaded_photo()
+        payload = _submit_payload()
+        del payload["city"]
+
+        response = client.post(
+            "/api/v1/libraries/",
+            data={**payload, "photo": photo},
+            HTTP_AUTHORIZATION=f"Bearer {user_jwt}",
+        )
+
+        assert response.status_code == 422
+
+    def test_address_omitted_succeeds(self, client, user_jwt, tmp_path, settings):
+        """Verify a submission without an address is accepted.
+        Libraries inside parks may only have coordinates, not a street address."""
         settings.MEDIA_ROOT = tmp_path
         photo = _build_uploaded_photo()
         payload = _submit_payload()
@@ -231,7 +247,27 @@ class TestSubmitLibraryEndpoint:
             HTTP_AUTHORIZATION=f"Bearer {user_jwt}",
         )
 
-        assert response.status_code == 422
+        assert response.status_code == 201
+        body = response.json()
+        assert body["address"] == ""
+        library = Library.objects.get(id=body["id"])
+        assert library.address == ""
+
+    def test_address_empty_string_succeeds(self, client, user_jwt, tmp_path, settings):
+        """Verify a submission with an explicitly empty address is accepted.
+        Clients may send address="" to signal no street address is available."""
+        settings.MEDIA_ROOT = tmp_path
+        photo = _build_uploaded_photo()
+
+        response = client.post(
+            "/api/v1/libraries/",
+            data={**_submit_payload(address=""), "photo": photo},
+            HTTP_AUTHORIZATION=f"Bearer {user_jwt}",
+        )
+
+        assert response.status_code == 201
+        body = response.json()
+        assert body["address"] == ""
 
     def test_optional_fields_have_defaults(self, client, user_jwt, tmp_path, settings):
         """Verify submission succeeds with only required fields.

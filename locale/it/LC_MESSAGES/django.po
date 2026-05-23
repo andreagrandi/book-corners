@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Book Corners 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-05 14:36+0000\n"
+"POT-Creation-Date: 2026-05-23 09:43+0000\n"
 "PO-Revision-Date: 2026-02-28 15:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Italian\n"
@@ -88,32 +88,36 @@ msgstr "La latitudine deve essere compresa tra -90 e 90."
 msgid "Longitude must be between -180 and 180."
 msgstr "La longitudine deve essere compresa tra -180 e 180."
 
-#: libraries/forms.py:248
+#: libraries/forms.py:174
+msgid "Address is required when coordinates are not provided."
+msgstr "L'indirizzo è obbligatorio quando le coordinate non vengono fornite."
+
+#: libraries/forms.py:266
 msgid "Keywords in name or description"
 msgstr "Parole chiave nel nome o nella descrizione"
 
-#: libraries/forms.py:254
+#: libraries/forms.py:272
 msgid "City, area, postcode, or address"
 msgstr "Città, zona, CAP o indirizzo"
 
-#: libraries/forms.py:268
+#: libraries/forms.py:286
 msgid "Filter by city"
 msgstr "Filtra per città"
 
-#: libraries/forms.py:279
+#: libraries/forms.py:297
 msgid "Filter by postal code"
 msgstr "Filtra per CAP"
 
-#: libraries/forms.py:318
+#: libraries/forms.py:336
 msgid "Optional caption for your photo"
 msgstr "Didascalia opzionale per la tua foto"
 
-#: libraries/forms.py:344
+#: libraries/forms.py:362
 #, python-format
 msgid "You can submit at most %(max)s photos per library."
 msgstr "Puoi inviare al massimo %(max)s foto per libreria."
 
-#: libraries/models.py:21 libraries/models.py:292
+#: libraries/models.py:21 libraries/models.py:294
 #: manage/templates/manage/libraries/import.html:49
 #: manage/templates/manage/photos/list.html:29
 #: templates/admin/libraries/geojson_import_form.html:37
@@ -121,7 +125,7 @@ msgstr "Puoi inviare al massimo %(max)s foto per libreria."
 msgid "Pending"
 msgstr "In attesa"
 
-#: libraries/models.py:22 libraries/models.py:293
+#: libraries/models.py:22 libraries/models.py:295
 #: manage/templates/manage/libraries/import.html:48
 #: manage/templates/manage/photos/list.html:30
 #: templates/admin/libraries/geojson_import_form.html:36
@@ -129,21 +133,21 @@ msgstr "In attesa"
 msgid "Approved"
 msgstr "Approvato"
 
-#: libraries/models.py:23 libraries/models.py:294
+#: libraries/models.py:23 libraries/models.py:296
 #: manage/templates/manage/photos/list.html:31
 #: templates/admin/libraries/photo_grid.html:147
 msgid "Rejected"
 msgstr "Rifiutato"
 
-#: libraries/models.py:26 libraries/templates/libraries/library_detail.html:57
-#: libraries/templates/libraries/library_detail.html:58
+#: libraries/models.py:26 libraries/templates/libraries/library_detail.html:62
+#: libraries/templates/libraries/library_detail.html:63
 #: manage/templates/manage/libraries/detail.html:119
 #: manage/templates/manage/libraries/detail.html:123
 msgid "Yes"
 msgstr "Sì"
 
-#: libraries/models.py:27 libraries/templates/libraries/library_detail.html:57
-#: libraries/templates/libraries/library_detail.html:58
+#: libraries/models.py:27 libraries/templates/libraries/library_detail.html:62
+#: libraries/templates/libraries/library_detail.html:63
 #: manage/templates/manage/libraries/detail.html:119
 #: manage/templates/manage/libraries/detail.html:123
 msgid "No"
@@ -157,35 +161,35 @@ msgstr "Limitato"
 msgid "Rejection reason"
 msgstr "Motivo del rifiuto"
 
-#: libraries/models.py:238
+#: libraries/models.py:240
 msgid "Damaged"
 msgstr "Danneggiato"
 
-#: libraries/models.py:239
+#: libraries/models.py:241
 msgid "Missing"
 msgstr "Mancante"
 
-#: libraries/models.py:240
+#: libraries/models.py:242
 msgid "Incorrect Info"
 msgstr "Informazioni errate"
 
-#: libraries/models.py:241
+#: libraries/models.py:243
 msgid "Inappropriate"
 msgstr "Inappropriato"
 
-#: libraries/models.py:242
+#: libraries/models.py:244
 msgid "Other"
 msgstr "Altro"
 
-#: libraries/models.py:245
+#: libraries/models.py:247
 msgid "Open"
 msgstr "Aperto"
 
-#: libraries/models.py:246
+#: libraries/models.py:248
 msgid "Resolved"
 msgstr "Risolto"
 
-#: libraries/models.py:247
+#: libraries/models.py:249
 msgid "Dismissed"
 msgstr "Archiviato"
 
@@ -459,91 +463,91 @@ msgstr "Condividi il tuo primo punto di scambio libri per iniziare la cronologia
 msgid "Submit a library"
 msgstr "Invia una libreria"
 
-#: libraries/templates/libraries/library_detail.html:51
+#: libraries/templates/libraries/library_detail.html:56
 msgid "Address:"
 msgstr "Indirizzo:"
 
-#: libraries/templates/libraries/library_detail.html:52
+#: libraries/templates/libraries/library_detail.html:57
 #: templates/admin/libraries/find_duplicates.html:55
 msgid "City:"
 msgstr "Città:"
 
-#: libraries/templates/libraries/library_detail.html:53
+#: libraries/templates/libraries/library_detail.html:58
 #: templates/admin/libraries/find_duplicates.html:57
 msgid "Country:"
 msgstr "Paese:"
 
-#: libraries/templates/libraries/library_detail.html:54
+#: libraries/templates/libraries/library_detail.html:59
 msgid "Postal code:"
 msgstr "CAP:"
 
-#: libraries/templates/libraries/library_detail.html:55
+#: libraries/templates/libraries/library_detail.html:60
 msgid "Wheelchair accessible:"
 msgstr "Accessibile in sedia a rotelle:"
 
-#: libraries/templates/libraries/library_detail.html:56
+#: libraries/templates/libraries/library_detail.html:61
 msgid "Capacity:"
 msgstr "Capacità:"
 
-#: libraries/templates/libraries/library_detail.html:56
+#: libraries/templates/libraries/library_detail.html:61
 msgid "books"
 msgstr "libri"
 
-#: libraries/templates/libraries/library_detail.html:57
+#: libraries/templates/libraries/library_detail.html:62
 msgid "Indoor:"
 msgstr "Al chiuso:"
 
-#: libraries/templates/libraries/library_detail.html:58
+#: libraries/templates/libraries/library_detail.html:63
 msgid "Lit at night:"
 msgstr "Illuminata di notte:"
 
-#: libraries/templates/libraries/library_detail.html:59
+#: libraries/templates/libraries/library_detail.html:64
 msgid "Website:"
 msgstr "Sito web:"
 
-#: libraries/templates/libraries/library_detail.html:60
+#: libraries/templates/libraries/library_detail.html:65
 msgid "Contact:"
 msgstr "Contatto:"
 
-#: libraries/templates/libraries/library_detail.html:61
+#: libraries/templates/libraries/library_detail.html:66
 msgid "Operator:"
 msgstr "Gestore:"
 
-#: libraries/templates/libraries/library_detail.html:62
+#: libraries/templates/libraries/library_detail.html:67
 msgid "Brand:"
 msgstr "Marchio:"
 
-#: libraries/templates/libraries/library_detail.html:63
+#: libraries/templates/libraries/library_detail.html:68
 #: templates/admin/libraries/geojson_import_form.html:28
 msgid "Source:"
 msgstr "Fonte:"
 
-#: libraries/templates/libraries/library_detail.html:64
+#: libraries/templates/libraries/library_detail.html:69
 msgid "Submitted by:"
 msgstr "Inviata da:"
 
-#: libraries/templates/libraries/library_detail.html:80
+#: libraries/templates/libraries/library_detail.html:82
 msgid "Add a photo"
 msgstr "Aggiungi una foto"
 
-#: libraries/templates/libraries/library_detail.html:90
+#: libraries/templates/libraries/library_detail.html:92
 msgid "Report an issue"
 msgstr "Segnala un problema"
 
-#: libraries/templates/libraries/library_detail.html:97
+#: libraries/templates/libraries/library_detail.html:99
 msgid "Location map"
 msgstr "Mappa della posizione"
 
-#: libraries/templates/libraries/library_detail.html:117
+#: libraries/templates/libraries/library_detail.html:119
 msgid "Add a photo of this library"
 msgstr "Aggiungi una foto di questa libreria"
 
-#: libraries/templates/libraries/library_detail.html:128
+#: libraries/templates/libraries/library_detail.html:130
 msgid "Report an issue with this library"
 msgstr "Segnala un problema con questa libreria"
 
-#: libraries/templates/libraries/map.html:4 templates/base.html:32
-#: templates/base.html:69
+#: libraries/templates/libraries/map.html:4 templates/base.html:33
+#: templates/base.html:70
 msgid "Map"
 msgstr "Mappa"
 
@@ -667,8 +671,8 @@ msgstr "Cerca per parole chiave, per luogo con un raggio, o restringi i risultat
 
 #: libraries/templates/libraries/stats.html:4
 #: libraries/templates/libraries/stats.html:6
-#: libraries/templates/libraries/stats.html:11 templates/base.html:34
-#: templates/base.html:71
+#: libraries/templates/libraries/stats.html:11 templates/base.html:35
+#: templates/base.html:72
 msgid "Statistics"
 msgstr "Statistiche"
 
@@ -741,11 +745,8 @@ msgid "City"
 msgstr "Città"
 
 #: libraries/templates/libraries/submit_library.html:101
-#: manage/templates/manage/libraries/detail.html:75
-#: manage/templates/manage/libraries/duplicates.html:67
-#: templates/admin/libraries/find_duplicates.html:89
-msgid "Address"
-msgstr "Indirizzo"
+msgid "Address (optional)"
+msgstr "Indirizzo (opzionale)"
 
 #: libraries/templates/libraries/submit_library.html:111
 msgid "Postal code (optional)"
@@ -859,8 +860,8 @@ msgstr "Apri menu amministrazione"
 #: manage/templates/manage/photos/list.html:4
 #: manage/templates/manage/reports/list.html:4
 #: manage/templates/manage/users/detail.html:4
-#: manage/templates/manage/users/list.html:4 templates/base.html:37
-#: templates/base.html:74
+#: manage/templates/manage/users/list.html:4 templates/base.html:38
+#: templates/base.html:75
 msgid "Manage"
 msgstr "Gestione"
 
@@ -1043,7 +1044,7 @@ msgstr "Applica"
 #: manage/templates/manage/reports/list.html:26
 #: manage/templates/manage/users/detail.html:75
 #: manage/templates/manage/users/detail.html:113
-#: templates/admin/libraries/find_duplicates.html:92 templates/base.html:149
+#: templates/admin/libraries/find_duplicates.html:92 templates/base.html:150
 msgid "Status"
 msgstr "Stato"
 
@@ -1109,6 +1110,12 @@ msgstr "Nessuna foto"
 #: manage/templates/manage/users/detail.html:60
 msgid "Edit in Django Admin"
 msgstr "Modifica in Django Admin"
+
+#: manage/templates/manage/libraries/detail.html:75
+#: manage/templates/manage/libraries/duplicates.html:67
+#: templates/admin/libraries/find_duplicates.html:89
+msgid "Address"
+msgstr "Indirizzo"
 
 #: manage/templates/manage/libraries/detail.html:87
 msgid "Postal code"
@@ -1382,7 +1389,7 @@ msgstr "Account"
 msgid "Last login"
 msgstr "Ultimo accesso"
 
-#: manage/templates/manage/users/detail.html:55 templates/base.html:178
+#: manage/templates/manage/users/detail.html:55 templates/base.html:179
 msgid "Language"
 msgstr "Lingua"
 
@@ -1494,7 +1501,7 @@ msgstr "Qualcosa è andato storto"
 msgid "Sorry, an unexpected error occurred on our side. Please try again in a moment."
 msgstr "Ci scusiamo, si è verificato un errore imprevisto. Riprova tra un momento."
 
-#: templates/about.html:4 templates/base.html:31 templates/base.html:68
+#: templates/about.html:4 templates/base.html:32 templates/base.html:69
 msgid "About"
 msgstr "Chi siamo"
 
@@ -1634,8 +1641,8 @@ msgstr ""
 #: templates/admin/libraries/find_duplicates.html:45
 #: templates/admin/libraries/geojson_import_form.html:8
 #: templates/admin/libraries/geojson_import_result.html:8
-#: templates/admin/libraries/photo_grid.html:123 templates/base.html:30
-#: templates/base.html:67 templates/home.html:4
+#: templates/admin/libraries/photo_grid.html:123 templates/base.html:31
+#: templates/base.html:68 templates/home.html:4
 msgid "Home"
 msgstr "Home"
 
@@ -1761,61 +1768,61 @@ msgstr "Tipo:"
 msgid "No photos found matching the selected filters."
 msgstr "Nessuna foto trovata con i filtri selezionati."
 
-#: templates/base.html:7 templates/base.html:11 templates/base.html:112
+#: templates/base.html:7 templates/base.html:11 templates/base.html:113
 msgid "Community map of neighborhood book exchange spots."
 msgstr "Mappa comunitaria dei punti di scambio libri di quartiere."
 
-#: templates/base.html:24
+#: templates/base.html:25
 msgid "Open navigation menu"
 msgstr "Apri menu di navigazione"
 
-#: templates/base.html:33 templates/base.html:70
+#: templates/base.html:34 templates/base.html:71
 msgid "Submit"
 msgstr "Invia"
 
-#: templates/base.html:43 templates/base.html:80
+#: templates/base.html:44 templates/base.html:81
 msgid "Logout"
 msgstr "Esci"
 
-#: templates/base.html:47 templates/base.html:84
+#: templates/base.html:48 templates/base.html:85
 #: users/templates/users/login.html:4
 msgid "Login"
 msgstr "Accedi"
 
-#: templates/base.html:48 templates/base.html:85
+#: templates/base.html:49 templates/base.html:86
 #: users/templates/users/register.html:4
 msgid "Register"
 msgstr "Registrati"
 
-#: templates/base.html:113
+#: templates/base.html:114
 msgid "Made with ❤️ by <a href=\"https://www.andreagrandi.it\" class=\"link link-hover\" target=\"_blank\" rel=\"noopener noreferrer\">Andrea Grandi</a>"
 msgstr "Fatto con ❤️ da <a href=\"https://www.andreagrandi.it\" class=\"link link-hover\" target=\"_blank\" rel=\"noopener noreferrer\">Andrea Grandi</a>"
 
-#: templates/base.html:120
+#: templates/base.html:121
 msgid "Socials"
 msgstr "Social"
 
-#: templates/base.html:146
+#: templates/base.html:147
 msgid "Resources"
 msgstr "Risorse"
 
-#: templates/base.html:148
+#: templates/base.html:149
 msgid "Developers API"
 msgstr "API per sviluppatori"
 
-#: templates/base.html:157
+#: templates/base.html:158
 msgid "Legal"
 msgstr "Legale"
 
-#: templates/base.html:159
+#: templates/base.html:160
 msgid "Privacy"
 msgstr "Privacy"
 
-#: templates/base.html:166
+#: templates/base.html:167
 msgid "App"
 msgstr "App"
 
-#: templates/base.html:169
+#: templates/base.html:170
 msgid "Download on the App Store"
 msgstr "Scarica dall'App Store"
 

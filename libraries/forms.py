@@ -158,6 +158,24 @@ class LibrarySubmissionForm(forms.ModelForm):
             max_size_bytes=settings.MAX_LIBRARY_PHOTO_UPLOAD_BYTES,
         )
 
+    def clean(self) -> dict[str, Any]:
+        """Enforce that an empty address is only allowed when coordinates are present.
+        Libraries inside parks may rely on coordinates only, but must not be address-less and coordinate-less."""
+        cleaned_data = super().clean() or {}
+
+        address = (cleaned_data.get("address") or "").strip()
+        latitude = cleaned_data.get("latitude")
+        longitude = cleaned_data.get("longitude")
+        has_coordinates = latitude is not None and longitude is not None
+
+        if not address and not has_coordinates:
+            self.add_error(
+                "address",
+                _("Address is required when coordinates are not provided."),
+            )
+
+        return cleaned_data
+
     def save(self, commit: bool = True) -> Library:
         """Persist the model instance.
         Applies model-specific rules before writing data."""
