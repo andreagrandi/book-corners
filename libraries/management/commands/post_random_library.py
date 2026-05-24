@@ -115,7 +115,9 @@ class Command(BaseCommand):
         # Access the photo from storage (needed for both AI analysis and posting)
         image_path = get_library_photo_path(library)
 
-        # AI image analysis (best-effort, never blocks posting)
+        # AI image analysis (best-effort, never blocks posting).
+        # Returns alt_text, hashtags, and an english_caption used as the post
+        # body so non-English library descriptions never leak into social posts.
         ai_result = None
         if getattr(settings, "OPENROUTER_API_KEY", "") and image_path:
             from libraries.social.image_ai import analyze_library_image
@@ -124,33 +126,23 @@ class Command(BaseCommand):
 
         alt_text = ai_result["alt_text"] if ai_result else None
         ai_hashtags = ai_result["hashtags"] if ai_result else []
-
-        # Posts must always be in English regardless of the library's country.
-        # When OpenRouter is configured, translate the source text to English
-        # before composing posts (best-effort: falls back to the original on
-        # missing key or transient API failure).
-        english_description: str | None = None
-        if getattr(settings, "OPENROUTER_API_KEY", ""):
-            from libraries.social.image_ai import translate_to_english
-
-            source_text = library.description or library.name or library.address
-            english_description = translate_to_english(source_text)
-            if english_description is None:
-                logger.warning(
-                    "English translation unavailable for library %s; "
-                    "posting with original description",
-                    library.pk,
-                )
+        english_caption = ai_result.get("english_caption") if ai_result else None
+        if ai_result is not None and not english_caption:
+            logger.warning(
+                "AI returned no english_caption for library %s; "
+                "posting with original description",
+                library.pk,
+            )
 
         post_text = build_post_text(
             library, detail_url, extra_hashtags=ai_hashtags or None,
-            description_override=english_description,
+            description_override=english_caption,
         )
         instagram_text = build_post_text(
             library, detail_url, max_length=2200,
             extra_hashtags=ai_hashtags or None, max_hashtags=5,
             photo_description=alt_text,
-            description_override=english_description,
+            description_override=english_caption,
         )
         hashtag_comment = build_hashtag_comment(
             library, extra_hashtags=ai_hashtags or None,
@@ -172,10 +164,10 @@ class Command(BaseCommand):
                 self.stdout.write(f"\nAI alt text: {alt_text}")
                 filtered = [t for t in ai_hashtags if not _is_forbidden(t)]
                 self.stdout.write(f"AI hashtags: {filtered}")
+                if english_caption:
+                    self.stdout.write(f"AI English caption: {english_caption}")
             else:
                 self.stdout.write("\nAI analysis: skipped (no API key or failed)")
-            if english_description is not None:
-                self.stdout.write(f"\nEnglish description: {english_description}")
             return
 
         if not image_path:
@@ -209,7 +201,7 @@ class Command(BaseCommand):
                     lambda: self._post_to_bluesky(
                         library, post_text, image_path,
                         alt_text=alt_text, extra_hashtags=ai_hashtags or None,
-                        description_override=english_description,
+                        description_override=english_caption,
                     ),
                 )
                 logger.info("Posted to Bluesky: %s", bluesky_url)

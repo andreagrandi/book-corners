@@ -15,11 +15,7 @@ from PIL import Image
 
 from libraries.models import InstagramToken, Library, SocialPost
 from libraries.notifications import notify_social_post, notify_social_post_error
-from libraries.social.image_ai import (
-    _parse_response,
-    analyze_library_image,
-    translate_to_english,
-)
+from libraries.social.image_ai import _parse_response, analyze_library_image
 from libraries.social.text import (
     build_bluesky_text,
     build_hashtag_comment,
@@ -954,25 +950,43 @@ class TestParseResponse:
     def test_valid_json(self):
         """Verify valid JSON with expected keys is parsed correctly.
         The happy path for AI responses."""
-        result = _parse_response('{"alt_text": "A wooden library box", "hashtags": ["wooden", "cozy"]}')
-        assert result == {"alt_text": "A wooden library box", "hashtags": ["wooden", "cozy"]}
+        result = _parse_response(
+            '{"alt_text": "A wooden library box", "hashtags": ["wooden", "cozy"], '
+            '"english_caption": "Cozy wooden book box."}'
+        )
+        assert result == {
+            "alt_text": "A wooden library box",
+            "hashtags": ["wooden", "cozy"],
+            "english_caption": "Cozy wooden book box.",
+        }
 
     def test_json_with_code_fences(self):
         """Verify JSON wrapped in markdown code fences is handled.
         Some models wrap output in triple backticks."""
-        result = _parse_response('```json\n{"alt_text": "A library", "hashtags": ["books"]}\n```')
-        assert result == {"alt_text": "A library", "hashtags": ["books"]}
+        result = _parse_response(
+            '```json\n{"alt_text": "A library", "hashtags": ["books"], '
+            '"english_caption": "A community book exchange."}\n```'
+        )
+        assert result == {
+            "alt_text": "A library",
+            "hashtags": ["books"],
+            "english_caption": "A community book exchange.",
+        }
 
     def test_strips_hash_prefix_from_hashtags(self):
         """Verify hashtags with # prefix get cleaned.
         Normalizes inconsistent model output."""
-        result = _parse_response('{"alt_text": "test", "hashtags": ["#wooden", "cozy"]}')
+        result = _parse_response(
+            '{"alt_text": "test", "hashtags": ["#wooden", "cozy"], "english_caption": "c"}'
+        )
         assert result["hashtags"] == ["wooden", "cozy"]
 
     def test_lowercases_hashtags(self):
         """Verify hashtags are lowercased.
         Ensures consistent hashtag formatting."""
-        result = _parse_response('{"alt_text": "test", "hashtags": ["Wooden", "COZY"]}')
+        result = _parse_response(
+            '{"alt_text": "test", "hashtags": ["Wooden", "COZY"], "english_caption": "c"}'
+        )
         assert result["hashtags"] == ["wooden", "cozy"]
 
     def test_invalid_json_returns_none(self):
@@ -984,12 +998,21 @@ class TestParseResponse:
         """Verify missing keys result in empty defaults.
         Handles partial model responses."""
         result = _parse_response('{"other": "value"}')
-        assert result == {"alt_text": "", "hashtags": []}
+        assert result == {"alt_text": "", "hashtags": [], "english_caption": ""}
 
     def test_wrong_types_returns_none(self):
         """Verify wrong value types return None.
         Catches type mismatches from models."""
-        assert _parse_response('{"alt_text": 123, "hashtags": "not a list"}') is None
+        assert _parse_response(
+            '{"alt_text": 123, "hashtags": "not a list", "english_caption": "c"}'
+        ) is None
+
+    def test_wrong_english_caption_type_returns_none(self):
+        """Verify a non-string english_caption returns None.
+        Catches type mismatches from models."""
+        assert _parse_response(
+            '{"alt_text": "test", "hashtags": ["a"], "english_caption": 123}'
+        ) is None
 
 
 @pytest.mark.django_db
@@ -1010,7 +1033,7 @@ class TestAnalyzeLibraryImage:
     )
     @patch("openai.OpenAI")
     def test_successful_analysis(self, mock_openai_class, approved_library, tmp_path):
-        """Verify successful AI analysis returns alt_text and hashtags.
+        """Verify successful AI analysis returns alt_text, hashtags, and english_caption.
         Tests the full flow with a mocked OpenAI client."""
         image_file = tmp_path / "test.jpg"
         image_file.write_bytes(b"fake image data")
@@ -1020,13 +1043,20 @@ class TestAnalyzeLibraryImage:
         mock_response.choices = [
             type("Choice", (), {
                 "message": type("Message", (), {
-                    "content": '{"alt_text": "A cozy book nook", "hashtags": ["cozy", "reading"]}'
+                    "content": (
+                        '{"alt_text": "A cozy book nook", "hashtags": ["cozy", "reading"], '
+                        '"english_caption": "A cozy spot for book swaps."}'
+                    )
                 })()
             })()
         ]
 
         result = analyze_library_image(image_file, approved_library)
-        assert result == {"alt_text": "A cozy book nook", "hashtags": ["cozy", "reading"]}
+        assert result == {
+            "alt_text": "A cozy book nook",
+            "hashtags": ["cozy", "reading"],
+            "english_caption": "A cozy spot for book swaps.",
+        }
         mock_openai_class.assert_called_once_with(
             api_key="test-key",
             base_url="https://openrouter.ai/api/v1",
@@ -1052,76 +1082,6 @@ class TestAnalyzeLibraryImage:
 # --- English-only post tests ---
 
 
-@pytest.mark.django_db
-class TestTranslateToEnglish:
-    """Tests for the translate_to_english helper."""
-
-    @override_settings(OPENROUTER_API_KEY="")
-    def test_skips_when_no_api_key(self):
-        """Verify translation returns None without an API key.
-        Preserves current behaviour for users without OpenRouter."""
-        assert translate_to_english("Sous l'auvent de l'école.") is None
-
-    @override_settings(OPENROUTER_API_KEY="test-key")
-    def test_skips_empty_text(self):
-        """Verify empty or whitespace-only text returns None.
-        Avoids unnecessary API calls."""
-        assert translate_to_english("") is None
-        assert translate_to_english("   ") is None
-
-    @override_settings(
-        OPENROUTER_API_KEY="test-key",
-        OPENROUTER_MODEL="test/model",
-    )
-    @patch("openai.OpenAI")
-    def test_returns_translated_text(self, mock_openai_class):
-        """Verify a successful call returns the English translation.
-        The translated text replaces the original library description."""
-        mock_client = mock_openai_class.return_value
-        mock_response = mock_client.chat.completions.create.return_value
-        mock_response.choices = [
-            type("Choice", (), {
-                "message": type("Message", (), {
-                    "content": "Under the school awning. Public access outside school hours."
-                })()
-            })()
-        ]
-
-        result = translate_to_english("Sous l'auvent de l'école. Accès public hors des horaires scolaires.")
-        assert result == "Under the school awning. Public access outside school hours."
-
-    @override_settings(
-        OPENROUTER_API_KEY="test-key",
-        OPENROUTER_MODEL="test/model",
-    )
-    @patch("openai.OpenAI")
-    def test_returns_none_on_api_error(self, mock_openai_class):
-        """Verify API failures return None gracefully.
-        Lets the caller fall back to the original description."""
-        mock_client = mock_openai_class.return_value
-        mock_client.chat.completions.create.side_effect = Exception("API down")
-
-        assert translate_to_english("Bonjour") is None
-
-    @override_settings(
-        OPENROUTER_API_KEY="test-key",
-        OPENROUTER_MODEL="test/model",
-    )
-    @patch("openai.OpenAI")
-    def test_returns_none_on_empty_response(self, mock_openai_class):
-        """Verify a blank model response returns None.
-        Guards against degenerate outputs that would leak through."""
-        mock_client = mock_openai_class.return_value
-        mock_response = mock_client.chat.completions.create.return_value
-        mock_response.choices = [
-            type("Choice", (), {
-                "message": type("Message", (), {"content": "  "})()
-            })()
-        ]
-
-        assert translate_to_english("Bonjour") is None
-
-
 class TestAIPromptsEnglishOnly:
     """Verify AI prompts explicitly require English output."""
 
@@ -1131,10 +1091,11 @@ class TestAIPromptsEnglishOnly:
         from libraries.social import image_ai
 
         source = Path(image_ai.__file__).read_text()
-        # Find the alt-text prompt and ensure it asks for English
-        assert "alt_text" in source
         assert "Write the alt text in English" in source
         assert "Write all hashtags in English" in source
+        # The english_caption key is what the post body uses
+        assert "english_caption" in source
+        assert "Always English, never any other language." in source
 
     def test_enrich_library_from_image_prompt_requires_english(self):
         """Verify the enrichment prompt for name/description requires English.
@@ -1147,8 +1108,8 @@ class TestAIPromptsEnglishOnly:
 
 
 @pytest.mark.django_db
-class TestEnglishDescriptionInCommand:
-    """Tests that post_random_library uses an English description in posts."""
+class TestEnglishCaptionInCommand:
+    """Tests that post_random_library uses the AI english_caption in posts."""
 
     @override_settings(
         MASTODON_INSTANCE_URL="https://mastodon.test",
@@ -1162,29 +1123,26 @@ class TestEnglishDescriptionInCommand:
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
         ADMIN_NOTIFICATION_EMAIL="admin@test.com",
     )
-    @patch("libraries.social.image_ai.translate_to_english")
     @patch("libraries.social.image_ai.analyze_library_image")
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
     @patch("libraries.management.commands.post_random_library.get_library_photo_path")
-    def test_mastodon_post_uses_translated_description(
-        self, mock_photo, mock_mastodon, mock_ai, mock_translate, approved_library,
+    def test_mastodon_post_uses_english_caption(
+        self, mock_photo, mock_mastodon, mock_ai, approved_library,
     ):
-        """Verify the Mastodon post text uses the English translation, not the original.
+        """Verify the Mastodon post text uses the AI english_caption, not the original.
         Prevents non-English library descriptions from leaking into social posts."""
         approved_library.description = "Sous l'auvent de l'école. Accès public hors des horaires scolaires."
         approved_library.save()
 
         mock_photo.return_value = Path("/tmp/test.jpg")
-        mock_ai.return_value = None
-        mock_translate.return_value = "Under the school awning. Public access outside school hours."
+        mock_ai.return_value = {
+            "alt_text": "A wooden box under an awning",
+            "hashtags": ["cozy"],
+            "english_caption": "Under the school awning. Public access outside school hours.",
+        }
         mock_mastodon.return_value = "https://mastodon.test/@user/123"
 
         call_command("post_random_library")
-
-        mock_translate.assert_called_once()
-        # Verify the original French source was passed in for translation
-        translated_input = mock_translate.call_args.args[0]
-        assert "auvent" in translated_input
 
         mastodon_text = mock_mastodon.call_args.args[1]
         assert "Under the school awning" in mastodon_text
@@ -1202,21 +1160,23 @@ class TestEnglishDescriptionInCommand:
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
         ADMIN_NOTIFICATION_EMAIL="admin@test.com",
     )
-    @patch("libraries.social.image_ai.translate_to_english")
     @patch("libraries.social.image_ai.analyze_library_image")
     @patch("libraries.management.commands.post_random_library.Command._post_to_bluesky")
     @patch("libraries.management.commands.post_random_library.get_library_photo_path")
-    def test_bluesky_receives_translated_description(
-        self, mock_photo, mock_bluesky, mock_ai, mock_translate, approved_library,
+    def test_bluesky_receives_english_caption(
+        self, mock_photo, mock_bluesky, mock_ai, approved_library,
     ):
-        """Verify Bluesky receives the English description via description_override.
+        """Verify Bluesky receives the English caption via description_override.
         Bluesky rebuilds rich text from the library, so the override is required."""
         approved_library.description = "Casetta dei libri all'angolo della strada."
         approved_library.save()
 
         mock_photo.return_value = Path("/tmp/test.jpg")
-        mock_ai.return_value = None
-        mock_translate.return_value = "Little book house on the street corner."
+        mock_ai.return_value = {
+            "alt_text": "A little wooden book house",
+            "hashtags": ["wooden"],
+            "english_caption": "Little book house on the street corner.",
+        }
         mock_bluesky.return_value = "https://bsky.app/profile/test/post/abc"
 
         call_command("post_random_library")
@@ -1237,26 +1197,23 @@ class TestEnglishDescriptionInCommand:
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
         ADMIN_NOTIFICATION_EMAIL="admin@test.com",
     )
-    @patch("libraries.social.image_ai.translate_to_english")
     @patch("libraries.social.image_ai.analyze_library_image")
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
     @patch("libraries.management.commands.post_random_library.get_library_photo_path")
-    def test_translation_failure_falls_back_to_original(
-        self, mock_photo, mock_mastodon, mock_ai, mock_translate, approved_library,
+    def test_ai_failure_falls_back_to_original(
+        self, mock_photo, mock_mastodon, mock_ai, approved_library,
     ):
-        """Verify posting still proceeds when translation returns None.
-        Best-effort: never block a post just because the translator is unavailable."""
+        """Verify posting still proceeds when the AI call returns None.
+        Best-effort: never block a post just because the model is unavailable."""
         mock_photo.return_value = Path("/tmp/test.jpg")
         mock_ai.return_value = None
-        mock_translate.return_value = None
         mock_mastodon.return_value = "https://mastodon.test/@user/123"
 
         call_command("post_random_library")
 
-        mock_translate.assert_called_once()
         mock_mastodon.assert_called_once()
         mastodon_text = mock_mastodon.call_args.args[1]
-        # Falls back to the library's original English description
+        # Falls back to the library's original (English in this fixture) description
         assert "A lovely community library" in mastodon_text
 
     @override_settings(
@@ -1266,26 +1223,31 @@ class TestEnglishDescriptionInCommand:
         BLUESKY_APP_PASSWORD="",
         INSTAGRAM_USER_ID="",
         INSTAGRAM_ACCESS_TOKEN="",
-        OPENROUTER_API_KEY="",
+        OPENROUTER_API_KEY="test-key",
         SITE_URL="https://bookcorners.org",
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
         ADMIN_NOTIFICATION_EMAIL="admin@test.com",
     )
-    @patch("libraries.social.image_ai.translate_to_english")
+    @patch("libraries.social.image_ai.analyze_library_image")
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
     @patch("libraries.management.commands.post_random_library.get_library_photo_path")
-    def test_translation_skipped_without_api_key(
-        self, mock_photo, mock_mastodon, mock_translate, approved_library,
+    def test_blank_english_caption_falls_back_to_original(
+        self, mock_photo, mock_mastodon, mock_ai, approved_library,
     ):
-        """Verify translation is not called when OPENROUTER_API_KEY is unset.
-        Preserves current behaviour for environments without OpenRouter."""
+        """Verify a blank english_caption falls back to the library description.
+        Guards against degenerate AI outputs that would leave the post empty."""
         mock_photo.return_value = Path("/tmp/test.jpg")
+        mock_ai.return_value = {
+            "alt_text": "A library",
+            "hashtags": ["cozy"],
+            "english_caption": "",
+        }
         mock_mastodon.return_value = "https://mastodon.test/@user/123"
 
         call_command("post_random_library")
 
-        mock_translate.assert_not_called()
-        mock_mastodon.assert_called_once()
+        mastodon_text = mock_mastodon.call_args.args[1]
+        assert "A lovely community library" in mastodon_text
 
 
 @pytest.mark.django_db
@@ -1420,18 +1382,20 @@ class TestCommandAIIntegration:
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
         ADMIN_NOTIFICATION_EMAIL="admin@test.com",
     )
-    @patch("libraries.social.image_ai.translate_to_english")
     @patch("libraries.social.image_ai.analyze_library_image")
     @patch("libraries.management.commands.post_random_library.Command._post_to_mastodon")
     @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_ai_alt_text_passed_to_mastodon(
-        self, mock_photo, mock_mastodon, mock_ai, mock_translate, approved_library,
+        self, mock_photo, mock_mastodon, mock_ai, approved_library,
     ):
         """Verify AI-generated alt text is forwarded to Mastodon.
         Improves accessibility of posted images."""
         mock_photo.return_value = Path("/tmp/test.jpg")
-        mock_ai.return_value = {"alt_text": "A cozy book nook", "hashtags": ["cozy"]}
-        mock_translate.return_value = "A lovely community library on the corner"
+        mock_ai.return_value = {
+            "alt_text": "A cozy book nook",
+            "hashtags": ["cozy"],
+            "english_caption": "A lovely community library on the corner",
+        }
         mock_mastodon.return_value = "https://mastodon.test/@user/123"
 
         call_command("post_random_library")
@@ -1478,17 +1442,19 @@ class TestCommandAIIntegration:
         OPENROUTER_API_KEY="test-key",
         SITE_URL="https://bookcorners.org",
     )
-    @patch("libraries.social.image_ai.translate_to_english")
     @patch("libraries.social.image_ai.analyze_library_image")
     @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_dry_run_shows_ai_results(
-        self, mock_photo, mock_ai, mock_translate, approved_library, capsys,
+        self, mock_photo, mock_ai, approved_library, capsys,
     ):
         """Verify dry-run output includes AI analysis results.
         Allows inspecting AI-generated content before posting."""
         mock_photo.return_value = Path("/tmp/test.jpg")
-        mock_ai.return_value = {"alt_text": "A wooden library box", "hashtags": ["wooden", "cozy"]}
-        mock_translate.return_value = "A lovely community library on the corner"
+        mock_ai.return_value = {
+            "alt_text": "A wooden library box",
+            "hashtags": ["wooden", "cozy"],
+            "english_caption": "A lovely community library on the corner",
+        }
 
         call_command("post_random_library", dry_run=True)
 
@@ -1527,12 +1493,11 @@ class TestCommandAIIntegration:
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
         ADMIN_NOTIFICATION_EMAIL="admin@test.com",
     )
-    @patch("libraries.social.image_ai.translate_to_english")
     @patch("libraries.social.image_ai.analyze_library_image")
     @patch("libraries.management.commands.post_random_library.Command._post_to_instagram")
     @patch("libraries.management.commands.post_random_library.get_library_photo_path")
     def test_instagram_uses_separate_text_with_hashtag_cap(
-        self, mock_photo, mock_instagram, mock_ai, mock_translate, approved_library,
+        self, mock_photo, mock_instagram, mock_ai, approved_library,
     ):
         """Verify Instagram gets its own text with a 5-hashtag cap.
         Respects Instagram's hashtag limit since December 2025."""
@@ -1540,8 +1505,8 @@ class TestCommandAIIntegration:
         mock_ai.return_value = {
             "alt_text": "A library",
             "hashtags": ["cozy", "reading", "nature", "sunset"],
+            "english_caption": "A lovely community library on the corner",
         }
-        mock_translate.return_value = "A lovely community library on the corner"
         mock_instagram.return_value = "https://www.instagram.com/p/abc123/"
 
         call_command("post_random_library")
