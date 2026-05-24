@@ -12,6 +12,78 @@ Before making assumptions about how to run commands, deploy, or configure produc
 
 Always consult these files first when the task involves deployment, environment configuration, infrastructure, or operational commands.
 
+## Adding a Ticket, Issue, or Bug
+
+When the user asks to add a "ticket", "issue", or "bug" to this repo, all of
+the steps below are required — creating the GitHub issue alone is not enough.
+
+**1. Create the issue** with the repo label and a type label:
+
+```bash
+gh issue create --repo andreagrandi/book-corners \
+  --title "<concise title>" \
+  --body "<description>" \
+  --label "book-corners" \
+  --label "<type>"
+```
+
+- Always apply the `book-corners` label — every work item in this repo
+  carries it.
+- Pick one type label: `bug`, `enhancement`, or `documentation`. These are
+  the type labels used on existing issues (see #69–#78).
+- Do not invent new labels. Area is captured via the project's Area field
+  (step 3), not via a label.
+
+**2. Add the issue to the "Book Corners" project** and capture the item ID
+(https://github.com/users/andreagrandi/projects/2):
+
+```bash
+ITEM_ID=$(gh project item-add 2 --owner andreagrandi \
+  --url <issue-url> --format json --jq .id)
+```
+
+**3. Set Project, Priority, Area, and Status** on the project item. The
+"Book Corners" board is shared by both `book-corners` and `book-corners-ios`,
+so the Project field must be set to distinguish them.
+
+- Project ID: `PVT_kwHOAAm1584BYNOT`
+- Project (which repo) — field `PVTSSF_lAHOAAm1584BYNOTzhTUrB4`:
+  book-corners `1e714f28`, book-corners-ios `5955c8f9`
+- Priority — field `PVTSSF_lAHOAAm1584BYNOTzhTUrCA`:
+  High `b925d2e0`, Medium `23f4e2d2`, Low `89b1cb1e`
+- Area — field `PVTSSF_lAHOAAm1584BYNOTzhTUrB8`:
+  API `c4e6b87d`, Admin `ba5fc051`, Search `82f936e5`, Map `97b54a1b`,
+  Notifications `4ec3ad2e`, Operations `144b587b`, Testing `3aa57aae`,
+  UX `9574e84e`
+- Status — field `PVTSSF_lAHOAAm1584BYNOTzhTUq48`:
+  Todo `f75ad846`, In Progress `47fc9ee4`, Done `98236657`
+
+```bash
+# Project — always set to book-corners for issues from this repo
+gh project item-edit --id "$ITEM_ID" --project-id PVT_kwHOAAm1584BYNOT \
+  --field-id PVTSSF_lAHOAAm1584BYNOTzhTUrB4 \
+  --single-select-option-id 1e714f28
+
+# Priority — always set it
+gh project item-edit --id "$ITEM_ID" --project-id PVT_kwHOAAm1584BYNOT \
+  --field-id PVTSSF_lAHOAAm1584BYNOTzhTUrCA \
+  --single-select-option-id <priority-option-id>
+
+# Area — pick the option that best matches the issue
+gh project item-edit --id "$ITEM_ID" --project-id PVT_kwHOAAm1584BYNOT \
+  --field-id PVTSSF_lAHOAAm1584BYNOTzhTUrB8 \
+  --single-select-option-id <area-option-id>
+
+# Status — new tickets start as Todo
+gh project item-edit --id "$ITEM_ID" --project-id PVT_kwHOAAm1584BYNOT \
+  --field-id PVTSSF_lAHOAAm1584BYNOTzhTUq48 \
+  --single-select-option-id f75ad846
+```
+
+If the user does not state a priority or area, ask before creating the
+issue. Follow the conventions of existing project issues — do not invent
+new labels or fields.
+
 ## Commands
 
 ```bash
