@@ -125,7 +125,8 @@ class LibrarySearchParams(Schema):
     """Query parameters for searching and filtering libraries.
     Validates bounds and defaults for pagination and geospatial queries."""
 
-    q: str | None = Field(default=None, max_length=200, description="Free-text search query matched against name and description.", json_schema_extra={"example": "corner books"})
+    q: str | None = Field(default=None, max_length=200, description="Free-text search query matched against name and description (full-text ranked).", json_schema_extra={"example": "corner books"})
+    search: str | None = Field(default=None, max_length=200, description="Global search across name, description, city, address, and postal code. Supports substring matches and outranks `q` when both are provided.", json_schema_extra={"example": "Berlin"})
     city: str | None = Field(default=None, max_length=100, description="Filter by exact city name (case-insensitive).", json_schema_extra={"example": "Berlin"})
     country: str | None = Field(default=None, max_length=2, description="Filter by ISO 3166-1 alpha-2 country code.", json_schema_extra={"example": "DE"})
     postal_code: str | None = Field(default=None, max_length=20, description="Filter by postal or ZIP code.", json_schema_extra={"example": "10117"})

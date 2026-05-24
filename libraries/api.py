@@ -67,6 +67,7 @@ def list_libraries(request, filters: Query[LibrarySearchParams]):
 
     queryset = run_library_search(
         q=filters.q or "",
+        search=filters.search or "",
         city=filters.city or "",
         country=filters.country or "",
         postal_code=filters.postal_code or "",

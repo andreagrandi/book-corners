@@ -109,6 +109,238 @@ class TestLibrarySearchTextFilter:
 
 
 @pytest.mark.django_db
+class TestLibraryCombinedSearchFilter:
+    """Tests for the combined `search` query parameter across multiple fields."""
+
+    def setup_method(self):
+        """Clear the cache before each test.
+        Prevents rate limit state from leaking between tests."""
+        cache.clear()
+
+    def test_search_matches_name(self, client, make_library):
+        """Verify combined search matches library name.
+        Confirms the search parameter covers the name field."""
+        make_library(name="Sunshine Corner Library")
+        make_library(name="Oak Street Library")
+
+        response = client.get("/api/v1/libraries/?search=Sunshine")
+
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert len(items) == 1
+        assert items[0]["name"] == "Sunshine Corner Library"
+
+    def test_search_matches_description(self, client, make_library):
+        """Verify combined search matches library description.
+        Confirms the search parameter covers the description field."""
+        make_library(name="Library A", description="Beautiful garden reading spot")
+        make_library(name="Library B", description="Urban book exchange")
+
+        response = client.get("/api/v1/libraries/?search=garden")
+
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert len(items) == 1
+        assert items[0]["name"] == "Library A"
+
+    def test_search_matches_city(self, client, make_library):
+        """Verify combined search matches by city name.
+        Names are chosen so the searched term only appears in the city field."""
+        make_library(name="Plaza Library", city="Paris")
+        make_library(name="Oak Library", city="Berlin")
+
+        response = client.get("/api/v1/libraries/?search=Berlin")
+
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert len(items) == 1
+        assert items[0]["name"] == "Oak Library"
+
+    def test_search_matches_address_fragment(self, client, make_library):
+        """Verify combined search matches partial address content.
+        Confirms substring matching works on the address field."""
+        lib = make_library(name="Plaza Lib")
+        lib.address = "Friedrichstrasse 12"
+        lib.save()
+        other = make_library(name="Park Lib")
+        other.address = "Lindenallee 5"
+        other.save()
+
+        response = client.get("/api/v1/libraries/?search=Friedrich")
+
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert len(items) == 1
+        assert items[0]["name"] == "Plaza Lib"
+
+    def test_search_matches_postal_code(self, client, make_library):
+        """Verify combined search matches by postal code.
+        Names are chosen so the searched term only appears in the postal_code field."""
+        make_library(name="Plaza Library", postal_code="75001")
+        make_library(name="Oak Library", postal_code="10115")
+
+        response = client.get("/api/v1/libraries/?search=10115")
+
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert len(items) == 1
+        assert items[0]["name"] == "Oak Library"
+
+    def test_search_matches_postal_code_partial(self, client, make_library):
+        """Verify combined search supports partial postal code matches.
+        Names are chosen so the searched fragment only appears in the postal_code field."""
+        make_library(name="Plaza Library", postal_code="75001")
+        make_library(name="Oak Library", postal_code="10115")
+
+        response = client.get("/api/v1/libraries/?search=750")
+
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert len(items) == 1
+        assert items[0]["name"] == "Plaza Library"
+
+    def test_search_is_case_insensitive(self, client, make_library):
+        """Verify combined search is case-insensitive across fields.
+        Confirms users do not need to match case for any covered field."""
+        make_library(name="Sunshine Corner", city="Paris")
+
+        response = client.get("/api/v1/libraries/?search=SUNSHINE")
+
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert len(items) == 1
+        assert items[0]["name"] == "Sunshine Corner"
+
+    def test_search_excludes_non_matching(self, client, make_library):
+        """Verify combined search excludes libraries that do not match anywhere.
+        Confirms unrelated entries are filtered out."""
+        make_library(name="Oak Library", city="Paris", postal_code="75001")
+
+        response = client.get("/api/v1/libraries/?search=Nonexistent")
+
+        assert response.status_code == 200
+        assert len(response.json()["items"]) == 0
+
+    def test_search_excludes_pending(self, client, make_library):
+        """Verify combined search excludes pending libraries.
+        Only approved entries should appear in search results."""
+        make_library(name="Pending Place", status=Library.Status.PENDING)
+
+        response = client.get("/api/v1/libraries/?search=Pending")
+
+        assert response.status_code == 200
+        assert len(response.json()["items"]) == 0
+
+    def test_empty_search_returns_all_approved(self, client, make_library):
+        """Verify empty search returns all approved libraries.
+        Confirms the combined filter is a no-op when blank."""
+        make_library(name="Library A")
+        make_library(name="Library B")
+
+        response = client.get("/api/v1/libraries/?search=")
+
+        assert response.status_code == 200
+        assert len(response.json()["items"]) == 2
+
+    def test_search_ranks_name_match_above_city_match(self, client, make_library):
+        """Verify name matches outrank city-only matches.
+        Confirms higher-weighted name fields appear first in results."""
+        make_library(name="Other Lib", city="Berlin")
+        make_library(name="Berlin Reads", city="Munich")
+
+        response = client.get("/api/v1/libraries/?search=Berlin")
+
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert [item["name"] for item in items] == ["Berlin Reads", "Other Lib"]
+
+    def test_search_combined_with_country_filter(self, client, make_library):
+        """Verify combined search narrows results when combined with country filter.
+        Confirms search is applied as AND with explicit field filters."""
+        make_library(name="Plaza Library", city="Paris", country="FR")
+        make_library(name="Plaza Library", city="Madrid", country="ES")
+        make_library(name="Oak Library", city="Paris", country="FR")
+
+        response = client.get("/api/v1/libraries/?search=Plaza&country=FR")
+
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert len(items) == 1
+        assert items[0]["city"] == "Paris"
+
+    def test_search_combined_with_has_photo(self, client, make_library):
+        """Verify combined search narrows results when combined with has_photo filter.
+        Confirms search is applied as AND with photo presence filter."""
+        make_library(name="Berlin Lib With Photo", city="Berlin")
+        Library.objects.create(
+            name="Berlin Lib Without Photo",
+            photo="",
+            location=Point(x=13.405, y=52.52, srid=4326),
+            address="1 Rue Test",
+            city="Berlin",
+            country="DE",
+            postal_code="10117",
+            status=Library.Status.APPROVED,
+            created_by=Library.objects.first().created_by,
+        )
+
+        response = client.get("/api/v1/libraries/?search=Berlin&has_photo=true")
+
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert len(items) == 1
+        assert items[0]["name"] == "Berlin Lib With Photo"
+
+    def test_search_takes_precedence_over_q(self, client, make_library):
+        """Verify the search parameter is used when both `search` and `q` are sent.
+        Documents the precedence order so iOS clients can rely on it."""
+        make_library(name="Plaza Library", city="Paris")
+        make_library(name="Oak Library", city="Berlin")
+
+        response = client.get("/api/v1/libraries/?search=Berlin&q=Plaza")
+
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert len(items) == 1
+        assert items[0]["name"] == "Oak Library"
+
+    def test_search_with_proximity_orders_by_distance(self, client, make_library):
+        """Verify proximity ordering wins over text rank when lat/lng supplied.
+        Confirms geospatial sort takes precedence over the combined-search rank."""
+        make_library(name="Sunshine Close", lat=48.8566, lng=2.3522)
+        make_library(name="Sunshine Far", lat=52.52, lng=13.405)
+
+        response = client.get(
+            "/api/v1/libraries/?search=Sunshine&lat=48.8566&lng=2.3522"
+        )
+
+        assert response.status_code == 200
+        items = response.json()["items"]
+        assert [item["name"] for item in items] == ["Sunshine Close", "Sunshine Far"]
+
+    def test_search_results_paginate(self, client, make_library):
+        """Verify combined search results are paginated correctly.
+        Confirms page and page_size work with the new search parameter."""
+        for i in range(5):
+            make_library(name=f"Sunshine Library {i}", city="Paris")
+
+        response = client.get("/api/v1/libraries/?search=Sunshine&page=1&page_size=2")
+
+        assert response.status_code == 200
+        body = response.json()
+        assert len(body["items"]) == 2
+        assert body["pagination"]["total"] == 5
+        assert body["pagination"]["has_next"] is True
+
+    def test_search_max_length_rejected(self, client, db):
+        """Verify search parameter rejects values longer than 200 chars.
+        Confirms schema validation enforces the documented upper bound."""
+        response = client.get("/api/v1/libraries/?search=" + "x" * 201)
+
+        assert response.status_code == 422
+
+
+@pytest.mark.django_db
 class TestLibrarySearchFieldFilters:
     """Tests for city, country, and postal_code field filters."""
 

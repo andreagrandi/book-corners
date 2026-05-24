@@ -12,7 +12,8 @@ Return a paginated list of approved libraries with optional search filters.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `q` | string | — | Free-text search across name and description (max 200 chars) |
+| `q` | string | — | Free-text search across name and description with full-text ranking (max 200 chars) |
+| `search` | string | — | Global search across name, description, city, address, and postal code with substring matching (max 200 chars). Takes precedence over `q` when both are sent. |
 | `city` | string | — | Filter by city name (case-insensitive, max 100 chars) |
 | `country` | string | — | Filter by ISO 3166-1 alpha-2 country code (max 2 chars) |
 | `postal_code` | string | — | Filter by postal / ZIP code (max 20 chars) |
@@ -43,6 +44,25 @@ Return a paginated list of approved libraries with optional search filters.
         params={"q": "corner books", "page_size": 5},
     )
     data = resp.json()
+    ```
+
+#### Combined search across fields
+
+Use `search` to match a single term against name, description, city, address, and postal code at once. Name matches are ranked above other field matches when available.
+
+=== "curl"
+
+    ```bash
+    curl "https://bookcorners.org/api/v1/libraries/?search=Berlin"
+    ```
+
+=== "Python"
+
+    ```python
+    resp = requests.get(
+        "https://bookcorners.org/api/v1/libraries/",
+        params={"search": "Berlin"},
+    )
     ```
 
 #### Filter by city and country
