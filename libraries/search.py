@@ -33,6 +33,9 @@ def apply_text_search(*, queryset: QuerySet[Library], query_text: str) -> QueryS
 def apply_combined_search(*, queryset: QuerySet[Library], search_text: str) -> QuerySet[Library]:
     """Filter libraries by text across name, description, city, address, and postal code.
     Combines substring matching with PostgreSQL full-text ranking when available."""
+    # icontains scans these columns without a supporting index. Acceptable at current
+    # table size and consistent with the existing `q` FTS query (also unindexed). If
+    # this becomes a hot path, swap to pg_trgm GIN indexes on the same five fields.
     text_filter = (
         Q(name__icontains=search_text)
         | Q(description__icontains=search_text)

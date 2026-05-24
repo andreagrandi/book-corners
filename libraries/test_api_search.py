@@ -145,16 +145,16 @@ class TestLibraryCombinedSearchFilter:
 
     def test_search_matches_city(self, client, make_library):
         """Verify combined search matches by city name.
-        Confirms the search parameter covers the city field."""
-        make_library(name="Paris Lib", city="Paris")
-        make_library(name="Berlin Lib", city="Berlin")
+        Names are chosen so the searched term only appears in the city field."""
+        make_library(name="Plaza Library", city="Paris")
+        make_library(name="Oak Library", city="Berlin")
 
         response = client.get("/api/v1/libraries/?search=Berlin")
 
         assert response.status_code == 200
         items = response.json()["items"]
         assert len(items) == 1
-        assert items[0]["name"] == "Berlin Lib"
+        assert items[0]["name"] == "Oak Library"
 
     def test_search_matches_address_fragment(self, client, make_library):
         """Verify combined search matches partial address content.
@@ -175,29 +175,29 @@ class TestLibraryCombinedSearchFilter:
 
     def test_search_matches_postal_code(self, client, make_library):
         """Verify combined search matches by postal code.
-        Confirms the search parameter covers the postal code field."""
-        make_library(name="Lib 75001", postal_code="75001")
-        make_library(name="Lib 10115", postal_code="10115")
+        Names are chosen so the searched term only appears in the postal_code field."""
+        make_library(name="Plaza Library", postal_code="75001")
+        make_library(name="Oak Library", postal_code="10115")
 
         response = client.get("/api/v1/libraries/?search=10115")
 
         assert response.status_code == 200
         items = response.json()["items"]
         assert len(items) == 1
-        assert items[0]["name"] == "Lib 10115"
+        assert items[0]["name"] == "Oak Library"
 
     def test_search_matches_postal_code_partial(self, client, make_library):
         """Verify combined search supports partial postal code matches.
-        Confirms substring matching works on the postal code field."""
-        make_library(name="Lib 75001", postal_code="75001")
-        make_library(name="Lib 10115", postal_code="10115")
+        Names are chosen so the searched fragment only appears in the postal_code field."""
+        make_library(name="Plaza Library", postal_code="75001")
+        make_library(name="Oak Library", postal_code="10115")
 
         response = client.get("/api/v1/libraries/?search=750")
 
         assert response.status_code == 200
         items = response.json()["items"]
         assert len(items) == 1
-        assert items[0]["name"] == "Lib 75001"
+        assert items[0]["name"] == "Plaza Library"
 
     def test_search_is_case_insensitive(self, client, make_library):
         """Verify combined search is case-insensitive across fields.
