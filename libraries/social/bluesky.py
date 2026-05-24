@@ -20,6 +20,7 @@ def post_library(
     *,
     alt_text: str | None = None,
     extra_hashtags: list[str] | None = None,
+    description_override: str | None = None,
 ) -> str:
     """Post a library with photo to Bluesky and return the post URL.
     Builds a TextBuilder with facets so links and hashtags are clickable."""
@@ -31,7 +32,10 @@ def post_library(
 
     # Reconstruct the detail URL from the plain text
     detail_url = _extract_url(text)
-    rich_text = build_bluesky_text(library, detail_url, extra_hashtags=extra_hashtags)
+    rich_text = build_bluesky_text(
+        library, detail_url, extra_hashtags=extra_hashtags,
+        description_override=description_override,
+    )
 
     response = client.send_image(
         text=rich_text,

@@ -125,13 +125,32 @@ class Command(BaseCommand):
         alt_text = ai_result["alt_text"] if ai_result else None
         ai_hashtags = ai_result["hashtags"] if ai_result else []
 
+        # Posts must always be in English regardless of the library's country.
+        # When OpenRouter is configured, translate the source text to English
+        # before composing posts (best-effort: falls back to the original on
+        # missing key or transient API failure).
+        english_description: str | None = None
+        if getattr(settings, "OPENROUTER_API_KEY", ""):
+            from libraries.social.image_ai import translate_to_english
+
+            source_text = library.description or library.name or library.address
+            english_description = translate_to_english(source_text)
+            if english_description is None:
+                logger.warning(
+                    "English translation unavailable for library %s; "
+                    "posting with original description",
+                    library.pk,
+                )
+
         post_text = build_post_text(
             library, detail_url, extra_hashtags=ai_hashtags or None,
+            description_override=english_description,
         )
         instagram_text = build_post_text(
             library, detail_url, max_length=2200,
             extra_hashtags=ai_hashtags or None, max_hashtags=5,
             photo_description=alt_text,
+            description_override=english_description,
         )
         hashtag_comment = build_hashtag_comment(
             library, extra_hashtags=ai_hashtags or None,
@@ -155,6 +174,8 @@ class Command(BaseCommand):
                 self.stdout.write(f"AI hashtags: {filtered}")
             else:
                 self.stdout.write("\nAI analysis: skipped (no API key or failed)")
+            if english_description is not None:
+                self.stdout.write(f"\nEnglish description: {english_description}")
             return
 
         if not image_path:
@@ -188,6 +209,7 @@ class Command(BaseCommand):
                     lambda: self._post_to_bluesky(
                         library, post_text, image_path,
                         alt_text=alt_text, extra_hashtags=ai_hashtags or None,
+                        description_override=english_description,
                     ),
                 )
                 logger.info("Posted to Bluesky: %s", bluesky_url)
@@ -290,6 +312,7 @@ class Command(BaseCommand):
         *,
         alt_text: str | None = None,
         extra_hashtags: list[str] | None = None,
+        description_override: str | None = None,
     ) -> str:
         """Delegate to the Bluesky client module.
         Returns the URL of the created post."""
@@ -298,6 +321,7 @@ class Command(BaseCommand):
         return post_library(
             library, text=text, image_path=image_path,
             alt_text=alt_text, extra_hashtags=extra_hashtags,
+            description_override=description_override,
         )
 
     def _post_to_instagram(

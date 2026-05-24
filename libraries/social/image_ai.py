@@ -41,10 +41,13 @@ def analyze_library_image(image_path: Path, library) -> dict | None:
             f"{library.country}.\n\n"
             f"Return a JSON object with exactly two keys:\n"
             f'- "alt_text": a concise image description for screen readers, '
-            f"about 120-150 characters. Describe what is visible in the photo.\n"
+            f"about 120-150 characters. Describe what is visible in the photo. "
+            f"Write the alt text in English regardless of the library's country "
+            f"or any text visible in the photo.\n"
             f'- "hashtags": a list of 8-12 relevant lowercase hashtags based on '
             f"what you see in the image (without the # prefix). Focus on visual "
-            f"elements like the style, setting, or notable features.\n\n"
+            f"elements like the style, setting, or notable features. "
+            f"Write all hashtags in English.\n\n"
             f"Respond with only the JSON object, no other text."
         )
 
@@ -99,10 +102,14 @@ def enrich_library_from_image(image_path: Path, library) -> dict | None:
             f"{library.country}.\n\n"
             f"Return a JSON object with exactly two keys:\n"
             f'- "name": a short, descriptive title for this library (max 100 '
-            f"characters). Capture its most distinctive feature.\n"
+            f"characters). Capture its most distinctive feature. "
+            f"Write the name in English regardless of the library's country or "
+            f"any text visible in the photo.\n"
             f'- "description": a 1-3 sentence description (max 500 characters) '
             f"of the library's appearance, setting, and notable features. "
-            f"This will also be used as image alt text for accessibility.\n\n"
+            f"This will also be used as image alt text for accessibility. "
+            f"Write the description in English regardless of the library's "
+            f"country or any text visible in the photo.\n\n"
             f"Respond with only the JSON object, no other text."
         )
 
@@ -128,6 +135,50 @@ def enrich_library_from_image(image_path: Path, library) -> dict | None:
 
     except Exception:
         logger.exception("AI library enrichment failed for %s", image_path)
+        return None
+
+
+def translate_to_english(text: str) -> str | None:
+    """Translate arbitrary text to English via OpenRouter.
+    Returns the translated text, or None if no API key or the call fails."""
+    api_key = getattr(settings, "OPENROUTER_API_KEY", "")
+    if not api_key:
+        return None
+
+    cleaned = (text or "").strip()
+    if not cleaned:
+        return None
+
+    try:
+        from openai import OpenAI
+
+        client = OpenAI(
+            api_key=api_key,
+            base_url=OPENROUTER_BASE_URL,
+        )
+
+        model = getattr(settings, "OPENROUTER_MODEL", "openai/gpt-5.4-mini")
+        prompt = (
+            "Translate the following text to English. If it is already in "
+            "English, return it unchanged. Do not add commentary, quotes, or "
+            "explanations. Return only the translated text.\n\n"
+            f"Text:\n{cleaned}"
+        )
+
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=400,
+            timeout=REQUEST_TIMEOUT,
+        )
+
+        content = (response.choices[0].message.content or "").strip()
+        if not content:
+            return None
+        return content
+
+    except Exception:
+        logger.exception("AI translation to English failed")
         return None
 
 
