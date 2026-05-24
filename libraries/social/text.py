@@ -81,6 +81,7 @@ def build_post_text(
     extra_hashtags: list[str] | None = None,
     max_hashtags: int | None = None,
     photo_description: str | None = None,
+    description_override: str | None = None,
 ) -> str:
     """Build social media post text with description, location, link, and hashtags.
     Truncates description and fills hashtags to fit within max_length."""
@@ -109,7 +110,10 @@ def build_post_text(
     # Build the fixed parts (location + url)
     fixed_parts = f"\n\n{location_line}\n\n{detail_url}"
 
-    description = library.description or library.name or library.address
+    if description_override is not None and description_override.strip():
+        description = description_override.strip()
+    else:
+        description = library.description or library.name or library.address
 
     # Append AI photo description when provided
     if photo_description:
@@ -181,6 +185,7 @@ def build_bluesky_text(
     *,
     max_length: int = 300,
     extra_hashtags: list[str] | None = None,
+    description_override: str | None = None,
 ):
     """Build a Bluesky TextBuilder with clickable links and hashtags.
     Returns an atproto TextBuilder instance with proper facets."""
@@ -188,6 +193,7 @@ def build_bluesky_text(
 
     plain_text = build_post_text(
         library, detail_url, max_length=max_length, extra_hashtags=extra_hashtags,
+        description_override=description_override,
     )
     builder = client_utils.TextBuilder()
 

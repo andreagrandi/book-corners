@@ -16,8 +16,8 @@ REQUEST_TIMEOUT = 15
 
 
 def analyze_library_image(image_path: Path, library) -> dict | None:
-    """Analyze a library photo with a vision model to generate alt text and hashtags.
-    Returns {"alt_text": str, "hashtags": list[str]} or None on failure."""
+    """Analyze a library photo with a vision model for posting metadata.
+    Returns {"alt_text": str, "hashtags": list[str], "english_caption": str} or None."""
     api_key = getattr(settings, "OPENROUTER_API_KEY", "")
     if not api_key:
         return None
@@ -34,17 +34,35 @@ def analyze_library_image(image_path: Path, library) -> dict | None:
             base_url=OPENROUTER_BASE_URL,
         )
 
+        existing_description = (library.description or "").strip()
+        description_context = (
+            f"The submitter's description (which may be in any language) is:\n"
+            f"{existing_description}\n\n"
+            if existing_description
+            else ""
+        )
+
         model = getattr(settings, "OPENROUTER_MODEL", "openai/gpt-5.4-mini")
         prompt = (
             f"You are analyzing a photo of a community book exchange box. "
             f"Context: the library is named '{library.name}' in {library.city}, "
             f"{library.country}.\n\n"
-            f"Return a JSON object with exactly two keys:\n"
+            f"{description_context}"
+            f"Return a JSON object with exactly three keys:\n"
             f'- "alt_text": a concise image description for screen readers, '
-            f"about 120-150 characters. Describe what is visible in the photo.\n"
+            f"about 120-150 characters. Describe what is visible in the photo. "
+            f"Write the alt text in English regardless of the library's country "
+            f"or any text visible in the photo.\n"
             f'- "hashtags": a list of 8-12 relevant lowercase hashtags based on '
             f"what you see in the image (without the # prefix). Focus on visual "
-            f"elements like the style, setting, or notable features.\n\n"
+            f"elements like the style, setting, or notable features. "
+            f"Write all hashtags in English.\n"
+            f'- "english_caption": a 1-2 sentence English caption suitable for a '
+            f"social media post body (max 300 characters). If the submitter's "
+            f"description above is in English, you may use it verbatim or lightly "
+            f"polish it. If it is in another language, translate it to English. "
+            f"If no description is provided, write a short English caption based "
+            f"on the photo. Always English, never any other language.\n\n"
             f"Respond with only the JSON object, no other text."
         )
 
@@ -99,10 +117,14 @@ def enrich_library_from_image(image_path: Path, library) -> dict | None:
             f"{library.country}.\n\n"
             f"Return a JSON object with exactly two keys:\n"
             f'- "name": a short, descriptive title for this library (max 100 '
-            f"characters). Capture its most distinctive feature.\n"
+            f"characters). Capture its most distinctive feature. "
+            f"Write the name in English regardless of the library's country or "
+            f"any text visible in the photo.\n"
             f'- "description": a 1-3 sentence description (max 500 characters) '
             f"of the library's appearance, setting, and notable features. "
-            f"This will also be used as image alt text for accessibility.\n\n"
+            f"This will also be used as image alt text for accessibility. "
+            f"Write the description in English regardless of the library's "
+            f"country or any text visible in the photo.\n\n"
             f"Respond with only the JSON object, no other text."
         )
 
@@ -179,7 +201,7 @@ def _encode_image(image_path: Path) -> str | None:
 
 
 def _parse_response(content: str) -> dict | None:
-    """Parse the AI model response into alt_text and hashtags.
+    """Parse the AI model response into alt_text, hashtags, and english_caption.
     Returns None if the response is not valid JSON with expected keys."""
     try:
         text = _strip_code_fences(content)
@@ -187,8 +209,13 @@ def _parse_response(content: str) -> dict | None:
 
         alt_text = data.get("alt_text", "")
         hashtags = data.get("hashtags", [])
+        english_caption = data.get("english_caption", "")
 
-        if not isinstance(alt_text, str) or not isinstance(hashtags, list):
+        if (
+            not isinstance(alt_text, str)
+            or not isinstance(hashtags, list)
+            or not isinstance(english_caption, str)
+        ):
             logger.warning("AI response has unexpected types: %s", data)
             return None
 
@@ -202,6 +229,7 @@ def _parse_response(content: str) -> dict | None:
         return {
             "alt_text": alt_text.strip(),
             "hashtags": clean_hashtags,
+            "english_caption": english_caption.strip(),
         }
 
     except (json.JSONDecodeError, KeyError, TypeError):
