@@ -701,6 +701,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v1100" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        v1.10.0
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v190" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -859,6 +870,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v1100" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        v1.10.0
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v190" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -984,6 +1006,10 @@
                   
 
 <h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
+<h2 id="v1100">v1.10.0<a class="headerlink" href="#v1100" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Library list endpoint (<code>GET /api/v1/libraries/</code>) accepts a new <code>search</code> query parameter for a global simple search across name, description, city, address, and postal code. It supports substring matches (useful for partial addresses and postal codes) and ranks name matches above other field matches when full-text search is available. The existing <code>q</code> parameter is unchanged and remains a focused name/description search with full-text ranking. When both parameters are provided, <code>search</code> takes precedence.</li>
+</ul>
 <h2 id="v190">v1.9.0<a class="headerlink" href="#v190" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Library submit endpoint (<code>POST /api/v1/libraries/</code>): the <code>address</code> field is now conditionally optional. It may be empty only when coordinates (<code>latitude</code> and <code>longitude</code>) are provided, which supports libraries located in places without a classic street address (e.g. inside a park). Coordinates remain mandatory; an empty address with no coordinates is rejected. The <code>address</code> field in library response payloads may now be an empty string.</li>
