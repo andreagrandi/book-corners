@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.10.0
+
+- Library list endpoint (`GET /api/v1/libraries/`) accepts a new `search` query parameter for a global simple search across name, description, city, address, and postal code. It supports substring matches (useful for partial addresses and postal codes) and ranks name matches above other field matches when full-text search is available. The existing `q` parameter is unchanged and remains a focused name/description search with full-text ranking. When both parameters are provided, `search` takes precedence.
+
 ## v1.9.0
 
 - Library submit endpoint (`POST /api/v1/libraries/`): the `address` field is now conditionally optional. It may be empty only when coordinates (`latitude` and `longitude`) are provided, which supports libraries located in places without a classic street address (e.g. inside a park). Coordinates remain mandatory; an empty address with no coordinates is rejected. The `address` field in library response payloads may now be an empty string.
