@@ -90,6 +90,37 @@ def _build_uploaded_photo_with_gps(
     )
 
 
+def _build_uploaded_photo_with_malformed_gps(
+    *,
+    file_name: str = "library-with-malformed-gps.jpg",
+) -> SimpleUploadedFile:
+    """Build a JPEG whose EXIF GPS latitude has a zero-denominator rational.
+    Reproduces malformed coordinate metadata that triggers division by zero."""
+    image_bytes = BytesIO()
+    image = Image.new("RGB", (640, 480), color=(140, 165, 210))
+
+    exif = Image.Exif()
+    exif[ExifTags.Base.GPSInfo] = {
+        ExifTags.GPS.GPSLatitudeRef: "N",
+        ExifTags.GPS.GPSLatitude: (
+            IFDRational(43, 0),
+            IFDRational(0, 1),
+            IFDRational(0, 1),
+        ),
+        ExifTags.GPS.GPSLongitudeRef: "E",
+        ExifTags.GPS.GPSLongitude: _decimal_to_dms(11.2558),
+    }
+
+    image.save(image_bytes, format="JPEG", exif=exif)
+    image_bytes.seek(0)
+
+    return SimpleUploadedFile(
+        name=file_name,
+        content=image_bytes.getvalue(),
+        content_type="image/jpeg",
+    )
+
+
 class TestPhotoGeolocationUtilities:
     def test_extract_gps_coordinates_returns_decimal_coordinates(self):
         """Verify EXIF GPS tags are converted to decimal coordinates.
@@ -107,6 +138,15 @@ class TestPhotoGeolocationUtilities:
         """Verify extraction returns None when GPS EXIF tags are missing.
         Covers fallback behavior for photos without location metadata."""
         photo = _build_uploaded_photo()
+
+        coordinates = extract_gps_coordinates(photo)
+
+        assert coordinates is None
+
+    def test_extract_gps_coordinates_returns_none_for_zero_denominator_rational(self):
+        """Verify extraction returns None for zero-denominator GPS rationals.
+        Guards against the division-by-zero crash on malformed EXIF metadata."""
+        photo = _build_uploaded_photo_with_malformed_gps()
 
         coordinates = extract_gps_coordinates(photo)
 
@@ -2759,6 +2799,26 @@ class TestSubmitLibraryView:
         response = client.post(
             reverse("submit_library_photo_metadata"),
             data={"photo": _build_uploaded_photo()},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {"gps_found": False}
+        mocked_reverse_geocode.assert_not_called()
+
+    @patch("libraries.views.reverse_geocode_coordinates")
+    def test_photo_metadata_endpoint_returns_no_gps_for_malformed_exif(
+        self,
+        mocked_reverse_geocode,
+        client,
+        user,
+    ):
+        """Verify malformed GPS EXIF returns a no-GPS response instead of 500.
+        Regression for the division-by-zero crash on zero-denominator rationals."""
+        client.force_login(user)
+
+        response = client.post(
+            reverse("submit_library_photo_metadata"),
+            data={"photo": _build_uploaded_photo_with_malformed_gps()},
         )
 
         assert response.status_code == 200

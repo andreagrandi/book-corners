@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from collections.abc import Sequence
 from typing import Any
 
@@ -42,10 +43,13 @@ def _dms_to_decimal(values: Sequence[Any], reference: str) -> float | None:
         degrees = float(values[0])
         minutes = float(values[1])
         seconds = float(values[2])
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, ZeroDivisionError):
         return None
 
     decimal = degrees + (minutes / 60) + (seconds / 3600)
+    if not math.isfinite(decimal):
+        return None
+
     if reference in ("S", "W"):
         return -decimal
     if reference in ("N", "E"):
