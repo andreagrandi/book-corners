@@ -1,6 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
+from django.core import mail
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
@@ -421,6 +422,29 @@ class TestLibraryUpdateEndpoint:
         assert response.status_code == 200
         assert response.json()["name"] == "API Edited Library"
         assert approved_library.status == Library.Status.PENDING
+
+    @override_settings(
+        ADMIN_NOTIFICATION_EMAIL="admin@example.com",
+        SITE_URL="https://example.com",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    )
+    def test_owner_update_sends_admin_review_notification(self, client, approved_library, user_jwt):
+        """Verify API edits notify admins that approval is needed.
+        Prevents API-submitted changes from sitting unnoticed."""
+        response = _patch_multipart(
+            client,
+            f"/api/v1/libraries/{approved_library.slug}",
+            {"name": "API Notification Library"},
+            user_jwt,
+        )
+
+        assert response.status_code == 200
+        assert len(mail.outbox) == 1
+        message = mail.outbox[0]
+        assert "Library changes need review" in message.subject
+        assert "API Notification Library" in message.subject
+        assert f"/manage/libraries/{approved_library.pk}/" in message.body
+        assert message.to == ["admin@example.com"]
 
     def test_non_owner_cannot_update_library(self, client, pending_library, other_user_jwt):
         """Verify non-owners receive a not-found response.

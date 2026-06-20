@@ -19,7 +19,7 @@ from django.utils.translation import gettext as _
 
 from libraries.clustering import CLUSTER_ZOOM_THRESHOLD, build_clustered_features, get_grid_size_for_zoom
 from libraries.forms import LibraryPhotoSubmissionForm, LibrarySearchForm, LibrarySubmissionForm, ReportSubmissionForm
-from libraries.notifications import notify_new_library, notify_new_photo, notify_new_report
+from libraries.notifications import notify_library_update, notify_new_library, notify_new_photo, notify_new_report
 from libraries.tasks import enrich_library_with_ai
 from libraries.geolocation import (
     extract_gps_coordinates,
@@ -573,6 +573,7 @@ def edit_library(request: HttpRequest, slug: str) -> HttpResponse:
 
     if request.method == "POST" and form.is_valid():
         updated_library = form.save()
+        notify_library_update(updated_library)
         messages.success(
             request,
             _(

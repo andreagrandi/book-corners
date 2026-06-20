@@ -32,7 +32,7 @@ from libraries.api_security import is_api_rate_limited
 from libraries.stats import build_stats_data, get_countries
 from libraries.forms import _validate_uploaded_photo
 from libraries.models import Favourite, Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
-from libraries.notifications import notify_new_library, notify_new_photo, notify_new_report
+from libraries.notifications import notify_library_update, notify_new_library, notify_new_photo, notify_new_report
 from libraries.tasks import enrich_library_with_ai
 from libraries.search import run_library_search
 
@@ -332,6 +332,7 @@ def update_library(
 
     library.status = Library.Status.PENDING
     library.save()
+    notify_library_update(library)
     return 200, library
 
 
