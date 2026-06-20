@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib.gis.db.models.functions import Distance
@@ -14,6 +15,7 @@ from django.db.models import Q, QuerySet
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.translation import gettext as _
 
 from libraries.clustering import CLUSTER_ZOOM_THRESHOLD, build_clustered_features, get_grid_size_for_zoom
 from libraries.forms import LibraryPhotoSubmissionForm, LibrarySearchForm, LibrarySubmissionForm, ReportSubmissionForm
@@ -488,6 +490,29 @@ def _get_detail_visible_library(*, request: HttpRequest, slug: str) -> Library:
     )
 
 
+def _can_user_edit_library(*, user: object, library: Library) -> bool:
+    """Return whether the user can edit a submitted library.
+    Owners can revise pending and approved libraries before moderation."""
+    if not getattr(user, "is_authenticated", False):
+        return False
+
+    return (
+        library.created_by_id == getattr(user, "pk", None)
+        and library.status in {Library.Status.PENDING, Library.Status.APPROVED}
+    )
+
+
+def _get_owner_editable_library(*, request: HttpRequest, slug: str) -> Library:
+    """Fetch a library the current user is allowed to edit.
+    Restricts owner edits to pending and approved submissions."""
+    return get_object_or_404(
+        Library.objects.select_related("created_by"),
+        created_by=request.user,
+        slug=slug,
+        status__in=[Library.Status.PENDING, Library.Status.APPROVED],
+    )
+
+
 @login_required(login_url="login")
 @require_POST
 def toggle_favourite(request: HttpRequest, slug: str) -> HttpResponse:
@@ -528,6 +553,54 @@ def library_detail(request: HttpRequest, slug: str) -> HttpResponse:
             "report_form": report_form,
             "photo_form": photo_form,
             "is_favourited": is_favourited,
+            "can_edit_library": _can_user_edit_library(user=user, library=library),
+        },
+    )
+
+
+@login_required(login_url="login")
+def edit_library(request: HttpRequest, slug: str) -> HttpResponse:
+    """Render and process the owner edit form for submitted libraries.
+    Successful edits return the library to pending moderation."""
+    library = _get_owner_editable_library(request=request, slug=slug)
+    current_user = getattr(request, "user", None)
+    form = LibrarySubmissionForm(
+        data=request.POST or None,
+        files=request.FILES or None,
+        created_by=current_user,
+        instance=library,
+    )
+
+    if request.method == "POST" and form.is_valid():
+        updated_library = form.save()
+        messages.success(
+            request,
+            _(
+                "Your changes were saved and sent for review. They will be approved by moderators before becoming live."
+            ),
+        )
+        return redirect("library_detail", slug=updated_library.slug)
+
+    return render(
+        request,
+        "libraries/submit_library.html",
+        {
+            "form": form,
+            "is_edit_mode": True,
+            "form_heading": _("Edit library"),
+            "form_intro": _("Update your library details. Changes will be sent back to moderators before they appear publicly."),
+            "review_notice": _(
+                "Changes are reviewed before they become live. After you save, moderators will approve the update before it appears publicly."
+            ),
+            "form_meta_description": _("Edit a library you submitted on Book Corners."),
+            "form_button_label": _("Save changes"),
+            "photo_label": _("Replace photo (optional)"),
+            "photo_help": _("Leave this empty to keep the current photo."),
+            "location_heading": _("Update exact location"),
+            "location_intro": _("Use the map to adjust the saved point, or keep the marker where it is."),
+            "map_status_message": _("Saved marker loaded. Drag it or click the map to adjust the location."),
+            "submit_map_default_latitude": library.location.y,
+            "submit_map_default_longitude": library.location.x,
         },
     )
 
@@ -691,6 +764,16 @@ def submit_library(request: HttpRequest) -> HttpResponse:
         "libraries/submit_library.html",
         {
             "form": form,
+            "is_edit_mode": False,
+            "form_heading": _("Submit a library"),
+            "form_intro": _("Share a little free library with the community. Set the exact point on the map before submitting."),
+            "form_meta_description": _("Submit a little free library to Book Corners with a photo, location, and address details."),
+            "form_button_label": _("Submit library"),
+            "photo_label": _("Photo"),
+            "photo_help": "",
+            "location_heading": _("Set exact location"),
+            "location_intro": _("Type an address and choose a suggestion to center the map. Drag the marker to refine the exact point."),
+            "map_status_message": _("Choose the map point by centering from address, dragging marker, or clicking map."),
             "submit_map_default_latitude": DEFAULT_SUBMIT_MAP_LATITUDE,
             "submit_map_default_longitude": DEFAULT_SUBMIT_MAP_LONGITUDE,
         },

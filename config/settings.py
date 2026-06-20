@@ -153,6 +153,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "ninja.compatibility.files.fix_request_files_middleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "users.middleware.EnsureCsrfCookieMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",

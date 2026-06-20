@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.11.0
+
+- Library update endpoint (`PATCH /api/v1/libraries/{slug}`) allows authenticated submitters to edit their own pending or approved library submissions. Successful edits return the library to pending moderation, and replacement photos are optional.
+
 ## v1.10.0
 
 - Library list endpoint (`GET /api/v1/libraries/`) accepts a new `search` query parameter for a global simple search across name, description, city, address, and postal code. It supports substring matches (useful for partial addresses and postal codes) and ranks name matches above other field matches when full-text search is available. The existing `q` parameter is unchanged and remains a focused name/description search with full-text ranking. When both parameters are provided, `search` takes precedence.

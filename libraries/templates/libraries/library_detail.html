@@ -71,6 +71,9 @@
 
         {% if request.user.is_authenticated %}
           <div class="mt-5 flex flex-wrap gap-2">
+            {% if can_edit_library %}
+              <a href="{% url 'edit_library' slug=library.slug %}" class="btn btn-outline btn-primary">{% trans "Edit" %}</a>
+            {% endif %}
             {% if photo_form %}
               <button
                 id="photo-form-toggle"

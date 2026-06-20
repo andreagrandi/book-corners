@@ -2,10 +2,13 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
 from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
+from django.test.client import BOUNDARY, MULTIPART_CONTENT, encode_multipart
 from ninja_jwt.tokens import RefreshToken
 
 from libraries.models import Library
+from libraries.tests import _build_uploaded_photo
 
 User = get_user_model()
 
@@ -83,6 +86,17 @@ def other_user_jwt(other_user):
     Used to test that non-owners cannot see pending libraries."""
     refresh = RefreshToken.for_user(other_user)
     return str(refresh.access_token)
+
+
+def _patch_multipart(client, url, data, token):
+    """Send a multipart PATCH request through Django's test client.
+    Encodes fields and files the same way browser clients submit forms."""
+    return client.patch(
+        url,
+        data=encode_multipart(BOUNDARY, data),
+        content_type=MULTIPART_CONTENT,
+        HTTP_AUTHORIZATION=f"Bearer {token}",
+    )
 
 
 @pytest.mark.django_db
@@ -350,3 +364,191 @@ class TestLibraryDetailResponseShape:
         body = response.json()
         assert body["lat"] == pytest.approx(48.8566, abs=1e-4)
         assert body["lng"] == pytest.approx(2.3522, abs=1e-4)
+
+
+@pytest.mark.django_db
+class TestLibraryUpdateEndpoint:
+    """Tests for PATCH /api/v1/libraries/{slug}.
+    Covers owner edits, moderation reset, validation, and file uploads."""
+
+    def setup_method(self):
+        """Clear the cache before each test.
+        Prevents rate limit state from leaking between tests."""
+        cache.clear()
+
+    def test_requires_authentication(self, client, pending_library):
+        """Verify the update endpoint rejects anonymous requests.
+        JWT authentication is mandatory for owner edits."""
+        response = client.patch(
+            f"/api/v1/libraries/{pending_library.slug}",
+            data=encode_multipart(BOUNDARY, {"description": "Updated"}),
+            content_type=MULTIPART_CONTENT,
+        )
+
+        assert response.status_code == 401
+
+    def test_owner_can_partially_update_pending_library(self, client, pending_library, user_jwt):
+        """Verify owners can update selected fields only.
+        Omitted fields keep their previous values."""
+        response = _patch_multipart(
+            client,
+            f"/api/v1/libraries/{pending_library.slug}",
+            {"description": "Updated via API.", "capacity": "42"},
+            user_jwt,
+        )
+
+        body = response.json()
+        pending_library.refresh_from_db()
+        assert response.status_code == 200
+        assert body["description"] == "Updated via API."
+        assert body["capacity"] == 42
+        assert body["city"] == "Florence"
+        assert pending_library.description == "Updated via API."
+        assert pending_library.capacity == 42
+        assert pending_library.status == Library.Status.PENDING
+
+    def test_owner_editing_approved_library_resets_to_pending(self, client, approved_library, user_jwt):
+        """Verify approved library edits return to pending status.
+        Moderation is required again before edits become public."""
+        response = _patch_multipart(
+            client,
+            f"/api/v1/libraries/{approved_library.slug}",
+            {"name": "API Edited Library"},
+            user_jwt,
+        )
+
+        approved_library.refresh_from_db()
+        assert response.status_code == 200
+        assert response.json()["name"] == "API Edited Library"
+        assert approved_library.status == Library.Status.PENDING
+
+    def test_non_owner_cannot_update_library(self, client, pending_library, other_user_jwt):
+        """Verify non-owners receive a not-found response.
+        Prevents users from discovering or editing other submissions."""
+        response = _patch_multipart(
+            client,
+            f"/api/v1/libraries/{pending_library.slug}",
+            {"description": "Malicious edit."},
+            other_user_jwt,
+        )
+
+        pending_library.refresh_from_db()
+        assert response.status_code == 404
+        assert pending_library.description != "Malicious edit."
+
+    def test_rejected_library_cannot_be_updated(self, client, rejected_library, user_jwt):
+        """Verify rejected libraries are not editable through the API.
+        Rejected submissions remain historical records."""
+        response = _patch_multipart(
+            client,
+            f"/api/v1/libraries/{rejected_library.slug}",
+            {"description": "Try to revive."},
+            user_jwt,
+        )
+
+        assert response.status_code == 404
+
+    def test_coordinates_must_be_provided_together(self, client, pending_library, user_jwt):
+        """Verify latitude and longitude are validated as a pair.
+        Prevents partial coordinates from corrupting the stored Point."""
+        response = _patch_multipart(
+            client,
+            f"/api/v1/libraries/{pending_library.slug}",
+            {"latitude": "43.7700"},
+            user_jwt,
+        )
+
+        assert response.status_code == 400
+        assert response.json()["message"] == "Latitude and longitude must be provided together."
+
+    def test_owner_can_update_coordinates(self, client, pending_library, user_jwt):
+        """Verify coordinate updates rewrite the stored Point correctly.
+        Confirms latitude maps to y and longitude maps to x."""
+        response = _patch_multipart(
+            client,
+            f"/api/v1/libraries/{pending_library.slug}",
+            {"latitude": "43.7700", "longitude": "11.2600"},
+            user_jwt,
+        )
+
+        pending_library.refresh_from_db()
+        assert response.status_code == 200
+        assert response.json()["lat"] == pytest.approx(43.7700, abs=1e-4)
+        assert response.json()["lng"] == pytest.approx(11.2600, abs=1e-4)
+        assert pending_library.location.y == pytest.approx(43.7700, abs=1e-6)
+        assert pending_library.location.x == pytest.approx(11.2600, abs=1e-6)
+
+    def test_no_fields_returns_400(self, client, pending_library, user_jwt):
+        """Verify empty update requests are rejected.
+        Clients must provide at least one changed field or replacement photo."""
+        response = _patch_multipart(
+            client,
+            f"/api/v1/libraries/{pending_library.slug}",
+            {},
+            user_jwt,
+        )
+
+        assert response.status_code == 400
+        assert response.json()["message"] == "Provide at least one field to update."
+
+    def test_photo_replacement_updates_primary_photo(self, client, pending_library, user_jwt, tmp_path, settings):
+        """Verify multipart PATCH can replace a library photo.
+        The Django Ninja file middleware makes PATCH files available."""
+        settings.MEDIA_ROOT = tmp_path / "media"
+
+        response = _patch_multipart(
+            client,
+            f"/api/v1/libraries/{pending_library.slug}",
+            {"photo": _build_uploaded_photo(file_name="api-replacement.jpg")},
+            user_jwt,
+        )
+
+        pending_library.refresh_from_db()
+        assert response.status_code == 200
+        assert pending_library.photo.name
+        assert "api-replacement" in pending_library.photo.name
+        assert pending_library.photo_thumbnail.name
+
+    def test_invalid_photo_format_returns_400(self, client, pending_library, user_jwt):
+        """Verify invalid replacement photos are rejected.
+        Only supported image formats can enter library photo storage."""
+        fake_file = SimpleUploadedFile(
+            name="not-image.txt",
+            content=b"not an image",
+            content_type="text/plain",
+        )
+
+        response = _patch_multipart(
+            client,
+            f"/api/v1/libraries/{pending_library.slug}",
+            {"photo": fake_file},
+            user_jwt,
+        )
+
+        assert response.status_code == 400
+        assert "valid image" in response.json()["message"].lower()
+
+    @override_settings(
+        API_RATE_LIMIT_ENABLED=True,
+        API_RATE_LIMIT_WINDOW_SECONDS=300,
+        API_RATE_LIMIT_WRITE_REQUESTS=1,
+    )
+    def test_rate_limit_returns_429(self, client, pending_library, user_jwt):
+        """Verify update requests respect write rate limits.
+        Excessive owner-edit attempts receive a retry response."""
+        _patch_multipart(
+            client,
+            f"/api/v1/libraries/{pending_library.slug}",
+            {"description": "First update."},
+            user_jwt,
+        )
+
+        response = _patch_multipart(
+            client,
+            f"/api/v1/libraries/{pending_library.slug}",
+            {"description": "Second update."},
+            user_jwt,
+        )
+
+        assert response.status_code == 429
+        assert "Too many requests" in response.json()["message"]

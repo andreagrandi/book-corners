@@ -28,6 +28,7 @@ from users.views import set_language_view
 from libraries.views import (
     about_page,
     dashboard,
+    edit_library,
     home,
     latest_entries,
     library_detail,
@@ -76,6 +77,7 @@ urlpatterns = [
     path("dashboard/", dashboard, name="dashboard"),
     path("latest-entries/", latest_entries, name="latest_entries"),
     path("library/<slug:slug>/", library_detail, name="library_detail"),
+    path("library/<slug:slug>/edit/", edit_library, name="edit_library"),
     path("library/<slug:slug>/report/", submit_library_report, name="submit_library_report"),
     path("library/<slug:slug>/submit-photo/", submit_library_photo, name="submit_library_photo"),
     path("library/<slug:slug>/favourite/", toggle_favourite, name="toggle_favourite"),
