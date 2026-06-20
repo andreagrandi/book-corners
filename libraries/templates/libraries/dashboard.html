@@ -1,19 +1,33 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Dashboard" %} - Book Corners{% endblock %}
-{% block meta_description %}{% trans "Review your submitted libraries and track each moderation status from your dashboard." %}{% endblock %}
+{% block title %}{% trans "Contribution center" %} - Book Corners{% endblock %}
+{% block meta_description %}{% trans "Review your submitted libraries, reports, community photos, and moderation statuses from your dashboard." %}{% endblock %}
 
 {% block content %}
-  <section class="space-y-6">
-    <header class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm">
-      <h1 class="text-3xl font-bold">{% trans "Dashboard" %}</h1>
+  <section class="space-y-8">
+    <header class="border-b border-base-300 pb-6">
+      <h1 class="text-3xl font-bold">{% trans "Contribution center" %}</h1>
       <p class="mt-2 text-base-content/70">
-        {% trans "Manage your account and track your library submissions." %}
+        {% trans "Manage your account and track every contribution you have sent to moderation." %}
       </p>
     </header>
 
-    {# ── User profile card ── #}
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <article class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
+        <p class="text-sm font-medium text-base-content/60">{% trans "Library submissions" %}</p>
+        <p class="mt-2 text-3xl font-bold">{{ submission_count }}</p>
+      </article>
+      <article class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
+        <p class="text-sm font-medium text-base-content/60">{% trans "Reports" %}</p>
+        <p class="mt-2 text-3xl font-bold">{{ report_count }}</p>
+      </article>
+      <article class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
+        <p class="text-sm font-medium text-base-content/60">{% trans "Community photos" %}</p>
+        <p class="mt-2 text-3xl font-bold">{{ photo_count }}</p>
+      </article>
+    </div>
+
     <div class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm">
       <h2 class="text-xl font-semibold">{% trans "Account information" %}</h2>
       <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -45,43 +59,14 @@
       </div>
     </div>
 
-    {# ── Favourites list ── #}
     <div>
-      <h2 class="mb-4 text-xl font-semibold">{% trans "My favourites" %}</h2>
-      {% if favourites %}
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {% for library in favourites %}
-            <article class="card overflow-hidden border border-base-300 bg-base-100 shadow-sm">
-              <figure class="h-48 overflow-hidden bg-base-200">
-                <img
-                  src="{{ library.card_photo_url }}"
-                  alt="{{ library.description|default:library.name|default:library.address }}"
-                  class="h-full w-full object-cover"
-                  loading="lazy"
-                >
-              </figure>
-              <div class="card-body p-4">
-                <h3 class="card-title text-lg">{{ library.name|default:library.address }}</h3>
-                <p class="text-sm text-base-content/70">{{ library.city }}, {{ library.country }}</p>
-                <div class="card-actions mt-2 justify-end">
-                  <a href="{% url 'library_detail' slug=library.slug %}" class="btn btn-sm btn-outline">{% trans "View details" %}</a>
-                </div>
-              </div>
-            </article>
-          {% endfor %}
+      <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-xl font-semibold">{% trans "Library submissions" %}</h2>
+          <p class="mt-1 text-sm text-base-content/70">{% trans "Libraries you added or edited, with their current moderation status." %}</p>
         </div>
-      {% else %}
-        <article class="rounded-box border border-dashed border-base-300 bg-base-100 p-8 text-center">
-          <h3 class="text-xl font-semibold">{% trans "No favourites yet" %}</h3>
-          <p class="mt-2 text-base-content/70">{% trans "Tap the heart icon on any library to save it here." %}</p>
-          <a href="{% url 'map_page' %}" class="btn btn-primary mt-4">{% trans "Explore libraries" %}</a>
-        </article>
-      {% endif %}
-    </div>
-
-    {# ── Submissions list ── #}
-    <div>
-      <h2 class="mb-4 text-xl font-semibold">{% trans "Your submissions" %}</h2>
+        <a href="{% url 'submit_library' %}" class="btn btn-sm btn-primary">{% trans "Submit a library" %}</a>
+      </div>
       {% if submissions %}
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {% for library in submissions %}
@@ -116,26 +101,25 @@
           {% endfor %}
         </div>
 
-        {# ── Pagination controls ── #}
-        {% if page_obj.has_other_pages %}
+        {% if submissions.has_other_pages %}
           <div class="mt-6 flex justify-center">
             <div class="join">
-              {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm join-item">«</a>
+              {% if submissions.has_previous %}
+                <a href="?page={{ submissions.previous_page_number }}" class="btn btn-sm join-item">«</a>
               {% else %}
                 <button class="btn btn-sm btn-disabled join-item">«</button>
               {% endif %}
 
-              {% for num in page_obj.paginator.page_range %}
-                {% if page_obj.number == num %}
+              {% for num in submissions.paginator.page_range %}
+                {% if submissions.number == num %}
                   <button class="btn btn-sm btn-active join-item">{{ num }}</button>
-                {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                {% elif num > submissions.number|add:"-3" and num < submissions.number|add:"3" %}
                   <a href="?page={{ num }}" class="btn btn-sm join-item">{{ num }}</a>
                 {% endif %}
               {% endfor %}
 
-              {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm join-item">»</a>
+              {% if submissions.has_next %}
+                <a href="?page={{ submissions.next_page_number }}" class="btn btn-sm join-item">»</a>
               {% else %}
                 <button class="btn btn-sm btn-disabled join-item">»</button>
               {% endif %}
@@ -145,9 +129,135 @@
 
       {% else %}
         <article class="rounded-box border border-dashed border-base-300 bg-base-100 p-8 text-center">
-          <h3 class="text-xl font-semibold">{% trans "No submissions yet" %}</h3>
-          <p class="mt-2 text-base-content/70">{% trans "Share your first book exchange spot to start your dashboard history." %}</p>
+          <h3 class="text-xl font-semibold">{% trans "No library submissions yet" %}</h3>
+          <p class="mt-2 text-base-content/70">{% trans "Share your first book exchange spot to start your contribution history." %}</p>
           <a href="{% url 'submit_library' %}" class="btn btn-primary mt-4">{% trans "Submit a library" %}</a>
+        </article>
+      {% endif %}
+    </div>
+
+    <div>
+      <div class="mb-4">
+        <h2 class="text-xl font-semibold">{% trans "Reports" %}</h2>
+        <p class="mt-1 text-sm text-base-content/70">{% trans "Issues you reported for existing libraries, including open and reviewed reports." %}</p>
+      </div>
+      {% if reports %}
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {% for report in reports %}
+            <article class="rounded-box border border-base-300 bg-base-100 p-4 shadow-sm">
+              <div class="space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span class="badge badge-outline">{% trans "Report" %}</span>
+                  <span
+                    class="badge {% if report.status == report.Status.RESOLVED %}badge-success{% elif report.status == report.Status.DISMISSED %}badge-neutral{% else %}badge-warning{% endif %}"
+                  >
+                    {{ report.get_status_display }}
+                  </span>
+                </div>
+                <div>
+                  <h3 class="text-lg font-semibold">{{ report.library.name|default:report.library.address }}</h3>
+                  <p class="mt-1 text-sm text-base-content/70">{{ report.library.city }}, {{ report.library.country }}</p>
+                  <p class="mt-1 text-sm text-base-content/70">{% trans "Reason" %}: {{ report.get_reason_display }}</p>
+                  <p class="mt-1 text-xs text-base-content/60">{% trans "Submitted" %} {{ report.created_at|date:"N j, Y" }}</p>
+                </div>
+                <div class="flex justify-end">
+                  {% if report.library.status == report.library.Status.APPROVED or report.library.created_by_id == request.user.pk %}
+                    <a href="{% url 'library_detail' slug=report.library.slug %}" class="btn btn-sm btn-outline">{% trans "View library" %}</a>
+                  {% else %}
+                    <span class="text-sm text-base-content/60">{% trans "Related library is not public" %}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <article class="rounded-box border border-dashed border-base-300 bg-base-100 p-8 text-center">
+          <h3 class="text-xl font-semibold">{% trans "No reports yet" %}</h3>
+          <p class="mt-2 text-base-content/70">{% trans "When you report an issue from a library page, it will appear here." %}</p>
+          <a href="{% url 'map_page' %}" class="btn btn-primary mt-4">{% trans "Find libraries" %}</a>
+        </article>
+      {% endif %}
+    </div>
+
+    <div>
+      <div class="mb-4">
+        <h2 class="text-xl font-semibold">{% trans "Community photos" %}</h2>
+        <p class="mt-1 text-sm text-base-content/70">{% trans "Photos you submitted for existing libraries, with moderation outcomes." %}</p>
+      </div>
+      {% if photos %}
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {% for photo in photos %}
+            <article class="card overflow-hidden border border-base-300 bg-base-100 shadow-sm">
+              <figure class="h-48 overflow-hidden bg-base-200">
+                <img
+                  src="{{ photo.card_photo_url }}"
+                  alt="{{ photo.caption|default:photo.library.name|default:photo.library.address }}"
+                  class="h-full w-full object-cover"
+                  loading="lazy"
+                >
+              </figure>
+              <div class="card-body p-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span class="badge badge-outline">{% trans "Photo" %}</span>
+                  <span
+                    class="badge {% if photo.status == photo.Status.APPROVED %}badge-success{% elif photo.status == photo.Status.REJECTED %}badge-error{% else %}badge-warning{% endif %}"
+                  >
+                    {{ photo.get_status_display }}
+                  </span>
+                </div>
+                <h3 class="card-title text-lg">{{ photo.caption|default:photo.library.name|default:photo.library.address }}</h3>
+                <p class="text-sm text-base-content/70">{{ photo.library.city }}, {{ photo.library.country }}</p>
+                <p class="text-xs text-base-content/60">{% trans "Submitted" %} {{ photo.created_at|date:"N j, Y" }}</p>
+                <div class="card-actions mt-2 justify-end">
+                  {% if photo.library.status == photo.library.Status.APPROVED or photo.library.created_by_id == request.user.pk %}
+                    <a href="{% url 'library_detail' slug=photo.library.slug %}" class="btn btn-sm btn-outline">{% trans "View library" %}</a>
+                  {% else %}
+                    <span class="text-sm text-base-content/60">{% trans "Related library is not public" %}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <article class="rounded-box border border-dashed border-base-300 bg-base-100 p-8 text-center">
+          <h3 class="text-xl font-semibold">{% trans "No community photos yet" %}</h3>
+          <p class="mt-2 text-base-content/70">{% trans "Photo submissions from library pages will appear here while moderators review them." %}</p>
+          <a href="{% url 'map_page' %}" class="btn btn-primary mt-4">{% trans "Find libraries" %}</a>
+        </article>
+      {% endif %}
+    </div>
+
+    <div>
+      <h2 class="mb-4 text-xl font-semibold">{% trans "My favourites" %}</h2>
+      {% if favourites %}
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {% for library in favourites %}
+            <article class="card overflow-hidden border border-base-300 bg-base-100 shadow-sm">
+              <figure class="h-48 overflow-hidden bg-base-200">
+                <img
+                  src="{{ library.card_photo_url }}"
+                  alt="{{ library.description|default:library.name|default:library.address }}"
+                  class="h-full w-full object-cover"
+                  loading="lazy"
+                >
+              </figure>
+              <div class="card-body p-4">
+                <h3 class="card-title text-lg">{{ library.name|default:library.address }}</h3>
+                <p class="text-sm text-base-content/70">{{ library.city }}, {{ library.country }}</p>
+                <div class="card-actions mt-2 justify-end">
+                  <a href="{% url 'library_detail' slug=library.slug %}" class="btn btn-sm btn-outline">{% trans "View details" %}</a>
+                </div>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <article class="rounded-box border border-dashed border-base-300 bg-base-100 p-8 text-center">
+          <h3 class="text-xl font-semibold">{% trans "No favourites yet" %}</h3>
+          <p class="mt-2 text-base-content/70">{% trans "Tap the heart icon on any library to save it here." %}</p>
+          <a href="{% url 'map_page' %}" class="btn btn-primary mt-4">{% trans "Explore libraries" %}</a>
         </article>
       {% endif %}
     </div>

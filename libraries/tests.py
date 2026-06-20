@@ -1181,7 +1181,7 @@ class TestSeoMetadata:
         Keeps private user pages consistent with SEO metadata standards."""
         client.force_login(user)
         expected_descriptions = {
-            reverse("dashboard"): "Review your submitted libraries and track each moderation status from your dashboard.",
+            reverse("dashboard"): "Review your submitted libraries, reports, community photos, and moderation statuses from your dashboard.",
             reverse("submit_library"): "Submit a little free library to Book Corners with a photo, location, and address details.",
         }
 

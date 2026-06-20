@@ -11,7 +11,7 @@ from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.measure import D
 from django.core.cache import cache
 from django.core.paginator import Page, Paginator
-from django.db.models import Q, QuerySet
+from django.db.models import Case, IntegerField, Q, QuerySet, Value, When
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -26,7 +26,7 @@ from libraries.geolocation import (
     forward_geocode_place,
     reverse_geocode_coordinates,
 )
-from libraries.models import Favourite, Library
+from libraries.models import Favourite, Library, LibraryPhoto, Report
 from libraries.search import DEFAULT_SEARCH_RADIUS_KM, apply_text_search, run_library_search
 from libraries.stats import build_stats_data
 
@@ -690,17 +690,14 @@ def submit_library_photo(request: HttpRequest, slug: str) -> HttpResponse:
 
 @login_required(login_url="login")
 def dashboard(request: HttpRequest) -> HttpResponse:
-    """Render the authenticated dashboard with user info and paginated submissions.
-    Shows pending libraries first, then by newest creation date."""
-    from django.core.paginator import Paginator
-    from django.db.models import Case, IntegerField, Value, When
-
+    """Render the authenticated contribution center with account context.
+    Shows library submissions, reports, photo submissions, and favourites."""
     from users.auth import is_social_only_user
 
     submissions = (
         Library.objects.filter(created_by=request.user)
         .only(
-            "name", "slug", "address", "city", "country",
+            "name", "slug", "description", "address", "city", "country",
             "status", "photo", "photo_thumbnail", "created_at",
         )
         .annotate(
@@ -717,13 +714,37 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
 
+    reports = (
+        Report.objects.filter(created_by=request.user)
+        .select_related("library")
+        .only(
+            "reason", "status", "created_at",
+            "library__name", "library__slug", "library__address",
+            "library__city", "library__country", "library__status",
+            "library__created_by",
+        )
+        .order_by("-created_at")
+    )
+
+    photos = (
+        LibraryPhoto.objects.filter(created_by=request.user)
+        .select_related("library")
+        .only(
+            "caption", "status", "photo", "photo_thumbnail", "created_at",
+            "library__name", "library__slug", "library__address",
+            "library__city", "library__country", "library__status",
+            "library__created_by",
+        )
+        .order_by("-created_at")
+    )
+
     favourites = (
         Library.objects.filter(
             status=Library.Status.APPROVED,
             favourites__user=request.user,
         )
         .only(
-            "name", "slug", "address", "city", "country",
+            "name", "slug", "description", "address", "city", "country",
             "status", "photo", "photo_thumbnail", "created_at",
         )
         .order_by("-favourites__created_at")
@@ -735,6 +756,11 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         {
             "submissions": page_obj,
             "page_obj": page_obj,
+            "submission_count": paginator.count,
+            "report_count": reports.count(),
+            "photo_count": photos.count(),
+            "reports": reports,
+            "photos": photos,
             "is_social_only": is_social_only_user(request.user),
             "favourites": favourites,
         },
