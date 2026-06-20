@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.43">
+      <meta name="generator" content="zensical-0.0.45">
     
     
       
@@ -423,6 +423,33 @@
   
   
     <li class="md-nav__item">
+      <a href="../libraries/update/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Update
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../libraries/report/" class="md-nav__link">
         
   
@@ -701,6 +728,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v1110" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        v1.11.0
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v1100" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -870,6 +908,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v1110" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        v1.11.0
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v1100" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1006,6 +1055,10 @@
                   
 
 <h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
+<h2 id="v1110">v1.11.0<a class="headerlink" href="#v1110" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Library update endpoint (<code>PATCH /api/v1/libraries/{slug}</code>) allows authenticated submitters to edit their own pending or approved library submissions. Successful edits return the library to pending moderation, and replacement photos are optional.</li>
+</ul>
 <h2 id="v1100">v1.10.0<a class="headerlink" href="#v1100" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Library list endpoint (<code>GET /api/v1/libraries/</code>) accepts a new <code>search</code> query parameter for a global simple search across name, description, city, address, and postal code. It supports substring matches (useful for partial addresses and postal codes) and ranks name matches above other field matches when full-text search is available. The existing <code>q</code> parameter is unchanged and remains a focused name/description search with full-text ranking. When both parameters are provided, <code>search</code> takes precedence.</li>

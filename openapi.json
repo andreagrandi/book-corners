@@ -1135,6 +1135,358 @@
         "tags": [
           "libraries"
         ]
+      },
+      "patch": {
+        "operationId": "libraries_api_update_library",
+        "summary": "Update one of your submitted libraries",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Content Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Update a submitted library owned by the authenticated user.\nOwner edits return pending and require moderator approval.",
+        "tags": [
+          "libraries"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "title": "MultiPartBodyParams",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Display name of the library.",
+                    "examples": [
+                      "Corner Books"
+                    ],
+                    "title": "Name"
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "maxLength": 2000,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Free-text description of the library.",
+                    "examples": [
+                      "A cozy little free library near the park entrance."
+                    ],
+                    "title": "Description"
+                  },
+                  "address": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Street address of the library. May be empty when coordinates identify the location.",
+                    "examples": [
+                      "Friedrichstr. 12"
+                    ],
+                    "title": "Address"
+                  },
+                  "city": {
+                    "anyOf": [
+                      {
+                        "maxLength": 100,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "City where the library is located.",
+                    "examples": [
+                      "Berlin"
+                    ],
+                    "title": "City"
+                  },
+                  "country": {
+                    "anyOf": [
+                      {
+                        "maxLength": 2,
+                        "minLength": 2,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "ISO 3166-1 alpha-2 country code.",
+                    "examples": [
+                      "DE"
+                    ],
+                    "title": "Country"
+                  },
+                  "postal_code": {
+                    "anyOf": [
+                      {
+                        "maxLength": 20,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Postal or ZIP code.",
+                    "examples": [
+                      "10117"
+                    ],
+                    "title": "Postal Code"
+                  },
+                  "wheelchair_accessible": {
+                    "anyOf": [
+                      {
+                        "maxLength": 10,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Wheelchair accessibility: yes, no, or limited.",
+                    "examples": [
+                      "yes"
+                    ],
+                    "title": "Wheelchair Accessible"
+                  },
+                  "capacity": {
+                    "anyOf": [
+                      {
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Approximate book capacity.",
+                    "examples": [
+                      50
+                    ],
+                    "title": "Capacity"
+                  },
+                  "is_indoor": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Whether the library is inside a building.",
+                    "examples": [
+                      false
+                    ],
+                    "title": "Is Indoor"
+                  },
+                  "is_lit": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Whether the library is illuminated at night.",
+                    "examples": [
+                      true
+                    ],
+                    "title": "Is Lit"
+                  },
+                  "website": {
+                    "anyOf": [
+                      {
+                        "maxLength": 500,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "External website link.",
+                    "examples": [
+                      "https://littlefreelibrary.org/charter/12345"
+                    ],
+                    "title": "Website"
+                  },
+                  "contact": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Contact information (email, phone, etc.).",
+                    "examples": [
+                      "info@example.org"
+                    ],
+                    "title": "Contact"
+                  },
+                  "operator": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Organisation that maintains the library.",
+                    "examples": [
+                      "City Library Association"
+                    ],
+                    "title": "Operator"
+                  },
+                  "brand": {
+                    "anyOf": [
+                      {
+                        "maxLength": 255,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Network or brand name.",
+                    "examples": [
+                      "Little Free Library"
+                    ],
+                    "title": "Brand"
+                  },
+                  "latitude": {
+                    "anyOf": [
+                      {
+                        "maximum": 90,
+                        "minimum": -90,
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Latitude of the library (WGS 84). Must be provided with longitude.",
+                    "examples": [
+                      52.52
+                    ],
+                    "title": "Latitude"
+                  },
+                  "longitude": {
+                    "anyOf": [
+                      {
+                        "maximum": 180,
+                        "minimum": -180,
+                        "type": "number"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Longitude of the library (WGS 84). Must be provided with latitude.",
+                    "examples": [
+                      13.405
+                    ],
+                    "title": "Longitude"
+                  },
+                  "photo": {
+                    "format": "binary",
+                    "title": "Photo",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
       }
     },
     "/api/v1/libraries/{slug}/report": {
@@ -2675,6 +3027,271 @@
           "pagination"
         ],
         "title": "FavouriteListOut",
+        "type": "object"
+      },
+      "LibraryUpdateIn": {
+        "description": "Input schema for editing an existing submitted library.\nAll fields are optional so omitted values keep their current value.",
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Display name of the library.",
+            "examples": [
+              "Corner Books"
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Free-text description of the library.",
+            "examples": [
+              "A cozy little free library near the park entrance."
+            ],
+            "title": "Description"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Street address of the library. May be empty when coordinates identify the location.",
+            "examples": [
+              "Friedrichstr. 12"
+            ],
+            "title": "Address"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "City where the library is located.",
+            "examples": [
+              "Berlin"
+            ],
+            "title": "City"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "maxLength": 2,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ISO 3166-1 alpha-2 country code.",
+            "examples": [
+              "DE"
+            ],
+            "title": "Country"
+          },
+          "postal_code": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Postal or ZIP code.",
+            "examples": [
+              "10117"
+            ],
+            "title": "Postal Code"
+          },
+          "wheelchair_accessible": {
+            "anyOf": [
+              {
+                "maxLength": 10,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Wheelchair accessibility: yes, no, or limited.",
+            "examples": [
+              "yes"
+            ],
+            "title": "Wheelchair Accessible"
+          },
+          "capacity": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Approximate book capacity.",
+            "examples": [
+              50
+            ],
+            "title": "Capacity"
+          },
+          "is_indoor": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Whether the library is inside a building.",
+            "examples": [
+              false
+            ],
+            "title": "Is Indoor"
+          },
+          "is_lit": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Whether the library is illuminated at night.",
+            "examples": [
+              true
+            ],
+            "title": "Is Lit"
+          },
+          "website": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "External website link.",
+            "examples": [
+              "https://littlefreelibrary.org/charter/12345"
+            ],
+            "title": "Website"
+          },
+          "contact": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Contact information (email, phone, etc.).",
+            "examples": [
+              "info@example.org"
+            ],
+            "title": "Contact"
+          },
+          "operator": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Organisation that maintains the library.",
+            "examples": [
+              "City Library Association"
+            ],
+            "title": "Operator"
+          },
+          "brand": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Network or brand name.",
+            "examples": [
+              "Little Free Library"
+            ],
+            "title": "Brand"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "maximum": 90,
+                "minimum": -90,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Latitude of the library (WGS 84). Must be provided with longitude.",
+            "examples": [
+              52.52
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "maximum": 180,
+                "minimum": -180,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Longitude of the library (WGS 84). Must be provided with latitude.",
+            "examples": [
+              13.405
+            ],
+            "title": "Longitude"
+          }
+        },
+        "title": "LibraryUpdateIn",
         "type": "object"
       },
       "ReportOut": {
