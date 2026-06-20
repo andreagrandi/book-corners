@@ -104,6 +104,13 @@ class LibrarySubmissionForm(forms.ModelForm):
         self.created_by = kwargs.pop("created_by", None)
         super().__init__(*args, **kwargs)
 
+        if self.instance.pk and self.instance.location:
+            self.initial.setdefault("latitude", self.instance.location.y)
+            self.initial.setdefault("longitude", self.instance.location.x)
+
+        if self.instance.pk:
+            self.fields["photo"].widget = forms.FileInput()
+
         self.fields["photo"].widget.attrs["class"] = "file-input w-full"
         self.fields["name"].widget.attrs["class"] = "input w-full"
         self.fields["description"].widget.attrs["class"] = "textarea w-full"
@@ -153,6 +160,9 @@ class LibrarySubmissionForm(forms.ModelForm):
         """Validate the library photo before saving the submission.
         Enforces file-type and max-size rules for uploaded images."""
         photo = self.cleaned_data.get("photo")
+        if self.instance.pk and self.files.get(self.add_prefix("photo")) is None:
+            return photo
+
         return _validate_uploaded_photo(
             uploaded_photo=photo,
             max_size_bytes=settings.MAX_LIBRARY_PHOTO_UPLOAD_BYTES,

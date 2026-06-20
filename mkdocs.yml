@@ -43,6 +43,7 @@ nav:
       - List & Search: libraries/list-and-search.md
       - Detail: libraries/detail.md
       - Submit: libraries/submit.md
+      - Update: libraries/update.md
       - Report: libraries/report.md
       - Submit Photo: libraries/submit-photo.md
       - Countries: libraries/countries.md

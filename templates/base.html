@@ -90,6 +90,15 @@
     </div>
 
     <main class="{% block main_class %}mx-auto w-full max-w-6xl flex-1 p-4 lg:p-8{% endblock %}">
+      {% if messages %}
+        <div class="mb-4 space-y-2">
+          {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} text-sm">
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
       {% block content %}{% endblock %}
     </main>
 

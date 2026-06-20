@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Submit a library" %} - Book Corners{% endblock %}
-{% block meta_description %}{% trans "Submit a little free library to Book Corners with a photo, location, and address details." %}{% endblock %}
+{% block title %}{{ form_heading }} - Book Corners{% endblock %}
+{% block meta_description %}{{ form_meta_description }}{% endblock %}
 
 {% block extra_head %}
   <link
@@ -52,10 +52,15 @@
   <section class="grid gap-6 lg:grid-cols-2">
     <article class="card border border-base-300 bg-base-100 shadow-sm">
       <div class="card-body p-5">
-        <h1 class="text-3xl font-bold">{% trans "Submit a library" %}</h1>
+        <h1 class="text-3xl font-bold">{{ form_heading }}</h1>
         <p class="text-base-content/70">
-          {% trans "Share a little free library with the community. Set the exact point on the map before submitting." %}
+          {{ form_intro }}
         </p>
+        {% if review_notice %}
+          <div class="alert alert-info text-sm">
+            <span>{{ review_notice }}</span>
+          </div>
+        {% endif %}
         <p class="text-sm text-base-content/60">{% blocktrans %}Fields marked with <span class="font-medium">(optional)</span> can be left blank.{% endblocktrans %}</p>
 
         <form method="post" enctype="multipart/form-data" class="space-y-4" novalidate>
@@ -68,8 +73,9 @@
           {% endif %}
 
           <label class="flex w-full flex-col gap-1">
-            <span class="text-sm font-medium">{% trans "Photo" %}</span>
+            <span class="text-sm font-medium">{{ photo_label }}</span>
             {{ form.photo }}
+            {% if photo_help %}<span class="mt-1 text-sm text-base-content/60">{{ photo_help }}</span>{% endif %}
             {% if form.photo.errors %}<span class="mt-1 text-sm text-error">{{ form.photo.errors.0 }}</span>{% endif %}
           </label>
 
@@ -116,18 +122,18 @@
           {% if form.latitude.errors %}<p class="text-sm text-error">{{ form.latitude.errors.0 }}</p>{% endif %}
           {% if form.longitude.errors %}<p class="text-sm text-error">{{ form.longitude.errors.0 }}</p>{% endif %}
 
-          <button type="submit" class="btn btn-primary w-full">{% trans "Submit library" %}</button>
+          <button type="submit" class="btn btn-primary w-full">{{ form_button_label }}</button>
         </form>
       </div>
     </article>
 
     <section class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <h2 class="text-xl font-semibold">{% trans "Set exact location" %}</h2>
+        <h2 class="text-xl font-semibold">{{ location_heading }}</h2>
         <button id="center-map-from-address" type="button" class="btn btn-sm btn-outline">{% trans "Center from address" %}</button>
       </div>
       <p class="mt-2 text-sm text-base-content/70">
-        {% trans "Type an address and choose a suggestion to center the map. Drag the marker to refine the exact point." %}
+        {{ location_intro }}
       </p>
       <p id="submit-map-status" class="mt-2 text-sm text-base-content/60"></p>
       <div
@@ -275,7 +281,7 @@
         updateCoordinates(defaultLatitude, defaultLongitude);
       }
 
-      setStatus("{% trans 'Choose the map point by centering from address, dragging marker, or clicking map.' %}");
+      setStatus("{{ map_status_message|escapejs }}");
 
       if (typeof TomSelect !== "undefined") {
         countrySelectControl = new TomSelect(countrySelect, {

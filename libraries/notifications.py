@@ -56,6 +56,37 @@ def notify_new_library(library) -> None:
         logger.exception("Failed to send new-library notification for library %s", library.pk)
 
 
+def notify_library_update(library) -> None:
+    """Send an admin notification about edited library details.
+    Fails silently so Resend outages never block user edits."""
+    recipient = _get_admin_email()
+    if not recipient:
+        return
+
+    manage_url = _get_manage_library_url(library.pk)
+    subject = f"Library changes need review: {library.name or library.address}"
+    lines = [
+        "A library has been updated by its submitter and needs review.\n",
+        f"Name: {library.name or '(unnamed)'}",
+        f"City: {library.city}",
+    ]
+    if library.description:
+        lines.append(f"Description: {library.description}")
+    lines.append(f"Submitted by: {library.created_by}")
+    lines.append(f"\nReview it:\n{manage_url}")
+    body = "\n".join(lines)
+
+    try:
+        send_mail(
+            subject=subject,
+            message=body,
+            from_email=None,
+            recipient_list=[recipient],
+        )
+    except Exception:
+        logger.exception("Failed to send library-update notification for library %s", library.pk)
+
+
 def notify_new_report(report) -> None:
     """Send an admin notification about a new library report.
     Fails silently so Resend outages never block user submissions."""

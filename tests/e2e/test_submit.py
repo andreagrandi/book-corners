@@ -1,4 +1,7 @@
 import pytest
+from django.contrib.gis.geos import Point
+
+from libraries.models import Library
 
 
 pytestmark = [pytest.mark.e2e, pytest.mark.django_db(transaction=True)]
@@ -94,6 +97,51 @@ def test_submit_form_happy_path(live_server, authenticated_page, tmp_path):
 
     authenticated_page.wait_for_url("**/submit/confirmation/**", timeout=15000)
     assert "/submit/confirmation/" in authenticated_page.url
+
+
+def test_edit_library_happy_path(live_server, authenticated_page, e2e_user):
+    """Verify owners can edit a submitted library through the browser.
+    Confirms the edit form saves changes and returns approved rows to pending."""
+    library = Library.objects.create(
+        name="Editable E2E Library",
+        description="Original browser description.",
+        location=Point(x=11.2558, y=43.7696, srid=4326),
+        address="Via Rosina 15",
+        city="Florence",
+        country="IT",
+        postal_code="50123",
+        status=Library.Status.APPROVED,
+        created_by=e2e_user,
+    )
+
+    authenticated_page.goto(f"{live_server.url}/library/{library.slug}/")
+    authenticated_page.click(f"a[href='/library/{library.slug}/edit/']")
+    authenticated_page.wait_for_url(f"**/library/{library.slug}/edit/")
+    assert authenticated_page.get_by_text("Changes are reviewed before they become live").is_visible()
+
+    authenticated_page.locator(
+        "#submit-library-map.leaflet-container"
+    ).wait_for(state="attached", timeout=10000)
+
+    authenticated_page.fill("#id_description", "Updated browser description.")
+    authenticated_page.fill("#id_address", "Via Rosina 20")
+    authenticated_page.evaluate("""() => {
+        const lat = document.getElementById('id_latitude');
+        const lng = document.getElementById('id_longitude');
+        if (lat) lat.value = '43.7700';
+        if (lng) lng.value = '11.2600';
+    }""")
+
+    authenticated_page.locator(
+        ".card-body button[type='submit']"
+    ).click()
+
+    authenticated_page.wait_for_url(f"**/library/{library.slug}/", timeout=15000)
+    assert authenticated_page.get_by_text("Your changes were saved and sent for review").is_visible()
+    library.refresh_from_db()
+    assert library.description == "Updated browser description."
+    assert library.address == "Via Rosina 20"
+    assert library.status == Library.Status.PENDING
 
 
 def _create_minimal_jpeg(path):

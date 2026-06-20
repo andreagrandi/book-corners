@@ -11,7 +11,7 @@ from django.core import mail
 from django.test import override_settings
 
 from libraries.models import Library, LibraryPhoto, Report
-from libraries.notifications import notify_new_library, notify_new_photo, notify_new_report
+from libraries.notifications import notify_library_update, notify_new_library, notify_new_photo, notify_new_report
 
 User = get_user_model()
 
@@ -106,6 +106,42 @@ class TestNotifyNewLibrary:
             side_effect=Exception("SMTP down"),
         ):
             notify_new_library(library)  # should not raise
+
+
+@pytest.mark.django_db()
+class TestNotifyLibraryUpdate:
+    """Tests for the library-update notification helper."""
+
+    @override_settings(
+        ADMIN_NOTIFICATION_EMAIL="admin@example.com",
+        SITE_URL="https://example.com",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    )
+    def test_sends_email_with_review_subject_and_admin_link(self, approved_library):
+        """Verify edited libraries send an admin review notification.
+        Includes the manage link so moderators can approve the changes."""
+        approved_library.name = "Updated Corner Library"
+        approved_library.status = Library.Status.PENDING
+        approved_library.save()
+
+        notify_library_update(approved_library)
+
+        assert len(mail.outbox) == 1
+        message = mail.outbox[0]
+        assert "Library changes need review" in message.subject
+        assert "Updated Corner Library" in message.subject
+        assert "updated by its submitter" in message.body
+        assert f"/manage/libraries/{approved_library.pk}/" in message.body
+        assert "https://example.com" in message.body
+        assert message.to == ["admin@example.com"]
+
+    @override_settings(ADMIN_NOTIFICATION_EMAIL="")
+    def test_no_email_when_admin_email_not_configured(self, approved_library):
+        """Verify no update email is sent without an admin address.
+        Keeps local and disabled notification environments quiet."""
+        notify_library_update(approved_library)
+
+        assert len(mail.outbox) == 0
 
 
 @pytest.mark.django_db()

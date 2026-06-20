@@ -106,6 +106,9 @@
                 <p class="text-sm text-base-content/70">{{ library.address }}</p>
                 <p class="text-sm text-base-content/70">{{ library.city }}, {{ library.country }}</p>
                 <div class="card-actions mt-2 justify-end">
+                  {% if library.status == library.Status.PENDING or library.status == library.Status.APPROVED %}
+                    <a href="{% url 'edit_library' slug=library.slug %}" class="btn btn-sm btn-outline btn-primary">{% trans "Edit" %}</a>
+                  {% endif %}
                   <a href="{% url 'library_detail' slug=library.slug %}" class="btn btn-sm btn-outline">{% trans "View details" %}</a>
                 </div>
               </div>

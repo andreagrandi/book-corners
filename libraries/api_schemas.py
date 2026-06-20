@@ -160,6 +160,28 @@ class LibrarySubmitIn(Schema):
     longitude: float = Field(ge=-180, le=180, description="Longitude of the library (WGS 84).", examples=[13.4050])
 
 
+class LibraryUpdateIn(Schema):
+    """Input schema for editing an existing submitted library.
+    All fields are optional so omitted values keep their current value."""
+
+    name: str | None = Field(default=None, max_length=255, description="Display name of the library.", examples=["Corner Books"])
+    description: str | None = Field(default=None, max_length=2000, description="Free-text description of the library.", examples=["A cozy little free library near the park entrance."])
+    address: str | None = Field(default=None, max_length=255, description="Street address of the library. May be empty when coordinates identify the location.", examples=["Friedrichstr. 12"])
+    city: str | None = Field(default=None, min_length=1, max_length=100, description="City where the library is located.", examples=["Berlin"])
+    country: str | None = Field(default=None, min_length=2, max_length=2, description="ISO 3166-1 alpha-2 country code.", examples=["DE"])
+    postal_code: str | None = Field(default=None, max_length=20, description="Postal or ZIP code.", examples=["10117"])
+    wheelchair_accessible: str | None = Field(default=None, max_length=10, description="Wheelchair accessibility: yes, no, or limited.", examples=["yes"])
+    capacity: int | None = Field(default=None, ge=0, description="Approximate book capacity.", examples=[50])
+    is_indoor: bool | None = Field(default=None, description="Whether the library is inside a building.", examples=[False])
+    is_lit: bool | None = Field(default=None, description="Whether the library is illuminated at night.", examples=[True])
+    website: str | None = Field(default=None, max_length=500, description="External website link.", examples=["https://littlefreelibrary.org/charter/12345"])
+    contact: str | None = Field(default=None, max_length=255, description="Contact information (email, phone, etc.).", examples=["info@example.org"])
+    operator: str | None = Field(default=None, max_length=255, description="Organisation that maintains the library.", examples=["City Library Association"])
+    brand: str | None = Field(default=None, max_length=255, description="Network or brand name.", examples=["Little Free Library"])
+    latitude: float | None = Field(default=None, ge=-90, le=90, description="Latitude of the library (WGS 84). Must be provided with longitude.", examples=[52.5200])
+    longitude: float | None = Field(default=None, ge=-180, le=180, description="Longitude of the library (WGS 84). Must be provided with latitude.", examples=[13.4050])
+
+
 class ReportReasonEnum(str, Enum):
     """Enumeration of valid report reasons matching model choices.
     Keeps API and database reason values in sync."""

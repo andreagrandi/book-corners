@@ -5,6 +5,7 @@ import pytest
 from django.conf import settings as django_settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
+from django.core import mail
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, override_settings
@@ -2185,6 +2186,299 @@ class TestLibraryDetailView:
         assert "name=\"reason\"" in authenticated_content
         assert "name=\"details\"" in authenticated_content
 
+    def test_edit_link_is_only_visible_to_owner_for_editable_statuses(self, client, user):
+        """Verify edit links are limited to owner-editable libraries.
+        Pending and approved owner submissions can be edited, rejected ones cannot."""
+        owner = User.objects.create_user(
+            username="editowner",
+            password="OwnerPass123!",
+        )
+        viewer = User.objects.create_user(
+            username="editviewer",
+            password="ViewerPass123!",
+        )
+        approved_library = Library.objects.create(
+            name="Editable Approved Shelf",
+            photo="libraries/photos/2026/02/edit-approved.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=owner,
+        )
+        rejected_library = Library.objects.create(
+            name="Rejected Edit Shelf",
+            photo="libraries/photos/2026/02/edit-rejected.jpg",
+            location=Point(x=11.2668, y=43.7806, srid=4326),
+            address="Via Calzaiuoli 1",
+            city="Florence",
+            country="IT",
+            status=Library.Status.REJECTED,
+            created_by=owner,
+        )
+
+        client.force_login(owner)
+        owner_response = client.get(reverse("library_detail", kwargs={"slug": approved_library.slug}))
+        owner_content = owner_response.content.decode()
+        assert f'href="{reverse("edit_library", kwargs={"slug": approved_library.slug})}"' in owner_content
+
+        rejected_response = client.get(reverse("library_detail", kwargs={"slug": rejected_library.slug}))
+        rejected_content = rejected_response.content.decode()
+        assert reverse("edit_library", kwargs={"slug": rejected_library.slug}) not in rejected_content
+
+        client.force_login(viewer)
+        viewer_response = client.get(reverse("library_detail", kwargs={"slug": approved_library.slug}))
+        viewer_content = viewer_response.content.decode()
+        assert reverse("edit_library", kwargs={"slug": approved_library.slug}) not in viewer_content
+
+
+@pytest.mark.django_db
+class TestEditLibraryView:
+    def test_edit_view_requires_authentication(self, client, user):
+        """Verify anonymous users are redirected before editing.
+        Protects owner-only edit forms from unauthenticated visitors."""
+        library = Library.objects.create(
+            name="Protected Edit Shelf",
+            photo="libraries/photos/2026/02/protected-edit.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            created_by=user,
+        )
+
+        response = client.get(reverse("edit_library", kwargs={"slug": library.slug}))
+
+        assert response.status_code == 302
+        assert response.url.startswith(f"{reverse('login')}?next=")
+
+    def test_owner_can_render_edit_form_with_existing_values(self, client, user):
+        """Verify the owner edit form is prefilled from the library.
+        Keeps existing details and map coordinates visible before changes."""
+        library = Library.objects.create(
+            name="Prefilled Edit Shelf",
+            description="Original description.",
+            photo="libraries/photos/2026/02/prefilled-edit.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            postal_code="50123",
+            status=Library.Status.PENDING,
+            created_by=user,
+        )
+
+        client.force_login(user)
+        response = client.get(reverse("edit_library", kwargs={"slug": library.slug}))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Edit library" in content
+        assert "Prefilled Edit Shelf" in content
+        assert "Original description." in content
+        assert "value=\"43.7696\"" in content
+        assert "value=\"11.2558\"" in content
+        assert "Replace photo (optional)" in content
+        assert "Save changes" in content
+        assert "Changes are reviewed before they become live" in content
+
+    def test_owner_can_edit_pending_library_and_keep_photo(self, client, user):
+        """Verify owners can update pending library details.
+        Omitting a new photo preserves the existing primary photo."""
+        library = Library.objects.create(
+            name="Pending Edit Shelf",
+            description="Before edit.",
+            photo="libraries/photos/2026/02/pending-original.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.PENDING,
+            created_by=user,
+        )
+
+        client.force_login(user)
+        response = client.post(
+            reverse("edit_library", kwargs={"slug": library.slug}),
+            data={
+                "name": "Pending Edited Shelf",
+                "description": "After edit.",
+                "address": "Via Rosina 20",
+                "city": "Florence",
+                "country": "IT",
+                "postal_code": "50123",
+                "latitude": "43.7700",
+                "longitude": "11.2600",
+            },
+        )
+
+        assert response.status_code == 302
+        assert response.url == reverse("library_detail", kwargs={"slug": library.slug})
+        library.refresh_from_db()
+        assert library.name == "Pending Edited Shelf"
+        assert library.description == "After edit."
+        assert library.address == "Via Rosina 20"
+        assert library.photo.name == "libraries/photos/2026/02/pending-original.jpg"
+        assert library.status == Library.Status.PENDING
+        assert library.location.y == pytest.approx(43.7700, abs=1e-6)
+        assert library.location.x == pytest.approx(11.2600, abs=1e-6)
+
+        detail_response = client.get(response.url)
+        detail_content = detail_response.content.decode()
+        assert "Your changes were saved and sent for review" in detail_content
+
+    @override_settings(
+        ADMIN_NOTIFICATION_EMAIL="admin@example.com",
+        SITE_URL="https://example.com",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    )
+    def test_owner_edit_sends_admin_review_notification(self, client, user):
+        """Verify owner edits notify admins that approval is needed.
+        Ensures pending-review changes do not sit unnoticed."""
+        library = Library.objects.create(
+            name="Notification Edit Shelf",
+            description="Before edit.",
+            photo="libraries/photos/2026/02/notify-edit.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        client.force_login(user)
+        response = client.post(
+            reverse("edit_library", kwargs={"slug": library.slug}),
+            data={
+                "name": "Notification Edited Shelf",
+                "description": "After edit.",
+                "address": "Via Rosina 15",
+                "city": "Florence",
+                "country": "IT",
+                "postal_code": "",
+                "latitude": "43.7696",
+                "longitude": "11.2558",
+            },
+        )
+
+        assert response.status_code == 302
+        assert len(mail.outbox) == 1
+        message = mail.outbox[0]
+        assert "Library changes need review" in message.subject
+        assert "Notification Edited Shelf" in message.subject
+        assert f"/manage/libraries/{library.pk}/" in message.body
+        assert message.to == ["admin@example.com"]
+
+    def test_owner_editing_approved_library_resets_to_pending(self, client, user):
+        """Verify approved owner edits require moderation again.
+        Publicly visible submissions return to pending after successful edits."""
+        library = Library.objects.create(
+            name="Approved Edit Shelf",
+            description="Before approved edit.",
+            photo="libraries/photos/2026/02/approved-edit.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        client.force_login(user)
+        response = client.post(
+            reverse("edit_library", kwargs={"slug": library.slug}),
+            data={
+                "name": "Approved Edited Shelf",
+                "description": "Updated approved library.",
+                "address": "Via Rosina 15",
+                "city": "Florence",
+                "country": "IT",
+                "postal_code": "",
+                "latitude": "43.7696",
+                "longitude": "11.2558",
+            },
+        )
+
+        assert response.status_code == 302
+        library.refresh_from_db()
+        assert library.name == "Approved Edited Shelf"
+        assert library.status == Library.Status.PENDING
+
+    def test_owner_can_replace_photo_on_edit(self, client, user, settings, tmp_path):
+        """Verify edit submissions can replace the primary photo.
+        New uploads are processed through the normal optimized image flow."""
+        settings.MEDIA_ROOT = tmp_path / "media"
+        library = Library.objects.create(
+            name="Photo Edit Shelf",
+            photo="libraries/photos/2026/02/old-photo.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.PENDING,
+            created_by=user,
+        )
+
+        client.force_login(user)
+        response = client.post(
+            reverse("edit_library", kwargs={"slug": library.slug}),
+            data={
+                "photo": _build_uploaded_photo(file_name="replacement.jpg"),
+                "name": "Photo Edit Shelf",
+                "description": "",
+                "address": "Via Rosina 15",
+                "city": "Florence",
+                "country": "IT",
+                "postal_code": "",
+                "latitude": "43.7696",
+                "longitude": "11.2558",
+            },
+        )
+
+        assert response.status_code == 302
+        library.refresh_from_db()
+        assert library.photo.name != "libraries/photos/2026/02/old-photo.jpg"
+        assert library.photo.name
+        assert library.photo_thumbnail.name
+
+    def test_edit_returns_404_for_non_owner_and_rejected_library(self, client, user):
+        """Verify edit access is denied for non-owners and rejected rows.
+        Keeps the owner edit surface scoped to active submissions."""
+        other_user = User.objects.create_user(
+            username="editother",
+            password="OtherPass123!",
+        )
+        approved_library = Library.objects.create(
+            name="Other Owner Shelf",
+            photo="libraries/photos/2026/02/other-owner.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=other_user,
+        )
+        rejected_library = Library.objects.create(
+            name="Rejected Owner Shelf",
+            photo="libraries/photos/2026/02/rejected-owner.jpg",
+            location=Point(x=11.2668, y=43.7806, srid=4326),
+            address="Via Calzaiuoli 1",
+            city="Florence",
+            country="IT",
+            status=Library.Status.REJECTED,
+            created_by=user,
+        )
+
+        client.force_login(user)
+
+        non_owner_response = client.get(reverse("edit_library", kwargs={"slug": approved_library.slug}))
+        rejected_response = client.get(reverse("edit_library", kwargs={"slug": rejected_library.slug}))
+
+        assert non_owner_response.status_code == 404
+        assert rejected_response.status_code == 404
+
 
 @pytest.mark.django_db
 class TestLibraryReportSubmission:
@@ -2501,6 +2795,9 @@ class TestUserDashboardView:
         assert f'href="{reverse("library_detail", kwargs={"slug": pending_library.slug})}"' in content
         assert f'href="{reverse("library_detail", kwargs={"slug": approved_library.slug})}"' in content
         assert f'href="{reverse("library_detail", kwargs={"slug": rejected_library.slug})}"' in content
+        assert f'href="{reverse("edit_library", kwargs={"slug": pending_library.slug})}"' in content
+        assert f'href="{reverse("edit_library", kwargs={"slug": approved_library.slug})}"' in content
+        assert reverse("edit_library", kwargs={"slug": rejected_library.slug}) not in content
 
 
 @pytest.mark.django_db

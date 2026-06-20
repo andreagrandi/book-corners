@@ -23,6 +23,7 @@ from libraries.api_schemas import (
     LibraryPhotoOut,
     LibrarySearchParams,
     LibrarySubmitIn,
+    LibraryUpdateIn,
     ReportIn,
     ReportOut,
     StatisticsOut,
@@ -31,11 +32,28 @@ from libraries.api_security import is_api_rate_limited
 from libraries.stats import build_stats_data, get_countries
 from libraries.forms import _validate_uploaded_photo
 from libraries.models import Favourite, Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
-from libraries.notifications import notify_new_library, notify_new_photo, notify_new_report
+from libraries.notifications import notify_library_update, notify_new_library, notify_new_photo, notify_new_report
 from libraries.tasks import enrich_library_with_ai
 from libraries.search import run_library_search
 
 library_router = Router(tags=["libraries"])
+
+LIBRARY_UPDATE_FIELDS = (
+    "name",
+    "description",
+    "address",
+    "city",
+    "country",
+    "postal_code",
+    "wheelchair_accessible",
+    "capacity",
+    "is_indoor",
+    "is_lit",
+    "website",
+    "contact",
+    "operator",
+    "brand",
+)
 
 
 def _annotate_is_favourited(queryset, user):
@@ -244,6 +262,78 @@ def submit_library(request, payload: Form[LibrarySubmitIn], photo: UploadedFile 
     except Exception:
         notify_new_library(library)
     return 201, library
+
+
+@library_router.patch(
+    "/{slug}",
+    response={200: LibraryOut, 400: ErrorOut, 404: ErrorOut, 413: ErrorOut, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="Update one of your submitted libraries",
+)
+def update_library(
+    request,
+    slug: str,
+    payload: Form[LibraryUpdateIn],
+    photo: UploadedFile = File(None),
+):
+    """Update a submitted library owned by the authenticated user.
+    Owner edits return pending and require moderator approval."""
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-library-update",
+        max_requests=settings.API_RATE_LIMIT_WRITE_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    submitted_fields = set(request.POST)
+    coordinate_fields = {"latitude", "longitude"}
+    submitted_coordinates = submitted_fields & coordinate_fields
+    submitted_update_fields = submitted_fields & set(LIBRARY_UPDATE_FIELDS)
+
+    if len(submitted_coordinates) == 1:
+        return 400, ErrorOut(message="Latitude and longitude must be provided together.")
+
+    if not submitted_update_fields and not submitted_coordinates and photo is None:
+        return 400, ErrorOut(message="Provide at least one field to update.")
+
+    if photo is not None:
+        try:
+            _validate_uploaded_photo(
+                uploaded_photo=photo,
+                max_size_bytes=settings.MAX_LIBRARY_PHOTO_UPLOAD_BYTES,
+            )
+        except ValidationError as exc:
+            message = exc.message if hasattr(exc, "message") else str(exc)
+            status_code = 413 if ("MB or smaller" in str(message) or "at most" in str(message)) else 400
+            return status_code, ErrorOut(message=str(message))
+
+    library = get_object_or_404(
+        Library,
+        slug=slug,
+        created_by=request.user,
+        status__in=[Library.Status.PENDING, Library.Status.APPROVED],
+    )
+
+    for field_name in LIBRARY_UPDATE_FIELDS:
+        if field_name in submitted_fields:
+            setattr(library, field_name, getattr(payload, field_name))
+
+    if submitted_coordinates:
+        if payload.latitude is None or payload.longitude is None:
+            return 400, ErrorOut(message="Latitude and longitude must be provided together.")
+        library.location = Point(x=payload.longitude, y=payload.latitude, srid=4326)
+
+    if photo is not None:
+        library.photo = photo
+
+    library.status = Library.Status.PENDING
+    library.save()
+    notify_library_update(library)
+    return 200, library
 
 
 @library_router.post(

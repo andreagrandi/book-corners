@@ -12,6 +12,17 @@ Before making assumptions about how to run commands, deploy, or configure produc
 
 Always consult these files first when the task involves deployment, environment configuration, infrastructure, or operational commands.
 
+## Session Start Workflow
+
+Before making code or documentation changes in this repo:
+
+1. Switch back to `master`.
+2. Pull the latest changes with `git pull --ff-only`.
+3. Create a new branch with a short, descriptive name related to the feature being added or the bug being fixed.
+4. Make the requested changes on that branch.
+
+Do not start work from an old feature branch unless the user explicitly asks to continue that branch.
+
 ## Adding a Ticket, Issue, or Bug
 
 When the user asks to add a "ticket", "issue", or "bug" to this repo, all of
