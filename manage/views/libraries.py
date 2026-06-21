@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
@@ -24,21 +24,44 @@ from libraries.views import (
     invalidate_cluster_cache,
 )
 from manage.decorators import staff_required
-from manage.forms import LibraryFilterForm
+from manage.forms import LibraryEditForm, LibraryFilterForm
 from manage.helpers import render_with_toast
 
 LIBRARIES_PER_PAGE = 25
 
 
-def _invalidate_library_caches():
-    """Clear all caches affected by library data changes."""
+def _invalidate_library_caches() -> None:
+    """Clear caches affected by library data changes.
+    Keeps maps, search, and homepage counts in sync."""
     cache.delete(GEOJSON_CACHE_KEY)
     cache.delete(HOMEPAGE_COUNT_CACHE_KEY)
     invalidate_cluster_cache()
 
 
-def _get_filtered_libraries(request: HttpRequest):
-    """Return a filtered queryset and bound form from request GET params."""
+def _notify_library_moderation_change(
+    *,
+    library: Library,
+    old_status: str,
+    new_status: str,
+    rejection_reason: str,
+) -> None:
+    """Send submitter notifications for moderation status changes.
+    Keeps manage edit, approve, and reject paths behaviorally aligned."""
+    if old_status == Library.Status.PENDING and new_status == Library.Status.APPROVED:
+        notify_library_approved(library)
+    if (
+        old_status != Library.Status.REJECTED
+        and new_status == Library.Status.REJECTED
+        and rejection_reason
+    ):
+        notify_library_rejected(library)
+
+
+def _get_filtered_libraries(
+    request: HttpRequest,
+) -> tuple[QuerySet[Library], LibraryFilterForm]:
+    """Return libraries filtered by manage list inputs.
+    Provides the bound form for rendering the active filters."""
     form = LibraryFilterForm(request.GET)
     qs = Library.objects.select_related("created_by").all()
 
@@ -84,14 +107,19 @@ def library_list(request: HttpRequest) -> HttpResponse:
 @staff_required
 @require_POST
 def library_approve(request: HttpRequest, pk: int) -> HttpResponse:
-    """Approve a single library and notify the submitter."""
+    """Approve a single library.
+    Invalidates library caches and notifies eligible submitters."""
     library = get_object_or_404(Library, pk=pk)
-    was_pending = library.status == Library.Status.PENDING
+    old_status = library.status
     library.status = Library.Status.APPROVED
     library.save(update_fields=["status", "updated_at"])
     _invalidate_library_caches()
-    if was_pending:
-        notify_library_approved(library)
+    _notify_library_moderation_change(
+        library=library,
+        old_status=old_status,
+        new_status=library.status,
+        rejection_reason="",
+    )
 
     if request.headers.get("HX-Request"):
         return render_with_toast(
@@ -104,16 +132,22 @@ def library_approve(request: HttpRequest, pk: int) -> HttpResponse:
 @staff_required
 @require_POST
 def library_reject(request: HttpRequest, pk: int) -> HttpResponse:
-    """Reject a single library."""
+    """Reject a single library.
+    Invalidates library caches and notifies eligible submitters."""
     library = get_object_or_404(Library, pk=pk)
+    old_status = library.status
     library.status = Library.Status.REJECTED
     rejection_reason = request.POST.get("rejection_reason", "")
     if rejection_reason:
         library.rejection_reason = rejection_reason
     library.save(update_fields=["status", "rejection_reason", "updated_at"])
     _invalidate_library_caches()
-    if rejection_reason:
-        notify_library_rejected(library)
+    _notify_library_moderation_change(
+        library=library,
+        old_status=old_status,
+        new_status=library.status,
+        rejection_reason=rejection_reason,
+    )
 
     if request.headers.get("HX-Request"):
         return render_with_toast(
@@ -152,7 +186,8 @@ def library_bulk_action(request: HttpRequest) -> HttpResponse:
 
 @staff_required
 def library_detail(request: HttpRequest, pk: int) -> HttpResponse:
-    """Display library detail for review."""
+    """Display library detail for review.
+    Shows moderation actions, photos, reports, and edit links."""
     library = get_object_or_404(
         Library.objects.select_related("created_by"), pk=pk
     )
@@ -164,6 +199,38 @@ def library_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "reports": reports,
     }
     return render(request, "manage/libraries/detail.html", context)
+
+
+@staff_required
+def library_edit(request: HttpRequest, pk: int) -> HttpResponse:
+    """Edit core library fields from the manage interface.
+    Saves location changes and applies moderation side effects."""
+    library = get_object_or_404(
+        Library.objects.select_related("created_by"), pk=pk
+    )
+    old_status = library.status
+
+    if request.method == "POST":
+        form = LibraryEditForm(request.POST, instance=library)
+        if form.is_valid():
+            library = form.save()
+            _invalidate_library_caches()
+            _notify_library_moderation_change(
+                library=library,
+                old_status=old_status,
+                new_status=library.status,
+                rejection_reason=form.cleaned_data["rejection_reason"].strip(),
+            )
+            messages.success(request, _("Library details saved."))
+            return redirect("manage:library_detail", pk=library.pk)
+    else:
+        form = LibraryEditForm(instance=library)
+
+    context = {
+        "library": library,
+        "form": form,
+    }
+    return render(request, "manage/libraries/edit.html", context)
 
 
 @staff_required

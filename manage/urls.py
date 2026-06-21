@@ -9,6 +9,7 @@ from manage.views.libraries import (
     library_approve,
     library_bulk_action,
     library_detail,
+    library_edit,
     library_list,
     library_reject,
 )
@@ -28,6 +29,7 @@ urlpatterns = [
     path("libraries/", library_list, name="library_list"),
     path("libraries/import/", import_geojson, name="import_geojson"),
     path("libraries/duplicates/", find_duplicates, name="find_duplicates"),
+    path("libraries/<int:pk>/edit/", library_edit, name="library_edit"),
     path("libraries/<int:pk>/", library_detail, name="library_detail"),
     path("libraries/<int:pk>/approve/", library_approve, name="library_approve"),
     path("libraries/<int:pk>/reject/", library_reject, name="library_reject"),

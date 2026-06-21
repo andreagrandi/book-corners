@@ -1,0 +1,261 @@
+{% extends "manage/base.html" %}
+{% load i18n l10n %}
+
+{% block title %}{% trans "Edit library" %} - {% trans "Manage" %} - Book Corners{% endblock %}
+
+{% block extra_head %}
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  >
+{% endblock %}
+
+{% block page_title %}{% trans "Edit library" %}{% endblock %}
+
+{% block breadcrumbs %}
+  <div class="breadcrumbs mb-4 hidden text-sm lg:block">
+    <ul>
+      <li><a href="{% url 'manage:dashboard' %}">{% trans "Dashboard" %}</a></li>
+      <li><a href="{% url 'manage:library_list' %}">{% trans "Libraries" %}</a></li>
+      <li><a href="{% url 'manage:library_detail' pk=library.pk %}">{{ library.name|default:library.address|truncatechars:30 }}</a></li>
+      <li>{% trans "Edit" %}</li>
+    </ul>
+  </div>
+{% endblock %}
+
+{% block manage_content %}
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 class="hidden text-2xl font-bold lg:block">{% trans "Edit library" %}</h1>
+      <p class="mt-1 text-sm text-base-content/60">{{ library.name|default:library.address }}</p>
+    </div>
+    <a href="/admin/libraries/library/{{ library.pk }}/change/" class="btn btn-ghost btn-sm">{% trans "Edit in Django Admin" %}</a>
+  </div>
+
+  <form method="post" class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3" novalidate>
+    {% csrf_token %}
+
+    <div class="space-y-6 lg:col-span-2">
+      {% if form.non_field_errors %}
+        <div class="alert alert-error text-sm">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <section class="rounded-box border border-base-300 bg-base-100 p-5">
+        <h2 class="text-lg font-semibold">{% trans "Details" %}</h2>
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 sm:col-span-2">
+            <span class="text-sm font-medium">{% trans "Name" %}</span>
+            {{ form.name }}
+            {% if form.name.errors %}<span class="text-sm text-error">{{ form.name.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="flex flex-col gap-1 sm:col-span-2">
+            <span class="text-sm font-medium">{% trans "Description" %}</span>
+            {{ form.description }}
+            {% if form.description.errors %}<span class="text-sm text-error">{{ form.description.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "Address" %}</span>
+            {{ form.address }}
+            {% if form.address.errors %}<span class="text-sm text-error">{{ form.address.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "City" %}</span>
+            {{ form.city }}
+            {% if form.city.errors %}<span class="text-sm text-error">{{ form.city.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "Country" %}</span>
+            {{ form.country }}
+            {% if form.country.errors %}<span class="text-sm text-error">{{ form.country.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "Postal code" %}</span>
+            {{ form.postal_code }}
+            {% if form.postal_code.errors %}<span class="text-sm text-error">{{ form.postal_code.errors.0 }}</span>{% endif %}
+          </label>
+        </div>
+      </section>
+
+      <section class="rounded-box border border-base-300 bg-base-100 p-5">
+        <h2 class="text-lg font-semibold">{% trans "Additional info" %}</h2>
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "Wheelchair accessible" %}</span>
+            {{ form.wheelchair_accessible }}
+            {% if form.wheelchair_accessible.errors %}<span class="text-sm text-error">{{ form.wheelchair_accessible.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "Capacity" %}</span>
+            {{ form.capacity }}
+            {% if form.capacity.errors %}<span class="text-sm text-error">{{ form.capacity.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "Indoor" %}</span>
+            {{ form.is_indoor }}
+            {% if form.is_indoor.errors %}<span class="text-sm text-error">{{ form.is_indoor.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "Lit" %}</span>
+            {{ form.is_lit }}
+            {% if form.is_lit.errors %}<span class="text-sm text-error">{{ form.is_lit.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "Website" %}</span>
+            {{ form.website }}
+            {% if form.website.errors %}<span class="text-sm text-error">{{ form.website.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "Contact" %}</span>
+            {{ form.contact }}
+            {% if form.contact.errors %}<span class="text-sm text-error">{{ form.contact.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "Source" %}</span>
+            {{ form.source }}
+            {% if form.source.errors %}<span class="text-sm text-error">{{ form.source.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "Operator" %}</span>
+            {{ form.operator }}
+            {% if form.operator.errors %}<span class="text-sm text-error">{{ form.operator.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "Brand" %}</span>
+            {{ form.brand }}
+            {% if form.brand.errors %}<span class="text-sm text-error">{{ form.brand.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="flex flex-col gap-1 sm:col-span-2 lg:col-span-3">
+            <span class="text-sm font-medium">{% trans "External ID" %}</span>
+            {{ form.external_id }}
+            {% if form.external_id.errors %}<span class="text-sm text-error">{{ form.external_id.errors.0 }}</span>{% endif %}
+          </label>
+        </div>
+      </section>
+    </div>
+
+    <div class="space-y-6">
+      <section class="rounded-box border border-base-300 bg-base-100 p-5">
+        <h2 class="text-lg font-semibold">{% trans "Location" %}</h2>
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "Latitude" %}</span>
+            {{ form.latitude }}
+            {% if form.latitude.errors %}<span class="text-sm text-error">{{ form.latitude.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "Longitude" %}</span>
+            {{ form.longitude }}
+            {% if form.longitude.errors %}<span class="text-sm text-error">{{ form.longitude.errors.0 }}</span>{% endif %}
+          </label>
+        </div>
+        <div
+          id="manage-library-map"
+          class="mt-4 h-80 w-full rounded-box border border-base-300"
+          data-latitude="{{ library.location.y|unlocalize }}"
+          data-longitude="{{ library.location.x|unlocalize }}"
+        ></div>
+      </section>
+
+      <section class="rounded-box border border-base-300 bg-base-100 p-5">
+        <h2 class="text-lg font-semibold">{% trans "Moderation" %}</h2>
+        <div class="mt-4 space-y-4">
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "Status" %}</span>
+            {{ form.status }}
+            {% if form.status.errors %}<span class="text-sm text-error">{{ form.status.errors.0 }}</span>{% endif %}
+          </label>
+
+          <label class="flex flex-col gap-1">
+            <span class="text-sm font-medium">{% trans "Rejection reason" %}</span>
+            {{ form.rejection_reason }}
+            {% if form.rejection_reason.errors %}<span class="text-sm text-error">{{ form.rejection_reason.errors.0 }}</span>{% endif %}
+          </label>
+        </div>
+      </section>
+
+      <div class="flex flex-col gap-2">
+        <button type="submit" class="btn btn-primary">{% trans "Save changes" %}</button>
+        <a href="{% url 'manage:library_detail' pk=library.pk %}" class="btn btn-ghost">{% trans "Cancel" %}</a>
+      </div>
+    </div>
+  </form>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const mapElement = document.getElementById("manage-library-map");
+      const latitudeInput = document.getElementById("id_latitude");
+      const longitudeInput = document.getElementById("id_longitude");
+
+      if (!mapElement || !latitudeInput || !longitudeInput || typeof L === "undefined") {
+        return;
+      }
+
+      const inputLatitude = Number.parseFloat(latitudeInput.value || "");
+      const inputLongitude = Number.parseFloat(longitudeInput.value || "");
+      const savedLatitude = Number.parseFloat(mapElement.dataset.latitude || "0");
+      const savedLongitude = Number.parseFloat(mapElement.dataset.longitude || "0");
+
+      function hasValidCoordinates(nextLatitude, nextLongitude) {
+        return Number.isFinite(nextLatitude)
+          && Number.isFinite(nextLongitude)
+          && nextLatitude >= -90
+          && nextLatitude <= 90
+          && nextLongitude >= -180
+          && nextLongitude <= 180;
+      }
+
+      const useInputCoordinates = hasValidCoordinates(inputLatitude, inputLongitude);
+      const latitude = useInputCoordinates ? inputLatitude : savedLatitude;
+      const longitude = useInputCoordinates ? inputLongitude : savedLongitude;
+
+      const map = L.map(mapElement, { scrollWheelZoom: false }).setView([latitude, longitude], 15);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
+
+      const marker = L.marker([latitude, longitude], {
+        draggable: true,
+      }).addTo(map);
+
+      function updateCoordinates(nextLatitude, nextLongitude) {
+        latitudeInput.value = nextLatitude.toFixed(6);
+        longitudeInput.value = nextLongitude.toFixed(6);
+        marker.setLatLng([nextLatitude, nextLongitude]);
+      }
+
+      marker.on("dragend", function () {
+        const position = marker.getLatLng();
+        updateCoordinates(position.lat, position.lng);
+      });
+
+      map.on("click", function (event) {
+        updateCoordinates(event.latlng.lat, event.latlng.lng);
+      });
+    });
+  </script>
+{% endblock %}
