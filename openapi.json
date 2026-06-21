@@ -1084,6 +1084,921 @@
         ]
       }
     },
+    "/api/v1/libraries/moderation/summary": {
+      "get": {
+        "operationId": "libraries_api_moderation_summary",
+        "summary": "Get staff moderation dashboard counts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModerationSummaryOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return aggregate moderation counts for staff users.\nNon-staff authenticated users receive a structured 403 response.",
+        "tags": [
+          "libraries"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/libraries/moderation": {
+      "get": {
+        "operationId": "libraries_api_list_moderation_libraries",
+        "summary": "List libraries for staff moderation",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "allOf": [
+                {
+                  "description": "Shared moderation status filter values.\nSupports listing all items or one concrete moderation status.",
+                  "enum": [
+                    "all",
+                    "pending",
+                    "approved",
+                    "rejected"
+                  ],
+                  "title": "ModerationStatusFilterEnum",
+                  "type": "string"
+                }
+              ],
+              "default": "all",
+              "description": "Filter by moderation status, or all."
+            },
+            "required": false,
+            "description": "Filter by moderation status, or all."
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search name, address, or city.",
+              "example": "Berlin",
+              "title": "Q"
+            },
+            "required": false,
+            "description": "Search name, address, or city.",
+            "example": "Berlin"
+          },
+          {
+            "in": "query",
+            "name": "country",
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by ISO 3166-1 alpha-2 country code.",
+              "example": "DE",
+              "title": "Country"
+            },
+            "required": false,
+            "description": "Filter by ISO 3166-1 alpha-2 country code.",
+            "example": "DE"
+          },
+          {
+            "in": "query",
+            "name": "source",
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by data source.",
+              "example": "OpenStreetMap",
+              "title": "Source"
+            },
+            "required": false,
+            "description": "Filter by data source.",
+            "example": "OpenStreetMap"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "default": 1,
+              "description": "Page number to retrieve (1-indexed).",
+              "example": 1,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Page number to retrieve (1-indexed).",
+            "example": 1
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "schema": {
+              "default": 20,
+              "description": "Number of submissions per page.",
+              "example": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Number of submissions per page.",
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryModerationListOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return all library submissions for staff users.\nSupports status, text, country, source, and pagination filters.",
+        "tags": [
+          "libraries"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/libraries/moderation/pending": {
+      "get": {
+        "operationId": "libraries_api_list_pending_libraries",
+        "summary": "List pending library submissions for staff moderation",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "allOf": [
+                {
+                  "description": "Shared moderation status filter values.\nSupports listing all items or one concrete moderation status.",
+                  "enum": [
+                    "all",
+                    "pending",
+                    "approved",
+                    "rejected"
+                  ],
+                  "title": "ModerationStatusFilterEnum",
+                  "type": "string"
+                }
+              ],
+              "default": "all",
+              "description": "Filter by moderation status, or all."
+            },
+            "required": false,
+            "description": "Filter by moderation status, or all."
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search name, address, or city.",
+              "example": "Berlin",
+              "title": "Q"
+            },
+            "required": false,
+            "description": "Search name, address, or city.",
+            "example": "Berlin"
+          },
+          {
+            "in": "query",
+            "name": "country",
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 2,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by ISO 3166-1 alpha-2 country code.",
+              "example": "DE",
+              "title": "Country"
+            },
+            "required": false,
+            "description": "Filter by ISO 3166-1 alpha-2 country code.",
+            "example": "DE"
+          },
+          {
+            "in": "query",
+            "name": "source",
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by data source.",
+              "example": "OpenStreetMap",
+              "title": "Source"
+            },
+            "required": false,
+            "description": "Filter by data source.",
+            "example": "OpenStreetMap"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "default": 1,
+              "description": "Page number to retrieve (1-indexed).",
+              "example": 1,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Page number to retrieve (1-indexed).",
+            "example": 1
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "schema": {
+              "default": 20,
+              "description": "Number of submissions per page.",
+              "example": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Number of submissions per page.",
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryModerationListOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return pending library submissions for staff users.\nSupports the same filters as the all-library staff list.",
+        "tags": [
+          "libraries"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/libraries/moderation/reports": {
+      "get": {
+        "operationId": "libraries_api_list_moderation_reports",
+        "summary": "List user reports for staff moderation",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "allOf": [
+                {
+                  "description": "Report status filter values for staff moderation.\nSupports listing all reports or one concrete report status.",
+                  "enum": [
+                    "all",
+                    "open",
+                    "resolved",
+                    "dismissed"
+                  ],
+                  "title": "ReportStatusFilterEnum",
+                  "type": "string"
+                }
+              ],
+              "default": "all",
+              "description": "Filter by report status, or all."
+            },
+            "required": false,
+            "description": "Filter by report status, or all."
+          },
+          {
+            "in": "query",
+            "name": "reason",
+            "schema": {
+              "allOf": [
+                {
+                  "description": "Report reason filter values for staff moderation.\nSupports listing all reasons or one concrete report reason.",
+                  "enum": [
+                    "all",
+                    "damaged",
+                    "missing",
+                    "incorrect_info",
+                    "inappropriate",
+                    "other"
+                  ],
+                  "title": "ReportReasonFilterEnum",
+                  "type": "string"
+                }
+              ],
+              "default": "all",
+              "description": "Filter by report reason, or all."
+            },
+            "required": false,
+            "description": "Filter by report reason, or all."
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "default": 1,
+              "description": "Page number to retrieve (1-indexed).",
+              "example": 1,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Page number to retrieve (1-indexed).",
+            "example": 1
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "schema": {
+              "default": 20,
+              "description": "Number of reports per page.",
+              "example": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Number of reports per page.",
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportModerationListOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return user-submitted reports for staff users.\nSupports status, reason, and pagination filters.",
+        "tags": [
+          "libraries"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/libraries/moderation/reports/{report_id}": {
+      "patch": {
+        "operationId": "libraries_api_moderate_report",
+        "summary": "Update a report moderation status",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "schema": {
+              "title": "Report Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportModerationOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Update a user report moderation status as a staff user.\nAllows staff clients to reopen, resolve, or dismiss reports.",
+        "tags": [
+          "libraries"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportModerationUpdateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/libraries/moderation/photos": {
+      "get": {
+        "operationId": "libraries_api_list_moderation_photos",
+        "summary": "List community photos for staff moderation",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "allOf": [
+                {
+                  "description": "Community photo status filter values for staff moderation.\nSupports listing all photos or one concrete photo status.",
+                  "enum": [
+                    "all",
+                    "pending",
+                    "approved",
+                    "rejected"
+                  ],
+                  "title": "PhotoModerationStatusFilterEnum",
+                  "type": "string"
+                }
+              ],
+              "default": "all",
+              "description": "Filter by photo status, or all."
+            },
+            "required": false,
+            "description": "Filter by photo status, or all."
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "default": 1,
+              "description": "Page number to retrieve (1-indexed).",
+              "example": 1,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Page number to retrieve (1-indexed).",
+            "example": 1
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "schema": {
+              "default": 20,
+              "description": "Number of photos per page.",
+              "example": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Number of photos per page.",
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoModerationListOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return community photos for staff users.\nSupports status and pagination filters.",
+        "tags": [
+          "libraries"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/libraries/moderation/photos/{photo_id}": {
+      "patch": {
+        "operationId": "libraries_api_moderate_photo",
+        "summary": "Update a community photo moderation status",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "photo_id",
+            "schema": {
+              "title": "Photo Id",
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoModerationOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Update a community photo moderation status as a staff user.\nApproving a photo promotes it to the parent library's primary image.",
+        "tags": [
+          "libraries"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhotoModerationUpdateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/libraries/moderation/{slug}": {
+      "get": {
+        "operationId": "libraries_api_get_moderation_library",
+        "summary": "Get a library for staff moderation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryModerationOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return any library by slug for staff users.\nIncludes pending and rejected libraries that public endpoints hide.",
+        "tags": [
+          "libraries"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "libraries_api_moderate_library",
+        "summary": "Update a library moderation status",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryModerationOut"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Update a library moderation status as a staff user.\nApplies the same cache and notification side effects as the manage UI.",
+        "tags": [
+          "libraries"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LibraryModerationUpdateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
     "/api/v1/libraries/{slug}": {
       "get": {
         "operationId": "libraries_api_get_library",
@@ -2125,13 +3040,22 @@
             ],
             "title": "Is Social Only",
             "type": "boolean"
+          },
+          "is_staff": {
+            "description": "True when the account can access staff-only moderation endpoints.",
+            "examples": [
+              false
+            ],
+            "title": "Is Staff",
+            "type": "boolean"
           }
         },
         "required": [
           "id",
           "username",
           "email",
-          "is_social_only"
+          "is_social_only",
+          "is_staff"
         ],
         "title": "MeOut",
         "type": "object"
@@ -3027,6 +3951,988 @@
           "pagination"
         ],
         "title": "FavouriteListOut",
+        "type": "object"
+      },
+      "ModerationSummaryOut": {
+        "description": "Aggregate moderation dashboard counts for staff clients.\nMirrors the custom manage dashboard's queue totals.",
+        "properties": {
+          "pending_libraries_count": {
+            "description": "Number of libraries awaiting review.",
+            "examples": [
+              4
+            ],
+            "title": "Pending Libraries Count",
+            "type": "integer"
+          },
+          "open_reports_count": {
+            "description": "Number of open user reports.",
+            "examples": [
+              2
+            ],
+            "title": "Open Reports Count",
+            "type": "integer"
+          },
+          "pending_photos_count": {
+            "description": "Number of community photos awaiting review.",
+            "examples": [
+              5
+            ],
+            "title": "Pending Photos Count",
+            "type": "integer"
+          },
+          "total_pending": {
+            "description": "Combined count of pending libraries, open reports, and pending photos.",
+            "examples": [
+              11
+            ],
+            "title": "Total Pending",
+            "type": "integer"
+          },
+          "total_libraries": {
+            "description": "Number of approved libraries.",
+            "examples": [
+              350
+            ],
+            "title": "Total Libraries",
+            "type": "integer"
+          },
+          "total_users": {
+            "description": "Total registered user count.",
+            "examples": [
+              128
+            ],
+            "title": "Total Users",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "pending_libraries_count",
+          "open_reports_count",
+          "pending_photos_count",
+          "total_pending",
+          "total_libraries",
+          "total_users"
+        ],
+        "title": "ModerationSummaryOut",
+        "type": "object"
+      },
+      "LibraryModerationParams": {
+        "description": "Query parameters for filtering and paginating library moderation.\nKeeps the staff queue bounded while supporting common admin filters.",
+        "properties": {
+          "status": {
+            "allOf": [
+              {
+                "description": "Shared moderation status filter values.\nSupports listing all items or one concrete moderation status.",
+                "enum": [
+                  "all",
+                  "pending",
+                  "approved",
+                  "rejected"
+                ],
+                "title": "ModerationStatusFilterEnum",
+                "type": "string"
+              }
+            ],
+            "default": "all",
+            "description": "Filter by moderation status, or all."
+          },
+          "q": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Search name, address, or city.",
+            "example": "Berlin",
+            "title": "Q"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "maxLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by ISO 3166-1 alpha-2 country code.",
+            "example": "DE",
+            "title": "Country"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Filter by data source.",
+            "example": "OpenStreetMap",
+            "title": "Source"
+          },
+          "page": {
+            "default": 1,
+            "description": "Page number to retrieve (1-indexed).",
+            "example": 1,
+            "maximum": 1000,
+            "minimum": 1,
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "default": 20,
+            "description": "Number of submissions per page.",
+            "example": 20,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "title": "LibraryModerationParams",
+        "type": "object"
+      },
+      "ModerationStatusFilterEnum": {
+        "description": "Shared moderation status filter values.\nSupports listing all items or one concrete moderation status.",
+        "enum": [
+          "all",
+          "pending",
+          "approved",
+          "rejected"
+        ],
+        "title": "ModerationStatusFilterEnum",
+        "type": "string"
+      },
+      "LibraryModerationListOut": {
+        "description": "Paginated list of libraries for staff moderation.\nWraps matching library submissions and pagination metadata for admin clients.",
+        "properties": {
+          "items": {
+            "description": "Library submissions for the current page.",
+            "items": {
+              "$ref": "#/components/schemas/LibraryModerationOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMeta",
+            "description": "Pagination metadata for navigating the moderation queue."
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "LibraryModerationListOut",
+        "type": "object"
+      },
+      "LibraryModerationOut": {
+        "description": "Serialized library representation for staff moderation.\nAdds moderation-only fields to the public library payload.",
+        "properties": {
+          "id": {
+            "description": "Unique library identifier.",
+            "examples": [
+              42
+            ],
+            "title": "Id",
+            "type": "integer"
+          },
+          "slug": {
+            "description": "URL-friendly unique slug.",
+            "examples": [
+              "berlin-friedrichstr-12-corner-books"
+            ],
+            "title": "Slug",
+            "type": "string"
+          },
+          "name": {
+            "description": "Display name of the library.",
+            "examples": [
+              "Corner Books"
+            ],
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "description": "Free-text description of the library.",
+            "examples": [
+              "A cozy little free library near the park entrance."
+            ],
+            "title": "Description",
+            "type": "string"
+          },
+          "photo_url": {
+            "description": "Full-size photo URL, or empty string if unavailable.",
+            "examples": [
+              "/media/libraries/photos/corner-books.jpg"
+            ],
+            "title": "Photo Url",
+            "type": "string"
+          },
+          "thumbnail_url": {
+            "description": "Thumbnail photo URL, or empty string if unavailable.",
+            "examples": [
+              "/media/libraries/thumbnails/corner-books.jpg"
+            ],
+            "title": "Thumbnail Url",
+            "type": "string"
+          },
+          "lat": {
+            "description": "Latitude of the library location (WGS 84).",
+            "examples": [
+              52.52
+            ],
+            "title": "Lat",
+            "type": "number"
+          },
+          "lng": {
+            "description": "Longitude of the library location (WGS 84).",
+            "examples": [
+              13.405
+            ],
+            "title": "Lng",
+            "type": "number"
+          },
+          "address": {
+            "description": "Street address, or empty string when the library has no street address (e.g. inside a park).",
+            "examples": [
+              "Friedrichstr. 12"
+            ],
+            "title": "Address",
+            "type": "string"
+          },
+          "city": {
+            "description": "City name.",
+            "examples": [
+              "Berlin"
+            ],
+            "title": "City",
+            "type": "string"
+          },
+          "country": {
+            "description": "ISO 3166-1 alpha-2 country code.",
+            "examples": [
+              "DE"
+            ],
+            "title": "Country",
+            "type": "string"
+          },
+          "postal_code": {
+            "description": "Postal or ZIP code.",
+            "examples": [
+              "10117"
+            ],
+            "title": "Postal Code",
+            "type": "string"
+          },
+          "wheelchair_accessible": {
+            "description": "Wheelchair accessibility: yes, no, limited, or empty.",
+            "examples": [
+              "yes"
+            ],
+            "title": "Wheelchair Accessible",
+            "type": "string"
+          },
+          "capacity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Approximate book capacity.",
+            "examples": [
+              50
+            ],
+            "title": "Capacity"
+          },
+          "is_indoor": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Whether the library is inside a building.",
+            "examples": [
+              false
+            ],
+            "title": "Is Indoor"
+          },
+          "is_lit": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Whether the library is illuminated at night.",
+            "examples": [
+              true
+            ],
+            "title": "Is Lit"
+          },
+          "website": {
+            "description": "External website link.",
+            "examples": [
+              "https://littlefreelibrary.org/charter/12345"
+            ],
+            "title": "Website",
+            "type": "string"
+          },
+          "contact": {
+            "description": "Contact information (email, phone, etc.).",
+            "examples": [
+              "info@example.org"
+            ],
+            "title": "Contact",
+            "type": "string"
+          },
+          "source": {
+            "description": "Data origin, e.g. OpenStreetMap.",
+            "examples": [
+              "OpenStreetMap"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "operator": {
+            "description": "Organisation that maintains the library.",
+            "examples": [
+              "City Library Association"
+            ],
+            "title": "Operator",
+            "type": "string"
+          },
+          "brand": {
+            "description": "Network or brand name.",
+            "examples": [
+              "Little Free Library"
+            ],
+            "title": "Brand",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "Timestamp when the library was created (UTC).",
+            "examples": [
+              "2025-06-15T14:30:00Z"
+            ],
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "is_favourited": {
+            "default": false,
+            "description": "Whether the current authenticated user has favourited this library. Always false for unauthenticated requests.",
+            "examples": [
+              false
+            ],
+            "title": "Is Favourited",
+            "type": "boolean"
+          },
+          "status": {
+            "description": "Current moderation status of the library.",
+            "examples": [
+              "pending"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "rejection_reason": {
+            "description": "Reason shown to the submitter when rejected.",
+            "examples": [
+              "Photo does not show a book corner."
+            ],
+            "title": "Rejection Reason",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModerationUserOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "User who submitted the library, or null for imported data."
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "description",
+          "photo_url",
+          "thumbnail_url",
+          "lat",
+          "lng",
+          "address",
+          "city",
+          "country",
+          "postal_code",
+          "wheelchair_accessible",
+          "capacity",
+          "is_indoor",
+          "is_lit",
+          "website",
+          "contact",
+          "source",
+          "operator",
+          "brand",
+          "created_at",
+          "status",
+          "rejection_reason"
+        ],
+        "title": "LibraryModerationOut",
+        "type": "object"
+      },
+      "ModerationUserOut": {
+        "description": "Compact user representation for staff moderation responses.\nIdentifies submitters and reporters without exposing account management data.",
+        "properties": {
+          "id": {
+            "description": "Unique user identifier.",
+            "examples": [
+              1
+            ],
+            "title": "Id",
+            "type": "integer"
+          },
+          "username": {
+            "description": "Username.",
+            "examples": [
+              "janedoe"
+            ],
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "username"
+        ],
+        "title": "ModerationUserOut",
+        "type": "object"
+      },
+      "ReportModerationParams": {
+        "description": "Query parameters for staff report moderation lists.\nSupports status, reason, and pagination filters.",
+        "properties": {
+          "status": {
+            "allOf": [
+              {
+                "description": "Report status filter values for staff moderation.\nSupports listing all reports or one concrete report status.",
+                "enum": [
+                  "all",
+                  "open",
+                  "resolved",
+                  "dismissed"
+                ],
+                "title": "ReportStatusFilterEnum",
+                "type": "string"
+              }
+            ],
+            "default": "all",
+            "description": "Filter by report status, or all."
+          },
+          "reason": {
+            "allOf": [
+              {
+                "description": "Report reason filter values for staff moderation.\nSupports listing all reasons or one concrete report reason.",
+                "enum": [
+                  "all",
+                  "damaged",
+                  "missing",
+                  "incorrect_info",
+                  "inappropriate",
+                  "other"
+                ],
+                "title": "ReportReasonFilterEnum",
+                "type": "string"
+              }
+            ],
+            "default": "all",
+            "description": "Filter by report reason, or all."
+          },
+          "page": {
+            "default": 1,
+            "description": "Page number to retrieve (1-indexed).",
+            "example": 1,
+            "maximum": 1000,
+            "minimum": 1,
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "default": 20,
+            "description": "Number of reports per page.",
+            "example": 20,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "title": "ReportModerationParams",
+        "type": "object"
+      },
+      "ReportReasonFilterEnum": {
+        "description": "Report reason filter values for staff moderation.\nSupports listing all reasons or one concrete report reason.",
+        "enum": [
+          "all",
+          "damaged",
+          "missing",
+          "incorrect_info",
+          "inappropriate",
+          "other"
+        ],
+        "title": "ReportReasonFilterEnum",
+        "type": "string"
+      },
+      "ReportStatusFilterEnum": {
+        "description": "Report status filter values for staff moderation.\nSupports listing all reports or one concrete report status.",
+        "enum": [
+          "all",
+          "open",
+          "resolved",
+          "dismissed"
+        ],
+        "title": "ReportStatusFilterEnum",
+        "type": "string"
+      },
+      "LibraryModerationSummaryOut": {
+        "description": "Compact library representation nested in moderation responses.\nGives staff clients enough context without duplicating full library payloads.",
+        "properties": {
+          "id": {
+            "description": "Unique library identifier.",
+            "examples": [
+              42
+            ],
+            "title": "Id",
+            "type": "integer"
+          },
+          "slug": {
+            "description": "URL-friendly unique slug.",
+            "examples": [
+              "berlin-friedrichstr-12-corner-books"
+            ],
+            "title": "Slug",
+            "type": "string"
+          },
+          "name": {
+            "description": "Display name of the library.",
+            "examples": [
+              "Corner Books"
+            ],
+            "title": "Name",
+            "type": "string"
+          },
+          "address": {
+            "description": "Street address, or empty string when unavailable.",
+            "examples": [
+              "Friedrichstr. 12"
+            ],
+            "title": "Address",
+            "type": "string"
+          },
+          "city": {
+            "description": "City name.",
+            "examples": [
+              "Berlin"
+            ],
+            "title": "City",
+            "type": "string"
+          },
+          "country": {
+            "description": "ISO 3166-1 alpha-2 country code.",
+            "examples": [
+              "DE"
+            ],
+            "title": "Country",
+            "type": "string"
+          },
+          "status": {
+            "description": "Current moderation status of the library.",
+            "examples": [
+              "approved"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "address",
+          "city",
+          "country",
+          "status"
+        ],
+        "title": "LibraryModerationSummaryOut",
+        "type": "object"
+      },
+      "ReportModerationListOut": {
+        "description": "Paginated list of user reports for staff moderation.\nWraps reports and pagination metadata in one response envelope.",
+        "properties": {
+          "items": {
+            "description": "Reports for the current page.",
+            "items": {
+              "$ref": "#/components/schemas/ReportModerationOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMeta",
+            "description": "Pagination metadata for navigating reports."
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "ReportModerationListOut",
+        "type": "object"
+      },
+      "ReportModerationOut": {
+        "description": "Serialized user report for staff moderation.\nIncludes reporter, library, details, and optional evidence photo.",
+        "properties": {
+          "id": {
+            "description": "Unique report identifier.",
+            "examples": [
+              7
+            ],
+            "title": "Id",
+            "type": "integer"
+          },
+          "library": {
+            "$ref": "#/components/schemas/LibraryModerationSummaryOut",
+            "description": "Library the report is about."
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModerationUserOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "User who submitted the report, or null when unavailable."
+          },
+          "reason": {
+            "description": "Reason category of the report.",
+            "examples": [
+              "damaged"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "details": {
+            "description": "Free-text details submitted by the reporter.",
+            "examples": [
+              "The door hinge is broken."
+            ],
+            "title": "Details",
+            "type": "string"
+          },
+          "photo_url": {
+            "description": "Evidence photo URL, or empty string if unavailable.",
+            "examples": [
+              "/media/reports/photos/report.jpg"
+            ],
+            "title": "Photo Url",
+            "type": "string"
+          },
+          "status": {
+            "description": "Current report moderation status.",
+            "examples": [
+              "open"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "Timestamp when the report was created (UTC).",
+            "examples": [
+              "2025-06-15T14:30:00Z"
+            ],
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "library",
+          "reason",
+          "details",
+          "photo_url",
+          "status",
+          "created_at"
+        ],
+        "title": "ReportModerationOut",
+        "type": "object"
+      },
+      "ReportModerationStatusEnum": {
+        "description": "Staff-selectable report moderation statuses.\nMatches the report model's status choices.",
+        "enum": [
+          "open",
+          "resolved",
+          "dismissed"
+        ],
+        "title": "ReportModerationStatusEnum",
+        "type": "string"
+      },
+      "ReportModerationUpdateIn": {
+        "description": "Payload for updating a report moderation status.\nStaff clients can reopen, resolve, or dismiss reports.",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ReportModerationStatusEnum",
+            "description": "New report status: open, resolved, or dismissed.",
+            "examples": [
+              "resolved"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "ReportModerationUpdateIn",
+        "type": "object"
+      },
+      "PhotoModerationParams": {
+        "description": "Query parameters for staff photo moderation lists.\nSupports status filtering and pagination.",
+        "properties": {
+          "status": {
+            "allOf": [
+              {
+                "description": "Community photo status filter values for staff moderation.\nSupports listing all photos or one concrete photo status.",
+                "enum": [
+                  "all",
+                  "pending",
+                  "approved",
+                  "rejected"
+                ],
+                "title": "PhotoModerationStatusFilterEnum",
+                "type": "string"
+              }
+            ],
+            "default": "all",
+            "description": "Filter by photo status, or all."
+          },
+          "page": {
+            "default": 1,
+            "description": "Page number to retrieve (1-indexed).",
+            "example": 1,
+            "maximum": 1000,
+            "minimum": 1,
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "default": 20,
+            "description": "Number of photos per page.",
+            "example": 20,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "title": "PhotoModerationParams",
+        "type": "object"
+      },
+      "PhotoModerationStatusFilterEnum": {
+        "description": "Community photo status filter values for staff moderation.\nSupports listing all photos or one concrete photo status.",
+        "enum": [
+          "all",
+          "pending",
+          "approved",
+          "rejected"
+        ],
+        "title": "PhotoModerationStatusFilterEnum",
+        "type": "string"
+      },
+      "PhotoModerationListOut": {
+        "description": "Paginated list of community photos for staff moderation.\nWraps photos and pagination metadata in one response envelope.",
+        "properties": {
+          "items": {
+            "description": "Community photos for the current page.",
+            "items": {
+              "$ref": "#/components/schemas/PhotoModerationOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMeta",
+            "description": "Pagination metadata for navigating photos."
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "PhotoModerationListOut",
+        "type": "object"
+      },
+      "PhotoModerationOut": {
+        "description": "Serialized community photo for staff moderation.\nIncludes the parent library and submitter context.",
+        "properties": {
+          "id": {
+            "description": "Unique photo identifier.",
+            "examples": [
+              12
+            ],
+            "title": "Id",
+            "type": "integer"
+          },
+          "library": {
+            "$ref": "#/components/schemas/LibraryModerationSummaryOut",
+            "description": "Library the photo belongs to."
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModerationUserOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "User who submitted the photo, or null when unavailable."
+          },
+          "caption": {
+            "description": "Caption for the photo.",
+            "examples": [
+              "A sunny day at the library."
+            ],
+            "title": "Caption",
+            "type": "string"
+          },
+          "photo_url": {
+            "description": "Full-size photo URL.",
+            "examples": [
+              "/media/libraries/user_photos/photo.jpg"
+            ],
+            "title": "Photo Url",
+            "type": "string"
+          },
+          "thumbnail_url": {
+            "description": "Thumbnail photo URL, or empty string if unavailable.",
+            "examples": [
+              "/media/libraries/user_photos/thumbnails/photo.jpg"
+            ],
+            "title": "Thumbnail Url",
+            "type": "string"
+          },
+          "status": {
+            "description": "Current photo moderation status.",
+            "examples": [
+              "pending"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "Timestamp when the photo was submitted (UTC).",
+            "examples": [
+              "2025-06-15T14:30:00Z"
+            ],
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "library",
+          "caption",
+          "photo_url",
+          "thumbnail_url",
+          "status",
+          "created_at"
+        ],
+        "title": "PhotoModerationOut",
+        "type": "object"
+      },
+      "PhotoModerationStatusEnum": {
+        "description": "Staff-selectable community photo moderation statuses.\nMatches the photo model's status choices.",
+        "enum": [
+          "pending",
+          "approved",
+          "rejected"
+        ],
+        "title": "PhotoModerationStatusEnum",
+        "type": "string"
+      },
+      "PhotoModerationUpdateIn": {
+        "description": "Payload for updating a community photo moderation status.\nStaff clients can mark photos pending, approved, or rejected.",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/PhotoModerationStatusEnum",
+            "description": "New photo status: pending, approved, or rejected.",
+            "examples": [
+              "approved"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "PhotoModerationUpdateIn",
+        "type": "object"
+      },
+      "LibraryModerationStatusEnum": {
+        "description": "Enumeration of staff-selectable library moderation statuses.\nKeeps API payload values aligned with model choices.",
+        "enum": [
+          "pending",
+          "approved",
+          "rejected"
+        ],
+        "title": "LibraryModerationStatusEnum",
+        "type": "string"
+      },
+      "LibraryModerationUpdateIn": {
+        "description": "Payload for updating a library moderation status.\nStaff clients send the target status and optional rejection reason.",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/LibraryModerationStatusEnum",
+            "description": "New moderation status: pending, approved, or rejected.",
+            "examples": [
+              "approved"
+            ]
+          },
+          "rejection_reason": {
+            "default": "",
+            "description": "Optional reason stored when rejecting the library.",
+            "examples": [
+              "Duplicate submission."
+            ],
+            "maxLength": 2000,
+            "title": "Rejection Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "LibraryModerationUpdateIn",
         "type": "object"
       },
       "LibraryUpdateIn": {

@@ -553,6 +553,33 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../libraries/moderation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Staff Moderation
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -873,12 +900,12 @@
 <tbody>
 <tr>
 <td><strong>Read</strong></td>
-<td><code>GET /libraries/</code>, <code>GET /libraries/latest</code>, <code>GET /libraries/{slug}</code>, <code>GET /libraries/countries/</code>, <code>GET /libraries/favourites</code>, <code>GET /statistics/</code></td>
+<td><code>GET /libraries/</code>, <code>GET /libraries/latest</code>, <code>GET /libraries/{slug}</code>, <code>GET /libraries/countries/</code>, <code>GET /libraries/favourites</code>, <code>GET /libraries/moderation/summary</code>, <code>GET /libraries/moderation</code>, <code>GET /libraries/moderation/pending</code>, <code>GET /libraries/moderation/{slug}</code>, <code>GET /libraries/moderation/reports</code>, <code>GET /libraries/moderation/photos</code>, <code>GET /statistics/</code></td>
 <td>60</td>
 </tr>
 <tr>
 <td><strong>Write</strong></td>
-<td><code>POST /libraries/</code>, <code>POST /libraries/{slug}/report</code>, <code>POST /libraries/{slug}/photo</code>, <code>POST /libraries/{slug}/favourite</code>, <code>DELETE /libraries/{slug}/favourite</code></td>
+<td><code>POST /libraries/</code>, <code>PATCH /libraries/moderation/{slug}</code>, <code>PATCH /libraries/moderation/reports/{report_id}</code>, <code>PATCH /libraries/moderation/photos/{photo_id}</code>, <code>POST /libraries/{slug}/report</code>, <code>POST /libraries/{slug}/photo</code>, <code>POST /libraries/{slug}/favourite</code>, <code>DELETE /libraries/{slug}/favourite</code></td>
 <td>10</td>
 </tr>
 <tr>
