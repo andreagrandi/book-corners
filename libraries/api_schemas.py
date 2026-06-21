@@ -6,7 +6,7 @@ from enum import Enum
 from ninja import Schema
 from pydantic import Field
 
-from libraries.models import Library, Report
+from libraries.models import Library, LibraryPhoto, Report
 
 
 class PaginationMeta(Schema):
@@ -96,6 +96,255 @@ class LibraryListOut(Schema):
 
     items: list[LibraryOut] = Field(description="List of library objects for the current page.")
     pagination: PaginationMeta = Field(description="Pagination metadata for navigating the result set.")
+
+
+class ModerationUserOut(Schema):
+    """Compact user representation for staff moderation responses.
+    Identifies submitters and reporters without exposing account management data."""
+
+    id: int = Field(description="Unique user identifier.", examples=[1])
+    username: str = Field(description="Username.", examples=["janedoe"])
+
+
+class LibraryModerationSummaryOut(Schema):
+    """Compact library representation nested in moderation responses.
+    Gives staff clients enough context without duplicating full library payloads."""
+
+    id: int = Field(description="Unique library identifier.", examples=[42])
+    slug: str = Field(description="URL-friendly unique slug.", examples=["berlin-friedrichstr-12-corner-books"])
+    name: str = Field(description="Display name of the library.", examples=["Corner Books"])
+    address: str = Field(description="Street address, or empty string when unavailable.", examples=["Friedrichstr. 12"])
+    city: str = Field(description="City name.", examples=["Berlin"])
+    country: str = Field(description="ISO 3166-1 alpha-2 country code.", examples=["DE"])
+    status: str = Field(description="Current moderation status of the library.", examples=["approved"])
+
+
+class ModerationStatusFilterEnum(str, Enum):
+    """Shared moderation status filter values.
+    Supports listing all items or one concrete moderation status."""
+
+    ALL = "all"
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class LibraryModerationStatusEnum(str, Enum):
+    """Enumeration of staff-selectable library moderation statuses.
+    Keeps API payload values aligned with model choices."""
+
+    PENDING = Library.Status.PENDING
+    APPROVED = Library.Status.APPROVED
+    REJECTED = Library.Status.REJECTED
+
+
+class LibraryModerationOut(LibraryOut):
+    """Serialized library representation for staff moderation.
+    Adds moderation-only fields to the public library payload."""
+
+    status: str = Field(description="Current moderation status of the library.", examples=["pending"])
+    rejection_reason: str = Field(description="Reason shown to the submitter when rejected.", examples=["Photo does not show a book corner."])
+    created_by: ModerationUserOut | None = Field(default=None, description="User who submitted the library, or null for imported data.")
+
+
+class LibraryModerationListOut(Schema):
+    """Paginated list of libraries for staff moderation.
+    Wraps matching library submissions and pagination metadata for admin clients."""
+
+    items: list[LibraryModerationOut] = Field(description="Library submissions for the current page.")
+    pagination: PaginationMeta = Field(description="Pagination metadata for navigating the moderation queue.")
+
+
+class LibraryModerationParams(Schema):
+    """Query parameters for filtering and paginating library moderation.
+    Keeps the staff queue bounded while supporting common admin filters."""
+
+    status: ModerationStatusFilterEnum = Field(default=ModerationStatusFilterEnum.ALL, description="Filter by moderation status, or all.")
+    q: str | None = Field(default=None, max_length=200, description="Search name, address, or city.", json_schema_extra={"example": "Berlin"})
+    country: str | None = Field(default=None, max_length=2, description="Filter by ISO 3166-1 alpha-2 country code.", json_schema_extra={"example": "DE"})
+    source: str | None = Field(default=None, max_length=100, description="Filter by data source.", json_schema_extra={"example": "OpenStreetMap"})
+    page: int = Field(default=1, ge=1, le=1000, description="Page number to retrieve (1-indexed).", json_schema_extra={"example": 1})
+    page_size: int = Field(default=20, ge=1, le=50, description="Number of submissions per page.", json_schema_extra={"example": 20})
+
+
+class LibraryModerationUpdateIn(Schema):
+    """Payload for updating a library moderation status.
+    Staff clients send the target status and optional rejection reason."""
+
+    status: LibraryModerationStatusEnum = Field(description="New moderation status: pending, approved, or rejected.", examples=["approved"])
+    rejection_reason: str = Field(default="", max_length=2000, description="Optional reason stored when rejecting the library.", examples=["Duplicate submission."])
+
+
+class ReportStatusFilterEnum(str, Enum):
+    """Report status filter values for staff moderation.
+    Supports listing all reports or one concrete report status."""
+
+    ALL = "all"
+    OPEN = Report.Status.OPEN
+    RESOLVED = Report.Status.RESOLVED
+    DISMISSED = Report.Status.DISMISSED
+
+
+class ReportReasonFilterEnum(str, Enum):
+    """Report reason filter values for staff moderation.
+    Supports listing all reasons or one concrete report reason."""
+
+    ALL = "all"
+    DAMAGED = Report.Reason.DAMAGED
+    MISSING = Report.Reason.MISSING
+    INCORRECT_INFO = Report.Reason.INCORRECT_INFO
+    INAPPROPRIATE = Report.Reason.INAPPROPRIATE
+    OTHER = Report.Reason.OTHER
+
+
+class ReportModerationStatusEnum(str, Enum):
+    """Staff-selectable report moderation statuses.
+    Matches the report model's status choices."""
+
+    OPEN = Report.Status.OPEN
+    RESOLVED = Report.Status.RESOLVED
+    DISMISSED = Report.Status.DISMISSED
+
+
+class ReportModerationParams(Schema):
+    """Query parameters for staff report moderation lists.
+    Supports status, reason, and pagination filters."""
+
+    status: ReportStatusFilterEnum = Field(default=ReportStatusFilterEnum.ALL, description="Filter by report status, or all.")
+    reason: ReportReasonFilterEnum = Field(default=ReportReasonFilterEnum.ALL, description="Filter by report reason, or all.")
+    page: int = Field(default=1, ge=1, le=1000, description="Page number to retrieve (1-indexed).", json_schema_extra={"example": 1})
+    page_size: int = Field(default=20, ge=1, le=50, description="Number of reports per page.", json_schema_extra={"example": 20})
+
+
+class ReportModerationUpdateIn(Schema):
+    """Payload for updating a report moderation status.
+    Staff clients can reopen, resolve, or dismiss reports."""
+
+    status: ReportModerationStatusEnum = Field(description="New report status: open, resolved, or dismissed.", examples=["resolved"])
+
+
+class ReportModerationOut(Schema):
+    """Serialized user report for staff moderation.
+    Includes reporter, library, details, and optional evidence photo."""
+
+    id: int = Field(description="Unique report identifier.", examples=[7])
+    library: LibraryModerationSummaryOut = Field(description="Library the report is about.")
+    created_by: ModerationUserOut | None = Field(default=None, description="User who submitted the report, or null when unavailable.")
+    reason: str = Field(description="Reason category of the report.", examples=["damaged"])
+    details: str = Field(description="Free-text details submitted by the reporter.", examples=["The door hinge is broken."])
+    photo_url: str = Field(description="Evidence photo URL, or empty string if unavailable.", examples=["/media/reports/photos/report.jpg"])
+    status: str = Field(description="Current report moderation status.", examples=["open"])
+    created_at: datetime = Field(description="Timestamp when the report was created (UTC).", examples=["2025-06-15T14:30:00Z"])
+
+    @staticmethod
+    def resolve_photo_url(obj: Report) -> str:
+        """Return the report photo URL or empty string.
+        Handles reports without uploaded evidence photos gracefully."""
+        if obj.photo:
+            try:
+                return obj.photo.url
+            except ValueError:
+                return ""
+        return ""
+
+
+class ReportModerationListOut(Schema):
+    """Paginated list of user reports for staff moderation.
+    Wraps reports and pagination metadata in one response envelope."""
+
+    items: list[ReportModerationOut] = Field(description="Reports for the current page.")
+    pagination: PaginationMeta = Field(description="Pagination metadata for navigating reports.")
+
+
+class PhotoModerationStatusFilterEnum(str, Enum):
+    """Community photo status filter values for staff moderation.
+    Supports listing all photos or one concrete photo status."""
+
+    ALL = "all"
+    PENDING = LibraryPhoto.Status.PENDING
+    APPROVED = LibraryPhoto.Status.APPROVED
+    REJECTED = LibraryPhoto.Status.REJECTED
+
+
+class PhotoModerationStatusEnum(str, Enum):
+    """Staff-selectable community photo moderation statuses.
+    Matches the photo model's status choices."""
+
+    PENDING = LibraryPhoto.Status.PENDING
+    APPROVED = LibraryPhoto.Status.APPROVED
+    REJECTED = LibraryPhoto.Status.REJECTED
+
+
+class PhotoModerationParams(Schema):
+    """Query parameters for staff photo moderation lists.
+    Supports status filtering and pagination."""
+
+    status: PhotoModerationStatusFilterEnum = Field(default=PhotoModerationStatusFilterEnum.ALL, description="Filter by photo status, or all.")
+    page: int = Field(default=1, ge=1, le=1000, description="Page number to retrieve (1-indexed).", json_schema_extra={"example": 1})
+    page_size: int = Field(default=20, ge=1, le=50, description="Number of photos per page.", json_schema_extra={"example": 20})
+
+
+class PhotoModerationUpdateIn(Schema):
+    """Payload for updating a community photo moderation status.
+    Staff clients can mark photos pending, approved, or rejected."""
+
+    status: PhotoModerationStatusEnum = Field(description="New photo status: pending, approved, or rejected.", examples=["approved"])
+
+
+class PhotoModerationOut(Schema):
+    """Serialized community photo for staff moderation.
+    Includes the parent library and submitter context."""
+
+    id: int = Field(description="Unique photo identifier.", examples=[12])
+    library: LibraryModerationSummaryOut = Field(description="Library the photo belongs to.")
+    created_by: ModerationUserOut | None = Field(default=None, description="User who submitted the photo, or null when unavailable.")
+    caption: str = Field(description="Caption for the photo.", examples=["A sunny day at the library."])
+    photo_url: str = Field(description="Full-size photo URL.", examples=["/media/libraries/user_photos/photo.jpg"])
+    thumbnail_url: str = Field(description="Thumbnail photo URL, or empty string if unavailable.", examples=["/media/libraries/user_photos/thumbnails/photo.jpg"])
+    status: str = Field(description="Current photo moderation status.", examples=["pending"])
+    created_at: datetime = Field(description="Timestamp when the photo was submitted (UTC).", examples=["2025-06-15T14:30:00Z"])
+
+    @staticmethod
+    def resolve_photo_url(obj: LibraryPhoto) -> str:
+        """Return the community photo URL or empty string.
+        Handles missing uploaded files gracefully."""
+        if obj.photo:
+            try:
+                return obj.photo.url
+            except ValueError:
+                return ""
+        return ""
+
+    @staticmethod
+    def resolve_thumbnail_url(obj: LibraryPhoto) -> str:
+        """Return the community photo thumbnail URL or empty string.
+        Falls back gracefully when no thumbnail exists."""
+        if obj.photo_thumbnail:
+            try:
+                return obj.photo_thumbnail.url
+            except ValueError:
+                return ""
+        return ""
+
+
+class PhotoModerationListOut(Schema):
+    """Paginated list of community photos for staff moderation.
+    Wraps photos and pagination metadata in one response envelope."""
+
+    items: list[PhotoModerationOut] = Field(description="Community photos for the current page.")
+    pagination: PaginationMeta = Field(description="Pagination metadata for navigating photos.")
+
+
+class ModerationSummaryOut(Schema):
+    """Aggregate moderation dashboard counts for staff clients.
+    Mirrors the custom manage dashboard's queue totals."""
+
+    pending_libraries_count: int = Field(description="Number of libraries awaiting review.", examples=[4])
+    open_reports_count: int = Field(description="Number of open user reports.", examples=[2])
+    pending_photos_count: int = Field(description="Number of community photos awaiting review.", examples=[5])
+    total_pending: int = Field(description="Combined count of pending libraries, open reports, and pending photos.", examples=[11])
+    total_libraries: int = Field(description="Number of approved libraries.", examples=[350])
+    total_users: int = Field(description="Total registered user count.", examples=[128])
 
 
 class LatestLibrariesOut(Schema):

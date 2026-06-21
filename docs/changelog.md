@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.12.0
+
+- Auth profile endpoint (`GET /api/v1/auth/me`) now includes `is_staff` so clients can detect staff users after login.
+- Staff moderation endpoints allow staff users to load dashboard counts, list all libraries across moderation statuses, view pending/rejected library details, and set library status via `GET /api/v1/libraries/moderation`, `GET /api/v1/libraries/moderation/{slug}`, and `PATCH /api/v1/libraries/moderation/{slug}`. Authenticated non-staff users receive a structured `403` response.
+- Staff report moderation endpoints allow listing user reports and setting report status via `GET /api/v1/libraries/moderation/reports` and `PATCH /api/v1/libraries/moderation/reports/{report_id}`.
+- Staff photo moderation endpoints allow listing community photo submissions and setting photo status via `GET /api/v1/libraries/moderation/photos` and `PATCH /api/v1/libraries/moderation/photos/{photo_id}`.
+
 ## v1.11.0
 
 - Library update endpoint (`PATCH /api/v1/libraries/{slug}`) allows authenticated submitters to edit their own pending or approved library submissions. Successful edits return the library to pending moderation, and replacement photos are optional.

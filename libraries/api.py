@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db.models import Exists, OuterRef, Q, Value
 from django.shortcuts import get_object_or_404
@@ -18,13 +20,27 @@ from libraries.api_schemas import (
     FavouritePaginationParams,
     LatestLibrariesOut,
     LibraryListOut,
+    LibraryModerationListOut,
+    LibraryModerationOut,
+    LibraryModerationParams,
+    LibraryModerationUpdateIn,
     LibraryOut,
     LibraryPhotoIn,
     LibraryPhotoOut,
     LibrarySearchParams,
     LibrarySubmitIn,
     LibraryUpdateIn,
+    ModerationSummaryOut,
+    ModerationStatusFilterEnum,
+    PhotoModerationListOut,
+    PhotoModerationParams,
+    PhotoModerationOut,
+    PhotoModerationUpdateIn,
     ReportIn,
+    ReportModerationListOut,
+    ReportModerationParams,
+    ReportModerationOut,
+    ReportModerationUpdateIn,
     ReportOut,
     StatisticsOut,
 )
@@ -32,11 +48,20 @@ from libraries.api_security import is_api_rate_limited
 from libraries.stats import build_stats_data, get_countries
 from libraries.forms import _validate_uploaded_photo
 from libraries.models import Favourite, Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
-from libraries.notifications import notify_library_update, notify_new_library, notify_new_photo, notify_new_report
+from libraries.notifications import (
+    notify_library_approved,
+    notify_library_rejected,
+    notify_library_update,
+    notify_new_library,
+    notify_new_photo,
+    notify_new_report,
+)
 from libraries.tasks import enrich_library_with_ai
 from libraries.search import run_library_search
+from libraries.views import GEOJSON_CACHE_KEY, HOMEPAGE_COUNT_CACHE_KEY, invalidate_cluster_cache
 
 library_router = Router(tags=["libraries"])
+User = get_user_model()
 
 LIBRARY_UPDATE_FIELDS = (
     "name",
@@ -54,6 +79,72 @@ LIBRARY_UPDATE_FIELDS = (
     "operator",
     "brand",
 )
+
+
+def _is_staff_user(request) -> bool:
+    """Return whether the request user can use moderation endpoints.
+    Centralizes staff checks for the API moderation surface."""
+    return bool(getattr(request.user, "is_staff", False))
+
+
+def _invalidate_library_caches() -> None:
+    """Clear caches affected by library moderation changes.
+    Keeps map, homepage, and clustering data fresh after status updates."""
+    cache.delete(GEOJSON_CACHE_KEY)
+    cache.delete(HOMEPAGE_COUNT_CACHE_KEY)
+    invalidate_cluster_cache()
+
+
+def _library_moderation_queryset(*, filters: LibraryModerationParams):
+    """Build the staff library moderation queryset from filters.
+    Matches the manage UI's common status, country, source, and text filters."""
+    queryset = Library.objects.select_related("created_by").all()
+    if filters.status != ModerationStatusFilterEnum.ALL:
+        queryset = queryset.filter(status=filters.status.value)
+    if filters.country:
+        queryset = queryset.filter(country__iexact=filters.country)
+    if filters.source:
+        queryset = queryset.filter(source__icontains=filters.source)
+    if filters.q:
+        query = filters.q.strip()
+        queryset = queryset.filter(
+            Q(name__icontains=query)
+            | Q(address__icontains=query)
+            | Q(city__icontains=query)
+        )
+    return queryset.order_by("-created_at")
+
+
+def _save_library_moderation_status(
+    *,
+    library: Library,
+    payload: LibraryModerationUpdateIn,
+) -> Library:
+    """Persist a library moderation status update and side effects.
+    Mirrors manage UI cache invalidation and submitter notifications."""
+    old_status = library.status
+    new_status = payload.status.value
+    rejection_reason = payload.rejection_reason.strip()
+
+    library.status = new_status
+    update_fields = ["status", "updated_at"]
+    if new_status == Library.Status.REJECTED:
+        library.rejection_reason = rejection_reason
+        update_fields.append("rejection_reason")
+
+    library.save(update_fields=update_fields)
+    _invalidate_library_caches()
+
+    if old_status == Library.Status.PENDING and new_status == Library.Status.APPROVED:
+        notify_library_approved(library)
+    if (
+        old_status != Library.Status.REJECTED
+        and new_status == Library.Status.REJECTED
+        and rejection_reason
+    ):
+        notify_library_rejected(library)
+
+    return library
 
 
 def _annotate_is_favourited(queryset, user):
@@ -178,6 +269,310 @@ def list_favourites(request, filters: Query[FavouritePaginationParams]):
         queryset=queryset, page=filters.page, page_size=filters.page_size,
     )
     return 200, {"items": items, "pagination": pagination}
+
+
+@library_router.get(
+    "/moderation/summary",
+    response={200: ModerationSummaryOut, 403: ErrorOut, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="Get staff moderation dashboard counts",
+)
+def moderation_summary(request):
+    """Return aggregate moderation counts for staff users.
+    Non-staff authenticated users receive a structured 403 response."""
+    if not _is_staff_user(request):
+        return 403, ErrorOut(message="Staff access required.")
+
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-moderation-summary",
+        max_requests=settings.API_RATE_LIMIT_READ_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    pending_libraries_count = Library.objects.filter(status=Library.Status.PENDING).count()
+    open_reports_count = Report.objects.filter(status=Report.Status.OPEN).count()
+    pending_photos_count = LibraryPhoto.objects.filter(
+        status=LibraryPhoto.Status.PENDING
+    ).count()
+    return 200, {
+        "pending_libraries_count": pending_libraries_count,
+        "open_reports_count": open_reports_count,
+        "pending_photos_count": pending_photos_count,
+        "total_pending": (
+            pending_libraries_count + open_reports_count + pending_photos_count
+        ),
+        "total_libraries": Library.objects.filter(status=Library.Status.APPROVED).count(),
+        "total_users": User.objects.count(),
+    }
+
+
+@library_router.get(
+    "/moderation",
+    response={200: LibraryModerationListOut, 403: ErrorOut, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="List libraries for staff moderation",
+)
+def list_moderation_libraries(request, filters: Query[LibraryModerationParams]):
+    """Return all library submissions for staff users.
+    Supports status, text, country, source, and pagination filters."""
+    if not _is_staff_user(request):
+        return 403, ErrorOut(message="Staff access required.")
+
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-library-moderation-list",
+        max_requests=settings.API_RATE_LIMIT_READ_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    queryset = _library_moderation_queryset(filters=filters)
+    items, pagination = paginate_queryset(
+        queryset=queryset, page=filters.page, page_size=filters.page_size,
+    )
+    return 200, {"items": items, "pagination": pagination}
+
+
+@library_router.get(
+    "/moderation/pending",
+    response={200: LibraryModerationListOut, 403: ErrorOut, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="List pending library submissions for staff moderation",
+)
+def list_pending_libraries(request, filters: Query[LibraryModerationParams]):
+    """Return pending library submissions for staff users.
+    Supports the same filters as the all-library staff list."""
+    if not _is_staff_user(request):
+        return 403, ErrorOut(message="Staff access required.")
+
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-library-moderation-list",
+        max_requests=settings.API_RATE_LIMIT_READ_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    queryset = Library.objects.select_related("created_by").filter(
+        status=Library.Status.PENDING
+    )
+    if filters.country:
+        queryset = queryset.filter(country__iexact=filters.country)
+    if filters.source:
+        queryset = queryset.filter(source__icontains=filters.source)
+    if filters.q:
+        query = filters.q.strip()
+        queryset = queryset.filter(
+            Q(name__icontains=query)
+            | Q(address__icontains=query)
+            | Q(city__icontains=query)
+        )
+    queryset = queryset.order_by("-created_at")
+    items, pagination = paginate_queryset(
+        queryset=queryset, page=filters.page, page_size=filters.page_size,
+    )
+    return 200, {"items": items, "pagination": pagination}
+
+
+@library_router.get(
+    "/moderation/reports",
+    response={200: ReportModerationListOut, 403: ErrorOut, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="List user reports for staff moderation",
+)
+def list_moderation_reports(request, filters: Query[ReportModerationParams]):
+    """Return user-submitted reports for staff users.
+    Supports status, reason, and pagination filters."""
+    if not _is_staff_user(request):
+        return 403, ErrorOut(message="Staff access required.")
+
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-report-moderation-list",
+        max_requests=settings.API_RATE_LIMIT_READ_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    queryset = Report.objects.select_related("library", "created_by").all()
+    if filters.status.value != "all":
+        queryset = queryset.filter(status=filters.status.value)
+    if filters.reason.value != "all":
+        queryset = queryset.filter(reason=filters.reason.value)
+    queryset = queryset.order_by("-created_at")
+    items, pagination = paginate_queryset(
+        queryset=queryset, page=filters.page, page_size=filters.page_size,
+    )
+    return 200, {"items": items, "pagination": pagination}
+
+
+@library_router.patch(
+    "/moderation/reports/{report_id}",
+    response={200: ReportModerationOut, 403: ErrorOut, 404: ErrorOut, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="Update a report moderation status",
+)
+def moderate_report(request, report_id: int, payload: ReportModerationUpdateIn):
+    """Update a user report moderation status as a staff user.
+    Allows staff clients to reopen, resolve, or dismiss reports."""
+    if not _is_staff_user(request):
+        return 403, ErrorOut(message="Staff access required.")
+
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-report-moderation-update",
+        max_requests=settings.API_RATE_LIMIT_WRITE_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    report = get_object_or_404(
+        Report.objects.select_related("library", "created_by"), pk=report_id,
+    )
+    report.status = payload.status.value
+    report.save(update_fields=["status"])
+    return 200, report
+
+
+@library_router.get(
+    "/moderation/photos",
+    response={200: PhotoModerationListOut, 403: ErrorOut, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="List community photos for staff moderation",
+)
+def list_moderation_photos(request, filters: Query[PhotoModerationParams]):
+    """Return community photos for staff users.
+    Supports status and pagination filters."""
+    if not _is_staff_user(request):
+        return 403, ErrorOut(message="Staff access required.")
+
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-photo-moderation-list",
+        max_requests=settings.API_RATE_LIMIT_READ_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    queryset = LibraryPhoto.objects.select_related("library", "created_by").all()
+    if filters.status.value != "all":
+        queryset = queryset.filter(status=filters.status.value)
+    queryset = queryset.order_by("-created_at")
+    items, pagination = paginate_queryset(
+        queryset=queryset, page=filters.page, page_size=filters.page_size,
+    )
+    return 200, {"items": items, "pagination": pagination}
+
+
+@library_router.patch(
+    "/moderation/photos/{photo_id}",
+    response={200: PhotoModerationOut, 403: ErrorOut, 404: ErrorOut, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="Update a community photo moderation status",
+)
+def moderate_photo(request, photo_id: int, payload: PhotoModerationUpdateIn):
+    """Update a community photo moderation status as a staff user.
+    Approving a photo promotes it to the parent library's primary image."""
+    if not _is_staff_user(request):
+        return 403, ErrorOut(message="Staff access required.")
+
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-photo-moderation-update",
+        max_requests=settings.API_RATE_LIMIT_WRITE_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    photo = get_object_or_404(
+        LibraryPhoto.objects.select_related("library", "created_by"), pk=photo_id,
+    )
+    photo.status = payload.status.value
+    photo.save(update_fields=["status"])
+    _invalidate_library_caches()
+    return 200, photo
+
+
+@library_router.get(
+    "/moderation/{slug}",
+    response={200: LibraryModerationOut, 403: ErrorOut, 404: ErrorOut, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="Get a library for staff moderation",
+)
+def get_moderation_library(request, slug: str):
+    """Return any library by slug for staff users.
+    Includes pending and rejected libraries that public endpoints hide."""
+    if not _is_staff_user(request):
+        return 403, ErrorOut(message="Staff access required.")
+
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-library-moderation-detail",
+        max_requests=settings.API_RATE_LIMIT_READ_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    library = get_object_or_404(
+        Library.objects.select_related("created_by"), slug=slug,
+    )
+    return 200, library
+
+
+@library_router.patch(
+    "/moderation/{slug}",
+    response={200: LibraryModerationOut, 403: ErrorOut, 404: ErrorOut, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="Update a library moderation status",
+)
+def moderate_library(request, slug: str, payload: LibraryModerationUpdateIn):
+    """Update a library moderation status as a staff user.
+    Applies the same cache and notification side effects as the manage UI."""
+    if not _is_staff_user(request):
+        return 403, ErrorOut(message="Staff access required.")
+
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-library-moderation-update",
+        max_requests=settings.API_RATE_LIMIT_WRITE_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    library = get_object_or_404(
+        Library.objects.select_related("created_by"), slug=slug,
+    )
+    library = _save_library_moderation_status(library=library, payload=payload)
+    return 200, library
 
 
 @library_router.get("/{slug}", response={200: LibraryOut, 404: ErrorOut, 429: ErrorOut}, auth=None, summary="Get a library by slug")

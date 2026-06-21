@@ -292,7 +292,8 @@ Return the profile of the currently authenticated user.
   "id": 1,
   "username": "janedoe",
   "email": "jane@example.com",
-  "is_social_only": false
+  "is_social_only": false,
+  "is_staff": false
 }
 ```
 
@@ -302,6 +303,7 @@ Return the profile of the currently authenticated user.
 | `username` | string | Username |
 | `email` | string | Email address |
 | `is_social_only` | boolean | `true` when the account uses social login only (Apple/Google) and has no local password. Email and password change endpoints are unavailable for these accounts. |
+| `is_staff` | boolean | `true` when the account can access staff-only moderation endpoints. |
 
 **Errors:**
 
