@@ -49,7 +49,7 @@ def regular_user(db):
 
 
 @pytest.fixture
-def staff_page(page: Page, live_server, staff_user):
+def staff_page(page: Page, live_server, staff_user, mock_external_apis):
     """Provide a Playwright page logged in as a staff user."""
     _force_login_browser(page, live_server, staff_user)
     return page
@@ -175,6 +175,34 @@ def test_library_detail_has_breadcrumbs(live_server, staff_page, sample_librarie
     breadcrumbs = staff_page.locator(".breadcrumbs")
     expect(breadcrumbs).to_be_visible()
     expect(breadcrumbs.locator("text=Libraries")).to_be_visible()
+
+
+def test_library_edit_form_has_map_picker(live_server, staff_page, sample_libraries):
+    """Verify the manage library edit form renders its map picker.
+    Confirms clicking the map updates latitude and longitude fields."""
+    lib = sample_libraries[0]
+    staff_page.goto(f"{live_server.url}/manage/libraries/{lib.pk}/edit/")
+
+    expect(staff_page.locator("h1:text('Edit library')")).to_be_visible()
+    expect(staff_page.locator("text=Edit in Django Admin")).to_be_visible()
+    map_element = staff_page.locator("#manage-library-map")
+    expect(map_element).to_be_visible()
+    staff_page.wait_for_function(
+        "() => document.querySelector('#manage-library-map .leaflet-marker-icon') !== null"
+    )
+
+    initial_latitude = staff_page.locator("#id_latitude").input_value()
+    initial_longitude = staff_page.locator("#id_longitude").input_value()
+    map_element.click(position={"x": 80, "y": 80})
+
+    staff_page.wait_for_function(
+        """([initialLatitude, initialLongitude]) => {
+          const latitude = document.getElementById("id_latitude").value;
+          const longitude = document.getElementById("id_longitude").value;
+          return latitude !== initialLatitude && longitude !== initialLongitude;
+        }""",
+        arg=[initial_latitude, initial_longitude],
+    )
 
 
 def test_report_list_loads(live_server, staff_page, sample_report):

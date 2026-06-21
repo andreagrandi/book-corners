@@ -61,6 +61,7 @@
             <button type="submit" class="btn btn-outline btn-sm btn-block">{% trans "AI Enrich" %}</button>
           </form>
         {% endif %}
+        <a href="{% url 'manage:library_edit' pk=library.pk %}" class="btn btn-primary btn-sm btn-block">{% trans "Edit details" %}</a>
         <a href="/admin/libraries/library/{{ library.pk }}/change/" class="btn btn-ghost btn-sm btn-block">{% trans "Edit in Django Admin" %}</a>
       </div>
     </div>
