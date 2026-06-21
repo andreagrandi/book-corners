@@ -279,6 +279,7 @@ class Report(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["status", "-created_at"], name="idx_report_status_created"),
+            models.Index(fields=["created_by", "-created_at"], name="idx_report_creator_created"),
         ]
 
     def __str__(self) -> str:
@@ -327,6 +328,7 @@ class LibraryPhoto(models.Model):
         indexes = [
             models.Index(fields=["library", "status"], name="idx_photo_library_status"),
             models.Index(fields=["status", "-created_at"], name="idx_photo_status_created"),
+            models.Index(fields=["created_by", "-created_at"], name="idx_photo_creator_created"),
         ]
 
     def __init__(self, *args, **kwargs):

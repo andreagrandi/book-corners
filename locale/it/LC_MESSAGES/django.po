@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Book Corners 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-20 11:17+0000\n"
+"POT-Creation-Date: 2026-06-20 19:37+0000\n"
 "PO-Revision-Date: 2026-02-28 15:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Italian\n"
@@ -117,7 +117,7 @@ msgstr "Didascalia opzionale per la tua foto"
 msgid "You can submit at most %(max)s photos per library."
 msgstr "Puoi inviare al massimo %(max)s foto per libreria."
 
-#: libraries/models.py:21 libraries/models.py:294
+#: libraries/models.py:21 libraries/models.py:295
 #: manage/templates/manage/libraries/import.html:49
 #: manage/templates/manage/photos/list.html:29
 #: templates/admin/libraries/geojson_import_form.html:37
@@ -125,7 +125,7 @@ msgstr "Puoi inviare al massimo %(max)s foto per libreria."
 msgid "Pending"
 msgstr "In attesa"
 
-#: libraries/models.py:22 libraries/models.py:295
+#: libraries/models.py:22 libraries/models.py:296
 #: manage/templates/manage/libraries/import.html:48
 #: manage/templates/manage/photos/list.html:30
 #: templates/admin/libraries/geojson_import_form.html:36
@@ -133,7 +133,7 @@ msgstr "In attesa"
 msgid "Approved"
 msgstr "Approvato"
 
-#: libraries/models.py:23 libraries/models.py:296
+#: libraries/models.py:23 libraries/models.py:297
 #: manage/templates/manage/photos/list.html:31
 #: templates/admin/libraries/photo_grid.html:147
 msgid "Rejected"
@@ -225,8 +225,8 @@ msgid "%(km)s km away"
 msgstr "a %(km)s km"
 
 #: libraries/templates/libraries/_library_card.html:35
-#: libraries/templates/libraries/dashboard.html:67
-#: libraries/templates/libraries/dashboard.html:112
+#: libraries/templates/libraries/dashboard.html:97
+#: libraries/templates/libraries/dashboard.html:250
 #: libraries/templates/libraries/map.html:299
 msgid "View details"
 msgstr "Dettagli"
@@ -276,6 +276,8 @@ msgid "Try broader keywords, increase the radius, or relax one of the filters."
 msgstr "Prova con parole chiave più ampie, aumenta il raggio o allenta uno dei filtri."
 
 #: libraries/templates/libraries/_photo_gallery.html:4
+#: libraries/templates/libraries/dashboard.html:26
+#: libraries/templates/libraries/dashboard.html:185
 msgid "Community photos"
 msgstr "Foto della community"
 
@@ -297,7 +299,8 @@ msgid "Please review the highlighted fields and try again."
 msgstr "Controlla i campi evidenziati e riprova."
 
 #: libraries/templates/libraries/_photo_submission_form.html:33
-#: libraries/views.py:772 templates/admin/index.html:135
+#: libraries/templates/libraries/dashboard.html:202 libraries/views.py:799
+#: templates/admin/index.html:135
 msgid "Photo"
 msgstr "Foto"
 
@@ -318,6 +321,7 @@ msgid "Tell us what is wrong with this library entry so moderators can review an
 msgstr "Dicci cosa non va con questa libreria in modo che i moderatori possano verificare e correggere."
 
 #: libraries/templates/libraries/_report_form.html:33
+#: libraries/templates/libraries/dashboard.html:160
 #: manage/templates/manage/reports/_table.html:20
 #: manage/templates/manage/reports/list.html:35
 #: manage/templates/manage/users/detail.html:112
@@ -352,47 +356,51 @@ msgstr "Usa un luogo come Roma per risultati nelle vicinanze, oppure aggiungi pa
 
 #: libraries/templates/libraries/dashboard.html:4
 #: libraries/templates/libraries/dashboard.html:10
-#: manage/templates/manage/base.html:41
-#: manage/templates/manage/dashboard.html:7
-#: manage/templates/manage/dashboard.html:10
-#: manage/templates/manage/libraries/ai_enrich_confirm.html:11
-#: manage/templates/manage/libraries/detail.html:11
-#: manage/templates/manage/libraries/duplicates.html:11
-#: manage/templates/manage/libraries/import.html:11
-#: manage/templates/manage/libraries/list.html:11
-#: manage/templates/manage/photos/list.html:11
-#: manage/templates/manage/reports/list.html:11
-#: manage/templates/manage/users/detail.html:11
-#: manage/templates/manage/users/list.html:11
-msgid "Dashboard"
-msgstr "Bacheca"
+msgid "Contribution center"
+msgstr "Centro contributi"
 
 #: libraries/templates/libraries/dashboard.html:5
-msgid "Review your submitted libraries and track each moderation status from your dashboard."
-msgstr "Controlla le librerie che hai inviato e segui lo stato di moderazione dalla tua bacheca."
+msgid "Review your submitted libraries, reports, community photos, and moderation statuses from your dashboard."
+msgstr "Controlla le librerie inviate, le segnalazioni, le foto della community e gli stati di moderazione dalla tua bacheca."
 
 #: libraries/templates/libraries/dashboard.html:12
-msgid "Manage your account and track your library submissions."
-msgstr "Gestisci il tuo account e segui le tue librerie inviate."
+msgid "Manage your account and track every contribution you have sent to moderation."
+msgstr "Gestisci il tuo account e segui ogni contributo inviato alla moderazione."
 
 #: libraries/templates/libraries/dashboard.html:18
+#: libraries/templates/libraries/dashboard.html:65
+msgid "Library submissions"
+msgstr "Librerie inviate"
+
+#: libraries/templates/libraries/dashboard.html:22
+#: libraries/templates/libraries/dashboard.html:141
+#: manage/templates/manage/base.html:65
+#: manage/templates/manage/libraries/detail.html:168
+#: manage/templates/manage/reports/list.html:4
+#: manage/templates/manage/reports/list.html:6
+#: manage/templates/manage/reports/list.html:12
+#: manage/templates/manage/reports/list.html:19
+msgid "Reports"
+msgstr "Segnalazioni"
+
+#: libraries/templates/libraries/dashboard.html:32
 msgid "Account information"
 msgstr "Informazioni account"
 
-#: libraries/templates/libraries/dashboard.html:21
+#: libraries/templates/libraries/dashboard.html:35
 #: manage/templates/manage/users/_table.html:7
 #: users/templates/users/register.html:22
 msgid "Username"
 msgstr "Nome utente"
 
-#: libraries/templates/libraries/dashboard.html:25
+#: libraries/templates/libraries/dashboard.html:39
 #: manage/templates/manage/users/_table.html:8
 #: manage/templates/manage/users/detail.html:39
 #: users/templates/users/register.html:28
 msgid "Email"
 msgstr "Email"
 
-#: libraries/templates/libraries/dashboard.html:30
+#: libraries/templates/libraries/dashboard.html:44
 #: manage/templates/manage/libraries/_table.html:19
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:40
 #: manage/templates/manage/libraries/duplicates.html:66
@@ -403,67 +411,119 @@ msgstr "Email"
 msgid "Name"
 msgstr "Nome"
 
-#: libraries/templates/libraries/dashboard.html:35
+#: libraries/templates/libraries/dashboard.html:49
 msgid "Member since"
 msgstr "Membro dal"
 
-#: libraries/templates/libraries/dashboard.html:41
+#: libraries/templates/libraries/dashboard.html:55
 #: users/templates/users/change_email.html:4
 #: users/templates/users/change_email.html:11
 msgid "Change email"
 msgstr "Cambia email"
 
-#: libraries/templates/libraries/dashboard.html:42
+#: libraries/templates/libraries/dashboard.html:56
 #: users/templates/users/change_password.html:4
 #: users/templates/users/change_password.html:11
 #: users/templates/users/change_password.html:40
 msgid "Change password"
 msgstr "Cambia password"
 
-#: libraries/templates/libraries/dashboard.html:44
+#: libraries/templates/libraries/dashboard.html:58
 #: users/templates/users/delete_account.html:4
 #: users/templates/users/delete_account.html:11
 msgid "Delete account"
 msgstr "Elimina account"
 
-#: libraries/templates/libraries/dashboard.html:50
-msgid "My favourites"
-msgstr "I miei preferiti"
+#: libraries/templates/libraries/dashboard.html:66
+msgid "Libraries you added or edited, with their current moderation status."
+msgstr "Librerie che hai aggiunto o modificato, con il loro stato di moderazione attuale."
 
-#: libraries/templates/libraries/dashboard.html:75
-msgid "No favourites yet"
-msgstr "Nessun preferito"
+#: libraries/templates/libraries/dashboard.html:68
+#: libraries/templates/libraries/dashboard.html:134 libraries/views.py:795
+#: templates/about.html:76 templates/home.html:36
+msgid "Submit a library"
+msgstr "Invia una libreria"
 
-#: libraries/templates/libraries/dashboard.html:76
-msgid "Tap the heart icon on any library to save it here."
-msgstr "Tocca l'icona del cuore su qualsiasi libreria per salvarla qui."
-
-#: libraries/templates/libraries/dashboard.html:77
-#: libraries/templates/libraries/map.html:53
-msgid "Explore libraries"
-msgstr "Esplora le librerie"
-
-#: libraries/templates/libraries/dashboard.html:84
-msgid "Your submissions"
-msgstr "Le tue librerie"
-
-#: libraries/templates/libraries/dashboard.html:110
+#: libraries/templates/libraries/dashboard.html:95
 #: libraries/templates/libraries/library_detail.html:75
 msgid "Edit"
 msgstr "Modifica"
 
-#: libraries/templates/libraries/dashboard.html:148
-msgid "No submissions yet"
-msgstr "Nessun invio"
+#: libraries/templates/libraries/dashboard.html:132
+msgid "No library submissions yet"
+msgstr "Nessuna libreria inviata per ora"
 
-#: libraries/templates/libraries/dashboard.html:149
-msgid "Share your first book exchange spot to start your dashboard history."
-msgstr "Condividi il tuo primo punto di scambio libri per iniziare la cronologia della tua dashboard."
+#: libraries/templates/libraries/dashboard.html:133
+msgid "Share your first book exchange spot to start your contribution history."
+msgstr "Condividi il tuo primo punto di scambio libri per iniziare la cronologia dei contributi."
 
-#: libraries/templates/libraries/dashboard.html:150 libraries/views.py:768
-#: templates/about.html:76 templates/home.html:36
-msgid "Submit a library"
-msgstr "Invia una libreria"
+#: libraries/templates/libraries/dashboard.html:142
+msgid "Issues you reported for existing libraries, including open and reviewed reports."
+msgstr "Problemi che hai segnalato per librerie esistenti, incluse segnalazioni aperte e revisionate."
+
+#: libraries/templates/libraries/dashboard.html:150
+#: templates/admin/index.html:113
+msgid "Report"
+msgstr "Segnalazione"
+
+#: libraries/templates/libraries/dashboard.html:161
+#: libraries/templates/libraries/dashboard.html:211
+#: templates/admin/index.html:93 templates/admin/index.html:115
+#: templates/admin/index.html:137
+msgid "Submitted"
+msgstr "Inviato il"
+
+#: libraries/templates/libraries/dashboard.html:165
+#: libraries/templates/libraries/dashboard.html:214
+msgid "View library"
+msgstr "Vedi libreria"
+
+#: libraries/templates/libraries/dashboard.html:167
+#: libraries/templates/libraries/dashboard.html:216
+msgid "Related library is not public"
+msgstr "La libreria collegata non è pubblica"
+
+#: libraries/templates/libraries/dashboard.html:176
+msgid "No reports yet"
+msgstr "Nessuna segnalazione per ora"
+
+#: libraries/templates/libraries/dashboard.html:177
+msgid "When you report an issue from a library page, it will appear here."
+msgstr "Quando segnali un problema dalla pagina di una libreria, apparirà qui."
+
+#: libraries/templates/libraries/dashboard.html:178
+#: libraries/templates/libraries/dashboard.html:227
+msgid "Find libraries"
+msgstr "Trova librerie"
+
+#: libraries/templates/libraries/dashboard.html:186
+msgid "Photos you submitted for existing libraries, with moderation outcomes."
+msgstr "Foto che hai inviato per librerie esistenti, con gli esiti della moderazione."
+
+#: libraries/templates/libraries/dashboard.html:225
+msgid "No community photos yet"
+msgstr "Nessuna foto della community per ora"
+
+#: libraries/templates/libraries/dashboard.html:226
+msgid "Photo submissions from library pages will appear here while moderators review them."
+msgstr "Le foto inviate dalle pagine delle librerie appariranno qui mentre i moderatori le revisionano."
+
+#: libraries/templates/libraries/dashboard.html:233
+msgid "My favourites"
+msgstr "I miei preferiti"
+
+#: libraries/templates/libraries/dashboard.html:258
+msgid "No favourites yet"
+msgstr "Nessun preferito"
+
+#: libraries/templates/libraries/dashboard.html:259
+msgid "Tap the heart icon on any library to save it here."
+msgstr "Tocca l'icona del cuore su qualsiasi libreria per salvarla qui."
+
+#: libraries/templates/libraries/dashboard.html:260
+#: libraries/templates/libraries/map.html:53
+msgid "Explore libraries"
+msgstr "Esplora le librerie"
 
 #: libraries/templates/libraries/library_detail.html:56
 msgid "Address:"
@@ -819,71 +879,71 @@ msgstr "Grazie per il contributo. La tua libreria è stata inviata ai moderatori
 msgid "Continue"
 msgstr "Continua"
 
-#: libraries/views.py:579
+#: libraries/views.py:580
 msgid "Your changes were saved and sent for review. They will be approved by moderators before becoming live."
 msgstr "Le tue modifiche sono state salvate e inviate per la revisione. I moderatori le approveranno prima che diventino visibili."
 
-#: libraries/views.py:590
+#: libraries/views.py:591
 msgid "Edit library"
 msgstr "Modifica libreria"
 
-#: libraries/views.py:591
+#: libraries/views.py:592
 msgid "Update your library details. Changes will be sent back to moderators before they appear publicly."
 msgstr "Aggiorna i dettagli della tua libreria. Le modifiche saranno inviate di nuovo ai moderatori prima di apparire pubblicamente."
 
-#: libraries/views.py:593
+#: libraries/views.py:594
 msgid "Changes are reviewed before they become live. After you save, moderators will approve the update before it appears publicly."
 msgstr "Le modifiche vengono revisionate prima di diventare visibili. Dopo il salvataggio, i moderatori approveranno l'aggiornamento prima che appaia pubblicamente."
 
-#: libraries/views.py:595
+#: libraries/views.py:596
 msgid "Edit a library you submitted on Book Corners."
 msgstr "Modifica una libreria che hai inviato su Book Corners."
 
-#: libraries/views.py:596
+#: libraries/views.py:597
 msgid "Save changes"
 msgstr "Salva modifiche"
 
-#: libraries/views.py:597
+#: libraries/views.py:598
 msgid "Replace photo (optional)"
 msgstr "Sostituisci foto (opzionale)"
 
-#: libraries/views.py:598
+#: libraries/views.py:599
 msgid "Leave this empty to keep the current photo."
 msgstr "Lascia vuoto questo campo per mantenere la foto attuale."
 
-#: libraries/views.py:599
+#: libraries/views.py:600
 msgid "Update exact location"
 msgstr "Aggiorna posizione esatta"
 
-#: libraries/views.py:600
+#: libraries/views.py:601
 msgid "Use the map to adjust the saved point, or keep the marker where it is."
 msgstr "Usa la mappa per regolare il punto salvato, oppure lascia il marker dov'è."
 
-#: libraries/views.py:601
+#: libraries/views.py:602
 msgid "Saved marker loaded. Drag it or click the map to adjust the location."
 msgstr "Marker salvato caricato. Trascinalo o fai clic sulla mappa per regolare la posizione."
 
-#: libraries/views.py:769
+#: libraries/views.py:796
 msgid "Share a little free library with the community. Set the exact point on the map before submitting."
 msgstr "Condividi una casetta dei libri con la community. Imposta il punto esatto sulla mappa prima di inviare."
 
-#: libraries/views.py:770
+#: libraries/views.py:797
 msgid "Submit a little free library to Book Corners with a photo, location, and address details."
 msgstr "Invia una casetta dei libri a Book Corners con foto, posizione e dettagli dell'indirizzo."
 
-#: libraries/views.py:771
+#: libraries/views.py:798
 msgid "Submit library"
 msgstr "Invia libreria"
 
-#: libraries/views.py:774
+#: libraries/views.py:801
 msgid "Set exact location"
 msgstr "Imposta posizione esatta"
 
-#: libraries/views.py:775
+#: libraries/views.py:802
 msgid "Type an address and choose a suggestion to center the map. Drag the marker to refine the exact point."
 msgstr "Digita un indirizzo e scegli un suggerimento per centrare la mappa. Trascina il marcatore per affinare il punto esatto."
 
-#: libraries/views.py:776
+#: libraries/views.py:803
 msgid "Choose the map point by centering from address, dragging marker, or clicking map."
 msgstr "Scegli il punto sulla mappa centrando dall'indirizzo, trascinando il marcatore o cliccando sulla mappa."
 
@@ -919,6 +979,21 @@ msgstr "Chiudi menu amministrazione"
 msgid "Administration"
 msgstr "Amministrazione"
 
+#: manage/templates/manage/base.html:41
+#: manage/templates/manage/dashboard.html:7
+#: manage/templates/manage/dashboard.html:10
+#: manage/templates/manage/libraries/ai_enrich_confirm.html:11
+#: manage/templates/manage/libraries/detail.html:11
+#: manage/templates/manage/libraries/duplicates.html:11
+#: manage/templates/manage/libraries/import.html:11
+#: manage/templates/manage/libraries/list.html:11
+#: manage/templates/manage/photos/list.html:11
+#: manage/templates/manage/reports/list.html:11
+#: manage/templates/manage/users/detail.html:11
+#: manage/templates/manage/users/list.html:11
+msgid "Dashboard"
+msgstr "Bacheca"
+
 #: manage/templates/manage/base.html:49
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:12
 #: manage/templates/manage/libraries/detail.html:12
@@ -939,15 +1014,6 @@ msgstr "Librerie"
 #: manage/templates/manage/photos/list.html:19
 msgid "Photos"
 msgstr "Foto"
-
-#: manage/templates/manage/base.html:65
-#: manage/templates/manage/libraries/detail.html:168
-#: manage/templates/manage/reports/list.html:4
-#: manage/templates/manage/reports/list.html:6
-#: manage/templates/manage/reports/list.html:12
-#: manage/templates/manage/reports/list.html:19
-msgid "Reports"
-msgstr "Segnalazioni"
 
 #: manage/templates/manage/base.html:73
 #: manage/templates/manage/users/detail.html:12
@@ -1638,19 +1704,8 @@ msgstr ""
 msgid "Name / Address"
 msgstr "Indirizzo"
 
-#: templates/admin/index.html:93 templates/admin/index.html:115
-#: templates/admin/index.html:137
-#, fuzzy
-#| msgid "Submitted by:"
-msgid "Submitted"
-msgstr "Inviata da:"
-
 #: templates/admin/index.html:110
 msgid "Recent Open Reports"
-msgstr ""
-
-#: templates/admin/index.html:113
-msgid "Report"
 msgstr ""
 
 #: templates/admin/index.html:132
@@ -2094,6 +2149,12 @@ msgstr "La tua password è stata cambiata."
 #: users/views.py:191
 msgid "Your account has been deleted."
 msgstr "Il tuo account è stato eliminato."
+
+#~ msgid "Your submissions"
+#~ msgstr "Le tue librerie"
+
+#~ msgid "No submissions yet"
+#~ msgstr "Nessun invio"
 
 #~ msgid "Manage user accounts."
 #~ msgstr "Gestisci gli account utente."

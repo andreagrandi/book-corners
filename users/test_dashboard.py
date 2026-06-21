@@ -4,7 +4,7 @@ from django.contrib.gis.geos import Point
 
 from allauth.socialaccount.models import SocialAccount
 
-from libraries.models import Library
+from libraries.models import Library, LibraryPhoto, Report
 
 User = get_user_model()
 
@@ -38,7 +38,7 @@ def social_only_user(db):
     return user
 
 
-def _create_library(*, user, name, status, city="TestCity"):
+def _create_library(*, user, name, status, city="TestCity") -> Library:
     """Create a library with minimal required fields.
     Provides a helper for dashboard test data setup."""
     return Library.objects.create(
@@ -49,6 +49,42 @@ def _create_library(*, user, name, status, city="TestCity"):
         location=Point(x=11.25, y=43.77, srid=4326),
         status=status,
         created_by=user,
+    )
+
+
+def _create_report(
+    *,
+    user,
+    library: Library,
+    reason: str = Report.Reason.DAMAGED,
+    status: str = Report.Status.OPEN,
+) -> Report:
+    """Create a report with minimal required fields.
+    Provides dashboard test data for report contribution sections."""
+    return Report.objects.create(
+        library=library,
+        created_by=user,
+        reason=reason,
+        details="The library needs attention.",
+        status=status,
+    )
+
+
+def _create_photo(
+    *,
+    user,
+    library: Library,
+    caption: str,
+    status: str = LibraryPhoto.Status.PENDING,
+) -> LibraryPhoto:
+    """Create a community photo with minimal required fields.
+    Provides dashboard test data for photo contribution sections."""
+    return LibraryPhoto.objects.create(
+        library=library,
+        created_by=user,
+        photo="libraries/user_photos/2026/02/test.jpg",
+        caption=caption,
+        status=status,
     )
 
 
@@ -153,6 +189,128 @@ class TestDashboardView:
         assert "/account/email/" in content
         assert "/account/password/" in content
         assert "/account/delete/" in content
+
+    def test_dashboard_shows_contribution_counts(self, client, dashboard_user):
+        """Verify dashboard count cards include all contribution types.
+        Ensures libraries, reports, and photo submissions are summarized."""
+        library = _create_library(
+            user=dashboard_user,
+            name="Counted Lib",
+            status=Library.Status.APPROVED,
+        )
+        _create_report(user=dashboard_user, library=library)
+        _create_photo(user=dashboard_user, library=library, caption="Counted photo")
+        client.force_login(dashboard_user)
+
+        response = client.get("/dashboard/")
+
+        assert response.context["submission_count"] == 1
+        assert response.context["report_count"] == 1
+        assert response.context["photo_count"] == 1
+
+    def test_dashboard_shows_own_reports_with_status_labels(self, client, dashboard_user):
+        """Verify report contributions render for the current user only.
+        Ensures report moderation status labels are visible."""
+        library = _create_library(
+            user=dashboard_user,
+            name="Reported Lib",
+            status=Library.Status.APPROVED,
+        )
+        _create_report(
+            user=dashboard_user,
+            library=library,
+            reason=Report.Reason.MISSING,
+            status=Report.Status.RESOLVED,
+        )
+        other_user = User.objects.create_user(
+            username="otherreporter", password="testpass123",
+        )
+        other_library = _create_library(
+            user=other_user,
+            name="Other Report Lib",
+            status=Library.Status.APPROVED,
+        )
+        _create_report(user=other_user, library=other_library)
+        client.force_login(dashboard_user)
+
+        response = client.get("/dashboard/")
+        content = response.content.decode()
+
+        assert list(response.context["reports"])[0].library.name == "Reported Lib"
+        assert "Reported Lib" in content
+        assert "Missing" in content
+        assert "Resolved" in content
+        assert "Other Report Lib" not in content
+
+    def test_dashboard_shows_own_photos_with_status_labels(self, client, dashboard_user):
+        """Verify photo contributions render for the current user only.
+        Ensures photo moderation status labels are visible."""
+        library = _create_library(
+            user=dashboard_user,
+            name="Photo Lib",
+            status=Library.Status.APPROVED,
+        )
+        _create_photo(
+            user=dashboard_user,
+            library=library,
+            caption="Sunny shelf",
+            status=LibraryPhoto.Status.REJECTED,
+        )
+        other_user = User.objects.create_user(
+            username="otherphotographer", password="testpass123",
+        )
+        other_library = _create_library(
+            user=other_user,
+            name="Other Photo Lib",
+            status=Library.Status.APPROVED,
+        )
+        _create_photo(
+            user=other_user,
+            library=other_library,
+            caption="Other sunny shelf",
+        )
+        client.force_login(dashboard_user)
+
+        response = client.get("/dashboard/")
+        content = response.content.decode()
+
+        assert list(response.context["photos"])[0].caption == "Sunny shelf"
+        assert "Sunny shelf" in content
+        assert "Rejected" in content
+        assert "Other sunny shelf" not in content
+
+    def test_dashboard_links_contributions_to_libraries(self, client, dashboard_user):
+        """Verify contribution cards link back to their related libraries.
+        Ensures library, report, and photo entries expose detail navigation."""
+        submitted = _create_library(
+            user=dashboard_user,
+            name="Submitted Link Lib",
+            status=Library.Status.PENDING,
+        )
+        reported = _create_library(
+            user=dashboard_user,
+            name="Reported Link Lib",
+            status=Library.Status.APPROVED,
+        )
+        photographed = _create_library(
+            user=dashboard_user,
+            name="Photo Link Lib",
+            status=Library.Status.APPROVED,
+        )
+        _create_report(user=dashboard_user, library=reported)
+        _create_photo(
+            user=dashboard_user,
+            library=photographed,
+            caption="Linked photo",
+        )
+        client.force_login(dashboard_user)
+
+        response = client.get("/dashboard/")
+        content = response.content.decode()
+
+        assert f"/library/{submitted.slug}/" in content
+        assert f"/library/{reported.slug}/" in content
+        assert f"/library/{photographed.slug}/" in content
 
 
 @pytest.mark.django_db
