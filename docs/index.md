@@ -26,6 +26,7 @@ https://bookcorners.org/api/v1/
 | [Submit a Library](libraries/submit.md) | Add a new library with a photo |
 | [Report an Issue](libraries/report.md) | Flag problems with a library |
 | [Submit a Community Photo](libraries/submit-photo.md) | Add a photo to an existing library |
+| [Staff Moderation](libraries/moderation.md) | Staff-only queues and status updates |
 | [Statistics](statistics.md) | Platform-wide aggregate statistics |
 | [Errors](errors.md) | Error response format and status codes |
 | [Rate Limiting](rate-limiting.md) | Request limits and 429 handling |

@@ -83,6 +83,7 @@ class MeOut(Schema):
     username: str = Field(description="Username.", examples=["janedoe"])
     email: str = Field(description="Email address.", examples=["jane@example.com"])
     is_social_only: bool = Field(description="True when the account uses social login only (no local password). Email and password changes are unavailable for these accounts.", examples=[False])
+    is_staff: bool = Field(description="True when the account can access staff-only moderation endpoints.", examples=[False])
 
 
 def build_token_pair(*, user: AbstractBaseUser) -> TokenPairOut:
@@ -234,6 +235,7 @@ def me(request):
         username=request.user.username,
         email=request.user.email,
         is_social_only=is_social_only_user(request.user),
+        is_staff=request.user.is_staff,
     )
 
 
@@ -288,6 +290,7 @@ def change_email(request, payload: ChangeEmailIn):
         username=request.user.username,
         email=request.user.email,
         is_social_only=is_social_only_user(request.user),
+        is_staff=request.user.is_staff,
     )
 
 

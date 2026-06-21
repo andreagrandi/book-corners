@@ -220,6 +220,10 @@ Key endpoints:
 | `/api/v1/libraries/{slug}` | GET | No | Library detail |
 | `/api/v1/libraries` | POST | JWT | Submit a new library |
 | `/api/v1/libraries/{slug}/report` | POST | JWT | Report an issue |
+| `/api/v1/libraries/moderation` | GET | Staff JWT | List libraries across moderation statuses |
+| `/api/v1/libraries/moderation/{slug}` | GET/PATCH | Staff JWT | View or update library moderation status |
+| `/api/v1/libraries/moderation/reports` | GET | Staff JWT | List user reports |
+| `/api/v1/libraries/moderation/photos` | GET | Staff JWT | List community photo submissions |
 
 Full API documentation: [developers.bookcorners.org](https://developers.bookcorners.org)
 

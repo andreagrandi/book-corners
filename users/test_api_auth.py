@@ -252,6 +252,20 @@ class TestAuthAPI:
         assert body["username"] == user.username
         assert body["email"] == user.email
         assert body["is_social_only"] is False
+        assert body["is_staff"] is False
+
+    def test_me_returns_staff_status_for_admin(self, client, admin_user):
+        """Verify me returns staff status for staff users.
+        Allows admin clients to expose moderation tools after login."""
+        access_token = str(RefreshToken.for_user(admin_user).access_token)
+        response = client.get(
+            "/api/v1/auth/me",
+            HTTP_AUTHORIZATION=f"Bearer {access_token}",
+        )
+
+        body = response.json()
+        assert response.status_code == 200
+        assert body["is_staff"] is True
 
     def test_me_returns_social_only_for_social_user(self, client):
         """Verify me returns is_social_only=true for social-only users.
