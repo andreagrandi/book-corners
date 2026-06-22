@@ -1,8 +1,10 @@
+import re
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
 from django.test import Client
-from playwright.sync_api import Page, expect
+from playwright.sync_api import Page, Response, expect
 
 from libraries.models import Library, LibraryPhoto, Report
 from tests.e2e.conftest import _make_test_image
@@ -23,6 +25,30 @@ def _force_login_browser(page: Page, live_server, user):
         "domain": "localhost",
         "path": "/",
     }])
+
+
+def _wait_for_htmx(page: Page) -> None:
+    """Wait until HTMX is available on the page.
+    Keeps browser tests synchronized before triggering HTMX actions."""
+    page.wait_for_function("() => window.htmx !== undefined")
+
+
+def _is_htmx_response(
+    response: Response,
+    *,
+    url_prefix: str = "",
+    url_suffix: str = "",
+) -> bool:
+    """Return whether a response came from an HTMX request.
+    Allows tests to distinguish swaps from full-page navigation."""
+    if response.request.headers.get("hx-request") != "true":
+        return False
+    if url_prefix and not response.url.startswith(url_prefix):
+        return False
+    if url_suffix and not response.url.endswith(url_suffix):
+        return False
+    return True
+
 
 pytestmark = [pytest.mark.e2e, pytest.mark.django_db(transaction=True)]
 
@@ -157,6 +183,89 @@ def test_library_list_filter_by_status(live_server, staff_page, sample_libraries
         expect(row.locator(".badge")).to_contain_text("Pending")
 
 
+def test_library_filters_submit_via_htmx(
+    live_server,
+    staff_page,
+    sample_libraries,
+) -> None:
+    """Verify library filters update the table through HTMX.
+    Confirms status filters swap only the table container."""
+    staff_page.goto(f"{live_server.url}/manage/libraries/")
+    _wait_for_htmx(staff_page)
+
+    filter_form = staff_page.locator("form[hx-target='#library-table-container']")
+    filter_form.locator("select[name='status']").select_option(
+        Library.Status.APPROVED
+    )
+
+    with staff_page.expect_response(
+        lambda response: _is_htmx_response(
+            response,
+            url_prefix=f"{live_server.url}/manage/libraries/?",
+        )
+    ):
+        filter_form.locator("button[type='submit']").click()
+
+    table = staff_page.locator("#library-table-container")
+    expect(table.locator(f"#library-row-{sample_libraries[1].pk}")).to_be_visible()
+    expect(table.locator(f"#library-row-{sample_libraries[0].pk}")).not_to_be_visible()
+    expect(staff_page).to_have_url(
+        re.compile(r".*/manage/libraries/\?.*status=approved")
+    )
+
+
+def test_library_approve_updates_status_with_htmx(
+    live_server,
+    staff_page,
+    sample_libraries,
+) -> None:
+    """Verify the library approve button uses an HTMX row swap.
+    Confirms the approved moderation state is persisted."""
+    library_to_approve = sample_libraries[0]
+    staff_page.goto(f"{live_server.url}/manage/libraries/")
+    _wait_for_htmx(staff_page)
+
+    approve_row = staff_page.locator(f"#library-row-{library_to_approve.pk}")
+    approve_url = f"/manage/libraries/{library_to_approve.pk}/approve/"
+    with staff_page.expect_response(
+        lambda response: _is_htmx_response(
+            response,
+            url_suffix=approve_url,
+        )
+    ):
+        approve_row.locator("button[title='Approve']").click()
+
+    expect(approve_row.locator(".badge")).to_contain_text("Approved")
+    library_to_approve.refresh_from_db()
+    assert library_to_approve.status == Library.Status.APPROVED
+
+
+def test_library_reject_updates_status_with_htmx(
+    live_server,
+    staff_page,
+    sample_libraries,
+) -> None:
+    """Verify the library reject button uses an HTMX row swap.
+    Confirms the rejected moderation state is persisted."""
+    library_to_reject = sample_libraries[3]
+    staff_page.goto(f"{live_server.url}/manage/libraries/")
+    _wait_for_htmx(staff_page)
+
+    reject_row = staff_page.locator(f"#library-row-{library_to_reject.pk}")
+    reject_url = f"/manage/libraries/{library_to_reject.pk}/reject/"
+    with staff_page.expect_response(
+        lambda response: _is_htmx_response(
+            response,
+            url_suffix=reject_url,
+        )
+    ):
+        reject_row.locator("button[title='Reject']").click()
+
+    expect(reject_row.locator(".badge")).to_contain_text("Rejected")
+    library_to_reject.refresh_from_db()
+    assert library_to_reject.status == Library.Status.REJECTED
+
+
 def test_library_detail_shows_info(live_server, staff_page, sample_libraries):
     """Verify the library detail page renders core fields."""
     lib = sample_libraries[0]
@@ -213,12 +322,147 @@ def test_report_list_loads(live_server, staff_page, sample_report):
     expect(staff_page.locator("table tbody tr").first).to_be_visible()
 
 
+def test_report_resolve_updates_status_with_htmx(
+    live_server,
+    staff_page,
+    sample_report,
+) -> None:
+    """Verify the report resolve button uses an HTMX row swap.
+    Confirms the resolved moderation state is persisted."""
+    staff_page.goto(f"{live_server.url}/manage/reports/")
+    _wait_for_htmx(staff_page)
+
+    resolve_row = staff_page.locator(f"#report-row-{sample_report.pk}")
+    resolve_url = f"/manage/reports/{sample_report.pk}/resolve/"
+    with staff_page.expect_response(
+        lambda response: _is_htmx_response(
+            response,
+            url_suffix=resolve_url,
+        )
+    ):
+        resolve_row.locator("button[title='Resolve']").click()
+
+    expect(resolve_row.locator(".badge")).to_contain_text("Resolved")
+    sample_report.refresh_from_db()
+    assert sample_report.status == Report.Status.RESOLVED
+
+
+def test_report_dismiss_updates_status_with_htmx(
+    live_server,
+    staff_page,
+    sample_report,
+) -> None:
+    """Verify the report dismiss button uses an HTMX row swap.
+    Confirms the dismissed moderation state is persisted."""
+    staff_page.goto(f"{live_server.url}/manage/reports/")
+    _wait_for_htmx(staff_page)
+
+    dismiss_row = staff_page.locator(f"#report-row-{sample_report.pk}")
+    dismiss_url = f"/manage/reports/{sample_report.pk}/dismiss/"
+    with staff_page.expect_response(
+        lambda response: _is_htmx_response(
+            response,
+            url_suffix=dismiss_url,
+        )
+    ):
+        dismiss_row.locator("button[title='Dismiss']").click()
+
+    expect(dismiss_row.locator(".badge")).to_contain_text("Dismissed")
+    sample_report.refresh_from_db()
+    assert sample_report.status == Report.Status.DISMISSED
+
+
 def test_photo_grid_loads(live_server, staff_page, sample_libraries):
     """Verify the photo grid renders with library photos."""
     staff_page.goto(f"{live_server.url}/manage/photos/")
 
     expect(staff_page.locator("h1:text('Photos')")).to_be_visible()
     expect(staff_page.locator("select[name='type']")).to_be_visible()
+
+
+def test_photo_filters_submit_via_htmx(
+    live_server,
+    staff_page,
+    sample_photo,
+) -> None:
+    """Verify community photo filters update the grid through HTMX.
+    Confirms filtering can hide primary library photos."""
+    staff_page.goto(f"{live_server.url}/manage/photos/")
+    _wait_for_htmx(staff_page)
+
+    filter_form = staff_page.locator("form[hx-target='#photo-grid-container']")
+    filter_form.locator("select[name='status']").select_option(
+        LibraryPhoto.Status.PENDING
+    )
+    filter_form.locator("select[name='type']").select_option("community")
+
+    with staff_page.expect_response(
+        lambda response: _is_htmx_response(
+            response,
+            url_prefix=f"{live_server.url}/manage/photos/?",
+        )
+    ):
+        filter_form.locator("button[type='submit']").click()
+
+    grid = staff_page.locator("#photo-grid-container")
+    expect(grid.locator(f"#photo-card-{sample_photo.pk}-community")).to_be_visible()
+    expect(grid.get_by_text("Primary")).not_to_be_visible()
+
+
+def test_photo_approve_updates_status_with_htmx(
+    live_server,
+    staff_page,
+    sample_photo,
+) -> None:
+    """Verify the community photo approve button uses an HTMX card swap.
+    Confirms the approved moderation state is persisted."""
+    staff_page.goto(f"{live_server.url}/manage/photos/?status=pending&type=community")
+    _wait_for_htmx(staff_page)
+
+    approve_card = staff_page.locator(f"#photo-card-{sample_photo.pk}-community")
+    expect(approve_card).to_be_visible()
+    approve_url = f"/manage/photos/{sample_photo.pk}/approve/"
+    with staff_page.expect_response(
+        lambda response: _is_htmx_response(
+            response,
+            url_suffix=approve_url,
+        )
+    ):
+        approve_card.get_by_role("button", name="Approve").click()
+
+    expect(
+        approve_card.locator(".badge").filter(has_text="Approved")
+    ).to_be_visible()
+    sample_photo.refresh_from_db()
+    assert sample_photo.status == LibraryPhoto.Status.APPROVED
+
+
+def test_photo_reject_updates_status_with_htmx(
+    live_server,
+    staff_page,
+    sample_photo,
+) -> None:
+    """Verify the community photo reject button uses an HTMX card swap.
+    Confirms the rejected moderation state is persisted."""
+    staff_page.goto(f"{live_server.url}/manage/photos/?status=pending&type=community")
+    _wait_for_htmx(staff_page)
+
+    reject_card = staff_page.locator(f"#photo-card-{sample_photo.pk}-community")
+    expect(reject_card).to_be_visible()
+    reject_url = f"/manage/photos/{sample_photo.pk}/reject/"
+    with staff_page.expect_response(
+        lambda response: _is_htmx_response(
+            response,
+            url_suffix=reject_url,
+        )
+    ):
+        reject_card.get_by_role("button", name="Reject").click()
+
+    expect(
+        reject_card.locator(".badge").filter(has_text="Rejected")
+    ).to_be_visible()
+    sample_photo.refresh_from_db()
+    assert sample_photo.status == LibraryPhoto.Status.REJECTED
 
 
 def test_user_list_loads(live_server, staff_page):
