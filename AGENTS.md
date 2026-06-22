@@ -24,6 +24,11 @@ Before making code or documentation changes in this repo:
 
 Do not start work from an old feature branch unless the user explicitly asks to continue that branch.
 
+## Pull Requests
+
+- PR descriptions must be reviewer-facing and include `Context`, `What changed`, `Notes / constraints`, and `Testing`.
+- Do not use terse `Summary` / `Validation` bodies unless explicitly requested.
+
 ## Code style expectations
 
 - Add a docstring to every new function, method, and test function.
