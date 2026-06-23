@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.13.0
+
+- Auth device endpoints allow iOS clients to register and unregister APNs tokens with `POST /api/v1/auth/devices` and `DELETE /api/v1/auth/devices/{token}`.
+- Approval, rejection, and moderation-work events now queue APNs push notifications when APNs credentials are configured.
+- Invalid APNs tokens are removed when delivery returns an inactive or bad-token response.
+
 ## v1.12.0
 
 - Auth profile endpoint (`GET /api/v1/auth/me`) now includes `is_staff` so clients can detect staff users after login.

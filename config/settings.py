@@ -288,6 +288,13 @@ APPLE_OAUTH_ENABLED = bool(
     _APPLE_CLIENT_ID and _APPLE_SECRET_KEY and _APPLE_KEY_ID and _APPLE_TEAM_ID
 )
 
+APNS_AUTH_KEY = os.environ.get("APNS_AUTH_KEY", "")
+APNS_KEY_ID = os.environ.get("APNS_KEY_ID", "")
+APNS_TEAM_ID = os.environ.get("APNS_TEAM_ID", "")
+APNS_BUNDLE_ID = os.environ.get("APNS_BUNDLE_ID", "")
+APNS_USE_SANDBOX = _env_bool(name="APNS_USE_SANDBOX", default=DEBUG or IS_TEST_ENVIRONMENT)
+APNS_ENABLED = bool(APNS_AUTH_KEY and APNS_KEY_ID and APNS_TEAM_ID and APNS_BUNDLE_ID)
+
 SOCIALACCOUNT_PROVIDERS = {
     "apple": {
         "APPS": [

@@ -8,6 +8,8 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.urls import reverse
 
+from users.tasks import send_push_to_staff, send_push_to_user
+
 logger = logging.getLogger(__name__)
 
 
@@ -25,9 +27,53 @@ def _get_manage_library_url(library_pk: int) -> str:
     return f"{site_url}/manage/libraries/{library_pk}/"
 
 
+def _enqueue_staff_push(
+    *,
+    title: str,
+    body: str,
+    data: dict[str, object] | None = None,
+) -> None:
+    """Queue a staff push notification without blocking moderation.
+    Push enqueue failures are logged and never re-raised."""
+    try:
+        send_push_to_staff.enqueue(title=title, body=body, data=data)
+    except Exception:
+        logger.exception("Failed to enqueue staff push notification")
+
+
+def _enqueue_user_push(
+    *,
+    user_id: int | None,
+    title: str,
+    body: str,
+    data: dict[str, object] | None = None,
+) -> None:
+    """Queue a user push notification without blocking moderation.
+    Missing users and enqueue failures are handled silently."""
+    if user_id is None:
+        return
+
+    try:
+        send_push_to_user.enqueue(
+            user_id=user_id,
+            title=title,
+            body=body,
+            data=data,
+        )
+    except Exception:
+        logger.exception("Failed to enqueue user push notification for user %s", user_id)
+
+
 def notify_new_library(library) -> None:
     """Send an admin notification about a new library submission.
     Fails silently so Resend outages never block user submissions."""
+    library_label = library.name or library.address or "New library"
+    _enqueue_staff_push(
+        title="New library submission",
+        body=f"{library_label} in {library.city} needs review.",
+        data={"type": "library.submitted", "library_id": library.pk},
+    )
+
     recipient = _get_admin_email()
     if not recipient:
         return
@@ -59,6 +105,13 @@ def notify_new_library(library) -> None:
 def notify_library_update(library) -> None:
     """Send an admin notification about edited library details.
     Fails silently so Resend outages never block user edits."""
+    library_label = library.name or library.address or "Updated library"
+    _enqueue_staff_push(
+        title="Library changes need review",
+        body=f"{library_label} in {library.city} was updated by its submitter.",
+        data={"type": "library.updated", "library_id": library.pk},
+    )
+
     recipient = _get_admin_email()
     if not recipient:
         return
@@ -90,6 +143,16 @@ def notify_library_update(library) -> None:
 def notify_new_report(report) -> None:
     """Send an admin notification about a new library report.
     Fails silently so Resend outages never block user submissions."""
+    _enqueue_staff_push(
+        title="New library report",
+        body=f"{report.library} was reported for {report.get_reason_display()}.",
+        data={
+            "type": "report.submitted",
+            "report_id": report.pk,
+            "library_id": report.library_id,
+        },
+    )
+
     recipient = _get_admin_email()
     if not recipient:
         return
@@ -120,6 +183,16 @@ def notify_new_report(report) -> None:
 def notify_new_photo(photo) -> None:
     """Send an admin notification about a new community photo submission.
     Fails silently so Resend outages never block user submissions."""
+    _enqueue_staff_push(
+        title="New photo submission",
+        body=f"{photo.library} has a community photo waiting for review.",
+        data={
+            "type": "photo.submitted",
+            "photo_id": photo.pk,
+            "library_id": photo.library_id,
+        },
+    )
+
     recipient = _get_admin_email()
     if not recipient:
         return
@@ -212,6 +285,14 @@ def notify_social_post_error(library, error_details: str) -> None:
 def notify_library_approved(library) -> None:
     """Email the submitter when their library is approved.
     Fails silently so email outages never block the approval workflow."""
+    library_label = library.name or library.address or "Your library"
+    _enqueue_user_push(
+        user_id=library.created_by_id,
+        title="Your library is live",
+        body=f"{library_label} in {library.city} has been approved.",
+        data={"type": "library.approved", "library_id": library.pk},
+    )
+
     if not library.created_by or not library.created_by.email:
         return
 
@@ -220,7 +301,6 @@ def notify_library_approved(library) -> None:
     public_url = f"{site_url}{detail_path}"
 
     subject = "Your library is now live on Book Corners!"
-    library_label = library.name or library.address
     body = (
         f"Great news! Your library \"{library_label}\" "
         f"in {library.city} has been approved and is now live.\n\n"
@@ -242,10 +322,17 @@ def notify_library_approved(library) -> None:
 def notify_library_rejected(library) -> None:
     """Email the submitter when their library is rejected with the reason.
     Fails silently so email outages never block the rejection workflow."""
+    library_label = library.name or library.address or "Your library"
+    _enqueue_user_push(
+        user_id=library.created_by_id,
+        title="Update on your Book Corners submission",
+        body=f"{library_label} in {library.city} could not be approved.",
+        data={"type": "library.rejected", "library_id": library.pk},
+    )
+
     if not library.created_by or not library.created_by.email:
         return
 
-    library_label = library.name or library.address
     subject = "Update on your Book Corners submission"
     body = (
         f"Thank you for your submission of \"{library_label}\" "

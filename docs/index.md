@@ -14,6 +14,7 @@ https://bookcorners.org/api/v1/
 - **Submit** new library locations with photos for community moderation
 - **Report** issues with existing libraries (damaged, missing, incorrect info)
 - **JWT authentication** with access/refresh token lifecycle
+- **iOS push notifications** via APNs device token registration
 - **Geospatial queries** powered by PostGIS
 
 ## Quick links
@@ -22,6 +23,7 @@ https://bookcorners.org/api/v1/
 |-------|-------------|
 | [Getting Started](getting-started.md) | Register, authenticate, and make your first request |
 | [Authentication](authentication.md) | Token lifecycle and all auth endpoints |
+| [Push Notifications](push-notifications.md) | iOS APNs device token registration and delivery behavior |
 | [List & Search](libraries/list-and-search.md) | Browse and search the library catalogue |
 | [Submit a Library](libraries/submit.md) | Add a new library with a photo |
 | [Report an Issue](libraries/report.md) | Flag problems with a library |
