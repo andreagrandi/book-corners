@@ -39,6 +39,7 @@ nav:
   - Home: index.md
   - Getting Started: getting-started.md
   - Authentication: authentication.md
+  - Push Notifications: push-notifications.md
   - Libraries:
       - List & Search: libraries/list-and-search.md
       - Detail: libraries/detail.md

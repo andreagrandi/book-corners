@@ -11,7 +11,14 @@ from django.core import mail
 from django.test import override_settings
 
 from libraries.models import Library, LibraryPhoto, Report
-from libraries.notifications import notify_library_update, notify_new_library, notify_new_photo, notify_new_report
+from libraries.notifications import (
+    notify_library_approved,
+    notify_library_rejected,
+    notify_library_update,
+    notify_new_library,
+    notify_new_photo,
+    notify_new_report,
+)
 
 User = get_user_model()
 
@@ -85,6 +92,31 @@ class TestNotifyNewLibrary:
 
         assert len(mail.outbox) == 0
 
+    @override_settings(ADMIN_NOTIFICATION_EMAIL="")
+    @patch("libraries.notifications.send_push_to_staff")
+    def test_enqueues_staff_push_even_when_email_is_disabled(
+        self, mock_push_task, notification_user,
+    ):
+        """Verify new library submissions enqueue staff push notifications.
+        Push delivery should not depend on admin email configuration."""
+        library = Library.objects.create(
+            name="Push Library",
+            address="12 Push St",
+            city="Milan",
+            country="IT",
+            location=Point(x=9.19, y=45.46, srid=4326),
+            status=Library.Status.PENDING,
+            created_by=notification_user,
+        )
+
+        notify_new_library(library)
+
+        mock_push_task.enqueue.assert_called_once_with(
+            title="New library submission",
+            body="Push Library in Milan needs review.",
+            data={"type": "library.submitted", "library_id": library.pk},
+        )
+
     @override_settings(
         ADMIN_NOTIFICATION_EMAIL="admin@example.com",
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
@@ -143,6 +175,23 @@ class TestNotifyLibraryUpdate:
 
         assert len(mail.outbox) == 0
 
+    @override_settings(ADMIN_NOTIFICATION_EMAIL="")
+    @patch("libraries.notifications.send_push_to_staff")
+    def test_enqueues_staff_push_for_library_update(self, mock_push_task, approved_library):
+        """Verify edited libraries enqueue staff push notifications.
+        Keeps moderation alerts available when email is disabled."""
+        approved_library.name = "Updated Push Library"
+        approved_library.status = Library.Status.PENDING
+        approved_library.save()
+
+        notify_library_update(approved_library)
+
+        mock_push_task.enqueue.assert_called_once_with(
+            title="Library changes need review",
+            body="Updated Push Library in Berlin was updated by its submitter.",
+            data={"type": "library.updated", "library_id": approved_library.pk},
+        )
+
 
 @pytest.mark.django_db()
 class TestNotifyNewReport:
@@ -185,6 +234,33 @@ class TestNotifyNewReport:
         notify_new_report(report)
 
         assert len(mail.outbox) == 0
+
+    @override_settings(ADMIN_NOTIFICATION_EMAIL="")
+    @patch("libraries.notifications.send_push_to_staff")
+    def test_enqueues_staff_push_for_new_report(
+        self, mock_push_task, approved_library, notification_user,
+    ):
+        """Verify new reports enqueue staff push notifications.
+        Keeps report moderation alerts independent from email settings."""
+        report = Report.objects.create(
+            library=approved_library,
+            created_by=notification_user,
+            reason=Report.Reason.DAMAGED,
+            details="The door is broken.",
+            status=Report.Status.OPEN,
+        )
+
+        notify_new_report(report)
+
+        mock_push_task.enqueue.assert_called_once_with(
+            title="New library report",
+            body=f"{approved_library} was reported for Damaged.",
+            data={
+                "type": "report.submitted",
+                "report_id": report.pk,
+                "library_id": approved_library.pk,
+            },
+        )
 
 
 @pytest.mark.django_db()
@@ -231,3 +307,67 @@ class TestNotifyNewPhoto:
         notify_new_photo(library_photo)
 
         assert len(mail.outbox) == 0
+
+    @override_settings(ADMIN_NOTIFICATION_EMAIL="")
+    @patch("libraries.notifications.send_push_to_staff")
+    def test_enqueues_staff_push_for_new_photo(
+        self, mock_push_task, approved_library, notification_user,
+    ):
+        """Verify new photos enqueue staff push notifications.
+        Keeps photo moderation alerts independent from email settings."""
+        library_photo = LibraryPhoto(
+            library=approved_library,
+            created_by=notification_user,
+            caption="Push photo",
+            status=LibraryPhoto.Status.PENDING,
+        )
+        library_photo.photo.name = "libraries/user_photos/2026/01/push.jpg"
+        super(LibraryPhoto, library_photo).save()
+
+        notify_new_photo(library_photo)
+
+        mock_push_task.enqueue.assert_called_once_with(
+            title="New photo submission",
+            body=f"{approved_library} has a community photo waiting for review.",
+            data={
+                "type": "photo.submitted",
+                "photo_id": library_photo.pk,
+                "library_id": approved_library.pk,
+            },
+        )
+
+
+@pytest.mark.django_db()
+class TestSubmitterPushNotifications:
+    """Tests for submitter-facing push enqueue behavior.
+    Covers approval and rejection events separately from email."""
+
+    @patch("libraries.notifications.send_push_to_user")
+    def test_approved_library_enqueues_submitter_push(self, mock_push_task, approved_library):
+        """Verify approvals enqueue a push to the submitter.
+        Push notification delivery should not require a submitter email."""
+        notify_library_approved(approved_library)
+
+        mock_push_task.enqueue.assert_called_once_with(
+            user_id=approved_library.created_by_id,
+            title="Your library is live",
+            body="Test Library in Berlin has been approved.",
+            data={"type": "library.approved", "library_id": approved_library.pk},
+        )
+
+    @patch("libraries.notifications.send_push_to_user")
+    def test_rejected_library_enqueues_submitter_push(self, mock_push_task, approved_library):
+        """Verify rejections enqueue a push to the submitter.
+        Push notification delivery should not require a submitter email."""
+        approved_library.rejection_reason = "Duplicate submission."
+        approved_library.status = Library.Status.REJECTED
+        approved_library.save(update_fields=["rejection_reason", "status"])
+
+        notify_library_rejected(approved_library)
+
+        mock_push_task.enqueue.assert_called_once_with(
+            user_id=approved_library.created_by_id,
+            title="Update on your Book Corners submission",
+            body="Test Library in Berlin could not be approved.",
+            data={"type": "library.rejected", "library_id": approved_library.pk},
+        )

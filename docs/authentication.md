@@ -313,6 +313,95 @@ Return the profile of the currently authenticated user.
 
 ---
 
+### Register Device Token
+
+`POST /api/v1/auth/devices`
+
+Register an APNs device token for the authenticated user. iOS clients should call this after login, after receiving push permission, and whenever iOS returns a new device token.
+
+If the same token is already registered, the API reassigns it to the current user and marks it active. This supports reinstall, account switching, and token refresh flows.
+
+**Auth required:** Yes (`Bearer` token)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `token` | string | Yes | APNs device token from iOS |
+| `environment` | string | Yes | `sandbox` for development tokens, or `production` for distributed builds |
+
+=== "curl"
+
+    ```bash
+    curl -X POST https://bookcorners.org/api/v1/auth/devices \
+      -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
+      -H "Content-Type: application/json" \
+      -d '{
+        "token": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "environment": "sandbox"
+      }'
+    ```
+
+=== "Swift"
+
+    ```swift
+    let body = [
+        "token": deviceTokenHex,
+        "environment": isDebugBuild ? "sandbox" : "production"
+    ]
+    var request = URLRequest(url: URL(string: "https://bookcorners.org/api/v1/auth/devices")!)
+    request.httpMethod = "POST"
+    request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.httpBody = try JSONSerialization.data(withJSONObject: body)
+    ```
+
+**Success** (`201 Created`):
+
+```json
+{
+  "token": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "environment": "sandbox",
+  "is_active": true
+}
+```
+
+**Errors:**
+
+| Status | Message |
+|--------|---------|
+| `400` | `"Device token is required."` |
+| `401` | Unauthorized (missing or invalid token) |
+| `422` | Validation error for unsupported `environment` |
+| `429` | `"Too many requests. Please try again later."` |
+
+---
+
+### Unregister Device Token
+
+`DELETE /api/v1/auth/devices/{token}`
+
+Remove a device token for the authenticated user. iOS clients should call this on logout before discarding the JWT. The endpoint is idempotent and returns `204 No Content` even when the token is already absent.
+
+**Auth required:** Yes (`Bearer` token)
+
+=== "curl"
+
+    ```bash
+    curl -X DELETE \
+      https://bookcorners.org/api/v1/auth/devices/0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef \
+      -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."
+    ```
+
+**Success** (`204 No Content`)
+
+**Errors:**
+
+| Status | Message |
+|--------|---------|
+| `401` | Unauthorized (missing or invalid token) |
+| `429` | `"Too many requests. Please try again later."` |
+
+---
+
 ### Change Email
 
 `PATCH /api/v1/auth/me/email`

@@ -14,7 +14,10 @@ from pydantic import Field
 from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 
 from config.api_schemas import ErrorOut
+from libraries.api_security import is_api_rate_limited
+from users.api_schemas import DeviceTokenIn, DeviceTokenOut
 from users.auth import is_social_only_user, resolve_login_identifier
+from users.models import DeviceToken
 from users.security import is_auth_rate_limited
 
 MessageOut = ErrorOut
@@ -237,6 +240,69 @@ def me(request):
         is_social_only=is_social_only_user(request.user),
         is_staff=request.user.is_staff,
     )
+
+
+@auth_router.post(
+    "/devices",
+    response={201: DeviceTokenOut, 400: ErrorOut, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="Register an APNs device token",
+)
+def register_device(request, payload: DeviceTokenIn):
+    """Register or update an APNs device token for the current user.
+    Reassigns existing tokens so device hand-off remains consistent."""
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-auth-device-register",
+        max_requests=settings.API_RATE_LIMIT_WRITE_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    normalized_token = payload.token.strip()
+    if not normalized_token:
+        return 400, ErrorOut(message="Device token is required.")
+
+    device_token, _ = DeviceToken.objects.update_or_create(
+        token=normalized_token,
+        defaults={
+            "user": request.user,
+            "environment": payload.environment.value,
+            "is_active": True,
+        },
+    )
+    return 201, DeviceTokenOut(
+        token=device_token.token,
+        environment=device_token.environment,
+        is_active=device_token.is_active,
+    )
+
+
+@auth_router.delete(
+    "/devices/{token}",
+    response={204: None, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="Unregister an APNs device token",
+)
+def unregister_device(request, token: str):
+    """Remove a registered APNs device token for the current user.
+    Logout clients call this endpoint before discarding their JWT."""
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-auth-device-unregister",
+        max_requests=settings.API_RATE_LIMIT_WRITE_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    DeviceToken.objects.filter(user=request.user, token=token.strip()).delete()
+    return 204, None
 
 
 class ChangeEmailIn(Schema):
