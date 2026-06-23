@@ -292,6 +292,105 @@
         ]
       }
     },
+    "/api/v1/auth/devices": {
+      "post": {
+        "operationId": "users_api_register_device",
+        "summary": "Register an APNs device token",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceTokenOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Register or update an APNs device token for the current user.\nReassigns existing tokens so device hand-off remains consistent.",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceTokenIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/devices/{token}": {
+      "delete": {
+        "operationId": "users_api_unregister_device",
+        "summary": "Unregister an APNs device token",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "schema": {
+              "title": "Token",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Remove a registered APNs device token for the current user.\nLogout clients call this endpoint before discarding their JWT.",
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
     "/api/v1/auth/me/email": {
       "patch": {
         "operationId": "users_api_change_email",
@@ -3097,6 +3196,70 @@
           }
         },
         "title": "DeleteAccountIn",
+        "type": "object"
+      },
+      "DeviceTokenOut": {
+        "description": "Registered APNs device token response.\nConfirms the normalized token and environment stored for the user.",
+        "properties": {
+          "token": {
+            "description": "Registered APNs device token.",
+            "title": "Token",
+            "type": "string"
+          },
+          "environment": {
+            "description": "APNs environment for this token.",
+            "title": "Environment",
+            "type": "string"
+          },
+          "is_active": {
+            "description": "Whether the token is active for delivery.",
+            "title": "Is Active",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "token",
+          "environment",
+          "is_active"
+        ],
+        "title": "DeviceTokenOut",
+        "type": "object"
+      },
+      "DeviceTokenEnvironmentEnum": {
+        "description": "APNs device token environment values.\nKeeps API payloads aligned with APNs sandbox and production routing.",
+        "enum": [
+          "sandbox",
+          "production"
+        ],
+        "title": "DeviceTokenEnvironmentEnum",
+        "type": "string"
+      },
+      "DeviceTokenIn": {
+        "description": "Payload for registering an APNs device token.\nThe environment must match the client build that produced the token.",
+        "properties": {
+          "token": {
+            "description": "APNs device token as a hexadecimal string.",
+            "examples": [
+              "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+            ],
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Token",
+            "type": "string"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/DeviceTokenEnvironmentEnum",
+            "description": "APNs environment for this token: sandbox or production.",
+            "examples": [
+              "sandbox"
+            ]
+          }
+        },
+        "required": [
+          "token",
+          "environment"
+        ],
+        "title": "DeviceTokenIn",
         "type": "object"
       },
       "ChangeEmailIn": {

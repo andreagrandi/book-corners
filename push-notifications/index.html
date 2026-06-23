@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://developers.bookcorners.org/errors/">
+        <link rel="canonical" href="https://developers.bookcorners.org/push-notifications/">
       
       
-        <link rel="prev" href="../statistics/">
+        <link rel="prev" href="../authentication/">
       
       
-        <link rel="next" href="../rate-limiting/">
+        <link rel="next" href="../libraries/list-and-search/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Errors - Book Corners API</title>
+        <title>Push Notifications - Book Corners API</title>
       
     
     
@@ -83,7 +83,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#errors" class="md-skip">
+        <a href="#push-notifications" class="md-skip">
           Skip to content
         </a>
       
@@ -119,7 +119,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Errors
+              Push Notifications
             
           </span>
         </div>
@@ -291,10 +291,36 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../push-notifications/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Push Notifications
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
         
   
   
@@ -309,6 +335,71 @@
   
 
       </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#client-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Client lifecycle
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environments" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Environments
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notification-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Notification events
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backend-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Backend configuration
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -643,36 +734,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-  Errors
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="././" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../errors/" class="md-nav__link">
         
   
   
@@ -687,121 +752,6 @@
   
 
       </a>
-      
-        
-
-
-<nav class="md-nav md-nav--secondary" aria-label="On this page">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      On this page
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#error-response-format" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Error response format
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#status-codes" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Status codes
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Examples
-      </span>
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Examples">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#validation-error-422" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Validation error (422)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#duplicate-username-400" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Duplicate username (400)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#not-found-404" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Not found (404)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#rate-limited-429" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Rate limited (429)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#internal-server-error-500" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Internal server error (500)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -925,10 +875,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#error-response-format" class="md-nav__link">
+  <a href="#client-lifecycle" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Error response format
+        Client lifecycle
       </span>
     </span>
   </a>
@@ -936,10 +886,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#status-codes" class="md-nav__link">
+  <a href="#environments" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Status codes
+        Environments
       </span>
     </span>
   </a>
@@ -947,74 +897,24 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
+  <a href="#notification-events" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Examples
-      </span>
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Examples">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#validation-error-422" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Validation error (422)
+        Notification events
       </span>
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#duplicate-username-400" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#backend-configuration" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Duplicate username (400)
+        Backend configuration
       </span>
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#not-found-404" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Not found (404)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#rate-limited-429" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Rate limited (429)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#internal-server-error-500" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Internal server error (500)
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1033,127 +933,114 @@
                 
                   
 
-<h1 id="errors">Errors<a class="headerlink" href="#errors" title="Permanent link">&para;</a></h1>
-<p>All API errors return a consistent JSON structure, making it straightforward to handle failures in client code.</p>
-<h2 id="error-response-format">Error response format<a class="headerlink" href="#error-response-format" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Human-readable error description.&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nt">&quot;details&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">}</span>
-</code></pre></div>
+<h1 id="push-notifications">Push Notifications<a class="headerlink" href="#push-notifications" title="Permanent link">&para;</a></h1>
+<p>Book Corners supports iOS push notifications through Apple Push Notification service (APNs). Clients authenticate with the existing JWT flow, then register an APNs device token for the signed-in user.</p>
+<h2 id="client-lifecycle">Client lifecycle<a class="headerlink" href="#client-lifecycle" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Sign in with <code>/api/v1/auth/login</code>, <code>/api/v1/auth/register</code>, or <code>/api/v1/auth/social</code>.</li>
+<li>Ask iOS for notification permission.</li>
+<li>Convert the APNs device token to a lowercase hex string.</li>
+<li>Register it with <code>POST /api/v1/auth/devices</code>.</li>
+<li>On logout, call <code>DELETE /api/v1/auth/devices/{token}</code> before discarding local credentials.</li>
+</ol>
+<p>Device tokens can change over time. If iOS returns a new token, register the new token again. The server upserts by token and reassigns it to the current user.</p>
+<h2 id="environments">Environments<a class="headerlink" href="#environments" title="Permanent link">&para;</a></h2>
+<p>Each device token must be registered with the APNs environment that produced it:</p>
 <table>
 <thead>
 <tr>
-<th>Field</th>
-<th>Type</th>
+<th>Environment</th>
+<th>Use for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sandbox</code></td>
+<td>Development builds and sandbox APNs tokens</td>
+</tr>
+<tr>
+<td><code>production</code></td>
+<td>Distributed builds and production APNs tokens</td>
+</tr>
+</tbody>
+</table>
+<p>The server stores the environment per token so sandbox and production devices can coexist safely.</p>
+<h2 id="notification-events">Notification events<a class="headerlink" href="#notification-events" title="Permanent link">&para;</a></h2>
+<p>The backend queues push notifications for:</p>
+<table>
+<thead>
+<tr>
+<th>Event</th>
+<th>Recipient</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Library approved</td>
+<td>Submitter</td>
+</tr>
+<tr>
+<td>Library rejected</td>
+<td>Submitter</td>
+</tr>
+<tr>
+<td>New library submission</td>
+<td>Staff users</td>
+</tr>
+<tr>
+<td>Updated library needing review</td>
+<td>Staff users</td>
+</tr>
+<tr>
+<td>New community photo</td>
+<td>Staff users</td>
+</tr>
+<tr>
+<td>New library report</td>
+<td>Staff users</td>
+</tr>
+</tbody>
+</table>
+<p>Push delivery runs in the existing background worker. If APNs reports that a token is invalid or unregistered, the server deletes that token.</p>
+<h2 id="backend-configuration">Backend configuration<a class="headerlink" href="#backend-configuration" title="Permanent link">&para;</a></h2>
+<p>APNs delivery is disabled unless all required credentials are configured:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>message</code></td>
-<td>string</td>
-<td>Always present. A human-readable description of the error.</td>
+<td><code>APNS_AUTH_KEY</code></td>
+<td><code>.p8</code> private key contents from Apple Developer</td>
 </tr>
 <tr>
-<td><code>details</code></td>
-<td>object or null</td>
-<td>Optional structured data. Contains field-level validation errors or rate limit info when applicable.</td>
+<td><code>APNS_KEY_ID</code></td>
+<td>10-character APNs key ID</td>
+</tr>
+<tr>
+<td><code>APNS_TEAM_ID</code></td>
+<td>10-character Apple Developer Team ID</td>
+</tr>
+<tr>
+<td><code>APNS_BUNDLE_ID</code></td>
+<td>iOS app bundle ID used as the APNs topic</td>
+</tr>
+<tr>
+<td><code>APNS_USE_SANDBOX</code></td>
+<td>Default environment only when no token environment is supplied</td>
 </tr>
 </tbody>
 </table>
-<h2 id="status-codes">Status codes<a class="headerlink" href="#status-codes" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Code</th>
-<th>Meaning</th>
-<th>When it happens</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>400</code></td>
-<td>Bad Request</td>
-<td>Invalid input (bad email, duplicate username, unsupported photo format)</td>
-</tr>
-<tr>
-<td><code>401</code></td>
-<td>Unauthorized</td>
-<td>Missing/invalid JWT token, or bad credentials on login</td>
-</tr>
-<tr>
-<td><code>404</code></td>
-<td>Not Found</td>
-<td>Library slug doesn't exist or isn't visible to the current user</td>
-</tr>
-<tr>
-<td><code>413</code></td>
-<td>Payload Too Large</td>
-<td>Uploaded photo exceeds the size limit (8 MB for libraries and community photos, 5 MB for reports)</td>
-</tr>
-<tr>
-<td><code>422</code></td>
-<td>Unprocessable Entity</td>
-<td>Request validation failed (missing required fields, out-of-range values)</td>
-</tr>
-<tr>
-<td><code>429</code></td>
-<td>Too Many Requests</td>
-<td>Rate limit exceeded (see <a href="../rate-limiting/">Rate Limiting</a>)</td>
-</tr>
-<tr>
-<td><code>500</code></td>
-<td>Internal Server Error</td>
-<td>Unexpected server error</td>
-</tr>
-</tbody>
-</table>
-<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
-<h3 id="validation-error-422">Validation error (422)<a class="headerlink" href="#validation-error-422" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Validation error.&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">&quot;details&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">&quot;errors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">      </span><span class="p">{</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">        </span><span class="nt">&quot;loc&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;address&quot;</span><span class="p">],</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">        </span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;field required&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;missing&quot;</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">      </span><span class="p">}</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">    </span><span class="p">]</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="p">}</span>
+<p>Production deployments should set these with Dokku config:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>dokku<span class="w"> </span>config:set<span class="w"> </span>book-corners<span class="w"> </span><span class="nv">APNS_AUTH_KEY</span><span class="o">=</span><span class="s1">&#39;-----BEGIN PRIVATE KEY-----...&#39;</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>dokku<span class="w"> </span>config:set<span class="w"> </span>book-corners<span class="w"> </span><span class="nv">APNS_KEY_ID</span><span class="o">=</span>ABC123DEFG
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>dokku<span class="w"> </span>config:set<span class="w"> </span>book-corners<span class="w"> </span><span class="nv">APNS_TEAM_ID</span><span class="o">=</span>DEF123GHIJ
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>dokku<span class="w"> </span>config:set<span class="w"> </span>book-corners<span class="w"> </span><span class="nv">APNS_BUNDLE_ID</span><span class="o">=</span>org.bookcorners.app
 </code></pre></div>
-<h3 id="duplicate-username-400">Duplicate username (400)<a class="headerlink" href="#duplicate-username-400" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Username already exists.&quot;</span><span class="p">,</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">&quot;details&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">}</span>
-</code></pre></div>
-<h3 id="not-found-404">Not found (404)<a class="headerlink" href="#not-found-404" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Not found.&quot;</span><span class="p">,</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">&quot;details&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">}</span>
-</code></pre></div>
-<h3 id="rate-limited-429">Rate limited (429)<a class="headerlink" href="#rate-limited-429" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Too many requests. Please try again later.&quot;</span><span class="p">,</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">&quot;details&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">&quot;retry_after&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">42</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">}</span>
-</code></pre></div>
-<h3 id="internal-server-error-500">Internal server error (500)<a class="headerlink" href="#internal-server-error-500" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Internal server error.&quot;</span><span class="p">,</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">&quot;details&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="p">}</span>
-</code></pre></div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>In production, <code>500</code> errors always return the generic message above. Debug details are never exposed to API clients.</p>
-</div>
+<p><code>APNS_AUTH_KEY</code> can contain either real newlines or escaped <code>\n</code> sequences.</p>
 
 
 
