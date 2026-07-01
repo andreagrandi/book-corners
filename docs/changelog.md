@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.14.0
+
+- Contribution center endpoints allow authenticated users to list their own submitted libraries, reports, and community photos with moderation status via `GET /api/v1/libraries/mine`, `GET /api/v1/libraries/mine/reports`, and `GET /api/v1/libraries/mine/photos`.
+
 ## v1.13.0
 
 - Auth device endpoints allow iOS clients to register and unregister APNs tokens with `POST /api/v1/auth/devices` and `DELETE /api/v1/auth/devices/{token}`.

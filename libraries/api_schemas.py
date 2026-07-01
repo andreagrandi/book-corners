@@ -370,6 +370,104 @@ class FavouritePaginationParams(Schema):
     page_size: int = Field(default=20, ge=1, le=50, description="Number of items per page.", json_schema_extra={"example": 20})
 
 
+class ContributionPaginationParams(Schema):
+    """Query parameters for paginating contribution lists.
+    Provides page and page_size controls for authenticated dashboard endpoints."""
+
+    page: int = Field(default=1, ge=1, le=1000, description="Page number to retrieve (1-indexed).", json_schema_extra={"example": 1})
+    page_size: int = Field(default=20, ge=1, le=50, description="Number of contributions per page.", json_schema_extra={"example": 20})
+
+
+class ContributionLibraryOut(LibraryOut):
+    """Serialized current-user library submission with moderation state.
+    Extends the standard library payload with status details for the owner."""
+
+    status: str = Field(description="Current moderation status of the library.", examples=["pending"])
+    rejection_reason: str = Field(description="Reason shown when the library is rejected, or an empty string.", examples=["Duplicate submission."])
+
+
+class ContributionLibraryListOut(Schema):
+    """Paginated list of the current user's library submissions.
+    Wraps submissions and pagination in a single response envelope."""
+
+    items: list[ContributionLibraryOut] = Field(description="Library submissions for the current page.")
+    pagination: PaginationMeta = Field(description="Pagination metadata for navigating submissions.")
+
+
+class ContributionLibrarySummaryOut(Schema):
+    """Compact library representation for contribution responses.
+    Gives mobile clients enough context for reports and photo submissions."""
+
+    id: int = Field(description="Unique library identifier.", examples=[42])
+    slug: str = Field(description="URL-friendly unique slug.", examples=["florence-via-rosina-15-corner-books"])
+    name: str = Field(description="Display name of the library.", examples=["Corner Books"])
+    city: str = Field(description="City name.", examples=["Florence"])
+    country: str = Field(description="ISO 3166-1 alpha-2 country code.", examples=["IT"])
+    status: str = Field(description="Current moderation status of the library.", examples=["approved"])
+
+
+class ContributionReportOut(Schema):
+    """Serialized current-user report with moderation state.
+    Includes the related library summary for contribution center lists."""
+
+    id: int = Field(description="Unique report identifier.", examples=[7])
+    library: ContributionLibrarySummaryOut = Field(description="Library the report is about.")
+    reason: str = Field(description="Reason category of the report.", examples=["damaged"])
+    status: str = Field(description="Current report moderation status.", examples=["open"])
+    created_at: datetime = Field(description="Timestamp when the report was created (UTC).", examples=["2025-06-15T14:30:00Z"])
+
+
+class ContributionReportListOut(Schema):
+    """Paginated list of the current user's reports.
+    Wraps reports and pagination in a single response envelope."""
+
+    items: list[ContributionReportOut] = Field(description="Reports for the current page.")
+    pagination: PaginationMeta = Field(description="Pagination metadata for navigating reports.")
+
+
+class ContributionPhotoOut(Schema):
+    """Serialized current-user community photo with moderation state.
+    Includes media URLs and parent library context for dashboard clients."""
+
+    id: int = Field(description="Unique photo identifier.", examples=[12])
+    library: ContributionLibrarySummaryOut = Field(description="Library the photo belongs to.")
+    caption: str = Field(description="Caption for the photo.", examples=["A sunny day at the library."])
+    photo_url: str = Field(description="Full-size photo URL.", examples=["/media/libraries/user_photos/photo.jpg"])
+    thumbnail_url: str = Field(description="Thumbnail photo URL, or empty string if unavailable.", examples=["/media/libraries/user_photos/thumbnails/photo.jpg"])
+    status: str = Field(description="Current photo moderation status.", examples=["pending"])
+    created_at: datetime = Field(description="Timestamp when the photo was submitted (UTC).", examples=["2025-06-15T14:30:00Z"])
+
+    @staticmethod
+    def resolve_photo_url(obj: LibraryPhoto) -> str:
+        """Return the community photo URL or empty string.
+        Handles missing uploaded files gracefully."""
+        if obj.photo:
+            try:
+                return obj.photo.url
+            except ValueError:
+                return ""
+        return ""
+
+    @staticmethod
+    def resolve_thumbnail_url(obj: LibraryPhoto) -> str:
+        """Return the community photo thumbnail URL or empty string.
+        Falls back gracefully when no thumbnail exists."""
+        if obj.photo_thumbnail:
+            try:
+                return obj.photo_thumbnail.url
+            except ValueError:
+                return ""
+        return ""
+
+
+class ContributionPhotoListOut(Schema):
+    """Paginated list of the current user's community photos.
+    Wraps photo submissions and pagination in a single response envelope."""
+
+    items: list[ContributionPhotoOut] = Field(description="Community photos for the current page.")
+    pagination: PaginationMeta = Field(description="Pagination metadata for navigating photos.")
+
+
 class LibrarySearchParams(Schema):
     """Query parameters for searching and filtering libraries.
     Validates bounds and defaults for pagination and geospatial queries."""
