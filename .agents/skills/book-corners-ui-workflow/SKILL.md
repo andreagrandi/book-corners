@@ -37,10 +37,9 @@ After changes that touch templates, views, JavaScript, HTMX interactions, URL ro
 nox -s e2e
 ```
 
-The E2E tests require PostGIS running and CSS built:
+The E2E tests require CSS built (nox starts the PostGIS container and discovers its dynamic host port automatically):
 
 ```bash
-docker compose up db -d
 npm run build:css
 ```
 
@@ -71,11 +70,12 @@ docker compose up -d --build app db tailwind
 docker compose ps
 ```
 
-Verify homepage and compiled CSS responses:
+Verify homepage and compiled CSS responses (the app's host port is dynamic in the `8000-8010` range, so resolve it first):
 
 ```bash
-curl -I http://localhost:8000/
-curl -I http://localhost:8000/static/css/app.css
+APP_URL=$(python3 scripts/local_env.py app-url)
+curl -I "$APP_URL/"
+curl -I "$APP_URL/static/css/app.css"
 ```
 
 Both should return `200 OK`.
@@ -93,7 +93,7 @@ Expected:
 
 Validate real rendering with Playwright or the in-app browser:
 
-- Open `http://localhost:8000/`.
+- Open `$APP_URL/` (from `python3 scripts/local_env.py app-url`).
 - Capture a snapshot or screenshot.
 - Check browser console errors.
 - Check network requests, including static assets.
@@ -114,7 +114,7 @@ If a page renders without styles:
 2. Verify the stylesheet endpoint:
 
    ```bash
-   curl -I http://localhost:8000/static/css/app.css
+   curl -I "$(python3 scripts/local_env.py app-url)/static/css/app.css"
    ```
 
    Expected: `200 OK` and non-trivial `Content-Length`.

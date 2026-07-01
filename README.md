@@ -70,7 +70,7 @@ cp .env.example .env
 docker compose up app db tailwind
 ```
 
-The app will be available at [http://localhost:8000](http://localhost:8000).
+The app will be available at [http://localhost:8000](http://localhost:8000) (Docker picks the first free host port in the `8000-8010` range, so it is usually 8000 — check with `docker compose port app 8000`).
 
 ### Running without Docker (macOS)
 
@@ -80,12 +80,29 @@ If you prefer running Django directly on your machine, you still need Docker for
 # Install GIS libraries via Homebrew
 brew install gdal geos proj
 
-# Start only the database
+# Start only the database (Docker picks a free host port in the 5540-5550 range)
 docker compose up db -d
 
 # Set up direnv (loads DATABASE_URL and GIS library paths from .envrc)
 brew install direnv
 eval "$(direnv hook zsh)"  # or bash
+```
+
+Create a `.envrc` in the project root (the file is gitignored):
+
+```bash
+# PostGIS in Docker; the host port is dynamic (5540-5550 range).
+# Run `direnv reload` after restarting or recreating the db container.
+export DATABASE_URL=$(python3 scripts/local_env.py database-url 2>/dev/null || echo "postgis://postgres:postgres@localhost:5540/book_corners")
+
+# Homebrew GDAL/GEOS for Django GIS on macOS
+export GDAL_LIBRARY_PATH=/opt/homebrew/opt/gdal/lib/libgdal.dylib
+export GEOS_LIBRARY_PATH=/opt/homebrew/opt/geos/lib/libgeos_c.dylib
+```
+
+Then approve it and finish the setup:
+
+```bash
 direnv allow
 
 # Create a virtual environment and install dependencies
@@ -183,17 +200,16 @@ To enable "Continue with Google" locally:
 5. Add `http://localhost:8000/accounts/google/login/callback/` as a redirect URI
 6. Set `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET` in your `.env`
 
+Google origins are port-exact: the host dev server (`python manage.py runserver`) uses port 8000 and matches the origins above. If you test OAuth against the dockerized app and it landed on a different port (`docker compose port app 8000`), register that origin too.
+
 The Google sign-in button only appears when both variables are set.
 
 ## Running tests
 
-Tests require a running PostGIS database:
+Tests need a PostGIS database. When running locally, nox starts the dockerized `db` service automatically (Docker picks a free host port in the `5540-5550` range) and discovers its port — no manual steps or environment variables required. In CI the workflow-provided `DATABASE_URL` is used untouched.
 
 ```bash
-# Start the database
-docker compose up db -d
-
-# Run the full test suite
+# Run the full test suite (starts the db container if needed)
 nox -s tests
 
 # Run a specific test
@@ -240,7 +256,7 @@ book-corners/
 ├── static/              # Generated CSS (gitignored)
 ├── media/               # User uploads (gitignored)
 ├── docs/                # API documentation source (Zensical/MkDocs)
-├── scripts/             # Operational scripts (backup, restore)
+├── scripts/             # Operational scripts (backup, restore) and local env discovery
 ├── docker-compose.yml   # Local development services
 ├── Dockerfile           # Multi-stage production build
 ├── Procfile             # Dokku process definition
@@ -255,7 +271,7 @@ book-corners/
 The developer documentation is built with [Zensical](https://zensical.com/) and deployed to GitHub Pages.
 
 ```bash
-# Build and preview docs locally
+# Build and preview docs locally (the schema export needs the database running)
 python manage.py export_openapi_schema > docs/openapi.json
 zensical serve
 ```
