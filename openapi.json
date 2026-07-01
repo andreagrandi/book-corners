@@ -1183,6 +1183,219 @@
         ]
       }
     },
+    "/api/v1/libraries/mine": {
+      "get": {
+        "operationId": "libraries_api_list_my_libraries",
+        "summary": "List my submitted libraries",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "default": 1,
+              "description": "Page number to retrieve (1-indexed).",
+              "example": 1,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Page number to retrieve (1-indexed).",
+            "example": 1
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "schema": {
+              "default": 20,
+              "description": "Number of contributions per page.",
+              "example": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Number of contributions per page.",
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContributionLibraryListOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return the authenticated user's submitted libraries with status.\nPending submissions appear first, followed by newest contributions.",
+        "tags": [
+          "libraries"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/libraries/mine/reports": {
+      "get": {
+        "operationId": "libraries_api_list_my_reports",
+        "summary": "List my submitted reports",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "default": 1,
+              "description": "Page number to retrieve (1-indexed).",
+              "example": 1,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Page number to retrieve (1-indexed).",
+            "example": 1
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "schema": {
+              "default": 20,
+              "description": "Number of contributions per page.",
+              "example": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Number of contributions per page.",
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContributionReportListOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return the authenticated user's submitted reports with status.\nResults include minimal library context and are ordered newest first.",
+        "tags": [
+          "libraries"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/libraries/mine/photos": {
+      "get": {
+        "operationId": "libraries_api_list_my_photos",
+        "summary": "List my submitted community photos",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "default": 1,
+              "description": "Page number to retrieve (1-indexed).",
+              "example": 1,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Page number to retrieve (1-indexed).",
+            "example": 1
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "schema": {
+              "default": 20,
+              "description": "Number of contributions per page.",
+              "example": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            },
+            "required": false,
+            "description": "Number of contributions per page.",
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContributionPhotoListOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return the authenticated user's community photo submissions.\nResults include photo URLs, status, and library context newest first.",
+        "tags": [
+          "libraries"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
     "/api/v1/libraries/moderation/summary": {
       "get": {
         "operationId": "libraries_api_moderation_summary",
@@ -4114,6 +4327,539 @@
           "pagination"
         ],
         "title": "FavouriteListOut",
+        "type": "object"
+      },
+      "ContributionPaginationParams": {
+        "description": "Query parameters for paginating contribution lists.\nProvides page and page_size controls for authenticated dashboard endpoints.",
+        "properties": {
+          "page": {
+            "default": 1,
+            "description": "Page number to retrieve (1-indexed).",
+            "example": 1,
+            "maximum": 1000,
+            "minimum": 1,
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "default": 20,
+            "description": "Number of contributions per page.",
+            "example": 20,
+            "maximum": 50,
+            "minimum": 1,
+            "title": "Page Size",
+            "type": "integer"
+          }
+        },
+        "title": "ContributionPaginationParams",
+        "type": "object"
+      },
+      "ContributionLibraryListOut": {
+        "description": "Paginated list of the current user's library submissions.\nWraps submissions and pagination in a single response envelope.",
+        "properties": {
+          "items": {
+            "description": "Library submissions for the current page.",
+            "items": {
+              "$ref": "#/components/schemas/ContributionLibraryOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMeta",
+            "description": "Pagination metadata for navigating submissions."
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "ContributionLibraryListOut",
+        "type": "object"
+      },
+      "ContributionLibraryOut": {
+        "description": "Serialized current-user library submission with moderation state.\nExtends the standard library payload with status details for the owner.",
+        "properties": {
+          "id": {
+            "description": "Unique library identifier.",
+            "examples": [
+              42
+            ],
+            "title": "Id",
+            "type": "integer"
+          },
+          "slug": {
+            "description": "URL-friendly unique slug.",
+            "examples": [
+              "berlin-friedrichstr-12-corner-books"
+            ],
+            "title": "Slug",
+            "type": "string"
+          },
+          "name": {
+            "description": "Display name of the library.",
+            "examples": [
+              "Corner Books"
+            ],
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "description": "Free-text description of the library.",
+            "examples": [
+              "A cozy little free library near the park entrance."
+            ],
+            "title": "Description",
+            "type": "string"
+          },
+          "photo_url": {
+            "description": "Full-size photo URL, or empty string if unavailable.",
+            "examples": [
+              "/media/libraries/photos/corner-books.jpg"
+            ],
+            "title": "Photo Url",
+            "type": "string"
+          },
+          "thumbnail_url": {
+            "description": "Thumbnail photo URL, or empty string if unavailable.",
+            "examples": [
+              "/media/libraries/thumbnails/corner-books.jpg"
+            ],
+            "title": "Thumbnail Url",
+            "type": "string"
+          },
+          "lat": {
+            "description": "Latitude of the library location (WGS 84).",
+            "examples": [
+              52.52
+            ],
+            "title": "Lat",
+            "type": "number"
+          },
+          "lng": {
+            "description": "Longitude of the library location (WGS 84).",
+            "examples": [
+              13.405
+            ],
+            "title": "Lng",
+            "type": "number"
+          },
+          "address": {
+            "description": "Street address, or empty string when the library has no street address (e.g. inside a park).",
+            "examples": [
+              "Friedrichstr. 12"
+            ],
+            "title": "Address",
+            "type": "string"
+          },
+          "city": {
+            "description": "City name.",
+            "examples": [
+              "Berlin"
+            ],
+            "title": "City",
+            "type": "string"
+          },
+          "country": {
+            "description": "ISO 3166-1 alpha-2 country code.",
+            "examples": [
+              "DE"
+            ],
+            "title": "Country",
+            "type": "string"
+          },
+          "postal_code": {
+            "description": "Postal or ZIP code.",
+            "examples": [
+              "10117"
+            ],
+            "title": "Postal Code",
+            "type": "string"
+          },
+          "wheelchair_accessible": {
+            "description": "Wheelchair accessibility: yes, no, limited, or empty.",
+            "examples": [
+              "yes"
+            ],
+            "title": "Wheelchair Accessible",
+            "type": "string"
+          },
+          "capacity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Approximate book capacity.",
+            "examples": [
+              50
+            ],
+            "title": "Capacity"
+          },
+          "is_indoor": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Whether the library is inside a building.",
+            "examples": [
+              false
+            ],
+            "title": "Is Indoor"
+          },
+          "is_lit": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Whether the library is illuminated at night.",
+            "examples": [
+              true
+            ],
+            "title": "Is Lit"
+          },
+          "website": {
+            "description": "External website link.",
+            "examples": [
+              "https://littlefreelibrary.org/charter/12345"
+            ],
+            "title": "Website",
+            "type": "string"
+          },
+          "contact": {
+            "description": "Contact information (email, phone, etc.).",
+            "examples": [
+              "info@example.org"
+            ],
+            "title": "Contact",
+            "type": "string"
+          },
+          "source": {
+            "description": "Data origin, e.g. OpenStreetMap.",
+            "examples": [
+              "OpenStreetMap"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "operator": {
+            "description": "Organisation that maintains the library.",
+            "examples": [
+              "City Library Association"
+            ],
+            "title": "Operator",
+            "type": "string"
+          },
+          "brand": {
+            "description": "Network or brand name.",
+            "examples": [
+              "Little Free Library"
+            ],
+            "title": "Brand",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "Timestamp when the library was created (UTC).",
+            "examples": [
+              "2025-06-15T14:30:00Z"
+            ],
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "is_favourited": {
+            "default": false,
+            "description": "Whether the current authenticated user has favourited this library. Always false for unauthenticated requests.",
+            "examples": [
+              false
+            ],
+            "title": "Is Favourited",
+            "type": "boolean"
+          },
+          "status": {
+            "description": "Current moderation status of the library.",
+            "examples": [
+              "pending"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "rejection_reason": {
+            "description": "Reason shown when the library is rejected, or an empty string.",
+            "examples": [
+              "Duplicate submission."
+            ],
+            "title": "Rejection Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "description",
+          "photo_url",
+          "thumbnail_url",
+          "lat",
+          "lng",
+          "address",
+          "city",
+          "country",
+          "postal_code",
+          "wheelchair_accessible",
+          "capacity",
+          "is_indoor",
+          "is_lit",
+          "website",
+          "contact",
+          "source",
+          "operator",
+          "brand",
+          "created_at",
+          "status",
+          "rejection_reason"
+        ],
+        "title": "ContributionLibraryOut",
+        "type": "object"
+      },
+      "ContributionLibrarySummaryOut": {
+        "description": "Compact library representation for contribution responses.\nGives mobile clients enough context for reports and photo submissions.",
+        "properties": {
+          "id": {
+            "description": "Unique library identifier.",
+            "examples": [
+              42
+            ],
+            "title": "Id",
+            "type": "integer"
+          },
+          "slug": {
+            "description": "URL-friendly unique slug.",
+            "examples": [
+              "florence-via-rosina-15-corner-books"
+            ],
+            "title": "Slug",
+            "type": "string"
+          },
+          "name": {
+            "description": "Display name of the library.",
+            "examples": [
+              "Corner Books"
+            ],
+            "title": "Name",
+            "type": "string"
+          },
+          "city": {
+            "description": "City name.",
+            "examples": [
+              "Florence"
+            ],
+            "title": "City",
+            "type": "string"
+          },
+          "country": {
+            "description": "ISO 3166-1 alpha-2 country code.",
+            "examples": [
+              "IT"
+            ],
+            "title": "Country",
+            "type": "string"
+          },
+          "status": {
+            "description": "Current moderation status of the library.",
+            "examples": [
+              "approved"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "city",
+          "country",
+          "status"
+        ],
+        "title": "ContributionLibrarySummaryOut",
+        "type": "object"
+      },
+      "ContributionReportListOut": {
+        "description": "Paginated list of the current user's reports.\nWraps reports and pagination in a single response envelope.",
+        "properties": {
+          "items": {
+            "description": "Reports for the current page.",
+            "items": {
+              "$ref": "#/components/schemas/ContributionReportOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMeta",
+            "description": "Pagination metadata for navigating reports."
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "ContributionReportListOut",
+        "type": "object"
+      },
+      "ContributionReportOut": {
+        "description": "Serialized current-user report with moderation state.\nIncludes the related library summary for contribution center lists.",
+        "properties": {
+          "id": {
+            "description": "Unique report identifier.",
+            "examples": [
+              7
+            ],
+            "title": "Id",
+            "type": "integer"
+          },
+          "library": {
+            "$ref": "#/components/schemas/ContributionLibrarySummaryOut",
+            "description": "Library the report is about."
+          },
+          "reason": {
+            "description": "Reason category of the report.",
+            "examples": [
+              "damaged"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "status": {
+            "description": "Current report moderation status.",
+            "examples": [
+              "open"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "Timestamp when the report was created (UTC).",
+            "examples": [
+              "2025-06-15T14:30:00Z"
+            ],
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "library",
+          "reason",
+          "status",
+          "created_at"
+        ],
+        "title": "ContributionReportOut",
+        "type": "object"
+      },
+      "ContributionPhotoListOut": {
+        "description": "Paginated list of the current user's community photos.\nWraps photo submissions and pagination in a single response envelope.",
+        "properties": {
+          "items": {
+            "description": "Community photos for the current page.",
+            "items": {
+              "$ref": "#/components/schemas/ContributionPhotoOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMeta",
+            "description": "Pagination metadata for navigating photos."
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ],
+        "title": "ContributionPhotoListOut",
+        "type": "object"
+      },
+      "ContributionPhotoOut": {
+        "description": "Serialized current-user community photo with moderation state.\nIncludes media URLs and parent library context for dashboard clients.",
+        "properties": {
+          "id": {
+            "description": "Unique photo identifier.",
+            "examples": [
+              12
+            ],
+            "title": "Id",
+            "type": "integer"
+          },
+          "library": {
+            "$ref": "#/components/schemas/ContributionLibrarySummaryOut",
+            "description": "Library the photo belongs to."
+          },
+          "caption": {
+            "description": "Caption for the photo.",
+            "examples": [
+              "A sunny day at the library."
+            ],
+            "title": "Caption",
+            "type": "string"
+          },
+          "photo_url": {
+            "description": "Full-size photo URL.",
+            "examples": [
+              "/media/libraries/user_photos/photo.jpg"
+            ],
+            "title": "Photo Url",
+            "type": "string"
+          },
+          "thumbnail_url": {
+            "description": "Thumbnail photo URL, or empty string if unavailable.",
+            "examples": [
+              "/media/libraries/user_photos/thumbnails/photo.jpg"
+            ],
+            "title": "Thumbnail Url",
+            "type": "string"
+          },
+          "status": {
+            "description": "Current photo moderation status.",
+            "examples": [
+              "pending"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "Timestamp when the photo was submitted (UTC).",
+            "examples": [
+              "2025-06-15T14:30:00Z"
+            ],
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "library",
+          "caption",
+          "photo_url",
+          "thumbnail_url",
+          "status",
+          "created_at"
+        ],
+        "title": "ContributionPhotoOut",
         "type": "object"
       },
       "ModerationSummaryOut": {
