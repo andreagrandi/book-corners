@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.db.models import Exists, OuterRef, Q, Value
+from django.db.models import Case, Exists, IntegerField, OuterRef, Q, Value, When
 from django.shortcuts import get_object_or_404
 from ninja import File, Form, Query, Router
 from ninja.files import UploadedFile
@@ -15,6 +15,10 @@ from config.api_schemas import ErrorOut
 from libraries.api_auth import get_optional_jwt_user
 from libraries.api_pagination import paginate_queryset
 from libraries.api_schemas import (
+    ContributionLibraryListOut,
+    ContributionPaginationParams,
+    ContributionPhotoListOut,
+    ContributionReportListOut,
     CountryListOut,
     FavouriteListOut,
     FavouritePaginationParams,
@@ -264,6 +268,104 @@ def list_favourites(request, filters: Query[FavouritePaginationParams]):
         )
         .order_by("-favourites__created_at")
         .annotate(_is_favourited=Value(True))
+    )
+    items, pagination = paginate_queryset(
+        queryset=queryset, page=filters.page, page_size=filters.page_size,
+    )
+    return 200, {"items": items, "pagination": pagination}
+
+
+@library_router.get(
+    "/mine",
+    response={200: ContributionLibraryListOut, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="List my submitted libraries",
+)
+def list_my_libraries(request, filters: Query[ContributionPaginationParams]):
+    """Return the authenticated user's submitted libraries with status.
+    Pending submissions appear first, followed by newest contributions."""
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-library-mine-list",
+        max_requests=settings.API_RATE_LIMIT_READ_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    queryset = Library.objects.filter(created_by=request.user).annotate(
+        status_order=Case(
+            When(status=Library.Status.PENDING, then=Value(0)),
+            default=Value(1),
+            output_field=IntegerField(),
+        )
+    )
+    queryset = _annotate_is_favourited(
+        queryset.order_by("status_order", "-created_at"), request.user,
+    )
+    items, pagination = paginate_queryset(
+        queryset=queryset, page=filters.page, page_size=filters.page_size,
+    )
+    return 200, {"items": items, "pagination": pagination}
+
+
+@library_router.get(
+    "/mine/reports",
+    response={200: ContributionReportListOut, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="List my submitted reports",
+)
+def list_my_reports(request, filters: Query[ContributionPaginationParams]):
+    """Return the authenticated user's submitted reports with status.
+    Results include minimal library context and are ordered newest first."""
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-library-mine-reports-list",
+        max_requests=settings.API_RATE_LIMIT_READ_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    queryset = (
+        Report.objects.filter(created_by=request.user)
+        .select_related("library")
+        .order_by("-created_at")
+    )
+    items, pagination = paginate_queryset(
+        queryset=queryset, page=filters.page, page_size=filters.page_size,
+    )
+    return 200, {"items": items, "pagination": pagination}
+
+
+@library_router.get(
+    "/mine/photos",
+    response={200: ContributionPhotoListOut, 429: ErrorOut},
+    auth=JWTAuth(),
+    summary="List my submitted community photos",
+)
+def list_my_photos(request, filters: Query[ContributionPaginationParams]):
+    """Return the authenticated user's community photo submissions.
+    Results include photo URLs, status, and library context newest first."""
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-library-mine-photos-list",
+        max_requests=settings.API_RATE_LIMIT_READ_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    queryset = (
+        LibraryPhoto.objects.filter(created_by=request.user)
+        .select_related("library")
+        .order_by("-created_at")
     )
     items, pagination = paginate_queryset(
         queryset=queryset, page=filters.page, page_size=filters.page_size,
