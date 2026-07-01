@@ -4,7 +4,9 @@ services:
   app:
     build: .
     ports:
-      - "8000:8000"
+      # Host port range: Docker picks a free port (usually 8000). Discover it
+      # with `docker compose port app 8000` or `scripts/local_env.py app-url`.
+      - "8000-8010:8000"
     env_file:
       - .env
     depends_on:
@@ -39,7 +41,10 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"
+      # Host port range: avoids clashes with other local postgres instances.
+      # Discover the assigned port with `docker compose port db 5432` or
+      # `scripts/local_env.py database-url`; containers still use db:5432.
+      - "5540-5550:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

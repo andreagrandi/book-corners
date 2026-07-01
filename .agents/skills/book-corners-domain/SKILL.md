@@ -51,7 +51,7 @@ Test fixtures:
 
 Environment:
 
-- `.envrc` configures local macOS `DATABASE_URL`, `GDAL_LIBRARY_PATH`, and `GEOS_LIBRARY_PATH`.
+- `.envrc` configures local macOS `DATABASE_URL` (discovered dynamically via `scripts/local_env.py`), `GDAL_LIBRARY_PATH`, and `GEOS_LIBRARY_PATH`.
 - `.env.example` contains Docker equivalents.
 
 Seed data:
