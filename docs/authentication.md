@@ -9,6 +9,8 @@ The Book Corners API uses **JWT (JSON Web Tokens)** for authentication. Authenti
 3. When the access token expires, use the **refresh token** to get a new one
 4. When the refresh token expires, log in again
 
+Access tokens are short-lived (5 minutes). Refresh tokens last 365 days, so clients that store the refresh token securely only need to ask the user to log in again after the refresh token expires or after an explicit logout.
+
 ## Endpoints
 
 ### Social Login

@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 import sys
+from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
@@ -103,6 +104,12 @@ AUTH_RATE_LIMIT_LOGIN_ATTEMPTS = _env_int(name="AUTH_RATE_LIMIT_LOGIN_ATTEMPTS",
 AUTH_RATE_LIMIT_REGISTER_ATTEMPTS = _env_int(name="AUTH_RATE_LIMIT_REGISTER_ATTEMPTS", default=5)
 AUTH_RATE_LIMIT_REFRESH_ATTEMPTS = _env_int(name="AUTH_RATE_LIMIT_REFRESH_ATTEMPTS", default=15)
 AUTH_RATE_LIMIT_SOCIAL_ATTEMPTS = _env_int(name="AUTH_RATE_LIMIT_SOCIAL_ATTEMPTS", default=10)
+
+JWT_REFRESH_TOKEN_LIFETIME_DAYS = _env_int(name="JWT_REFRESH_TOKEN_LIFETIME_DAYS", default=365)
+
+NINJA_JWT = {
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=JWT_REFRESH_TOKEN_LIFETIME_DAYS),
+}
 
 API_RATE_LIMIT_ENABLED = _env_bool(name="API_RATE_LIMIT_ENABLED", default=not DEBUG)
 API_RATE_LIMIT_WINDOW_SECONDS = _env_int(name="API_RATE_LIMIT_WINDOW_SECONDS", default=300)
