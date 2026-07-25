@@ -2802,6 +2802,9 @@ class TestUserDashboardView:
 
 @pytest.mark.django_db
 class TestSubmitLibraryView:
+    """Tests for authenticated website library submissions.
+    Ensures the public form validates and persists user contributions."""
+
     def test_submit_view_requires_authentication(self, client):
         """Verify anonymous users are redirected before opening submit form.
         Protects login gating on the library submission flow."""
@@ -2830,6 +2833,10 @@ class TestSubmitLibraryView:
         assert "Name (optional)" in content
         assert "Description (optional)" in content
         assert "Postal code (optional)" in content
+        assert "Photo (required)" in content
+        assert "Upload a clear photo showing the library" in content
+        assert "id=\"photo-preview-container\"" in content
+        assert response.context["form"].fields["photo"].required is True
 
         country_position = content.find(">Country<")
         city_position = content.find(">City<")
@@ -2868,6 +2875,34 @@ class TestSubmitLibraryView:
         assert library.location.x == pytest.approx(4.9041, abs=1e-6)
         assert library.photo.name
         assert library.photo_thumbnail.name
+
+    def test_authenticated_submit_without_photo_rerenders_form_without_creating_library(
+        self,
+        client,
+        user,
+    ):
+        """Verify website submissions reject a missing required photo.
+        Keeps the import-friendly model optional while enforcing the public form."""
+        client.force_login(user)
+
+        response = client.post(
+            reverse("submit_library"),
+            data={
+                "name": "Photoless Web Shelf",
+                "description": "This website submission should not be created.",
+                "address": "Prinsengracht 150",
+                "city": "Amsterdam",
+                "country": "NL",
+                "postal_code": "1015",
+                "latitude": "52.3676",
+                "longitude": "4.9041",
+            },
+        )
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "This field is required." in content
+        assert not Library.objects.filter(name="Photoless Web Shelf").exists()
 
     def test_submit_without_address_succeeds_when_coordinates_provided(self, client, user):
         """Verify submission succeeds without an address when coordinates are given.

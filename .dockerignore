@@ -1,6 +1,7 @@
 .git
 .gitignore
 .venv
+node_modules
 .env
 .envrc
 .claude

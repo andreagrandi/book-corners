@@ -796,8 +796,10 @@ def submit_library(request: HttpRequest) -> HttpResponse:
             "form_intro": _("Share a little free library with the community. Set the exact point on the map before submitting."),
             "form_meta_description": _("Submit a little free library to Book Corners with a photo, location, and address details."),
             "form_button_label": _("Submit library"),
-            "photo_label": _("Photo"),
-            "photo_help": "",
+            "photo_label": _("Photo (required)"),
+            "photo_help": _(
+                "Upload a clear photo showing the library. It helps moderators verify it and helps visitors recognise it."
+            ),
             "location_heading": _("Set exact location"),
             "location_intro": _("Type an address and choose a suggestion to center the map. Drag the marker to refine the exact point."),
             "map_status_message": _("Choose the map point by centering from address, dragging marker, or clicking map."),

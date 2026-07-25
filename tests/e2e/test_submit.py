@@ -23,7 +23,11 @@ def test_submit_page_renders_form_and_map(
     Confirms both the form fields and Leaflet map initialize."""
     authenticated_page.goto(f"{live_server.url}/submit/")
 
-    assert authenticated_page.locator("#id_photo").is_visible()
+    photo_input = authenticated_page.locator("#id_photo")
+    assert photo_input.is_visible()
+    assert photo_input.get_attribute("required") is not None
+    assert photo_input.get_attribute("accept") == "image/jpeg,image/png,image/webp"
+    assert authenticated_page.get_by_text("Photo (required)").is_visible()
     assert authenticated_page.locator("#id_address").is_visible()
     assert authenticated_page.locator("#id_city").is_visible()
     assert authenticated_page.locator("#id_country").is_visible()
@@ -67,6 +71,14 @@ def test_submit_form_happy_path(live_server, authenticated_page, tmp_path):
     image_path = tmp_path / "test_photo.jpg"
     _create_minimal_jpeg(image_path)
     authenticated_page.set_input_files("#id_photo", str(image_path))
+
+    preview = authenticated_page.locator("#photo-preview-container")
+    preview.wait_for(state="visible")
+    assert authenticated_page.locator("#photo-preview-image").get_attribute(
+        "src"
+    ).startswith("blob:")
+    assert authenticated_page.get_by_text("test_photo.jpg").is_visible()
+    assert authenticated_page.get_by_text("Choose another photo").is_visible()
 
     authenticated_page.fill("#id_name", "Test Submission Library")
     authenticated_page.fill("#id_city", "Firenze")

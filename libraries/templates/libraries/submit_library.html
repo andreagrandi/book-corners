@@ -63,7 +63,7 @@
         {% endif %}
         <p class="text-sm text-base-content/60">{% blocktrans %}Fields marked with <span class="font-medium">(optional)</span> can be left blank.{% endblocktrans %}</p>
 
-        <form method="post" enctype="multipart/form-data" class="space-y-4" novalidate>
+        <form method="post" enctype="multipart/form-data" class="space-y-4">
           {% csrf_token %}
           {{ form.latitude }}
           {{ form.longitude }}
@@ -78,6 +78,19 @@
             {% if photo_help %}<span class="mt-1 text-sm text-base-content/60">{{ photo_help }}</span>{% endif %}
             {% if form.photo.errors %}<span class="mt-1 text-sm text-error">{{ form.photo.errors.0 }}</span>{% endif %}
           </label>
+          <div id="photo-preview-container" class="hidden rounded-box border border-base-300 bg-base-200 p-3">
+            <img
+              id="photo-preview-image"
+              class="max-h-72 w-full rounded-box object-contain"
+              alt="{% trans 'Selected photo preview' %}"
+            >
+            <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+              <span id="photo-preview-filename" class="min-w-0 truncate text-sm text-base-content/70"></span>
+              <button id="choose-another-photo" type="button" class="btn btn-sm btn-outline">
+                {% trans "Choose another photo" %}
+              </button>
+            </div>
+          </div>
 
           <label class="flex w-full flex-col gap-1">
             <span class="text-sm font-medium">{% trans "Name (optional)" %}</span>
@@ -159,6 +172,10 @@
       const latitudeInput = document.getElementById("id_latitude");
       const longitudeInput = document.getElementById("id_longitude");
       const photoInput = document.getElementById("id_photo");
+      const photoPreviewContainer = document.getElementById("photo-preview-container");
+      const photoPreviewImage = document.getElementById("photo-preview-image");
+      const photoPreviewFilename = document.getElementById("photo-preview-filename");
+      const chooseAnotherPhotoButton = document.getElementById("choose-another-photo");
       const countrySelect = document.getElementById("id_country");
       const cityInput = document.getElementById("id_city");
       const addressInput = document.getElementById("id_address");
@@ -168,6 +185,45 @@
       const statusElement = document.getElementById("submit-map-status");
       const csrfTokenInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
       const photoMetadataEndpoint = "{% url 'submit_library_photo_metadata' %}";
+      let photoPreviewUrl = null;
+
+      function clearPhotoPreview() {
+        if (photoPreviewUrl !== null) {
+          URL.revokeObjectURL(photoPreviewUrl);
+          photoPreviewUrl = null;
+        }
+        photoPreviewImage?.removeAttribute("src");
+        if (photoPreviewFilename) {
+          photoPreviewFilename.textContent = "";
+        }
+        photoPreviewContainer?.classList.add("hidden");
+      }
+
+      function updatePhotoPreview() {
+        clearPhotoPreview();
+
+        const selectedPhoto = photoInput?.files?.[0];
+        if (!selectedPhoto || !photoPreviewImage || !photoPreviewContainer) {
+          return;
+        }
+
+        photoPreviewUrl = URL.createObjectURL(selectedPhoto);
+        photoPreviewImage.src = photoPreviewUrl;
+        if (photoPreviewFilename) {
+          photoPreviewFilename.textContent = selectedPhoto.name;
+        }
+        photoPreviewContainer.classList.remove("hidden");
+      }
+
+      if (photoInput) {
+        photoInput.addEventListener("change", updatePhotoPreview);
+      }
+      if (chooseAnotherPhotoButton && photoInput) {
+        chooseAnotherPhotoButton.addEventListener("click", function () {
+          photoInput.click();
+        });
+      }
+      window.addEventListener("pagehide", clearPhotoPreview);
 
       if (
         !mapElement ||

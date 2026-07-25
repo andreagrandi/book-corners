@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Book Corners 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-21 08:03+0000\n"
+"POT-Creation-Date: 2026-07-25 18:59+0000\n"
 "PO-Revision-Date: 2026-02-28 15:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Italian\n"
@@ -42,7 +42,7 @@ msgstr "Nome e descrizione generati dall'IA applicati."
 msgid "No AI values to apply."
 msgstr "Nessun valore IA da applicare."
 
-#: libraries/forms.py:17 libraries/templates/libraries/submit_library.html:295
+#: libraries/forms.py:17 libraries/templates/libraries/submit_library.html:351
 msgid "Select a country"
 msgstr "Seleziona un paese"
 
@@ -64,55 +64,55 @@ msgstr "La foto deve essere di massimo %(size)s byte."
 msgid "Upload a valid image in JPEG, PNG, or WEBP format."
 msgstr "Carica un'immagine valida in formato JPEG, PNG o WEBP."
 
-#: libraries/forms.py:124
+#: libraries/forms.py:131
 msgid "Approximate book capacity"
 msgstr "Capacità approssimativa di libri"
 
-#: libraries/forms.py:132
+#: libraries/forms.py:139
 msgid "Email, phone, etc."
 msgstr "Email, telefono, ecc."
 
-#: libraries/forms.py:136
+#: libraries/forms.py:143
 msgid "Organisation managing this library"
 msgstr "Organizzazione che gestisce questa libreria"
 
-#: libraries/forms.py:140
+#: libraries/forms.py:147
 msgid "e.g. Little Free Library"
 msgstr "es. Little Free Library"
 
-#: libraries/forms.py:148 manage/forms.py:122
+#: libraries/forms.py:155 manage/forms.py:122
 msgid "Latitude must be between -90 and 90."
 msgstr "La latitudine deve essere compresa tra -90 e 90."
 
-#: libraries/forms.py:156 manage/forms.py:130
+#: libraries/forms.py:163 manage/forms.py:130
 msgid "Longitude must be between -180 and 180."
 msgstr "La longitudine deve essere compresa tra -180 e 180."
 
-#: libraries/forms.py:184
+#: libraries/forms.py:191
 msgid "Address is required when coordinates are not provided."
 msgstr "L'indirizzo è obbligatorio quando le coordinate non vengono fornite."
 
-#: libraries/forms.py:276
+#: libraries/forms.py:283
 msgid "Keywords in name or description"
 msgstr "Parole chiave nel nome o nella descrizione"
 
-#: libraries/forms.py:282
+#: libraries/forms.py:289
 msgid "City, area, postcode, or address"
 msgstr "Città, zona, CAP o indirizzo"
 
-#: libraries/forms.py:296
+#: libraries/forms.py:303
 msgid "Filter by city"
 msgstr "Filtra per città"
 
-#: libraries/forms.py:307
+#: libraries/forms.py:314
 msgid "Filter by postal code"
 msgstr "Filtra per CAP"
 
-#: libraries/forms.py:346
+#: libraries/forms.py:353
 msgid "Optional caption for your photo"
 msgstr "Didascalia opzionale per la tua foto"
 
-#: libraries/forms.py:372
+#: libraries/forms.py:379
 #, python-format
 msgid "You can submit at most %(max)s photos per library."
 msgstr "Puoi inviare al massimo %(max)s foto per libreria."
@@ -300,7 +300,7 @@ msgid "Please review the highlighted fields and try again."
 msgstr "Controlla i campi evidenziati e riprova."
 
 #: libraries/templates/libraries/_photo_submission_form.html:33
-#: libraries/templates/libraries/dashboard.html:202 libraries/views.py:799
+#: libraries/templates/libraries/dashboard.html:202
 #: templates/admin/index.html:135
 msgid "Photo"
 msgstr "Foto"
@@ -776,15 +776,23 @@ msgstr "Crescita nel tempo"
 msgid "Fields marked with <span class=\"font-medium\">(optional)</span> can be left blank."
 msgstr "I campi contrassegnati con <span class=\"font-medium\">(opzionale)</span> possono essere lasciati vuoti."
 
-#: libraries/templates/libraries/submit_library.html:83
+#: libraries/templates/libraries/submit_library.html:85
+msgid "Selected photo preview"
+msgstr "Anteprima della foto selezionata"
+
+#: libraries/templates/libraries/submit_library.html:90
+msgid "Choose another photo"
+msgstr "Scegli un'altra foto"
+
+#: libraries/templates/libraries/submit_library.html:96
 msgid "Name (optional)"
 msgstr "Nome (opzionale)"
 
-#: libraries/templates/libraries/submit_library.html:89
+#: libraries/templates/libraries/submit_library.html:102
 msgid "Description (optional)"
 msgstr "Descrizione (opzionale)"
 
-#: libraries/templates/libraries/submit_library.html:95
+#: libraries/templates/libraries/submit_library.html:108
 #: manage/templates/manage/libraries/_table.html:21
 #: manage/templates/manage/libraries/detail.html:84
 #: manage/templates/manage/libraries/duplicates.html:38
@@ -793,7 +801,7 @@ msgstr "Descrizione (opzionale)"
 msgid "Country"
 msgstr "Paese"
 
-#: libraries/templates/libraries/submit_library.html:101
+#: libraries/templates/libraries/submit_library.html:114
 #: manage/templates/manage/libraries/_table.html:20
 #: manage/templates/manage/libraries/detail.html:80
 #: manage/templates/manage/libraries/duplicates.html:34
@@ -804,67 +812,67 @@ msgstr "Paese"
 msgid "City"
 msgstr "Città"
 
-#: libraries/templates/libraries/submit_library.html:107
+#: libraries/templates/libraries/submit_library.html:120
 msgid "Address (optional)"
 msgstr "Indirizzo (opzionale)"
 
-#: libraries/templates/libraries/submit_library.html:117
+#: libraries/templates/libraries/submit_library.html:130
 msgid "Postal code (optional)"
 msgstr "CAP (opzionale)"
 
-#: libraries/templates/libraries/submit_library.html:133
+#: libraries/templates/libraries/submit_library.html:146
 msgid "Center from address"
 msgstr "Centra dall'indirizzo"
 
-#: libraries/templates/libraries/submit_library.html:266
+#: libraries/templates/libraries/submit_library.html:322
 msgid "Marker moved. Coordinates updated."
 msgstr "Marcatore spostato. Coordinate aggiornate."
 
-#: libraries/templates/libraries/submit_library.html:271
+#: libraries/templates/libraries/submit_library.html:327
 msgid "Map point selected. Coordinates updated."
 msgstr "Punto sulla mappa selezionato. Coordinate aggiornate."
 
-#: libraries/templates/libraries/submit_library.html:370
+#: libraries/templates/libraries/submit_library.html:426
 msgid "Suggestion selected. Marker centered from autocomplete; drag to refine if needed."
 msgstr "Suggerimento selezionato. Marcatore centrato dall'autocompletamento; trascina per affinare se necessario."
 
-#: libraries/templates/libraries/submit_library.html:478
+#: libraries/templates/libraries/submit_library.html:534
 msgid "Reading GPS metadata from the selected photo..."
 msgstr "Lettura dei metadati GPS dalla foto selezionata..."
 
-#: libraries/templates/libraries/submit_library.html:495
+#: libraries/templates/libraries/submit_library.html:551
 msgid "No GPS metadata found in this photo. Set location manually on the map."
 msgstr "Nessun metadato GPS trovato in questa foto. Imposta la posizione manualmente sulla mappa."
 
-#: libraries/templates/libraries/submit_library.html:510
+#: libraries/templates/libraries/submit_library.html:566
 msgid "GPS metadata found. Map centered and address fields pre-filled from the photo."
 msgstr "Metadati GPS trovati. Mappa centrata e campi indirizzo precompilati dalla foto."
 
-#: libraries/templates/libraries/submit_library.html:514
+#: libraries/templates/libraries/submit_library.html:570
 msgid "GPS metadata found. Map centered from photo location."
 msgstr "Metadati GPS trovati. Mappa centrata dalla posizione della foto."
 
-#: libraries/templates/libraries/submit_library.html:516
+#: libraries/templates/libraries/submit_library.html:572
 msgid "Could not read photo metadata right now. Set the location manually on the map."
 msgstr "Impossibile leggere i metadati della foto al momento. Imposta la posizione manualmente sulla mappa."
 
-#: libraries/templates/libraries/submit_library.html:539
+#: libraries/templates/libraries/submit_library.html:595
 msgid "Finding location from address..."
 msgstr "Ricerca della posizione dall'indirizzo..."
 
-#: libraries/templates/libraries/submit_library.html:556
+#: libraries/templates/libraries/submit_library.html:612
 msgid "Address not found. Move the marker manually on the map."
 msgstr "Indirizzo non trovato. Sposta il marcatore manualmente sulla mappa."
 
-#: libraries/templates/libraries/submit_library.html:563
+#: libraries/templates/libraries/submit_library.html:619
 msgid "Address lookup returned invalid coordinates."
 msgstr "La ricerca dell'indirizzo ha restituito coordinate non valide."
 
-#: libraries/templates/libraries/submit_library.html:568
+#: libraries/templates/libraries/submit_library.html:624
 msgid "Map centered from address. Drag marker if you need to refine the point."
 msgstr "Mappa centrata dall'indirizzo. Trascina il marcatore se devi affinare il punto."
 
-#: libraries/templates/libraries/submit_library.html:570
+#: libraries/templates/libraries/submit_library.html:626
 msgid "Geocoding is unavailable right now. You can still click the map to pick coordinates."
 msgstr "La geocodifica non è disponibile al momento. Puoi comunque cliccare sulla mappa per scegliere le coordinate."
 
@@ -943,15 +951,23 @@ msgstr "Invia una casetta dei libri a Book Corners con foto, posizione e dettagl
 msgid "Submit library"
 msgstr "Invia libreria"
 
+#: libraries/views.py:799
+msgid "Photo (required)"
+msgstr "Foto (obbligatoria)"
+
 #: libraries/views.py:801
+msgid "Upload a clear photo showing the library. It helps moderators verify it and helps visitors recognise it."
+msgstr "Carica una foto nitida che mostri la libreria. Aiuta i moderatori a verificarla e i visitatori a riconoscerla."
+
+#: libraries/views.py:803
 msgid "Set exact location"
 msgstr "Imposta posizione esatta"
 
-#: libraries/views.py:802
+#: libraries/views.py:804
 msgid "Type an address and choose a suggestion to center the map. Drag the marker to refine the exact point."
 msgstr "Digita un indirizzo e scegli un suggerimento per centrare la mappa. Trascina il marcatore per affinare il punto esatto."
 
-#: libraries/views.py:803
+#: libraries/views.py:805
 msgid "Choose the map point by centering from address, dragging marker, or clicking map."
 msgstr "Scegli il punto sulla mappa centrando dall'indirizzo, trascinando il marcatore o cliccando sulla mappa."
 
