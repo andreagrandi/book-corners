@@ -73,6 +73,9 @@ def _validate_uploaded_photo(*, uploaded_photo: Any, max_size_bytes: int) -> Any
 
 
 class LibrarySubmissionForm(forms.ModelForm):
+    """Validate and save website library submissions.
+    Requires photos on creation while allowing optional replacements on edit."""
+
     latitude = forms.FloatField(required=True, widget=forms.HiddenInput())
     longitude = forms.FloatField(required=True, widget=forms.HiddenInput())
     country = forms.ChoiceField(choices=COUNTRY_CHOICES)
@@ -111,7 +114,11 @@ class LibrarySubmissionForm(forms.ModelForm):
         if self.instance.pk:
             self.fields["photo"].widget = forms.FileInput()
 
-        self.fields["photo"].widget.attrs["class"] = "file-input w-full"
+        self.fields["photo"].required = not self.instance.pk
+        self.fields["photo"].widget.attrs.update({
+            "accept": "image/jpeg,image/png,image/webp",
+            "class": "file-input w-full",
+        })
         self.fields["name"].widget.attrs["class"] = "input w-full"
         self.fields["description"].widget.attrs["class"] = "textarea w-full"
         self.fields["address"].widget.attrs["class"] = "input w-full"
