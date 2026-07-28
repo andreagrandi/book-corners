@@ -255,14 +255,15 @@ def test_library_list_loads_with_filters(live_server, staff_page, sample_librari
 
 
 def test_library_list_filter_by_status(live_server, staff_page, sample_libraries):
-    """Verify filtering by status shows correct results."""
+    """Verify the pending filter labels new submissions in its results.
+    Confirms status filtering and proposal-type labels remain aligned."""
     staff_page.goto(f"{live_server.url}/manage/libraries/?status=pending")
 
     rows = staff_page.locator("table tbody tr")
     expect(rows.first).to_be_visible()
 
     for row in rows.all():
-        expect(row.locator(".badge")).to_contain_text("Pending")
+        expect(row.locator(".badge")).to_contain_text("New submission")
 
 
 def test_library_filters_submit_via_htmx(

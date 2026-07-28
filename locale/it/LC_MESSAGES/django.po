@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Book Corners 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-28 17:05+0000\n"
+"POT-Creation-Date: 2026-07-28 17:07+0000\n"
 "PO-Revision-Date: 2026-02-28 15:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Italian\n"
@@ -1119,7 +1119,7 @@ msgid "items awaiting review"
 msgstr "elementi in attesa di revisione"
 
 #: manage/templates/manage/dashboard.html:32
-#: manage/templates/manage/dashboard.html:73 templates/admin/index.html:76
+#: manage/templates/manage/dashboard.html:76 templates/admin/index.html:76
 msgid "Open Reports"
 msgstr "Segnalazioni aperte"
 
@@ -1128,34 +1128,45 @@ msgid "Pending Libraries"
 msgstr "Librerie in attesa"
 
 #: manage/templates/manage/dashboard.html:55
-#: manage/templates/manage/dashboard.html:85
-#: manage/templates/manage/dashboard.html:115
+#: manage/templates/manage/libraries/_row.html:14
+#: manage/templates/manage/libraries/detail.html:29
+msgid "Changes pending"
+msgstr "Modifiche in attesa"
+
+#: manage/templates/manage/dashboard.html:55
+#: manage/templates/manage/libraries/_row.html:16
+msgid "New submission"
+msgstr "Nuovo invio"
+
+#: manage/templates/manage/dashboard.html:58
+#: manage/templates/manage/dashboard.html:88
+#: manage/templates/manage/dashboard.html:118
 msgid "ago"
 msgstr "fa"
 
-#: manage/templates/manage/dashboard.html:62
-#: manage/templates/manage/dashboard.html:92
-#: manage/templates/manage/dashboard.html:122
+#: manage/templates/manage/dashboard.html:65
+#: manage/templates/manage/dashboard.html:95
+#: manage/templates/manage/dashboard.html:125
 msgid "View all"
 msgstr "Vedi tutte"
 
-#: manage/templates/manage/dashboard.html:66
+#: manage/templates/manage/dashboard.html:69
 msgid "No pending libraries."
 msgstr "Nessuna libreria in attesa."
 
-#: manage/templates/manage/dashboard.html:96
+#: manage/templates/manage/dashboard.html:99
 msgid "No open reports."
 msgstr "Nessuna segnalazione aperta."
 
-#: manage/templates/manage/dashboard.html:103 templates/admin/index.html:81
+#: manage/templates/manage/dashboard.html:106 templates/admin/index.html:81
 msgid "Pending Photos"
 msgstr "Foto in attesa"
 
-#: manage/templates/manage/dashboard.html:113
+#: manage/templates/manage/dashboard.html:116
 msgid "No caption"
 msgstr "Senza didascalia"
 
-#: manage/templates/manage/dashboard.html:126
+#: manage/templates/manage/dashboard.html:129
 msgid "No pending photos."
 msgstr "Nessuna foto in attesa."
 
@@ -1173,13 +1184,13 @@ msgstr "Archivia"
 msgid "Report photo"
 msgstr "Foto della segnalazione"
 
-#: manage/templates/manage/libraries/_row.html:21
+#: manage/templates/manage/libraries/_row.html:27
 #: manage/templates/manage/libraries/detail.html:53
 #: manage/templates/manage/photos/_card.html:30
 msgid "Approve"
 msgstr "Approva"
 
-#: manage/templates/manage/libraries/_row.html:26
+#: manage/templates/manage/libraries/_row.html:32
 #: manage/templates/manage/libraries/detail.html:61
 #: manage/templates/manage/libraries/detail.html:220
 #: manage/templates/manage/photos/_card.html:33
@@ -1276,10 +1287,6 @@ msgstr "Descrizione"
 #: users/templates/users/delete_account.html:39
 msgid "Cancel"
 msgstr "Annulla"
-
-#: manage/templates/manage/libraries/detail.html:29
-msgid "Changes pending"
-msgstr "Modifiche in attesa"
 
 #: manage/templates/manage/libraries/detail.html:31
 msgid "View on site"
@@ -2301,9 +2308,6 @@ msgstr "Il tuo account è stato eliminato."
 
 #~ msgid "Your submissions"
 #~ msgstr "Le tue librerie"
-
-#~ msgid "No submissions yet"
-#~ msgstr "Nessun invio"
 
 #~ msgid "Manage user accounts."
 #~ msgstr "Gestisci gli account utente."

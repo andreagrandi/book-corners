@@ -190,6 +190,65 @@ def test_pending_moderation_stat_links_to_photo_queue_when_only_photos_are_pendi
 
 
 @pytest.mark.django_db
+def test_dashboard_previews_staged_library_values(
+    admin_client: Client,
+    manage_library: Library,
+) -> None:
+    """Verify dashboard recents show proposed staged library values.
+    Keeps the dashboard aligned with moderation list and detail previews."""
+    manage_library.status = Library.Status.APPROVED
+    manage_library.save(update_fields=["status", "updated_at"])
+    manage_library.stage_update(
+        changes={
+            "name": "Proposed Dashboard Shelf",
+            "city": "Prato",
+        }
+    )
+
+    response = admin_client.get(reverse("manage:dashboard"))
+
+    recent_library = response.context["pending_libraries_recent"][0]
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert recent_library.name == "Proposed Dashboard Shelf"
+    assert recent_library.city == "Prato"
+    assert "Proposed Dashboard Shelf" in content
+    assert "Changes pending" in content
+
+
+@pytest.mark.django_db
+def test_library_list_distinguishes_submissions_from_staged_edits(
+    admin_client: Client,
+    manage_library: Library,
+    user: Any,
+) -> None:
+    """Verify moderation rows label new submissions and staged edits.
+    Gives moderators the proposal type before they open a detail page."""
+    staged_library = Library.objects.create(
+        name="Live List Shelf",
+        location=Point(x=11.2800, y=43.7900, srid=4326),
+        address="Via Nuova 10",
+        city="Florence",
+        country="IT",
+        status=Library.Status.APPROVED,
+        created_by=user,
+    )
+    staged_library.stage_update(changes={"name": "Proposed List Shelf"})
+
+    response = admin_client.get(
+        reverse("manage:library_list"),
+        data={"status": Library.Status.PENDING},
+    )
+
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert f'id="library-row-{manage_library.pk}"' in content
+    assert f'id="library-row-{staged_library.pk}"' in content
+    assert "New submission" in content
+    assert "Changes pending" in content
+
+
+@pytest.mark.django_db
 def test_library_detail_links_pending_photos_to_moderation_actions(
     admin_client: Client,
     manage_library: Library,
