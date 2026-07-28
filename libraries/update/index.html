@@ -998,7 +998,7 @@
 
 <h1 id="update-a-library">Update a Library<a class="headerlink" href="#update-a-library" title="Permanent link">&para;</a></h1>
 <p><code>PATCH /api/v1/libraries/{slug}</code></p>
-<p>Update a library you submitted. The library must be in <strong>pending</strong> or <strong>approved</strong> status and must belong to the authenticated user. Every successful edit returns the library to <strong>pending</strong> status for moderator review before it appears publicly again.</p>
+<p>Update a library you submitted. The library must be in <strong>pending</strong> or <strong>approved</strong> status and must belong to the authenticated user. Edits to a pending submission update that submission directly. Edits to an approved library are staged for moderator review while the existing approved version remains publicly available. Submitting values identical to the live record or current proposal is an idempotent no-op and does not notify moderators.</p>
 <p><strong>Auth required:</strong> Yes (<code>Bearer</code> token)</p>
 <p><strong>Content type:</strong> <code>multipart/form-data</code></p>
 <h2 id="fields">Fields<a class="headerlink" href="#fields" title="Permanent link">&para;</a></h2>
@@ -1166,7 +1166,7 @@
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The updated library is set back to <strong>pending</strong> status. It will not appear in public listing or search results again until approved by a moderator.</p>
+<p>For an approved library, the response previews the proposed values, but public list, search, and detail endpoints continue returning the existing approved values until a moderator accepts the update. Its ID and slug do not change. Rejected proposed changes are discarded without rejecting or hiding the approved library.</p>
 </div>
 <h2 id="errors">Errors<a class="headerlink" href="#errors" title="Permanent link">&para;</a></h2>
 <table>

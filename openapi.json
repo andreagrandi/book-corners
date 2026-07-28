@@ -1767,7 +1767,7 @@
             }
           }
         },
-        "description": "Return pending library submissions for staff users.\nSupports the same filters as the all-library staff list.",
+        "description": "Return new submissions and staged library edits for staff users.\nApproved-library edits are overlaid as pending moderation previews.",
         "tags": [
           "libraries"
         ],
@@ -2224,7 +2224,7 @@
             }
           }
         },
-        "description": "Return any library by slug for staff users.\nIncludes pending and rejected libraries that public endpoints hide.",
+        "description": "Return any library by slug for staff users.\nOverlays staged edits without changing the approved public record.",
         "tags": [
           "libraries"
         ],
@@ -2290,7 +2290,7 @@
             }
           }
         },
-        "description": "Update a library moderation status as a staff user.\nApplies the same cache and notification side effects as the manage UI.",
+        "description": "Update a library moderation status as a staff user.\nApplies or discards staged edits when the live library stays approved.",
         "tags": [
           "libraries"
         ],
@@ -2429,7 +2429,7 @@
             }
           }
         },
-        "description": "Update a submitted library owned by the authenticated user.\nOwner edits return pending and require moderator approval.",
+        "description": "Update a submitted library owned by the authenticated user.\nStages approved-library edits while updating pending submissions directly.",
         "tags": [
           "libraries"
         ],
@@ -4378,7 +4378,7 @@
         "type": "object"
       },
       "ContributionLibraryOut": {
-        "description": "Serialized current-user library submission with moderation state.\nExtends the standard library payload with status details for the owner.",
+        "description": "Serialized current-user library submission with moderation state.\nStaged edits preview proposed values as pending for the owner.",
         "properties": {
           "id": {
             "description": "Unique library identifier.",
@@ -5044,7 +5044,7 @@
         "type": "object"
       },
       "LibraryModerationOut": {
-        "description": "Serialized library representation for staff moderation.\nAdds moderation-only fields to the public library payload.",
+        "description": "Serialized library representation for staff moderation.\nStaged edits use proposed values and report pending without hiding live data.",
         "properties": {
           "id": {
             "description": "Unique library identifier.",
@@ -5822,7 +5822,7 @@
         "properties": {
           "status": {
             "$ref": "#/components/schemas/LibraryModerationStatusEnum",
-            "description": "New moderation status: pending, approved, or rejected.",
+            "description": "New moderation status: pending, approved, or rejected. Pending is idempotent when an approved library already has staged edits.",
             "examples": [
               "approved"
             ]

@@ -1151,7 +1151,7 @@
 </code></pre></div>
 <h2 id="list-libraries">List libraries<a class="headerlink" href="#list-libraries" title="Permanent link">&para;</a></h2>
 <p><code>GET /api/v1/libraries/moderation</code></p>
-<p>Return a paginated staff list of libraries across all moderation statuses.</p>
+<p>Return a paginated staff list of libraries across all moderation statuses. Approved libraries with staged owner edits appear as pending items using their proposed values, while their persisted public values remain approved.</p>
 <p><strong>Auth required:</strong> Yes (<code>Bearer</code> token, staff account)</p>
 <h3 id="query-parameters">Query parameters<a class="headerlink" href="#query-parameters" title="Permanent link">&para;</a></h3>
 <table>
@@ -1202,7 +1202,7 @@
 </tr>
 </tbody>
 </table>
-<p><code>GET /api/v1/libraries/moderation/pending</code> is also available as a convenience shortcut for pending submissions. It accepts the same <code>q</code>, <code>country</code>, <code>source</code>, <code>page</code>, and <code>page_size</code> parameters.</p>
+<p><code>GET /api/v1/libraries/moderation/pending</code> is also available as a convenience shortcut for new pending submissions and staged edits to approved libraries. It accepts the same <code>q</code>, <code>country</code>, <code>source</code>, <code>page</code>, and <code>page_size</code> parameters.</p>
 <h3 id="response-200-ok">Response (<code>200 OK</code>)<a class="headerlink" href="#response-200-ok" title="Permanent link">&para;</a></h3>
 <p>Each item uses the standard library response fields plus <code>status</code>, <code>rejection_reason</code>, and <code>created_by</code>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
@@ -1251,10 +1251,10 @@
 </code></pre></div>
 <h2 id="get-a-library">Get a library<a class="headerlink" href="#get-a-library" title="Permanent link">&para;</a></h2>
 <p><code>GET /api/v1/libraries/moderation/{slug}</code></p>
-<p>Return any library by slug for staff users, including pending and rejected libraries hidden from the public detail endpoint.</p>
+<p>Return any library by slug for staff users, including pending and rejected libraries hidden from the public detail endpoint. When an approved library has staged edits, this endpoint returns the proposed values with <code>status: "pending"</code> for review.</p>
 <h2 id="update-library-status">Update library status<a class="headerlink" href="#update-library-status" title="Permanent link">&para;</a></h2>
 <p><code>PATCH /api/v1/libraries/moderation/{slug}</code></p>
-<p>Set a library moderation status by slug.</p>
+<p>Set a library moderation status by slug. For a new pending submission, this updates the library status normally. For staged edits to an approved library, <code>approved</code> applies the proposed fields and photo to the existing library, while <code>rejected</code> discards only the proposed update and leaves the existing library approved. Sending <code>pending</code> for an already staged edit is idempotent: it returns the pending preview with <code>200 OK</code> without changing the approved row, staged payload, or update timestamp.</p>
 <p><strong>Auth required:</strong> Yes (<code>Bearer</code> token, staff account)</p>
 <table>
 <thead>
@@ -1270,7 +1270,7 @@
 <td><code>status</code></td>
 <td>string</td>
 <td>Yes</td>
-<td>New status: <code>pending</code>, <code>approved</code>, or <code>rejected</code></td>
+<td>New status: <code>pending</code>, <code>approved</code>, or <code>rejected</code>. <code>pending</code> is a no-op when an edit is already staged.</td>
 </tr>
 <tr>
 <td><code>rejection_reason</code></td>

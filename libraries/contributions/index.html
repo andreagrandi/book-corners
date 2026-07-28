@@ -1135,7 +1135,7 @@
 <p>All endpoints require a JWT access token and use standard pagination.</p>
 <h2 id="list-my-libraries">List my libraries<a class="headerlink" href="#list-my-libraries" title="Permanent link">&para;</a></h2>
 <p><code>GET /api/v1/libraries/mine</code></p>
-<p>Return the authenticated user's submitted libraries across all moderation statuses. Pending submissions are listed first, then remaining submissions newest first.</p>
+<p>Return the authenticated user's submitted libraries across all moderation statuses. New pending submissions and proposed edits to approved libraries are listed first, then remaining submissions newest first. A proposed edit uses the existing library ID and slug, returns the proposed values with <code>status: "pending"</code>, and does not make the approved public version unavailable.</p>
 <p><strong>Auth required:</strong> Yes (<code>Bearer</code> token)</p>
 <h3 id="query-parameters">Query parameters<a class="headerlink" href="#query-parameters" title="Permanent link">&para;</a></h3>
 <table>

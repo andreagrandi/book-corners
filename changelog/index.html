@@ -808,6 +808,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v1170" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        v1.17.0
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v1160" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1043,6 +1054,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v1170" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        v1.17.0
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v1160" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1245,6 +1267,15 @@
                   
 
 <h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
+<h2 id="v1170">v1.17.0<a class="headerlink" href="#v1170" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Updates to approved libraries now stage only the proposed fields and replacement photo for moderation. The existing approved library remains publicly available with the same ID and slug until the update is approved; rejecting the update discards only the proposal.</li>
+<li>Staff moderation lists and detail responses expose staged values as pending previews, and moderation approval or rejection applies to the proposal without withdrawing the live library.</li>
+<li>Unchanged approved-library edits no longer create moderator notifications or move the item in the review queue.</li>
+<li>The moderation dashboard now previews proposed values, and library queue rows distinguish new submissions from staged edits.</li>
+<li>Replacing a library's live photo now removes superseded unreferenced files after the database update commits while preserving files shared with community photos.</li>
+<li>Setting a staged library update to <code>pending</code> through the moderation API is now documented and tested as an idempotent <code>200 OK</code> operation.</li>
+</ul>
 <h2 id="v1160">v1.16.0<a class="headerlink" href="#v1160" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Library, replacement, report, and community photo uploads now accept files up to 10 MB in JPEG, PNG, WebP, HEIC, and HEIF formats. Accepted photos are normalized to optimized JPEGs targeting a stored size of about 500 KB for consistent storage and browser rendering.</li>
@@ -1272,7 +1303,7 @@
 </ul>
 <h2 id="v1110">v1.11.0<a class="headerlink" href="#v1110" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Library update endpoint (<code>PATCH /api/v1/libraries/{slug}</code>) allows authenticated submitters to edit their own pending or approved library submissions. Successful edits return the library to pending moderation, and replacement photos are optional.</li>
+<li>Library update endpoint (<code>PATCH /api/v1/libraries/{slug}</code>) allows authenticated submitters to edit their own pending or approved library submissions, with optional replacement photos. Approved-library edits were changed in v1.17.0 to keep the live version available during review.</li>
 </ul>
 <h2 id="v1100">v1.10.0<a class="headerlink" href="#v1100" title="Permanent link">&para;</a></h2>
 <ul>
