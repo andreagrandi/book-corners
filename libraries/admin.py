@@ -18,7 +18,11 @@ from libraries.management.commands.find_duplicates import (
     find_duplicate_groups,
 )
 from libraries.models import Favourite, Library, LibraryPhoto, Report, SocialPost
-from libraries.notifications import notify_library_approved, notify_library_rejected
+from libraries.notifications import (
+    notify_library_approved,
+    notify_library_rejected,
+    notify_library_update_approved,
+)
 from libraries.views import GEOJSON_CACHE_KEY, HOMEPAGE_COUNT_CACHE_KEY, invalidate_cluster_cache
 
 
@@ -399,16 +403,20 @@ class LibraryAdmin(admin.GISModelAdmin):
         self, request: HttpRequest, queryset: QuerySet[Library]
     ) -> None:
         """Approve selected libraries and notify submitters via email.
-        Only sends notifications for libraries transitioning from pending."""
-        to_notify = list(
-            queryset.filter(status=Library.Status.PENDING).select_related("created_by")
-        )
-        count = queryset.update(status=Library.Status.APPROVED)
+        Applies staged updates without withdrawing approved public records."""
+        libraries = list(queryset.select_related("created_by"))
+        for library in libraries:
+            if library.has_pending_update:
+                library.apply_pending_update()
+                notify_library_update_approved(library)
+            elif library.status == Library.Status.PENDING:
+                library.status = Library.Status.APPROVED
+                library.save(update_fields=["status", "updated_at"])
+                notify_library_approved(library)
+        count = len(libraries)
         cache.delete(GEOJSON_CACHE_KEY)
         cache.delete(HOMEPAGE_COUNT_CACHE_KEY)
         invalidate_cluster_cache()
-        for library in to_notify:
-            notify_library_approved(library)
         self.message_user(
             request, f"{count} {'library' if count == 1 else 'libraries'} approved."
         )
@@ -434,7 +442,14 @@ class LibraryAdmin(admin.GISModelAdmin):
     ) -> None:
         """Handle reject libraries.
         Supports the module workflow with a focused operation."""
-        count = queryset.update(status=Library.Status.REJECTED)
+        libraries = list(queryset)
+        for library in libraries:
+            if library.has_pending_update:
+                library.discard_pending_update()
+            else:
+                library.status = Library.Status.REJECTED
+                library.save(update_fields=["status", "updated_at"])
+        count = len(libraries)
         cache.delete(GEOJSON_CACHE_KEY)
         cache.delete(HOMEPAGE_COUNT_CACHE_KEY)
         invalidate_cluster_cache()
@@ -638,4 +653,3 @@ class FavouriteAdmin(admin.ModelAdmin):
     list_select_related = ["user", "library"]
     autocomplete_fields = ["user", "library"]
     readonly_fields = ["created_at"]
-

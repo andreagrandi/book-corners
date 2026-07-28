@@ -16,8 +16,13 @@ from libraries.management.commands.find_duplicates import (
     DEFAULT_RADIUS_METERS,
     find_duplicate_groups,
 )
-from libraries.models import Library
-from libraries.notifications import notify_library_approved, notify_library_rejected
+from libraries.models import LIBRARY_EDITABLE_FIELDS, Library
+from libraries.notifications import (
+    notify_library_approved,
+    notify_library_rejected,
+    notify_library_update_approved,
+    notify_library_update_rejected,
+)
 from libraries.views import (
     GEOJSON_CACHE_KEY,
     HOMEPAGE_COUNT_CACHE_KEY,
@@ -71,18 +76,94 @@ def _get_filtered_libraries(
         source = form.cleaned_data.get("source")
         q = form.cleaned_data.get("q")
 
-        if status:
+        if status == Library.Status.PENDING:
+            qs = qs.filter(
+                Q(status=Library.Status.PENDING)
+                | Q(pending_changes__isnull=False)
+            )
+        elif status == Library.Status.APPROVED:
+            qs = qs.filter(
+                status=Library.Status.APPROVED,
+                pending_changes__isnull=True,
+            )
+        elif status:
             qs = qs.filter(status=status)
         if country:
-            qs = qs.filter(country__iexact=country)
+            qs = qs.filter(
+                Q(country__iexact=country)
+                | Q(pending_changes__country__iexact=country)
+            )
         if source:
             qs = qs.filter(source__icontains=source)
         if q:
             qs = qs.filter(
-                Q(name__icontains=q) | Q(address__icontains=q) | Q(city__icontains=q)
+                Q(name__icontains=q)
+                | Q(address__icontains=q)
+                | Q(city__icontains=q)
+                | Q(pending_changes__name__icontains=q)
+                | Q(pending_changes__address__icontains=q)
+                | Q(pending_changes__city__icontains=q)
             )
 
-    return qs, form
+    return qs.order_by("-updated_at", "-created_at"), form
+
+
+def _display_pending_value(
+    *,
+    library: Library,
+    field_name: str,
+    value: object,
+) -> object:
+    """Format a pending-change value for moderator comparison.
+    Uses model choice labels and readable empty-value placeholders."""
+    if value in ("", None):
+        return "—"
+    field = library._meta.get_field(field_name)
+    if field.choices:
+        return dict(field.flatchoices).get(value, value)
+    if isinstance(value, bool):
+        return _("Yes") if value else _("No")
+    return value
+
+
+def _pending_changes_context(*, library: Library) -> list[dict[str, object]]:
+    """Build current-versus-proposed rows for the manage detail page.
+    Includes only fields whose proposed values differ from the live record."""
+    pending_changes: list[dict[str, object]] = []
+    changes = library.pending_changes or {}
+
+    for field_name in LIBRARY_EDITABLE_FIELDS:
+        if field_name not in changes:
+            continue
+        field = library._meta.get_field(field_name)
+        pending_changes.append(
+            {
+                "label": field.verbose_name,
+                "current": _display_pending_value(
+                    library=library,
+                    field_name=field_name,
+                    value=getattr(library, field_name),
+                ),
+                "proposed": _display_pending_value(
+                    library=library,
+                    field_name=field_name,
+                    value=changes[field_name],
+                ),
+            }
+        )
+
+    if "latitude" in changes and "longitude" in changes:
+        pending_changes.append(
+            {
+                "label": _("Location"),
+                "current": f"{library.location.y:.6f}, {library.location.x:.6f}",
+                "proposed": (
+                    f"{changes['latitude']:.6f}, {changes['longitude']:.6f}"
+                ),
+            }
+        )
+
+    return pending_changes
 
 
 @staff_required
@@ -92,6 +173,9 @@ def library_list(request: HttpRequest) -> HttpResponse:
 
     paginator = Paginator(qs, LIBRARIES_PER_PAGE)
     page = paginator.get_page(request.GET.get("page"))
+    page.object_list = [
+        library.moderation_preview() for library in page.object_list
+    ]
 
     context = {
         "page_obj": page,
@@ -110,6 +194,20 @@ def library_approve(request: HttpRequest, pk: int) -> HttpResponse:
     """Approve a single library.
     Invalidates library caches and notifies eligible submitters."""
     library = get_object_or_404(Library, pk=pk)
+    if library.has_pending_update:
+        library.apply_pending_update()
+        _invalidate_library_caches()
+        notify_library_update_approved(library)
+        toast_message = _("Library changes approved.")
+        if request.headers.get("HX-Request"):
+            return render_with_toast(
+                request,
+                "manage/libraries/_row.html",
+                {"library": library},
+                toast_message=toast_message,
+            )
+        return redirect("manage:library_list")
+
     old_status = library.status
     library.status = Library.Status.APPROVED
     library.save(update_fields=["status", "updated_at"])
@@ -135,9 +233,25 @@ def library_reject(request: HttpRequest, pk: int) -> HttpResponse:
     """Reject a single library.
     Invalidates library caches and notifies eligible submitters."""
     library = get_object_or_404(Library, pk=pk)
+    rejection_reason = request.POST.get("rejection_reason", "")
+    if library.has_pending_update:
+        library.discard_pending_update()
+        if rejection_reason:
+            notify_library_update_rejected(
+                library,
+                rejection_reason=rejection_reason,
+            )
+        if request.headers.get("HX-Request"):
+            return render_with_toast(
+                request,
+                "manage/libraries/_row.html",
+                {"library": library},
+                toast_message=_("Library changes rejected."),
+            )
+        return redirect("manage:library_list")
+
     old_status = library.status
     library.status = Library.Status.REJECTED
-    rejection_reason = request.POST.get("rejection_reason", "")
     if rejection_reason:
         library.rejection_reason = rejection_reason
     library.save(update_fields=["status", "rejection_reason", "updated_at"])
@@ -169,16 +283,24 @@ def library_bulk_action(request: HttpRequest) -> HttpResponse:
 
     qs = Library.objects.filter(pk__in=ids)
 
+    libraries = list(qs.select_related("created_by"))
     if action == "approve":
-        to_notify = list(
-            qs.filter(status=Library.Status.PENDING).select_related("created_by")
-        )
-        qs.update(status=Library.Status.APPROVED)
-        for library in to_notify:
-            notify_library_approved(library)
+        for library in libraries:
+            if library.has_pending_update:
+                library.apply_pending_update()
+                notify_library_update_approved(library)
+            elif library.status == Library.Status.PENDING:
+                library.status = Library.Status.APPROVED
+                library.save(update_fields=["status", "updated_at"])
+                notify_library_approved(library)
 
     elif action == "reject":
-        qs.update(status=Library.Status.REJECTED)
+        for library in libraries:
+            if library.has_pending_update:
+                library.discard_pending_update()
+            elif library.status != Library.Status.REJECTED:
+                library.status = Library.Status.REJECTED
+                library.save(update_fields=["status", "updated_at"])
 
     _invalidate_library_caches()
     return redirect("manage:library_list")
@@ -195,6 +317,7 @@ def library_detail(request: HttpRequest, pk: int) -> HttpResponse:
     reports = library.reports.select_related("created_by").all()[:10]
     context = {
         "library": library,
+        "pending_changes": _pending_changes_context(library=library),
         "photos": photos,
         "reports": reports,
     }

@@ -561,26 +561,32 @@ def library_detail(request: HttpRequest, slug: str) -> HttpResponse:
 @login_required(login_url="login")
 def edit_library(request: HttpRequest, slug: str) -> HttpResponse:
     """Render and process the owner edit form for submitted libraries.
-    Successful edits return the library to pending moderation."""
+    Stages approved-library changes while editing pending submissions directly."""
     library = _get_owner_editable_library(request=request, slug=slug)
     current_user = getattr(request, "user", None)
     form = LibrarySubmissionForm(
         data=request.POST or None,
         files=request.FILES or None,
         created_by=current_user,
-        instance=library,
+        instance=library.moderation_preview(),
     )
 
     if request.method == "POST" and form.is_valid():
-        updated_library = form.save()
-        notify_library_update(updated_library)
-        messages.success(
-            request,
-            _(
-                "Your changes were saved and sent for review. They will be approved by moderators before becoming live."
-            ),
-        )
-        return redirect("library_detail", slug=updated_library.slug)
+        if library.status == Library.Status.APPROVED:
+            updated_library = form.save_pending_update(library=library)
+            notification_library = updated_library.moderation_preview()
+            success_message = _(
+                "Your changes were saved for review. The approved library remains live until moderators approve the update."
+            )
+        else:
+            updated_library = form.save()
+            notification_library = updated_library
+            success_message = _(
+                "Your changes were saved and remain under moderator review."
+            )
+        notify_library_update(notification_library)
+        messages.success(request, success_message)
+        return redirect("library_detail", slug=library.slug)
 
     return render(
         request,
@@ -589,9 +595,23 @@ def edit_library(request: HttpRequest, slug: str) -> HttpResponse:
             "form": form,
             "is_edit_mode": True,
             "form_heading": _("Edit library"),
-            "form_intro": _("Update your library details. Changes will be sent back to moderators before they appear publicly."),
-            "review_notice": _(
-                "Changes are reviewed before they become live. After you save, moderators will approve the update before it appears publicly."
+            "form_intro": (
+                _(
+                    "Update your library details. The current approved version stays live while your changes are reviewed."
+                )
+                if library.status == Library.Status.APPROVED
+                else _(
+                    "Update your library details. Changes will be sent back to moderators before they appear publicly."
+                )
+            ),
+            "review_notice": (
+                _(
+                    "Only your proposed changes are reviewed. They replace the current details after moderator approval."
+                )
+                if library.status == Library.Status.APPROVED
+                else _(
+                    "Changes are reviewed before they become live. After you save, moderators will approve the update before it appears publicly."
+                )
             ),
             "form_meta_description": _("Edit a library you submitted on Book Corners."),
             "form_button_label": _("Save changes"),
@@ -702,6 +722,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         )
         .annotate(
             status_order=Case(
+                When(pending_changes__isnull=False, then=Value(0)),
                 When(status=Library.Status.PENDING, then=Value(0)),
                 default=Value(1),
                 output_field=IntegerField(),
@@ -713,6 +734,9 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     paginator = Paginator(submissions, 10)
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
+    page_obj.object_list = [
+        library.moderation_preview() for library in page_obj.object_list
+    ]
 
     reports = (
         Report.objects.filter(created_by=request.user)

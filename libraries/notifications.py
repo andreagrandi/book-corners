@@ -319,6 +319,44 @@ def notify_library_approved(library) -> None:
         logger.exception("Failed to send approval notification for library %s", library.pk)
 
 
+def notify_library_update_approved(library) -> None:
+    """Notify the submitter when proposed library changes are approved.
+    Keeps update messaging distinct from first-time publication."""
+    library_label = library.name or library.address or "Your library"
+    _enqueue_user_push(
+        user_id=library.created_by_id,
+        title="Your library changes are live",
+        body=f"Updates to {library_label} in {library.city} have been approved.",
+        data={"type": "library.update_approved", "library_id": library.pk},
+    )
+
+    if not library.created_by or not library.created_by.email:
+        return
+
+    site_url = getattr(settings, "SITE_URL", "").rstrip("/")
+    detail_path = reverse("library_detail", kwargs={"slug": library.slug})
+    public_url = f"{site_url}{detail_path}"
+    subject = "Your Book Corners library changes are live"
+    body = (
+        f"Your changes to \"{library_label}\" in {library.city} "
+        f"have been approved and are now live.\n\n"
+        f"View the library here:\n{public_url}\n"
+    )
+
+    try:
+        send_mail(
+            subject=subject,
+            message=body,
+            from_email="no-reply@bookcorners.org",
+            recipient_list=[library.created_by.email],
+        )
+    except Exception:
+        logger.exception(
+            "Failed to send update approval notification for library %s",
+            library.pk,
+        )
+
+
 def notify_library_rejected(library) -> None:
     """Email the submitter when their library is rejected with the reason.
     Fails silently so email outages never block the rejection workflow."""
@@ -351,3 +389,43 @@ def notify_library_rejected(library) -> None:
         )
     except Exception:
         logger.exception("Failed to send rejection notification for library %s", library.pk)
+
+
+def notify_library_update_rejected(
+    library,
+    *,
+    rejection_reason: str,
+) -> None:
+    """Notify the submitter when proposed library changes are rejected.
+    Makes clear that the existing approved library remains live."""
+    library_label = library.name or library.address or "Your library"
+    _enqueue_user_push(
+        user_id=library.created_by_id,
+        title="Update on your library changes",
+        body=f"Updates to {library_label} in {library.city} were not approved.",
+        data={"type": "library.update_rejected", "library_id": library.pk},
+    )
+
+    if not library.created_by or not library.created_by.email:
+        return
+
+    subject = "Update on your Book Corners library changes"
+    body = (
+        f"Your proposed changes to \"{library_label}\" in {library.city} "
+        f"were not approved for the following reason:\n\n"
+        f"{rejection_reason}\n\n"
+        f"The existing approved library remains live.\n"
+    )
+
+    try:
+        send_mail(
+            subject=subject,
+            message=body,
+            from_email="no-reply@bookcorners.org",
+            recipient_list=[library.created_by.email],
+        )
+    except Exception:
+        logger.exception(
+            "Failed to send update rejection notification for library %s",
+            library.pk,
+        )

@@ -220,6 +220,83 @@ def test_library_detail_links_pending_photos_to_moderation_actions(
 
 
 @pytest.mark.django_db
+def test_library_detail_compares_staged_changes_with_live_values(
+    admin_client: Client,
+    manage_library: Library,
+) -> None:
+    """Verify moderators see only proposed fields beside current values.
+    Makes clear that the approved library remains live during review."""
+    manage_library.status = Library.Status.APPROVED
+    manage_library.save(update_fields=["status", "updated_at"])
+    manage_library.stage_update(
+        changes={
+            "name": "Proposed Manage Shelf",
+            "city": "Prato",
+        }
+    )
+
+    response = admin_client.get(
+        reverse("manage:library_detail", kwargs={"pk": manage_library.pk})
+    )
+
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert "Pending changes" in content
+    assert "The approved library remains live" in content
+    assert "Manage Edit Shelf" in content
+    assert "Proposed Manage Shelf" in content
+    assert "Approve changes" in content
+    assert "Reject changes" in content
+
+
+@pytest.mark.django_db
+def test_staff_approves_staged_changes_without_changing_library_identity(
+    admin_client: Client,
+    manage_library: Library,
+) -> None:
+    """Verify manage approval applies staged fields to the live library.
+    Preserves its approved status, primary key, and public slug."""
+    manage_library.status = Library.Status.APPROVED
+    manage_library.save(update_fields=["status", "updated_at"])
+    original_slug = manage_library.slug
+    manage_library.stage_update(changes={"name": "Approved Manage Change"})
+
+    response = admin_client.post(
+        reverse("manage:library_approve", kwargs={"pk": manage_library.pk})
+    )
+
+    manage_library.refresh_from_db()
+    assert response.status_code == 302
+    assert manage_library.name == "Approved Manage Change"
+    assert manage_library.slug == original_slug
+    assert manage_library.status == Library.Status.APPROVED
+    assert manage_library.pending_changes is None
+
+
+@pytest.mark.django_db
+def test_staff_rejects_staged_changes_without_rejecting_live_library(
+    admin_client: Client,
+    manage_library: Library,
+) -> None:
+    """Verify manage rejection discards only proposed library edits.
+    Keeps the existing approved record publicly available."""
+    manage_library.status = Library.Status.APPROVED
+    manage_library.save(update_fields=["status", "updated_at"])
+    manage_library.stage_update(changes={"name": "Rejected Manage Change"})
+
+    response = admin_client.post(
+        reverse("manage:library_reject", kwargs={"pk": manage_library.pk}),
+        data={"rejection_reason": "The proposed name is inaccurate."},
+    )
+
+    manage_library.refresh_from_db()
+    assert response.status_code == 302
+    assert manage_library.name == "Manage Edit Shelf"
+    assert manage_library.status == Library.Status.APPROVED
+    assert manage_library.pending_changes is None
+
+
+@pytest.mark.django_db
 def test_staff_can_choose_main_photo_and_reject_another_from_library_detail(
     admin_client: Client,
     manage_library: Library,

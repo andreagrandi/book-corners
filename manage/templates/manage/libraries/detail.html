@@ -25,6 +25,9 @@
       <span class="badge {% if library.status == 'approved' %}badge-success{% elif library.status == 'rejected' %}badge-error{% else %}badge-warning{% endif %}">
         {{ library.get_status_display }}
       </span>
+      {% if library.has_pending_update %}
+        <span class="badge badge-warning">{% trans "Changes pending" %}</span>
+      {% endif %}
       <a href="{% url 'library_detail' slug=library.slug %}" class="btn btn-ghost btn-sm" target="_blank">{% trans "View on site" %}</a>
     </div>
   </div>
@@ -43,16 +46,20 @@
       {% endif %}
 
       <div class="flex flex-col gap-2">
-        {% if library.status != 'approved' %}
+        {% if library.status != 'approved' or library.has_pending_update %}
           <form method="post" action="{% url 'manage:library_approve' pk=library.pk %}">
             {% csrf_token %}
-            <button type="submit" class="btn btn-success btn-sm btn-block">{% trans "Approve" %}</button>
+            <button type="submit" class="btn btn-success btn-sm btn-block">
+              {% if library.has_pending_update %}{% trans "Approve changes" %}{% else %}{% trans "Approve" %}{% endif %}
+            </button>
           </form>
         {% endif %}
         {% if library.status != 'rejected' %}
           <form method="post" action="{% url 'manage:library_reject' pk=library.pk %}">
             {% csrf_token %}
-            <button type="submit" class="btn btn-error btn-sm btn-block">{% trans "Reject" %}</button>
+            <button type="submit" class="btn btn-error btn-sm btn-block">
+              {% if library.has_pending_update %}{% trans "Reject changes" %}{% else %}{% trans "Reject" %}{% endif %}
+            </button>
           </form>
         {% endif %}
         {% if library.photo %}
@@ -68,6 +75,45 @@
 
     {# --- Right column: details --- #}
     <div class="lg:col-span-2 space-y-6">
+      {% if library.has_pending_update %}
+        <div class="rounded-box border border-warning bg-warning/10 p-5">
+          <h2 class="text-lg font-semibold">{% trans "Pending changes" %}</h2>
+          <p class="mt-1 text-sm text-base-content/70">
+            {% trans "Only the proposed changes below are under review. The approved library remains live until these changes are accepted." %}
+          </p>
+
+          {% if library.pending_photo %}
+            <div class="mt-4">
+              <p class="text-xs font-medium text-base-content/60">{% trans "Replacement photo" %}</p>
+              <img src="{{ library.pending_photo.url }}" alt="{% trans 'Proposed replacement photo' %}" class="mt-2 max-h-64 rounded-box object-cover">
+            </div>
+          {% endif %}
+
+          {% if pending_changes %}
+            <div class="mt-4 overflow-x-auto">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>{% trans "Field" %}</th>
+                    <th>{% trans "Current" %}</th>
+                    <th>{% trans "Proposed" %}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for change in pending_changes %}
+                    <tr>
+                      <th>{{ change.label|capfirst }}</th>
+                      <td>{{ change.current }}</td>
+                      <td class="font-medium">{{ change.proposed }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+
       {# Core info #}
       <div class="rounded-box border border-base-300 bg-base-100 p-5">
         <h2 class="text-lg font-semibold">{% trans "Details" %}</h2>

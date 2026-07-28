@@ -84,6 +84,9 @@ class TestReportEndpoint:
         assert response.status_code == 201
         report = Report.objects.get(id=response.json()["id"])
         assert report.status == Report.Status.OPEN
+        approved_library.refresh_from_db()
+        assert approved_library.status == Library.Status.APPROVED
+        assert approved_library.pending_changes is None
 
     def test_response_contains_all_report_out_fields(self, client, user_jwt, approved_library):
         """Verify the response includes every field defined in ReportOut.

@@ -2348,7 +2348,7 @@ class TestEditLibraryView:
 
         detail_response = client.get(response.url)
         detail_content = detail_response.content.decode()
-        assert "Your changes were saved and sent for review" in detail_content
+        assert "Your changes were saved and remain under moderator review" in detail_content
 
     @override_settings(
         ADMIN_NOTIFICATION_EMAIL="admin@example.com",
@@ -2393,9 +2393,13 @@ class TestEditLibraryView:
         assert f"/manage/libraries/{library.pk}/" in message.body
         assert message.to == ["admin@example.com"]
 
-    def test_owner_editing_approved_library_resets_to_pending(self, client, user):
-        """Verify approved owner edits require moderation again.
-        Publicly visible submissions return to pending after successful edits."""
+    def test_owner_editing_approved_library_stages_changes_and_keeps_it_live(
+        self,
+        client,
+        user,
+    ):
+        """Verify approved owner edits are staged without replacing live values.
+        Public visibility remains while only the proposed changes await review."""
         library = Library.objects.create(
             name="Approved Edit Shelf",
             description="Before approved edit.",
@@ -2425,8 +2429,21 @@ class TestEditLibraryView:
 
         assert response.status_code == 302
         library.refresh_from_db()
-        assert library.name == "Approved Edited Shelf"
-        assert library.status == Library.Status.PENDING
+        assert library.name == "Approved Edit Shelf"
+        assert library.description == "Before approved edit."
+        assert library.status == Library.Status.APPROVED
+        assert library.pending_changes == {
+            "description": "Updated approved library.",
+            "name": "Approved Edited Shelf",
+        }
+
+        public_response = client.get(
+            reverse("library_detail", kwargs={"slug": library.slug})
+        )
+        public_content = public_response.content.decode()
+        assert public_response.status_code == 200
+        assert "Approved Edit Shelf" in public_content
+        assert "Approved Edited Shelf" not in public_content
 
     def test_owner_can_replace_photo_on_edit(self, client, user, settings, tmp_path):
         """Verify edit submissions can replace the primary photo.
@@ -2543,6 +2560,9 @@ class TestLibraryReportSubmission:
         assert report.created_by == reporter
         assert report.reason == Report.Reason.DAMAGED
         assert report.status == Report.Status.OPEN
+        library.refresh_from_db()
+        assert library.status == Library.Status.APPROVED
+        assert library.pending_changes is None
 
     def test_inline_report_photo_is_normalized_and_compressed(
         self,

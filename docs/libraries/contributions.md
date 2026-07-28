@@ -8,7 +8,7 @@ All endpoints require a JWT access token and use standard pagination.
 
 `GET /api/v1/libraries/mine`
 
-Return the authenticated user's submitted libraries across all moderation statuses. Pending submissions are listed first, then remaining submissions newest first.
+Return the authenticated user's submitted libraries across all moderation statuses. New pending submissions and proposed edits to approved libraries are listed first, then remaining submissions newest first. A proposed edit uses the existing library ID and slug, returns the proposed values with `status: "pending"`, and does not make the approved public version unavailable.
 
 **Auth required:** Yes (`Bearer` token)
 

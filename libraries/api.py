@@ -51,11 +51,20 @@ from libraries.api_schemas import (
 from libraries.api_security import is_api_rate_limited
 from libraries.stats import build_stats_data, get_countries
 from libraries.forms import _validate_uploaded_photo
-from libraries.models import Favourite, Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
+from libraries.models import (
+    LIBRARY_EDITABLE_FIELDS,
+    MAX_LIBRARY_PHOTOS_PER_USER,
+    Favourite,
+    Library,
+    LibraryPhoto,
+    Report,
+)
 from libraries.notifications import (
     notify_library_approved,
     notify_library_rejected,
     notify_library_update,
+    notify_library_update_approved,
+    notify_library_update_rejected,
     notify_new_library,
     notify_new_photo,
     notify_new_report,
@@ -67,22 +76,7 @@ from libraries.views import GEOJSON_CACHE_KEY, HOMEPAGE_COUNT_CACHE_KEY, invalid
 library_router = Router(tags=["libraries"])
 User = get_user_model()
 
-LIBRARY_UPDATE_FIELDS = (
-    "name",
-    "description",
-    "address",
-    "city",
-    "country",
-    "postal_code",
-    "wheelchair_accessible",
-    "capacity",
-    "is_indoor",
-    "is_lit",
-    "website",
-    "contact",
-    "operator",
-    "brand",
-)
+LIBRARY_UPDATE_FIELDS = LIBRARY_EDITABLE_FIELDS
 
 
 def _is_staff_user(request) -> bool:
@@ -103,10 +97,23 @@ def _library_moderation_queryset(*, filters: LibraryModerationParams):
     """Build the staff library moderation queryset from filters.
     Matches the manage UI's common status, country, source, and text filters."""
     queryset = Library.objects.select_related("created_by").all()
-    if filters.status != ModerationStatusFilterEnum.ALL:
+    if filters.status == ModerationStatusFilterEnum.PENDING:
+        queryset = queryset.filter(
+            Q(status=Library.Status.PENDING)
+            | Q(pending_changes__isnull=False)
+        )
+    elif filters.status == ModerationStatusFilterEnum.APPROVED:
+        queryset = queryset.filter(
+            status=Library.Status.APPROVED,
+            pending_changes__isnull=True,
+        )
+    elif filters.status != ModerationStatusFilterEnum.ALL:
         queryset = queryset.filter(status=filters.status.value)
     if filters.country:
-        queryset = queryset.filter(country__iexact=filters.country)
+        queryset = queryset.filter(
+            Q(country__iexact=filters.country)
+            | Q(pending_changes__country__iexact=filters.country)
+        )
     if filters.source:
         queryset = queryset.filter(source__icontains=filters.source)
     if filters.q:
@@ -115,8 +122,17 @@ def _library_moderation_queryset(*, filters: LibraryModerationParams):
             Q(name__icontains=query)
             | Q(address__icontains=query)
             | Q(city__icontains=query)
+            | Q(pending_changes__name__icontains=query)
+            | Q(pending_changes__address__icontains=query)
+            | Q(pending_changes__city__icontains=query)
         )
-    return queryset.order_by("-created_at")
+    return queryset.order_by("-updated_at", "-created_at")
+
+
+def _library_moderation_items(items: list[Library]) -> list[Library]:
+    """Overlay proposed values on staff moderation response items.
+    Presents staged updates as pending without changing live database rows."""
+    return [library.moderation_preview() for library in items]
 
 
 def _save_library_moderation_status(
@@ -129,6 +145,20 @@ def _save_library_moderation_status(
     old_status = library.status
     new_status = payload.status.value
     rejection_reason = payload.rejection_reason.strip()
+
+    if library.has_pending_update:
+        if new_status == Library.Status.APPROVED:
+            library.apply_pending_update()
+            _invalidate_library_caches()
+            notify_library_update_approved(library)
+        elif new_status == Library.Status.REJECTED:
+            library.discard_pending_update()
+            if rejection_reason:
+                notify_library_update_rejected(
+                    library,
+                    rejection_reason=rejection_reason,
+                )
+        return library
 
     library.status = new_status
     update_fields = ["status", "updated_at"]
@@ -297,6 +327,7 @@ def list_my_libraries(request, filters: Query[ContributionPaginationParams]):
 
     queryset = Library.objects.filter(created_by=request.user).annotate(
         status_order=Case(
+            When(pending_changes__isnull=False, then=Value(0)),
             When(status=Library.Status.PENDING, then=Value(0)),
             default=Value(1),
             output_field=IntegerField(),
@@ -308,7 +339,15 @@ def list_my_libraries(request, filters: Query[ContributionPaginationParams]):
     items, pagination = paginate_queryset(
         queryset=queryset, page=filters.page, page_size=filters.page_size,
     )
-    return 200, {"items": items, "pagination": pagination}
+    return 200, {
+        "items": [
+            library.moderation_preview()
+            if library.has_pending_update
+            else library
+            for library in items
+        ],
+        "pagination": pagination,
+    }
 
 
 @library_router.get(
@@ -396,7 +435,10 @@ def moderation_summary(request):
             details={"retry_after": retry_after},
         )
 
-    pending_libraries_count = Library.objects.filter(status=Library.Status.PENDING).count()
+    pending_libraries_count = Library.objects.filter(
+        Q(status=Library.Status.PENDING)
+        | Q(pending_changes__isnull=False)
+    ).count()
     open_reports_count = Report.objects.filter(status=Report.Status.OPEN).count()
     pending_photos_count = LibraryPhoto.objects.filter(
         status=LibraryPhoto.Status.PENDING
@@ -440,7 +482,10 @@ def list_moderation_libraries(request, filters: Query[LibraryModerationParams]):
     items, pagination = paginate_queryset(
         queryset=queryset, page=filters.page, page_size=filters.page_size,
     )
-    return 200, {"items": items, "pagination": pagination}
+    return 200, {
+        "items": _library_moderation_items(items),
+        "pagination": pagination,
+    }
 
 
 @library_router.get(
@@ -450,8 +495,8 @@ def list_moderation_libraries(request, filters: Query[LibraryModerationParams]):
     summary="List pending library submissions for staff moderation",
 )
 def list_pending_libraries(request, filters: Query[LibraryModerationParams]):
-    """Return pending library submissions for staff users.
-    Supports the same filters as the all-library staff list."""
+    """Return new submissions and staged library edits for staff users.
+    Approved-library edits are overlaid as pending moderation previews."""
     if not _is_staff_user(request):
         return 403, ErrorOut(message="Staff access required.")
 
@@ -467,10 +512,14 @@ def list_pending_libraries(request, filters: Query[LibraryModerationParams]):
         )
 
     queryset = Library.objects.select_related("created_by").filter(
-        status=Library.Status.PENDING
+        Q(status=Library.Status.PENDING)
+        | Q(pending_changes__isnull=False)
     )
     if filters.country:
-        queryset = queryset.filter(country__iexact=filters.country)
+        queryset = queryset.filter(
+            Q(country__iexact=filters.country)
+            | Q(pending_changes__country__iexact=filters.country)
+        )
     if filters.source:
         queryset = queryset.filter(source__icontains=filters.source)
     if filters.q:
@@ -479,12 +528,18 @@ def list_pending_libraries(request, filters: Query[LibraryModerationParams]):
             Q(name__icontains=query)
             | Q(address__icontains=query)
             | Q(city__icontains=query)
+            | Q(pending_changes__name__icontains=query)
+            | Q(pending_changes__address__icontains=query)
+            | Q(pending_changes__city__icontains=query)
         )
-    queryset = queryset.order_by("-created_at")
+    queryset = queryset.order_by("-updated_at", "-created_at")
     items, pagination = paginate_queryset(
         queryset=queryset, page=filters.page, page_size=filters.page_size,
     )
-    return 200, {"items": items, "pagination": pagination}
+    return 200, {
+        "items": _library_moderation_items(items),
+        "pagination": pagination,
+    }
 
 
 @library_router.get(
@@ -626,7 +681,7 @@ def moderate_photo(request, photo_id: int, payload: PhotoModerationUpdateIn):
 )
 def get_moderation_library(request, slug: str):
     """Return any library by slug for staff users.
-    Includes pending and rejected libraries that public endpoints hide."""
+    Overlays staged edits without changing the approved public record."""
     if not _is_staff_user(request):
         return 403, ErrorOut(message="Staff access required.")
 
@@ -644,7 +699,7 @@ def get_moderation_library(request, slug: str):
     library = get_object_or_404(
         Library.objects.select_related("created_by"), slug=slug,
     )
-    return 200, library
+    return 200, library.moderation_preview()
 
 
 @library_router.patch(
@@ -655,7 +710,7 @@ def get_moderation_library(request, slug: str):
 )
 def moderate_library(request, slug: str, payload: LibraryModerationUpdateIn):
     """Update a library moderation status as a staff user.
-    Applies the same cache and notification side effects as the manage UI."""
+    Applies or discards staged edits when the live library stays approved."""
     if not _is_staff_user(request):
         return 403, ErrorOut(message="Staff access required.")
 
@@ -674,7 +729,7 @@ def moderate_library(request, slug: str, payload: LibraryModerationUpdateIn):
         Library.objects.select_related("created_by"), slug=slug,
     )
     library = _save_library_moderation_status(library=library, payload=payload)
-    return 200, library
+    return 200, library.moderation_preview()
 
 
 @library_router.get("/{slug}", response={200: LibraryOut, 404: ErrorOut, 429: ErrorOut}, auth=None, summary="Get a library by slug")
@@ -774,7 +829,7 @@ def update_library(
     photo: UploadedFile = File(None),
 ):
     """Update a submitted library owned by the authenticated user.
-    Owner edits return pending and require moderator approval."""
+    Stages approved-library edits while updating pending submissions directly."""
     limited, retry_after = is_api_rate_limited(
         request=request,
         scope="api-library-update",
@@ -815,18 +870,39 @@ def update_library(
         status__in=[Library.Status.PENDING, Library.Status.APPROVED],
     )
 
+    proposed_changes: dict[str, object] = {}
     for field_name in LIBRARY_UPDATE_FIELDS:
         if field_name in submitted_fields:
-            setattr(library, field_name, getattr(payload, field_name))
+            proposed_changes[field_name] = getattr(payload, field_name)
 
     if submitted_coordinates:
         if payload.latitude is None or payload.longitude is None:
             return 400, ErrorOut(message="Latitude and longitude must be provided together.")
-        library.location = Point(x=payload.longitude, y=payload.latitude, srid=4326)
+        proposed_changes.update(
+            {
+                "latitude": payload.latitude,
+                "longitude": payload.longitude,
+            }
+        )
 
+    if library.status == Library.Status.APPROVED:
+        library.stage_update(changes=proposed_changes, photo=photo)
+        preview = library.moderation_preview()
+        notify_library_update(preview)
+        return 200, preview
+
+    for field_name, value in proposed_changes.items():
+        if field_name not in LIBRARY_UPDATE_FIELDS:
+            continue
+        setattr(library, field_name, value)
+    if "latitude" in proposed_changes and "longitude" in proposed_changes:
+        library.location = Point(
+            x=proposed_changes["longitude"],
+            y=proposed_changes["latitude"],
+            srid=4326,
+        )
     if photo is not None:
         library.photo = photo
-
     library.status = Library.Status.PENDING
     library.save()
     notify_library_update(library)

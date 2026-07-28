@@ -2,7 +2,7 @@
 
 `PATCH /api/v1/libraries/{slug}`
 
-Update a library you submitted. The library must be in **pending** or **approved** status and must belong to the authenticated user. Every successful edit returns the library to **pending** status for moderator review before it appears publicly again.
+Update a library you submitted. The library must be in **pending** or **approved** status and must belong to the authenticated user. Edits to a pending submission update that submission directly. Edits to an approved library are staged for moderator review while the existing approved version remains publicly available.
 
 **Auth required:** Yes (`Bearer` token)
 
@@ -102,7 +102,7 @@ The response uses the same library object shape as the [detail endpoint](detail.
 ```
 
 !!! note
-    The updated library is set back to **pending** status. It will not appear in public listing or search results again until approved by a moderator.
+    For an approved library, the response previews the proposed values, but public list, search, and detail endpoints continue returning the existing approved values until a moderator accepts the update. Its ID and slug do not change. Rejected proposed changes are discarded without rejecting or hiding the approved library.
 
 ## Errors
 
