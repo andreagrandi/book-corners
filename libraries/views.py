@@ -573,18 +573,27 @@ def edit_library(request: HttpRequest, slug: str) -> HttpResponse:
 
     if request.method == "POST" and form.is_valid():
         if library.status == Library.Status.APPROVED:
-            updated_library = form.save_pending_update(library=library)
-            notification_library = updated_library.moderation_preview()
-            success_message = _(
-                "Your changes were saved for review. The approved library remains live until moderators approve the update."
-            )
+            proposal_changed = form.save_pending_update(library=library)
+            if proposal_changed and library.has_pending_update:
+                notify_library_update(library.moderation_preview())
+                success_message = _(
+                    "Your changes were saved for review. The approved library remains live until moderators approve the update."
+                )
+            elif library.has_pending_update:
+                success_message = _(
+                    "No new changes were saved. Your existing changes remain under moderator review."
+                )
+            else:
+                success_message = _(
+                    "No changes were found. The approved library remains live."
+                )
         else:
             updated_library = form.save()
             notification_library = updated_library
             success_message = _(
                 "Your changes were saved and remain under moderator review."
             )
-        notify_library_update(notification_library)
+            notify_library_update(notification_library)
         messages.success(request, success_message)
         return redirect("library_detail", slug=library.slug)
 

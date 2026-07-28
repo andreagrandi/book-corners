@@ -2,7 +2,7 @@
 
 `PATCH /api/v1/libraries/{slug}`
 
-Update a library you submitted. The library must be in **pending** or **approved** status and must belong to the authenticated user. Edits to a pending submission update that submission directly. Edits to an approved library are staged for moderator review while the existing approved version remains publicly available.
+Update a library you submitted. The library must be in **pending** or **approved** status and must belong to the authenticated user. Edits to a pending submission update that submission directly. Edits to an approved library are staged for moderator review while the existing approved version remains publicly available. Submitting values identical to the live record or current proposal is an idempotent no-op and does not notify moderators.
 
 **Auth required:** Yes (`Bearer` token)
 

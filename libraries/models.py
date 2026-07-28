@@ -162,9 +162,9 @@ class Library(models.Model):
         *,
         changes: dict[str, Any],
         photo: Any | None = None,
-    ) -> None:
+    ) -> bool:
         """Store proposed edits without changing approved public fields.
-        Merges prior proposals while preserving an existing pending photo."""
+        Returns whether the pending proposal changed."""
         staged_changes = dict(self.pending_changes or {})
         coordinate_names = {"latitude", "longitude"}
 
@@ -188,15 +188,25 @@ class Library(models.Model):
                 staged_changes["latitude"] = latitude
                 staged_changes["longitude"] = longitude
 
+        pending_changes = (
+            staged_changes
+            if staged_changes or self.pending_photo or photo is not None
+            else None
+        )
+        proposal_changed = (
+            pending_changes != self.pending_changes or photo is not None
+        )
+        if not proposal_changed:
+            return False
+
         update_fields = ["pending_changes", "updated_at"]
         if photo is not None:
             self._store_pending_photo(photo=photo)
             update_fields.extend(["pending_photo", "pending_photo_thumbnail"])
 
-        self.pending_changes = (
-            staged_changes if staged_changes or self.pending_photo else None
-        )
+        self.pending_changes = pending_changes
         self.save(update_fields=update_fields)
+        return True
 
     def moderation_preview(self) -> "Library":
         """Return an unsaved view of the proposed moderated values.

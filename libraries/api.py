@@ -886,9 +886,13 @@ def update_library(
         )
 
     if library.status == Library.Status.APPROVED:
-        library.stage_update(changes=proposed_changes, photo=photo)
+        proposal_changed = library.stage_update(
+            changes=proposed_changes,
+            photo=photo,
+        )
         preview = library.moderation_preview()
-        notify_library_update(preview)
+        if proposal_changed and library.has_pending_update:
+            notify_library_update(preview)
         return 200, preview
 
     for field_name, value in proposed_changes.items():

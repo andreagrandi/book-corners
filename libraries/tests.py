@@ -1,4 +1,5 @@
 from io import BytesIO
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -2412,6 +2413,59 @@ class TestEditLibraryView:
         assert "Notification Edited Shelf" in message.subject
         assert f"/manage/libraries/{library.pk}/" in message.body
         assert message.to == ["admin@example.com"]
+
+    @override_settings(
+        ADMIN_NOTIFICATION_EMAIL="admin@example.com",
+        SITE_URL="https://example.com",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    )
+    def test_no_op_approved_edit_does_not_notify_admins(
+        self,
+        client: Client,
+        user: Any,
+    ) -> None:
+        """Verify unchanged approved-library form saves send no notification.
+        Gives owners accurate feedback without creating moderator noise."""
+        library = Library.objects.create(
+            name="Unchanged Edit Shelf",
+            description="Existing description.",
+            photo="libraries/photos/2026/02/unchanged-edit.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            postal_code="50123",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        original_updated_at = library.updated_at
+        client.force_login(user)
+
+        response = client.post(
+            reverse("edit_library", kwargs={"slug": library.slug}),
+            data={
+                "name": library.name,
+                "description": library.description,
+                "address": library.address,
+                "city": library.city,
+                "country": library.country,
+                "postal_code": library.postal_code,
+                "latitude": "43.7696",
+                "longitude": "11.2558",
+            },
+        )
+
+        library.refresh_from_db()
+        assert response.status_code == 302
+        assert library.pending_changes is None
+        assert library.updated_at == original_updated_at
+        assert len(mail.outbox) == 0
+
+        detail_response = client.get(response.url)
+        detail_content = detail_response.content.decode()
+        assert "No changes were found. The approved library remains live." in (
+            detail_content
+        )
 
     def test_owner_editing_approved_library_stages_changes_and_keeps_it_live(
         self,

@@ -260,9 +260,9 @@ class LibrarySubmissionForm(forms.ModelForm):
 
         return library
 
-    def save_pending_update(self, *, library: Library) -> Library:
+    def save_pending_update(self, *, library: Library) -> bool:
         """Stage approved-library edits for moderator review.
-        Leaves the currently approved public values unchanged."""
+        Returns whether the pending proposal changed."""
         changes = {
             field_name: self.cleaned_data[field_name]
             for field_name in LIBRARY_EDITABLE_FIELDS
@@ -277,8 +277,7 @@ class LibrarySubmissionForm(forms.ModelForm):
         if self.files.get(self.add_prefix("photo")) is not None:
             uploaded_photo = self.cleaned_data["photo"]
 
-        library.stage_update(changes=changes, photo=uploaded_photo)
-        return library
+        return library.stage_update(changes=changes, photo=uploaded_photo)
 
 
 class ReportSubmissionForm(forms.ModelForm):

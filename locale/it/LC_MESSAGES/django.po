@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Book Corners 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-28 14:20+0000\n"
+"POT-Creation-Date: 2026-07-28 17:05+0000\n"
 "PO-Revision-Date: 2026-02-28 15:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Italian\n"
@@ -16,15 +16,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: libraries/admin.py:150 manage/views/libraries.py:463
+#: libraries/admin.py:150 manage/views/libraries.py:465
 msgid "This library has no photo for AI analysis."
 msgstr "Questa libreria non ha una foto per l'analisi IA."
 
-#: libraries/admin.py:160 manage/views/libraries.py:471
+#: libraries/admin.py:160 manage/views/libraries.py:473
 msgid "Could not access the library photo."
 msgstr "Impossibile accedere alla foto della libreria."
 
-#: libraries/admin.py:167 manage/views/libraries.py:476
+#: libraries/admin.py:167 manage/views/libraries.py:478
 msgid "AI enrichment failed. Check logs for details."
 msgstr "Arricchimento IA fallito. Controlla i log per i dettagli."
 
@@ -34,11 +34,11 @@ msgstr "Arricchimento IA fallito. Controlla i log per i dettagli."
 msgid "AI Enrich: Confirm"
 msgstr "Arricchisci con IA: Conferma"
 
-#: libraries/admin.py:210 manage/views/libraries.py:505
+#: libraries/admin.py:210 manage/views/libraries.py:507
 msgid "AI-generated name and description applied."
 msgstr "Nome e descrizione generati dall'IA applicati."
 
-#: libraries/admin.py:212 manage/views/libraries.py:507
+#: libraries/admin.py:212 manage/views/libraries.py:509
 msgid "No AI values to apply."
 msgstr "Nessun valore IA da applicare."
 
@@ -97,32 +97,32 @@ msgstr "La longitudine deve essere compresa tra -180 e 180."
 msgid "Address is required when coordinates are not provided."
 msgstr "L'indirizzo è obbligatorio quando le coordinate non vengono fornite."
 
-#: libraries/forms.py:360
+#: libraries/forms.py:359
 msgid "Keywords in name or description"
 msgstr "Parole chiave nel nome o nella descrizione"
 
-#: libraries/forms.py:366
+#: libraries/forms.py:365
 msgid "City, area, postcode, or address"
 msgstr "Città, zona, CAP o indirizzo"
 
-#: libraries/forms.py:380
+#: libraries/forms.py:379
 msgid "Filter by city"
 msgstr "Filtra per città"
 
-#: libraries/forms.py:391
+#: libraries/forms.py:390
 msgid "Filter by postal code"
 msgstr "Filtra per CAP"
 
-#: libraries/forms.py:437
+#: libraries/forms.py:436
 msgid "Optional caption for your photo"
 msgstr "Didascalia opzionale per la tua foto"
 
-#: libraries/forms.py:463
+#: libraries/forms.py:462
 #, python-format
 msgid "You can submit at most %(max)s photos per library."
 msgstr "Puoi inviare al massimo %(max)s foto per libreria."
 
-#: libraries/models.py:40 libraries/models.py:486
+#: libraries/models.py:40 libraries/models.py:496
 #: manage/templates/manage/libraries/import.html:49
 #: manage/templates/manage/photos/list.html:29
 #: templates/admin/libraries/geojson_import_form.html:37
@@ -130,7 +130,7 @@ msgstr "Puoi inviare al massimo %(max)s foto per libreria."
 msgid "Pending"
 msgstr "In attesa"
 
-#: libraries/models.py:41 libraries/models.py:487
+#: libraries/models.py:41 libraries/models.py:497
 #: manage/templates/manage/libraries/import.html:48
 #: manage/templates/manage/photos/list.html:30
 #: templates/admin/libraries/geojson_import_form.html:36
@@ -138,7 +138,7 @@ msgstr "In attesa"
 msgid "Approved"
 msgstr "Approvato"
 
-#: libraries/models.py:42 libraries/models.py:488
+#: libraries/models.py:42 libraries/models.py:498
 #: manage/templates/manage/photos/list.html:31
 #: templates/admin/libraries/photo_grid.html:147
 msgid "Rejected"
@@ -169,35 +169,35 @@ msgstr "Limitato"
 msgid "Rejection reason"
 msgstr "Motivo del rifiuto"
 
-#: libraries/models.py:431
+#: libraries/models.py:441
 msgid "Damaged"
 msgstr "Danneggiato"
 
-#: libraries/models.py:432
+#: libraries/models.py:442
 msgid "Missing"
 msgstr "Mancante"
 
-#: libraries/models.py:433
+#: libraries/models.py:443
 msgid "Incorrect Info"
 msgstr "Informazioni errate"
 
-#: libraries/models.py:434
+#: libraries/models.py:444
 msgid "Inappropriate"
 msgstr "Inappropriato"
 
-#: libraries/models.py:435
+#: libraries/models.py:445
 msgid "Other"
 msgstr "Altro"
 
-#: libraries/models.py:438
+#: libraries/models.py:448
 msgid "Open"
 msgstr "Aperto"
 
-#: libraries/models.py:439
+#: libraries/models.py:449
 msgid "Resolved"
 msgstr "Risolto"
 
-#: libraries/models.py:440
+#: libraries/models.py:450
 msgid "Dismissed"
 msgstr "Archiviato"
 
@@ -449,7 +449,7 @@ msgid "Libraries you added or edited, with their current moderation status."
 msgstr "Librerie che hai aggiunto o modificato, con il loro stato di moderazione attuale."
 
 #: libraries/templates/libraries/dashboard.html:68
-#: libraries/templates/libraries/dashboard.html:134 libraries/views.py:819
+#: libraries/templates/libraries/dashboard.html:134 libraries/views.py:828
 #: templates/about.html:76 templates/home.html:36
 msgid "Submit a library"
 msgstr "Invia una libreria"
@@ -900,93 +900,101 @@ msgstr "Grazie per il contributo. La tua libreria è stata inviata ai moderatori
 msgid "Continue"
 msgstr "Continua"
 
-#: libraries/views.py:579
+#: libraries/views.py:580
 msgid "Your changes were saved for review. The approved library remains live until moderators approve the update."
 msgstr "Le tue modifiche sono state salvate per la revisione. La libreria approvata rimane visibile finché i moderatori non approvano l'aggiornamento."
 
-#: libraries/views.py:585
+#: libraries/views.py:584
+msgid "No new changes were saved. Your existing changes remain under moderator review."
+msgstr "Non sono state salvate nuove modifiche. Le modifiche esistenti rimangono in attesa di revisione."
+
+#: libraries/views.py:588
+msgid "No changes were found. The approved library remains live."
+msgstr "Non sono state rilevate modifiche. La libreria approvata rimane visibile."
+
+#: libraries/views.py:594
 msgid "Your changes were saved and remain under moderator review."
 msgstr "Le tue modifiche sono state salvate e restano in attesa di revisione da parte dei moderatori."
 
-#: libraries/views.py:597 manage/templates/manage/libraries/edit.html:4
+#: libraries/views.py:606 manage/templates/manage/libraries/edit.html:4
 #: manage/templates/manage/libraries/edit.html:15
 #: manage/templates/manage/libraries/edit.html:31
 msgid "Edit library"
 msgstr "Modifica libreria"
 
-#: libraries/views.py:600
+#: libraries/views.py:609
 msgid "Update your library details. The current approved version stays live while your changes are reviewed."
 msgstr "Aggiorna i dettagli della tua libreria. La versione attualmente approvata rimane visibile mentre le modifiche vengono revisionate."
 
-#: libraries/views.py:604
+#: libraries/views.py:613
 msgid "Update your library details. Changes will be sent back to moderators before they appear publicly."
 msgstr "Aggiorna i dettagli della tua libreria. Le modifiche saranno inviate di nuovo ai moderatori prima di apparire pubblicamente."
 
-#: libraries/views.py:609
+#: libraries/views.py:618
 msgid "Only your proposed changes are reviewed. They replace the current details after moderator approval."
 msgstr "Vengono revisionate solo le modifiche proposte. Sostituiranno i dettagli attuali dopo l'approvazione dei moderatori."
 
-#: libraries/views.py:613
+#: libraries/views.py:622
 msgid "Changes are reviewed before they become live. After you save, moderators will approve the update before it appears publicly."
 msgstr "Le modifiche vengono revisionate prima di diventare visibili. Dopo il salvataggio, i moderatori approveranno l'aggiornamento prima che appaia pubblicamente."
 
-#: libraries/views.py:616
+#: libraries/views.py:625
 msgid "Edit a library you submitted on Book Corners."
 msgstr "Modifica una libreria che hai inviato su Book Corners."
 
-#: libraries/views.py:617 manage/templates/manage/libraries/edit.html:194
+#: libraries/views.py:626 manage/templates/manage/libraries/edit.html:194
 msgid "Save changes"
 msgstr "Salva modifiche"
 
-#: libraries/views.py:618
+#: libraries/views.py:627
 msgid "Replace photo (optional)"
 msgstr "Sostituisci foto (opzionale)"
 
-#: libraries/views.py:619
+#: libraries/views.py:628
 msgid "Leave this empty to keep the current photo."
 msgstr "Lascia vuoto questo campo per mantenere la foto attuale."
 
-#: libraries/views.py:620
+#: libraries/views.py:629
 msgid "Update exact location"
 msgstr "Aggiorna posizione esatta"
 
-#: libraries/views.py:621
+#: libraries/views.py:630
 msgid "Use the map to adjust the saved point, or keep the marker where it is."
 msgstr "Usa la mappa per regolare il punto salvato, oppure lascia il marker dov'è."
 
-#: libraries/views.py:622
+#: libraries/views.py:631
 msgid "Saved marker loaded. Drag it or click the map to adjust the location."
 msgstr "Marker salvato caricato. Trascinalo o fai clic sulla mappa per regolare la posizione."
 
-#: libraries/views.py:820
+#: libraries/views.py:829
 msgid "Share a little free library with the community. Set the exact point on the map before submitting."
 msgstr "Condividi una casetta dei libri con la community. Imposta il punto esatto sulla mappa prima di inviare."
 
-#: libraries/views.py:821
+#: libraries/views.py:830
 msgid "Submit a little free library to Book Corners with a photo, location, and address details."
 msgstr "Invia una casetta dei libri a Book Corners con foto, posizione e dettagli dell'indirizzo."
 
-#: libraries/views.py:822
+#: libraries/views.py:831
 msgid "Submit library"
 msgstr "Invia libreria"
 
-#: libraries/views.py:823
+#: libraries/views.py:832
 msgid "Photo (required)"
 msgstr "Foto (obbligatoria)"
 
-#: libraries/views.py:825
+#: libraries/views.py:834
 msgid "Upload a clear photo showing the library. It helps moderators verify it and helps visitors recognise it."
 msgstr "Carica una foto nitida che mostri la libreria. Aiuta i moderatori a verificarla e i visitatori a riconoscerla."
 
-#: libraries/views.py:827
+#: libraries/views.py:836
 msgid "Set exact location"
 msgstr "Imposta posizione esatta"
 
-#: libraries/views.py:828
+#: libraries/views.py:837
 msgid "Type an address and choose a suggestion to center the map. Drag the marker to refine the exact point."
 msgstr "Digita un indirizzo e scegli un suggerimento per centrare la mappa. Trascina il marcatore per affinare il punto esatto."
 
-#: libraries/views.py:829
+#: libraries/views.py:838
 msgid "Choose the map point by centering from address, dragging marker, or clicking map."
 msgstr "Scegli il punto sulla mappa centrando dall'indirizzo, trascinando il marcatore o cliccando sulla mappa."
 
@@ -1679,20 +1687,20 @@ msgstr "Modifiche alla libreria rifiutate."
 msgid "Library rejected."
 msgstr "Libreria rifiutata."
 
-#: manage/views/libraries.py:347
+#: manage/views/libraries.py:349
 msgid "Library details saved."
 msgstr "Dettagli della libreria salvati."
 
-#: manage/views/libraries.py:367
+#: manage/views/libraries.py:369
 msgid "Please select a GeoJSON file to upload."
 msgstr "Seleziona un file GeoJSON da caricare."
 
-#: manage/views/libraries.py:374
+#: manage/views/libraries.py:376
 #, python-format
 msgid "Invalid GeoJSON file: %(error)s"
 msgstr "File GeoJSON non valido: %(error)s"
 
-#: manage/views/libraries.py:403
+#: manage/views/libraries.py:405
 #, python-format
 msgid "Import of %(count)d features has been queued for background processing."
 msgstr "L'importazione di %(count)d elementi è stata messa in coda per l'elaborazione."
