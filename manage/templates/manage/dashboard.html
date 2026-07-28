@@ -51,6 +51,9 @@
                 <div class="min-w-0">
                   <p class="truncate font-medium">{{ library.name|default:library.address }}</p>
                   <p class="text-base-content/60">{{ library.city }}, {{ library.country }}</p>
+                  <span class="badge badge-sm {% if library.has_pending_update %}badge-info{% else %}badge-warning{% endif %}">
+                    {% if library.has_pending_update %}{% trans "Changes pending" %}{% else %}{% trans "New submission" %}{% endif %}
+                  </span>
                 </div>
                 <span class="shrink-0 text-xs text-base-content/50">{{ library.created_at|timesince }} {% trans "ago" %}</span>
               </a>

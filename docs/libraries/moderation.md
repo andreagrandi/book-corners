@@ -35,7 +35,7 @@ Return moderation dashboard counts for staff clients.
 
 `GET /api/v1/libraries/moderation`
 
-Return a paginated staff list of libraries across all moderation statuses.
+Return a paginated staff list of libraries across all moderation statuses. Approved libraries with staged owner edits appear as pending items using their proposed values, while their persisted public values remain approved.
 
 **Auth required:** Yes (`Bearer` token, staff account)
 
@@ -50,7 +50,7 @@ Return a paginated staff list of libraries across all moderation statuses.
 | `page` | int | `1` | Page number (1–1000) |
 | `page_size` | int | `20` | Items per page (1–50) |
 
-`GET /api/v1/libraries/moderation/pending` is also available as a convenience shortcut for pending submissions. It accepts the same `q`, `country`, `source`, `page`, and `page_size` parameters.
+`GET /api/v1/libraries/moderation/pending` is also available as a convenience shortcut for new pending submissions and staged edits to approved libraries. It accepts the same `q`, `country`, `source`, `page`, and `page_size` parameters.
 
 ### Response (`200 OK`)
 
@@ -106,19 +106,19 @@ Each item uses the standard library response fields plus `status`, `rejection_re
 
 `GET /api/v1/libraries/moderation/{slug}`
 
-Return any library by slug for staff users, including pending and rejected libraries hidden from the public detail endpoint.
+Return any library by slug for staff users, including pending and rejected libraries hidden from the public detail endpoint. When an approved library has staged edits, this endpoint returns the proposed values with `status: "pending"` for review.
 
 ## Update library status
 
 `PATCH /api/v1/libraries/moderation/{slug}`
 
-Set a library moderation status by slug.
+Set a library moderation status by slug. For a new pending submission, this updates the library status normally. For staged edits to an approved library, `approved` applies the proposed fields and photo to the existing library, while `rejected` discards only the proposed update and leaves the existing library approved. Sending `pending` for an already staged edit is idempotent: it returns the pending preview with `200 OK` without changing the approved row, staged payload, or update timestamp.
 
 **Auth required:** Yes (`Bearer` token, staff account)
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `status` | string | Yes | New status: `pending`, `approved`, or `rejected` |
+| `status` | string | Yes | New status: `pending`, `approved`, or `rejected`. `pending` is a no-op when an edit is already staged. |
 | `rejection_reason` | string | No | Optional reason stored when rejecting the library |
 
 === "Approve"

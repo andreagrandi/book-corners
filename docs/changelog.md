@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.17.0
+
+- Updates to approved libraries now stage only the proposed fields and replacement photo for moderation. The existing approved library remains publicly available with the same ID and slug until the update is approved; rejecting the update discards only the proposal.
+- Staff moderation lists and detail responses expose staged values as pending previews, and moderation approval or rejection applies to the proposal without withdrawing the live library.
+- Unchanged approved-library edits no longer create moderator notifications or move the item in the review queue.
+- The moderation dashboard now previews proposed values, and library queue rows distinguish new submissions from staged edits.
+- Replacing a library's live photo now removes superseded unreferenced files after the database update commits while preserving files shared with community photos.
+- Setting a staged library update to `pending` through the moderation API is now documented and tested as an idempotent `200 OK` operation.
+
 ## v1.16.0
 
 - Library, replacement, report, and community photo uploads now accept files up to 10 MB in JPEG, PNG, WebP, HEIC, and HEIF formats. Accepted photos are normalized to optimized JPEGs targeting a stored size of about 500 KB for consistent storage and browser rendering.
@@ -27,7 +36,7 @@
 
 ## v1.11.0
 
-- Library update endpoint (`PATCH /api/v1/libraries/{slug}`) allows authenticated submitters to edit their own pending or approved library submissions. Successful edits return the library to pending moderation, and replacement photos are optional.
+- Library update endpoint (`PATCH /api/v1/libraries/{slug}`) allows authenticated submitters to edit their own pending or approved library submissions, with optional replacement photos. Approved-library edits were changed in v1.17.0 to keep the live version available during review.
 
 ## v1.10.0
 

@@ -119,7 +119,7 @@ def test_submit_form_happy_path(live_server, authenticated_page, tmp_path):
 
 def test_edit_library_happy_path(live_server, authenticated_page, e2e_user):
     """Verify owners can edit a submitted library through the browser.
-    Confirms the edit form saves changes and returns approved rows to pending."""
+    Confirms approved values stay live while proposed edits await moderation."""
     library = Library.objects.create(
         name="Editable E2E Library",
         description="Original browser description.",
@@ -135,7 +135,9 @@ def test_edit_library_happy_path(live_server, authenticated_page, e2e_user):
     authenticated_page.goto(f"{live_server.url}/library/{library.slug}/")
     authenticated_page.click(f"a[href='/library/{library.slug}/edit/']")
     authenticated_page.wait_for_url(f"**/library/{library.slug}/edit/")
-    assert authenticated_page.get_by_text("Changes are reviewed before they become live").is_visible()
+    assert authenticated_page.get_by_text(
+        "The current approved version stays live"
+    ).is_visible()
 
     authenticated_page.locator(
         "#submit-library-map.leaflet-container"
@@ -155,11 +157,19 @@ def test_edit_library_happy_path(live_server, authenticated_page, e2e_user):
     ).click()
 
     authenticated_page.wait_for_url(f"**/library/{library.slug}/", timeout=15000)
-    assert authenticated_page.get_by_text("Your changes were saved and sent for review").is_visible()
+    assert authenticated_page.get_by_text(
+        "The approved library remains live"
+    ).is_visible()
     library.refresh_from_db()
-    assert library.description == "Updated browser description."
-    assert library.address == "Via Rosina 20"
-    assert library.status == Library.Status.PENDING
+    assert library.description == "Original browser description."
+    assert library.address == "Via Rosina 15"
+    assert library.status == Library.Status.APPROVED
+    assert library.pending_changes == {
+        "address": "Via Rosina 20",
+        "description": "Updated browser description.",
+        "latitude": 43.77,
+        "longitude": 11.26,
+    }
 
 
 def _create_minimal_jpeg(path):

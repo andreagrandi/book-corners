@@ -4,7 +4,7 @@ from django.contrib.gis.geos import Point
 from django.core import mail
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import override_settings
+from django.test import Client, override_settings
 from django.test.client import BOUNDARY, MULTIPART_CONTENT, encode_multipart
 from ninja_jwt.tokens import RefreshToken
 
@@ -408,9 +408,14 @@ class TestLibraryUpdateEndpoint:
         assert pending_library.capacity == 42
         assert pending_library.status == Library.Status.PENDING
 
-    def test_owner_editing_approved_library_resets_to_pending(self, client, approved_library, user_jwt):
-        """Verify approved library edits return to pending status.
-        Moderation is required again before edits become public."""
+    def test_owner_editing_approved_library_stages_changes_and_keeps_it_live(
+        self,
+        client,
+        approved_library,
+        user_jwt,
+    ):
+        """Verify approved-library API edits stage only proposed values.
+        The persisted approved record stays public until moderator approval."""
         response = _patch_multipart(
             client,
             f"/api/v1/libraries/{approved_library.slug}",
@@ -421,7 +426,11 @@ class TestLibraryUpdateEndpoint:
         approved_library.refresh_from_db()
         assert response.status_code == 200
         assert response.json()["name"] == "API Edited Library"
-        assert approved_library.status == Library.Status.PENDING
+        assert approved_library.name == "Approved Library"
+        assert approved_library.status == Library.Status.APPROVED
+        assert approved_library.pending_changes == {
+            "name": "API Edited Library",
+        }
 
     @override_settings(
         ADMIN_NOTIFICATION_EMAIL="admin@example.com",
@@ -445,6 +454,34 @@ class TestLibraryUpdateEndpoint:
         assert "API Notification Library" in message.subject
         assert f"/manage/libraries/{approved_library.pk}/" in message.body
         assert message.to == ["admin@example.com"]
+
+    @override_settings(
+        ADMIN_NOTIFICATION_EMAIL="admin@example.com",
+        SITE_URL="https://example.com",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    )
+    def test_no_op_approved_update_does_not_notify_admins(
+        self,
+        client: Client,
+        approved_library: Library,
+        user_jwt: str,
+    ) -> None:
+        """Verify unchanged approved-library API edits send no notification.
+        Prevents empty proposals from creating moderator noise."""
+        original_updated_at = approved_library.updated_at
+
+        response = _patch_multipart(
+            client,
+            f"/api/v1/libraries/{approved_library.slug}",
+            {"name": approved_library.name},
+            user_jwt,
+        )
+
+        approved_library.refresh_from_db()
+        assert response.status_code == 200
+        assert approved_library.pending_changes is None
+        assert approved_library.updated_at == original_updated_at
+        assert len(mail.outbox) == 0
 
     def test_non_owner_cannot_update_library(self, client, pending_library, other_user_jwt):
         """Verify non-owners receive a not-found response.
@@ -532,6 +569,34 @@ class TestLibraryUpdateEndpoint:
         assert pending_library.photo.name
         assert "api-replacement" in pending_library.photo.name
         assert pending_library.photo_thumbnail.name
+
+    def test_photo_replacement_for_approved_library_is_staged(
+        self,
+        client,
+        approved_library,
+        user_jwt,
+        tmp_path,
+        settings,
+    ):
+        """Verify approved-library replacement photos await moderation.
+        The currently approved primary photo remains public in the meantime."""
+        settings.MEDIA_ROOT = tmp_path / "media"
+        original_photo_name = approved_library.photo.name
+
+        response = _patch_multipart(
+            client,
+            f"/api/v1/libraries/{approved_library.slug}",
+            {"photo": _build_uploaded_photo(file_name="pending-replacement.jpg")},
+            user_jwt,
+        )
+
+        approved_library.refresh_from_db()
+        assert response.status_code == 200
+        assert approved_library.photo.name == original_photo_name
+        assert approved_library.pending_photo.name
+        assert approved_library.pending_photo_thumbnail.name
+        assert approved_library.pending_changes == {}
+        assert response.json()["photo_url"] == approved_library.pending_photo.url
 
     def test_invalid_photo_format_returns_400(self, client, pending_library, user_jwt):
         """Verify invalid replacement photos are rejected.

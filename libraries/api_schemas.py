@@ -140,7 +140,7 @@ class LibraryModerationStatusEnum(str, Enum):
 
 class LibraryModerationOut(LibraryOut):
     """Serialized library representation for staff moderation.
-    Adds moderation-only fields to the public library payload."""
+    Staged edits use proposed values and report pending without hiding live data."""
 
     status: str = Field(description="Current moderation status of the library.", examples=["pending"])
     rejection_reason: str = Field(description="Reason shown to the submitter when rejected.", examples=["Photo does not show a book corner."])
@@ -171,7 +171,13 @@ class LibraryModerationUpdateIn(Schema):
     """Payload for updating a library moderation status.
     Staff clients send the target status and optional rejection reason."""
 
-    status: LibraryModerationStatusEnum = Field(description="New moderation status: pending, approved, or rejected.", examples=["approved"])
+    status: LibraryModerationStatusEnum = Field(
+        description=(
+            "New moderation status: pending, approved, or rejected. "
+            "Pending is idempotent when an approved library already has staged edits."
+        ),
+        examples=["approved"],
+    )
     rejection_reason: str = Field(default="", max_length=2000, description="Optional reason stored when rejecting the library.", examples=["Duplicate submission."])
 
 
@@ -380,7 +386,7 @@ class ContributionPaginationParams(Schema):
 
 class ContributionLibraryOut(LibraryOut):
     """Serialized current-user library submission with moderation state.
-    Extends the standard library payload with status details for the owner."""
+    Staged edits preview proposed values as pending for the owner."""
 
     status: str = Field(description="Current moderation status of the library.", examples=["pending"])
     rejection_reason: str = Field(description="Reason shown when the library is rejected, or an empty string.", examples=["Duplicate submission."])

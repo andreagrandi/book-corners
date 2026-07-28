@@ -12,7 +12,13 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils.translation import gettext_lazy as _
 
 from libraries.image_processing import build_optimized_photo_file
-from libraries.models import Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
+from libraries.models import (
+    LIBRARY_EDITABLE_FIELDS,
+    MAX_LIBRARY_PHOTOS_PER_USER,
+    Library,
+    LibraryPhoto,
+    Report,
+)
 
 
 COUNTRY_CHOICES = [
@@ -253,6 +259,25 @@ class LibrarySubmissionForm(forms.ModelForm):
             library.save()
 
         return library
+
+    def save_pending_update(self, *, library: Library) -> bool:
+        """Stage approved-library edits for moderator review.
+        Returns whether the pending proposal changed."""
+        changes = {
+            field_name: self.cleaned_data[field_name]
+            for field_name in LIBRARY_EDITABLE_FIELDS
+        }
+        changes.update(
+            {
+                "latitude": self.cleaned_data["latitude"],
+                "longitude": self.cleaned_data["longitude"],
+            }
+        )
+        uploaded_photo = None
+        if self.files.get(self.add_prefix("photo")) is not None:
+            uploaded_photo = self.cleaned_data["photo"]
+
+        return library.stage_update(changes=changes, photo=uploaded_photo)
 
 
 class ReportSubmissionForm(forms.ModelForm):

@@ -1,4 +1,6 @@
 from io import BytesIO
+from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -8,7 +10,7 @@ from django.contrib.gis.geos import Point
 from django.core import mail
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import RequestFactory, override_settings
+from django.test import Client, RequestFactory, override_settings
 from django.urls import reverse
 from PIL import ExifTags, Image
 from PIL.TiffImagePlugin import IFDRational
@@ -330,6 +332,92 @@ class TestLibraryModel:
         assert library.photo_thumbnail == ""
         assert library.card_photo_url.endswith("/libraries/photos/2026/02/test.jpg")
 
+    def test_applying_staged_photo_deletes_superseded_live_files(
+        self,
+        user: Any,
+        settings: Any,
+        tmp_path: Path,
+        django_capture_on_commit_callbacks: Any,
+    ) -> None:
+        """Verify staged-photo approval cleans up replaced live files.
+        Runs deletion after commit while retaining the newly approved files."""
+        settings.MEDIA_ROOT = tmp_path / "media"
+        library = Library.objects.create(
+            name="Photo Cleanup Shelf",
+            photo=_build_uploaded_photo(file_name="live-photo.jpg"),
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        old_photo_name = library.photo.name
+        old_thumbnail_name = library.photo_thumbnail.name
+        storage = library.photo.storage
+        library.stage_update(
+            changes={},
+            photo=_build_uploaded_photo(file_name="staged-photo.jpg"),
+        )
+        staged_photo_name = library.pending_photo.name
+        staged_thumbnail_name = library.pending_photo_thumbnail.name
+
+        with django_capture_on_commit_callbacks(execute=True):
+            library.apply_pending_update()
+
+        assert not storage.exists(old_photo_name)
+        assert not storage.exists(old_thumbnail_name)
+        assert storage.exists(staged_photo_name)
+        assert storage.exists(staged_thumbnail_name)
+
+    def test_replacing_live_photo_keeps_files_referenced_by_community_photo(
+        self,
+        user: Any,
+        settings: Any,
+        tmp_path: Path,
+        django_capture_on_commit_callbacks: Any,
+    ) -> None:
+        """Verify shared community-photo files survive primary replacement.
+        Prevents cleanup from breaking another model that references the files."""
+        settings.MEDIA_ROOT = tmp_path / "media"
+        library = Library.objects.create(
+            name="Shared Photo Shelf",
+            photo=_build_uploaded_photo(file_name="shared-photo.jpg"),
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        old_photo_name = library.photo.name
+        old_thumbnail_name = library.photo_thumbnail.name
+        storage = library.photo.storage
+        LibraryPhoto.objects.create(
+            library=library,
+            created_by=user,
+            photo=old_photo_name,
+            photo_thumbnail=old_thumbnail_name,
+        )
+
+        with django_capture_on_commit_callbacks(execute=True):
+            library.photo = _build_uploaded_photo(file_name="new-primary.jpg")
+            library.save()
+
+        assert storage.exists(old_photo_name)
+        assert storage.exists(old_thumbnail_name)
+
+    def test_deferred_photo_fields_do_not_trigger_recursive_refresh(
+        self,
+        library: Library,
+    ) -> None:
+        """Verify partial library queries can defer both photo fields.
+        Prevents photo snapshots from recursively loading omitted columns."""
+        deferred_library = Library.objects.only("created_at").get(pk=library.pk)
+
+        assert deferred_library.pk == library.pk
+        assert deferred_library.created_at == library.created_at
+
     def test_slug_uniqueness_adds_numeric_suffix(self, user):
         """Verify slug uniqueness adds numeric suffix.
         Confirms the expected behavior stays stable."""
@@ -540,6 +628,26 @@ class TestLibraryAdmin:
         """Verify approve libraries action.
         Confirms the expected behavior stays stable."""
         url = reverse("admin:libraries_library_changelist")
+        response = admin_client.post(url, {
+            "action": "approve_libraries",
+            "_selected_action": [admin_library.pk],
+        })
+
+        assert response.status_code == 302
+        admin_library.refresh_from_db()
+        assert admin_library.status == Library.Status.APPROVED
+
+    def test_approve_libraries_action_restores_rejected_library(
+        self,
+        admin_client: Client,
+        admin_library: Library,
+    ) -> None:
+        """Verify admin bulk approval restores a rejected library.
+        Keeps the bulk action aligned with single-library approval."""
+        admin_library.status = Library.Status.REJECTED
+        admin_library.save(update_fields=["status", "updated_at"])
+        url = reverse("admin:libraries_library_changelist")
+
         response = admin_client.post(url, {
             "action": "approve_libraries",
             "_selected_action": [admin_library.pk],
@@ -2348,7 +2456,7 @@ class TestEditLibraryView:
 
         detail_response = client.get(response.url)
         detail_content = detail_response.content.decode()
-        assert "Your changes were saved and sent for review" in detail_content
+        assert "Your changes were saved and remain under moderator review" in detail_content
 
     @override_settings(
         ADMIN_NOTIFICATION_EMAIL="admin@example.com",
@@ -2393,9 +2501,66 @@ class TestEditLibraryView:
         assert f"/manage/libraries/{library.pk}/" in message.body
         assert message.to == ["admin@example.com"]
 
-    def test_owner_editing_approved_library_resets_to_pending(self, client, user):
-        """Verify approved owner edits require moderation again.
-        Publicly visible submissions return to pending after successful edits."""
+    @override_settings(
+        ADMIN_NOTIFICATION_EMAIL="admin@example.com",
+        SITE_URL="https://example.com",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    )
+    def test_no_op_approved_edit_does_not_notify_admins(
+        self,
+        client: Client,
+        user: Any,
+    ) -> None:
+        """Verify unchanged approved-library form saves send no notification.
+        Gives owners accurate feedback without creating moderator noise."""
+        library = Library.objects.create(
+            name="Unchanged Edit Shelf",
+            description="Existing description.",
+            photo="libraries/photos/2026/02/unchanged-edit.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            postal_code="50123",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        original_updated_at = library.updated_at
+        client.force_login(user)
+
+        response = client.post(
+            reverse("edit_library", kwargs={"slug": library.slug}),
+            data={
+                "name": library.name,
+                "description": library.description,
+                "address": library.address,
+                "city": library.city,
+                "country": library.country,
+                "postal_code": library.postal_code,
+                "latitude": "43.7696",
+                "longitude": "11.2558",
+            },
+        )
+
+        library.refresh_from_db()
+        assert response.status_code == 302
+        assert library.pending_changes is None
+        assert library.updated_at == original_updated_at
+        assert len(mail.outbox) == 0
+
+        detail_response = client.get(response.url)
+        detail_content = detail_response.content.decode()
+        assert "No changes were found. The approved library remains live." in (
+            detail_content
+        )
+
+    def test_owner_editing_approved_library_stages_changes_and_keeps_it_live(
+        self,
+        client,
+        user,
+    ):
+        """Verify approved owner edits are staged without replacing live values.
+        Public visibility remains while only the proposed changes await review."""
         library = Library.objects.create(
             name="Approved Edit Shelf",
             description="Before approved edit.",
@@ -2425,8 +2590,21 @@ class TestEditLibraryView:
 
         assert response.status_code == 302
         library.refresh_from_db()
-        assert library.name == "Approved Edited Shelf"
-        assert library.status == Library.Status.PENDING
+        assert library.name == "Approved Edit Shelf"
+        assert library.description == "Before approved edit."
+        assert library.status == Library.Status.APPROVED
+        assert library.pending_changes == {
+            "description": "Updated approved library.",
+            "name": "Approved Edited Shelf",
+        }
+
+        public_response = client.get(
+            reverse("library_detail", kwargs={"slug": library.slug})
+        )
+        public_content = public_response.content.decode()
+        assert public_response.status_code == 200
+        assert "Approved Edit Shelf" in public_content
+        assert "Approved Edited Shelf" not in public_content
 
     def test_owner_can_replace_photo_on_edit(self, client, user, settings, tmp_path):
         """Verify edit submissions can replace the primary photo.
@@ -2543,6 +2721,9 @@ class TestLibraryReportSubmission:
         assert report.created_by == reporter
         assert report.reason == Report.Reason.DAMAGED
         assert report.status == Report.Status.OPEN
+        library.refresh_from_db()
+        assert library.status == Library.Status.APPROVED
+        assert library.pending_changes is None
 
     def test_inline_report_photo_is_normalized_and_compressed(
         self,

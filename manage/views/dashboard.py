@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -11,13 +12,20 @@ from users.models import User
 def dashboard(request: HttpRequest) -> HttpResponse:
     """Render the custom admin dashboard with moderation queue summaries.
     Routes the summary card to the only active queue when one is available."""
-    pending_libraries = Library.objects.filter(status=Library.Status.PENDING)
+    pending_libraries = Library.objects.filter(
+        Q(status=Library.Status.PENDING)
+        | Q(pending_changes__isnull=False)
+    ).order_by("-updated_at", "-created_at")
+    pending_libraries_recent = [
+        library.moderation_preview()
+        for library in pending_libraries.select_related("created_by")[:5]
+    ]
     open_reports = Report.objects.filter(status=Report.Status.OPEN)
     pending_photos = LibraryPhoto.objects.filter(status=LibraryPhoto.Status.PENDING)
 
     context = {
         "pending_libraries_count": pending_libraries.count(),
-        "pending_libraries_recent": pending_libraries.select_related("created_by")[:5],
+        "pending_libraries_recent": pending_libraries_recent,
         "open_reports_count": open_reports.count(),
         "open_reports_recent": open_reports.select_related("library", "created_by")[:5],
         "pending_photos_count": pending_photos.count(),

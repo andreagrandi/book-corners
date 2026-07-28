@@ -1,6 +1,9 @@
+from typing import Any
+
 import pytest
 from django.contrib.gis.geos import Point
 from django.core.cache import cache
+from django.test import Client
 from ninja_jwt.tokens import RefreshToken
 
 from libraries.models import Library, LibraryPhoto, Report
@@ -233,6 +236,37 @@ class TestLibraryModerationListEndpoint:
         assert [item["slug"] for item in body["items"]] == [pending_library.slug]
         assert body["items"][0]["created_by"]["username"] == "testuser"
 
+    def test_pending_list_includes_proposed_approved_library_changes(
+        self,
+        client,
+        admin_user,
+        approved_library,
+    ):
+        """Verify staged approved-library edits appear as pending previews.
+        The moderation queue exposes proposed values while live data stays intact."""
+        approved_library.stage_update(
+            changes={
+                "name": "Proposed Moderation Library",
+                "city": "Lyon",
+            }
+        )
+
+        response = client.get(
+            "/api/v1/libraries/moderation/pending",
+            **_auth_header(user=admin_user),
+        )
+
+        body = response.json()
+        approved_library.refresh_from_db()
+        assert response.status_code == 200
+        assert body["items"][0]["slug"] == approved_library.slug
+        assert body["items"][0]["name"] == "Proposed Moderation Library"
+        assert body["items"][0]["city"] == "Lyon"
+        assert body["items"][0]["status"] == Library.Status.PENDING
+        assert approved_library.name == "Approved Moderation Library"
+        assert approved_library.city == "Paris"
+        assert approved_library.status == Library.Status.APPROVED
+
     def test_staff_can_search_libraries(
         self, client, admin_user, pending_library, approved_library
     ):
@@ -323,6 +357,36 @@ class TestLibraryModerationUpdateEndpoint:
         assert body["status"] == Library.Status.APPROVED
         assert pending_library.status == Library.Status.APPROVED
 
+    def test_staff_can_approve_staged_changes_without_republishing_library(
+        self,
+        client,
+        admin_user,
+        approved_library,
+    ):
+        """Verify approving a staged edit updates the existing live record.
+        The library keeps its approved status and stable public identity."""
+        original_slug = approved_library.slug
+        approved_library.stage_update(
+            changes={"name": "Approved Proposed Name"}
+        )
+
+        response = client.patch(
+            f"/api/v1/libraries/moderation/{approved_library.slug}",
+            data={"status": "approved"},
+            content_type="application/json",
+            **_auth_header(user=admin_user),
+        )
+
+        body = response.json()
+        approved_library.refresh_from_db()
+        assert response.status_code == 200
+        assert body["name"] == "Approved Proposed Name"
+        assert body["status"] == Library.Status.APPROVED
+        assert approved_library.name == "Approved Proposed Name"
+        assert approved_library.slug == original_slug
+        assert approved_library.status == Library.Status.APPROVED
+        assert approved_library.pending_changes is None
+
     def test_staff_can_reject_pending_library_with_reason(
         self, client, admin_user, pending_library
     ):
@@ -346,6 +410,36 @@ class TestLibraryModerationUpdateEndpoint:
         assert pending_library.status == Library.Status.REJECTED
         assert pending_library.rejection_reason == "Duplicate submission."
 
+    def test_staff_can_reject_staged_changes_without_rejecting_library(
+        self,
+        client,
+        admin_user,
+        approved_library,
+    ):
+        """Verify rejecting proposed edits discards only the staged payload.
+        The existing approved library and its public values remain available."""
+        approved_library.stage_update(
+            changes={"description": "Proposed description."}
+        )
+
+        response = client.patch(
+            f"/api/v1/libraries/moderation/{approved_library.slug}",
+            data={
+                "status": "rejected",
+                "rejection_reason": "The proposed description is inaccurate.",
+            },
+            content_type="application/json",
+            **_auth_header(user=admin_user),
+        )
+
+        body = response.json()
+        approved_library.refresh_from_db()
+        assert response.status_code == 200
+        assert body["status"] == Library.Status.APPROVED
+        assert approved_library.description == ""
+        assert approved_library.status == Library.Status.APPROVED
+        assert approved_library.pending_changes is None
+
     def test_staff_can_return_library_to_pending(self, client, admin_user, approved_library):
         """Verify staff users can move a library back to pending.
         The API exposes all model moderation statuses for staff clients."""
@@ -359,6 +453,36 @@ class TestLibraryModerationUpdateEndpoint:
         approved_library.refresh_from_db()
         assert response.status_code == 200
         assert approved_library.status == Library.Status.PENDING
+
+    def test_pending_is_idempotent_for_staged_changes(
+        self,
+        client: Client,
+        admin_user: Any,
+        approved_library: Library,
+    ) -> None:
+        """Verify pending preserves an already staged moderation proposal.
+        Returns its preview without mutating the approved live record."""
+        approved_library.stage_update(
+            changes={"name": "Still Pending Proposed Name"}
+        )
+        original_updated_at = approved_library.updated_at
+        original_pending_changes = dict(approved_library.pending_changes or {})
+
+        response = client.patch(
+            f"/api/v1/libraries/moderation/{approved_library.slug}",
+            data={"status": "pending"},
+            content_type="application/json",
+            **_auth_header(user=admin_user),
+        )
+
+        body = response.json()
+        approved_library.refresh_from_db()
+        assert response.status_code == 200
+        assert body["status"] == Library.Status.PENDING
+        assert body["name"] == "Still Pending Proposed Name"
+        assert approved_library.status == Library.Status.APPROVED
+        assert approved_library.pending_changes == original_pending_changes
+        assert approved_library.updated_at == original_updated_at
 
     def test_invalid_status_returns_422(self, client, admin_user, pending_library):
         """Verify unsupported moderation statuses are rejected.

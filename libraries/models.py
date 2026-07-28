@@ -1,9 +1,15 @@
 import uuid
+from copy import copy
+from functools import partial
+from typing import Any
 
 from django.conf import settings
 from django.contrib.gis.db.models import PointField
+from django.contrib.gis.geos import Point
 from django.contrib.staticfiles.storage import staticfiles_storage
-from django.db import models
+from django.core.files.storage import Storage
+from django.db import models, transaction
+from django.db.models import Q
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
@@ -12,6 +18,22 @@ from libraries.image_processing import build_library_photo_files
 MAX_LIBRARY_PHOTOS_PER_USER = 3
 LIBRARY_PLACEHOLDER_IMAGE = "images/library-placeholder.png"
 LIBRARY_PLACEHOLDER_IMAGE_WEBP = "images/library-placeholder.webp"
+LIBRARY_EDITABLE_FIELDS = (
+    "name",
+    "description",
+    "address",
+    "city",
+    "country",
+    "postal_code",
+    "wheelchair_accessible",
+    "capacity",
+    "is_indoor",
+    "is_lit",
+    "website",
+    "contact",
+    "operator",
+    "brand",
+)
 
 
 class Library(models.Model):
@@ -36,6 +58,17 @@ class Library(models.Model):
         blank=True,
         default="",
     )
+    pending_photo = models.ImageField(
+        upload_to="libraries/pending_photos/%Y/%m/",
+        blank=True,
+        default="",
+    )
+    pending_photo_thumbnail = models.ImageField(
+        upload_to="libraries/pending_photos/thumbnails/%Y/%m/",
+        blank=True,
+        default="",
+    )
+    pending_changes = models.JSONField(null=True, blank=True, default=None)
     location = PointField(srid=4326)
     address = models.CharField(max_length=255, blank=True, default="")
     city = models.CharField(max_length=100)
@@ -84,6 +117,7 @@ class Library(models.Model):
             models.Index(fields=["city", "address"], name="idx_lib_city_address"),
             models.Index(fields=["country"], name="idx_lib_country"),
             models.Index(fields=["-created_at"], name="idx_lib_created_at_desc"),
+            models.Index(fields=["-updated_at"], name="idx_lib_updated_at_desc"),
             models.Index(fields=["source"], name="idx_lib_source"),
             models.Index(fields=["status", "-created_at"], name="idx_lib_status_created"),
             models.Index(fields=["created_by", "-created_at"], name="idx_lib_creator_created"),
@@ -95,7 +129,10 @@ class Library(models.Model):
         """Initialize instance and snapshot the current photo name.
         Allows cheap in-memory change detection on save."""
         super().__init__(*args, **kwargs)
-        self._original_photo_name = self.photo.name if self.photo else ""
+        self._original_photo_name = self._loaded_file_name(field_name="photo")
+        self._original_photo_thumbnail_name = self._loaded_file_name(
+            field_name="photo_thumbnail"
+        )
 
     def __str__(self) -> str:
         """Return a readable string representation.
@@ -109,6 +146,9 @@ class Library(models.Model):
     def save(self, *args, **kwargs) -> None:
         """Persist the model instance.
         Applies model-specific rules before writing data."""
+        was_adding = self._state.adding
+        old_photo_name = self._original_photo_name
+        old_thumbnail_name = self._original_photo_thumbnail_name
         save_kwargs = kwargs
 
         if not self.slug:
@@ -119,6 +159,185 @@ class Library(models.Model):
             save_kwargs = self._merge_photo_fields_into_update_kwargs(kwargs=kwargs)
 
         super().save(*args, **save_kwargs)
+        if not was_adding:
+            self._schedule_superseded_photo_cleanup(
+                old_photo_name=old_photo_name,
+                old_thumbnail_name=old_thumbnail_name,
+            )
+        self._original_photo_name = self._loaded_file_name(field_name="photo")
+        self._original_photo_thumbnail_name = self._loaded_file_name(
+            field_name="photo_thumbnail"
+        )
+
+    @property
+    def has_pending_update(self) -> bool:
+        """Return whether owner-proposed changes await moderation.
+        Uses null to distinguish no proposal from a photo-only proposal."""
+        return self.pending_changes is not None
+
+    def stage_update(
+        self,
+        *,
+        changes: dict[str, Any],
+        photo: Any | None = None,
+    ) -> bool:
+        """Store proposed edits without changing approved public fields.
+        Returns whether the pending proposal changed."""
+        staged_changes = dict(self.pending_changes or {})
+        coordinate_names = {"latitude", "longitude"}
+
+        for field_name, value in changes.items():
+            if field_name in coordinate_names:
+                continue
+            if field_name not in LIBRARY_EDITABLE_FIELDS:
+                continue
+            if value == getattr(self, field_name):
+                staged_changes.pop(field_name, None)
+            else:
+                staged_changes[field_name] = value
+
+        if coordinate_names.issubset(changes):
+            latitude = changes["latitude"]
+            longitude = changes["longitude"]
+            if latitude == self.location.y and longitude == self.location.x:
+                staged_changes.pop("latitude", None)
+                staged_changes.pop("longitude", None)
+            else:
+                staged_changes["latitude"] = latitude
+                staged_changes["longitude"] = longitude
+
+        pending_changes = (
+            staged_changes
+            if staged_changes or self.pending_photo or photo is not None
+            else None
+        )
+        proposal_changed = (
+            pending_changes != self.pending_changes or photo is not None
+        )
+        if not proposal_changed:
+            return False
+
+        update_fields = ["pending_changes", "updated_at"]
+        if photo is not None:
+            self._store_pending_photo(photo=photo)
+            update_fields.extend(["pending_photo", "pending_photo_thumbnail"])
+
+        self.pending_changes = pending_changes
+        self.save(update_fields=update_fields)
+        return True
+
+    def moderation_preview(self) -> "Library":
+        """Return an unsaved view of the proposed moderated values.
+        Keeps the persisted approved record unchanged for public queries."""
+        preview = copy(self)
+        for field_name, value in (self.pending_changes or {}).items():
+            if field_name in LIBRARY_EDITABLE_FIELDS:
+                setattr(preview, field_name, value)
+
+        changes = self.pending_changes or {}
+        if "latitude" in changes and "longitude" in changes:
+            preview.location = Point(
+                x=changes["longitude"],
+                y=changes["latitude"],
+                srid=4326,
+            )
+
+        if self.pending_photo:
+            preview.photo = self.pending_photo.name
+            preview.photo_thumbnail = self.pending_photo_thumbnail.name
+
+        if self.has_pending_update:
+            preview.status = self.Status.PENDING
+            preview.rejection_reason = ""
+
+        return preview
+
+    def apply_pending_update(self) -> None:
+        """Apply approved proposed values to the public library record.
+        Clears the moderation payload after the live fields are updated."""
+        if not self.has_pending_update:
+            return
+
+        update_fields = [
+            "pending_changes",
+            "pending_photo",
+            "pending_photo_thumbnail",
+            "updated_at",
+        ]
+        for field_name, value in (self.pending_changes or {}).items():
+            if field_name not in LIBRARY_EDITABLE_FIELDS:
+                continue
+            setattr(self, field_name, value)
+            update_fields.append(field_name)
+
+        changes = self.pending_changes or {}
+        if "latitude" in changes and "longitude" in changes:
+            self.location = Point(
+                x=changes["longitude"],
+                y=changes["latitude"],
+                srid=4326,
+            )
+            update_fields.append("location")
+
+        if self.pending_photo:
+            self.photo = self.pending_photo.name
+            self.photo_thumbnail = self.pending_photo_thumbnail.name
+            update_fields.extend(["photo", "photo_thumbnail"])
+
+        self.pending_changes = None
+        self.pending_photo = ""
+        self.pending_photo_thumbnail = ""
+        self.save(update_fields=set(update_fields))
+
+    def discard_pending_update(self) -> None:
+        """Discard proposed values while retaining the approved library.
+        Removes staged image files because no live field references them."""
+        if not self.has_pending_update:
+            return
+
+        if self.pending_photo:
+            self.pending_photo.delete(save=False)
+        if self.pending_photo_thumbnail:
+            self.pending_photo_thumbnail.delete(save=False)
+
+        self.pending_changes = None
+        self.pending_photo = ""
+        self.pending_photo_thumbnail = ""
+        self.save(
+            update_fields=[
+                "pending_changes",
+                "pending_photo",
+                "pending_photo_thumbnail",
+                "updated_at",
+            ]
+        )
+
+    def _store_pending_photo(self, *, photo: Any) -> None:
+        """Optimize and store a replacement photo for moderation.
+        Deletes superseded staged files after their replacements are ready."""
+        old_photo_name = self.pending_photo.name
+        old_thumbnail_name = self.pending_photo_thumbnail.name
+        main_image, thumbnail_image = build_library_photo_files(
+            image_file=photo,
+            original_name=getattr(photo, "name", "library-photo.jpg"),
+        )
+        main_filename, main_content = main_image
+        thumbnail_filename, thumbnail_content = thumbnail_image
+
+        self.pending_photo.save(main_filename, main_content, save=False)
+        self.pending_photo_thumbnail.save(
+            thumbnail_filename,
+            thumbnail_content,
+            save=False,
+        )
+
+        if old_photo_name and old_photo_name != self.pending_photo.name:
+            self.pending_photo.storage.delete(old_photo_name)
+        if (
+            old_thumbnail_name
+            and old_thumbnail_name != self.pending_photo_thumbnail.name
+        ):
+            self.pending_photo_thumbnail.storage.delete(old_thumbnail_name)
 
     @property
     def card_photo_url(self) -> str:
@@ -199,6 +418,66 @@ class Library(models.Model):
         merged_update_fields.update({"photo", "photo_thumbnail"})
         merged_kwargs["update_fields"] = merged_update_fields
         return merged_kwargs
+
+    def _schedule_superseded_photo_cleanup(
+        self,
+        *,
+        old_photo_name: str,
+        old_thumbnail_name: str,
+    ) -> None:
+        """Schedule deletion of replaced live photo files after commit.
+        Defers cleanup so a rolled-back database update keeps its files."""
+        photo_field = self._meta.get_field("photo")
+        thumbnail_field = self._meta.get_field("photo_thumbnail")
+        superseded_files = (
+            (
+                old_photo_name,
+                self._loaded_file_name(field_name="photo"),
+                photo_field.storage,
+            ),
+            (
+                old_thumbnail_name,
+                self._loaded_file_name(field_name="photo_thumbnail"),
+                thumbnail_field.storage,
+            ),
+        )
+        for old_name, current_name, storage in superseded_files:
+            if not old_name or old_name == current_name:
+                continue
+            transaction.on_commit(
+                partial(
+                    self._delete_unreferenced_photo_file,
+                    storage=storage,
+                    name=old_name,
+                )
+            )
+
+    @classmethod
+    def _delete_unreferenced_photo_file(
+        cls,
+        *,
+        storage: Storage,
+        name: str,
+    ) -> None:
+        """Delete a superseded file only when no photo field references it.
+        Protects shared community and staged images from premature cleanup."""
+        library_reference = cls.objects.filter(
+            Q(photo=name)
+            | Q(photo_thumbnail=name)
+            | Q(pending_photo=name)
+            | Q(pending_photo_thumbnail=name)
+        ).exists()
+        community_reference = LibraryPhoto.objects.filter(
+            Q(photo=name) | Q(photo_thumbnail=name)
+        ).exists()
+        if not library_reference and not community_reference:
+            storage.delete(name)
+
+    def _loaded_file_name(self, *, field_name: str) -> str:
+        """Return a loaded file field name without resolving deferred data.
+        Avoids recursive refreshes for querysets that omit photo columns."""
+        field_value = self.__dict__.get(field_name, "")
+        return getattr(field_value, "name", field_value) or ""
 
     def _generate_unique_slug(self) -> str:
         """Generate a unique slug from city, address, and optionally name.

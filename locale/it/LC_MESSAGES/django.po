@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Book Corners 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-28 13:25+0000\n"
+"POT-Creation-Date: 2026-07-28 17:07+0000\n"
 "PO-Revision-Date: 2026-02-28 15:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Italian\n"
@@ -16,113 +16,113 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: libraries/admin.py:146 manage/views/libraries.py:340
+#: libraries/admin.py:150 manage/views/libraries.py:465
 msgid "This library has no photo for AI analysis."
 msgstr "Questa libreria non ha una foto per l'analisi IA."
 
-#: libraries/admin.py:156 manage/views/libraries.py:348
+#: libraries/admin.py:160 manage/views/libraries.py:473
 msgid "Could not access the library photo."
 msgstr "Impossibile accedere alla foto della libreria."
 
-#: libraries/admin.py:163 manage/views/libraries.py:353
+#: libraries/admin.py:167 manage/views/libraries.py:478
 msgid "AI enrichment failed. Check logs for details."
 msgstr "Arricchimento IA fallito. Controlla i log per i dettagli."
 
-#: libraries/admin.py:170
+#: libraries/admin.py:174
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:20
 #: templates/admin/libraries/ai_enrich_confirm.html:4
 msgid "AI Enrich: Confirm"
 msgstr "Arricchisci con IA: Conferma"
 
-#: libraries/admin.py:206 manage/views/libraries.py:382
+#: libraries/admin.py:210 manage/views/libraries.py:507
 msgid "AI-generated name and description applied."
 msgstr "Nome e descrizione generati dall'IA applicati."
 
-#: libraries/admin.py:208 manage/views/libraries.py:384
+#: libraries/admin.py:212 manage/views/libraries.py:509
 msgid "No AI values to apply."
 msgstr "Nessun valore IA da applicare."
 
-#: libraries/forms.py:19 libraries/templates/libraries/submit_library.html:352
+#: libraries/forms.py:25 libraries/templates/libraries/submit_library.html:352
 msgid "Select a country"
 msgstr "Seleziona un paese"
 
-#: libraries/forms.py:27
+#: libraries/forms.py:33
 msgid "Any country"
 msgstr "Qualsiasi paese"
 
-#: libraries/forms.py:40
+#: libraries/forms.py:46
 #, python-format
 msgid "JPEG, PNG, WebP, HEIC, or HEIF. Maximum file size: %(size).0f MB."
 msgstr "JPEG, PNG, WebP, HEIC o HEIF. Dimensione massima del file: %(size).0f MB."
 
-#: libraries/forms.py:59
+#: libraries/forms.py:65
 #, python-format
 msgid "Photo must be %(size).0fMB or smaller."
 msgstr "La foto deve essere di %(size).0fMB o meno."
 
-#: libraries/forms.py:62
+#: libraries/forms.py:68
 #, python-format
 msgid "Photo must be at most %(size)s bytes."
 msgstr "La foto deve essere di massimo %(size)s byte."
 
-#: libraries/forms.py:80 libraries/forms.py:84 libraries/forms.py:102
+#: libraries/forms.py:86 libraries/forms.py:90 libraries/forms.py:108
 msgid "Upload a valid image in JPEG, PNG, WEBP, HEIC, or HEIF format."
 msgstr "Carica un'immagine valida in formato JPEG, PNG, WEBP, HEIC o HEIF."
 
-#: libraries/forms.py:172
+#: libraries/forms.py:178
 msgid "Approximate book capacity"
 msgstr "Capacità approssimativa di libri"
 
-#: libraries/forms.py:180
+#: libraries/forms.py:186
 msgid "Email, phone, etc."
 msgstr "Email, telefono, ecc."
 
-#: libraries/forms.py:184
+#: libraries/forms.py:190
 msgid "Organisation managing this library"
 msgstr "Organizzazione che gestisce questa libreria"
 
-#: libraries/forms.py:188
+#: libraries/forms.py:194
 msgid "e.g. Little Free Library"
 msgstr "es. Little Free Library"
 
-#: libraries/forms.py:196 manage/forms.py:122
+#: libraries/forms.py:202 manage/forms.py:122
 msgid "Latitude must be between -90 and 90."
 msgstr "La latitudine deve essere compresa tra -90 e 90."
 
-#: libraries/forms.py:204 manage/forms.py:130
+#: libraries/forms.py:210 manage/forms.py:130
 msgid "Longitude must be between -180 and 180."
 msgstr "La longitudine deve essere compresa tra -180 e 180."
 
-#: libraries/forms.py:232
+#: libraries/forms.py:238
 msgid "Address is required when coordinates are not provided."
 msgstr "L'indirizzo è obbligatorio quando le coordinate non vengono fornite."
 
-#: libraries/forms.py:334
+#: libraries/forms.py:359
 msgid "Keywords in name or description"
 msgstr "Parole chiave nel nome o nella descrizione"
 
-#: libraries/forms.py:340
+#: libraries/forms.py:365
 msgid "City, area, postcode, or address"
 msgstr "Città, zona, CAP o indirizzo"
 
-#: libraries/forms.py:354
+#: libraries/forms.py:379
 msgid "Filter by city"
 msgstr "Filtra per città"
 
-#: libraries/forms.py:365
+#: libraries/forms.py:390
 msgid "Filter by postal code"
 msgstr "Filtra per CAP"
 
-#: libraries/forms.py:411
+#: libraries/forms.py:436
 msgid "Optional caption for your photo"
 msgstr "Didascalia opzionale per la tua foto"
 
-#: libraries/forms.py:437
+#: libraries/forms.py:462
 #, python-format
 msgid "You can submit at most %(max)s photos per library."
 msgstr "Puoi inviare al massimo %(max)s foto per libreria."
 
-#: libraries/models.py:21 libraries/models.py:295
+#: libraries/models.py:40 libraries/models.py:496
 #: manage/templates/manage/libraries/import.html:49
 #: manage/templates/manage/photos/list.html:29
 #: templates/admin/libraries/geojson_import_form.html:37
@@ -130,7 +130,7 @@ msgstr "Puoi inviare al massimo %(max)s foto per libreria."
 msgid "Pending"
 msgstr "In attesa"
 
-#: libraries/models.py:22 libraries/models.py:296
+#: libraries/models.py:41 libraries/models.py:497
 #: manage/templates/manage/libraries/import.html:48
 #: manage/templates/manage/photos/list.html:30
 #: templates/admin/libraries/geojson_import_form.html:36
@@ -138,64 +138,66 @@ msgstr "In attesa"
 msgid "Approved"
 msgstr "Approvato"
 
-#: libraries/models.py:23 libraries/models.py:297
+#: libraries/models.py:42 libraries/models.py:498
 #: manage/templates/manage/photos/list.html:31
 #: templates/admin/libraries/photo_grid.html:147
 msgid "Rejected"
 msgstr "Rifiutato"
 
-#: libraries/models.py:26 libraries/templates/libraries/library_detail.html:62
+#: libraries/models.py:45 libraries/templates/libraries/library_detail.html:62
 #: libraries/templates/libraries/library_detail.html:63
-#: manage/templates/manage/libraries/detail.html:120
-#: manage/templates/manage/libraries/detail.html:124
+#: manage/templates/manage/libraries/detail.html:166
+#: manage/templates/manage/libraries/detail.html:170
+#: manage/views/libraries.py:125
 msgid "Yes"
 msgstr "Sì"
 
-#: libraries/models.py:27 libraries/templates/libraries/library_detail.html:62
+#: libraries/models.py:46 libraries/templates/libraries/library_detail.html:62
 #: libraries/templates/libraries/library_detail.html:63
-#: manage/templates/manage/libraries/detail.html:120
-#: manage/templates/manage/libraries/detail.html:124
+#: manage/templates/manage/libraries/detail.html:166
+#: manage/templates/manage/libraries/detail.html:170
+#: manage/views/libraries.py:125
 msgid "No"
 msgstr "No"
 
-#: libraries/models.py:28
+#: libraries/models.py:47
 msgid "Limited"
 msgstr "Limitato"
 
-#: libraries/models.py:65 manage/templates/manage/libraries/detail.html:99
+#: libraries/models.py:95 manage/templates/manage/libraries/detail.html:145
 #: manage/templates/manage/libraries/edit.html:186
 msgid "Rejection reason"
 msgstr "Motivo del rifiuto"
 
-#: libraries/models.py:240
+#: libraries/models.py:441
 msgid "Damaged"
 msgstr "Danneggiato"
 
-#: libraries/models.py:241
+#: libraries/models.py:442
 msgid "Missing"
 msgstr "Mancante"
 
-#: libraries/models.py:242
+#: libraries/models.py:443
 msgid "Incorrect Info"
 msgstr "Informazioni errate"
 
-#: libraries/models.py:243
+#: libraries/models.py:444
 msgid "Inappropriate"
 msgstr "Inappropriato"
 
-#: libraries/models.py:244
+#: libraries/models.py:445
 msgid "Other"
 msgstr "Altro"
 
-#: libraries/models.py:247
+#: libraries/models.py:448
 msgid "Open"
 msgstr "Aperto"
 
-#: libraries/models.py:248
+#: libraries/models.py:449
 msgid "Resolved"
 msgstr "Risolto"
 
-#: libraries/models.py:249
+#: libraries/models.py:450
 msgid "Dismissed"
 msgstr "Archiviato"
 
@@ -336,7 +338,7 @@ msgid "Reason"
 msgstr "Motivo"
 
 #: libraries/templates/libraries/_report_form.html:40
-#: manage/templates/manage/libraries/detail.html:73
+#: manage/templates/manage/libraries/detail.html:119
 #: manage/templates/manage/libraries/edit.html:46
 msgid "Details"
 msgstr "Dettagli"
@@ -382,7 +384,7 @@ msgstr "Librerie inviate"
 #: libraries/templates/libraries/dashboard.html:22
 #: libraries/templates/libraries/dashboard.html:141
 #: manage/templates/manage/base.html:65
-#: manage/templates/manage/libraries/detail.html:187
+#: manage/templates/manage/libraries/detail.html:233
 #: manage/templates/manage/reports/list.html:4
 #: manage/templates/manage/reports/list.html:6
 #: manage/templates/manage/reports/list.html:12
@@ -447,7 +449,7 @@ msgid "Libraries you added or edited, with their current moderation status."
 msgstr "Librerie che hai aggiunto o modificato, con il loro stato di moderazione attuale."
 
 #: libraries/templates/libraries/dashboard.html:68
-#: libraries/templates/libraries/dashboard.html:134 libraries/views.py:795
+#: libraries/templates/libraries/dashboard.html:134 libraries/views.py:828
 #: templates/about.html:76 templates/home.html:36
 msgid "Submit a library"
 msgstr "Invia una libreria"
@@ -799,7 +801,7 @@ msgstr "Descrizione (opzionale)"
 
 #: libraries/templates/libraries/submit_library.html:109
 #: manage/templates/manage/libraries/_table.html:21
-#: manage/templates/manage/libraries/detail.html:84
+#: manage/templates/manage/libraries/detail.html:130
 #: manage/templates/manage/libraries/duplicates.html:38
 #: manage/templates/manage/libraries/edit.html:73
 #: manage/templates/manage/libraries/list.html:34
@@ -808,7 +810,7 @@ msgstr "Paese"
 
 #: libraries/templates/libraries/submit_library.html:115
 #: manage/templates/manage/libraries/_table.html:20
-#: manage/templates/manage/libraries/detail.html:80
+#: manage/templates/manage/libraries/detail.html:126
 #: manage/templates/manage/libraries/duplicates.html:34
 #: manage/templates/manage/libraries/duplicates.html:68
 #: manage/templates/manage/libraries/edit.html:67
@@ -899,80 +901,100 @@ msgid "Continue"
 msgstr "Continua"
 
 #: libraries/views.py:580
-msgid "Your changes were saved and sent for review. They will be approved by moderators before becoming live."
-msgstr "Le tue modifiche sono state salvate e inviate per la revisione. I moderatori le approveranno prima che diventino visibili."
+msgid "Your changes were saved for review. The approved library remains live until moderators approve the update."
+msgstr "Le tue modifiche sono state salvate per la revisione. La libreria approvata rimane visibile finché i moderatori non approvano l'aggiornamento."
 
-#: libraries/views.py:591 manage/templates/manage/libraries/edit.html:4
+#: libraries/views.py:584
+msgid "No new changes were saved. Your existing changes remain under moderator review."
+msgstr "Non sono state salvate nuove modifiche. Le modifiche esistenti rimangono in attesa di revisione."
+
+#: libraries/views.py:588
+msgid "No changes were found. The approved library remains live."
+msgstr "Non sono state rilevate modifiche. La libreria approvata rimane visibile."
+
+#: libraries/views.py:594
+msgid "Your changes were saved and remain under moderator review."
+msgstr "Le tue modifiche sono state salvate e restano in attesa di revisione da parte dei moderatori."
+
+#: libraries/views.py:606 manage/templates/manage/libraries/edit.html:4
 #: manage/templates/manage/libraries/edit.html:15
 #: manage/templates/manage/libraries/edit.html:31
 msgid "Edit library"
 msgstr "Modifica libreria"
 
-#: libraries/views.py:592
+#: libraries/views.py:609
+msgid "Update your library details. The current approved version stays live while your changes are reviewed."
+msgstr "Aggiorna i dettagli della tua libreria. La versione attualmente approvata rimane visibile mentre le modifiche vengono revisionate."
+
+#: libraries/views.py:613
 msgid "Update your library details. Changes will be sent back to moderators before they appear publicly."
 msgstr "Aggiorna i dettagli della tua libreria. Le modifiche saranno inviate di nuovo ai moderatori prima di apparire pubblicamente."
 
-#: libraries/views.py:594
+#: libraries/views.py:618
+msgid "Only your proposed changes are reviewed. They replace the current details after moderator approval."
+msgstr "Vengono revisionate solo le modifiche proposte. Sostituiranno i dettagli attuali dopo l'approvazione dei moderatori."
+
+#: libraries/views.py:622
 msgid "Changes are reviewed before they become live. After you save, moderators will approve the update before it appears publicly."
 msgstr "Le modifiche vengono revisionate prima di diventare visibili. Dopo il salvataggio, i moderatori approveranno l'aggiornamento prima che appaia pubblicamente."
 
-#: libraries/views.py:596
+#: libraries/views.py:625
 msgid "Edit a library you submitted on Book Corners."
 msgstr "Modifica una libreria che hai inviato su Book Corners."
 
-#: libraries/views.py:597 manage/templates/manage/libraries/edit.html:194
+#: libraries/views.py:626 manage/templates/manage/libraries/edit.html:194
 msgid "Save changes"
 msgstr "Salva modifiche"
 
-#: libraries/views.py:598
+#: libraries/views.py:627
 msgid "Replace photo (optional)"
 msgstr "Sostituisci foto (opzionale)"
 
-#: libraries/views.py:599
+#: libraries/views.py:628
 msgid "Leave this empty to keep the current photo."
 msgstr "Lascia vuoto questo campo per mantenere la foto attuale."
 
-#: libraries/views.py:600
+#: libraries/views.py:629
 msgid "Update exact location"
 msgstr "Aggiorna posizione esatta"
 
-#: libraries/views.py:601
+#: libraries/views.py:630
 msgid "Use the map to adjust the saved point, or keep the marker where it is."
 msgstr "Usa la mappa per regolare il punto salvato, oppure lascia il marker dov'è."
 
-#: libraries/views.py:602
+#: libraries/views.py:631
 msgid "Saved marker loaded. Drag it or click the map to adjust the location."
 msgstr "Marker salvato caricato. Trascinalo o fai clic sulla mappa per regolare la posizione."
 
-#: libraries/views.py:796
+#: libraries/views.py:829
 msgid "Share a little free library with the community. Set the exact point on the map before submitting."
 msgstr "Condividi una casetta dei libri con la community. Imposta il punto esatto sulla mappa prima di inviare."
 
-#: libraries/views.py:797
+#: libraries/views.py:830
 msgid "Submit a little free library to Book Corners with a photo, location, and address details."
 msgstr "Invia una casetta dei libri a Book Corners con foto, posizione e dettagli dell'indirizzo."
 
-#: libraries/views.py:798
+#: libraries/views.py:831
 msgid "Submit library"
 msgstr "Invia libreria"
 
-#: libraries/views.py:799
+#: libraries/views.py:832
 msgid "Photo (required)"
 msgstr "Foto (obbligatoria)"
 
-#: libraries/views.py:801
+#: libraries/views.py:834
 msgid "Upload a clear photo showing the library. It helps moderators verify it and helps visitors recognise it."
 msgstr "Carica una foto nitida che mostri la libreria. Aiuta i moderatori a verificarla e i visitatori a riconoscerla."
 
-#: libraries/views.py:803
+#: libraries/views.py:836
 msgid "Set exact location"
 msgstr "Imposta posizione esatta"
 
-#: libraries/views.py:804
+#: libraries/views.py:837
 msgid "Type an address and choose a suggestion to center the map. Drag the marker to refine the exact point."
 msgstr "Digita un indirizzo e scegli un suggerimento per centrare la mappa. Trascina il marcatore per affinare il punto esatto."
 
-#: libraries/views.py:805
+#: libraries/views.py:838
 msgid "Choose the map point by centering from address, dragging marker, or clicking map."
 msgstr "Scegli il punto sulla mappa centrando dall'indirizzo, trascinando il marcatore o cliccando sulla mappa."
 
@@ -1097,7 +1119,7 @@ msgid "items awaiting review"
 msgstr "elementi in attesa di revisione"
 
 #: manage/templates/manage/dashboard.html:32
-#: manage/templates/manage/dashboard.html:73 templates/admin/index.html:76
+#: manage/templates/manage/dashboard.html:76 templates/admin/index.html:76
 msgid "Open Reports"
 msgstr "Segnalazioni aperte"
 
@@ -1106,34 +1128,45 @@ msgid "Pending Libraries"
 msgstr "Librerie in attesa"
 
 #: manage/templates/manage/dashboard.html:55
-#: manage/templates/manage/dashboard.html:85
-#: manage/templates/manage/dashboard.html:115
+#: manage/templates/manage/libraries/_row.html:14
+#: manage/templates/manage/libraries/detail.html:29
+msgid "Changes pending"
+msgstr "Modifiche in attesa"
+
+#: manage/templates/manage/dashboard.html:55
+#: manage/templates/manage/libraries/_row.html:16
+msgid "New submission"
+msgstr "Nuovo invio"
+
+#: manage/templates/manage/dashboard.html:58
+#: manage/templates/manage/dashboard.html:88
+#: manage/templates/manage/dashboard.html:118
 msgid "ago"
 msgstr "fa"
 
-#: manage/templates/manage/dashboard.html:62
-#: manage/templates/manage/dashboard.html:92
-#: manage/templates/manage/dashboard.html:122
+#: manage/templates/manage/dashboard.html:65
+#: manage/templates/manage/dashboard.html:95
+#: manage/templates/manage/dashboard.html:125
 msgid "View all"
 msgstr "Vedi tutte"
 
-#: manage/templates/manage/dashboard.html:66
+#: manage/templates/manage/dashboard.html:69
 msgid "No pending libraries."
 msgstr "Nessuna libreria in attesa."
 
-#: manage/templates/manage/dashboard.html:96
+#: manage/templates/manage/dashboard.html:99
 msgid "No open reports."
 msgstr "Nessuna segnalazione aperta."
 
-#: manage/templates/manage/dashboard.html:103 templates/admin/index.html:81
+#: manage/templates/manage/dashboard.html:106 templates/admin/index.html:81
 msgid "Pending Photos"
 msgstr "Foto in attesa"
 
-#: manage/templates/manage/dashboard.html:113
+#: manage/templates/manage/dashboard.html:116
 msgid "No caption"
 msgstr "Senza didascalia"
 
-#: manage/templates/manage/dashboard.html:126
+#: manage/templates/manage/dashboard.html:129
 msgid "No pending photos."
 msgstr "Nessuna foto in attesa."
 
@@ -1151,15 +1184,15 @@ msgstr "Archivia"
 msgid "Report photo"
 msgstr "Foto della segnalazione"
 
-#: manage/templates/manage/libraries/_row.html:21
-#: manage/templates/manage/libraries/detail.html:49
+#: manage/templates/manage/libraries/_row.html:27
+#: manage/templates/manage/libraries/detail.html:53
 #: manage/templates/manage/photos/_card.html:30
 msgid "Approve"
 msgstr "Approva"
 
-#: manage/templates/manage/libraries/_row.html:26
-#: manage/templates/manage/libraries/detail.html:55
-#: manage/templates/manage/libraries/detail.html:174
+#: manage/templates/manage/libraries/_row.html:32
+#: manage/templates/manage/libraries/detail.html:61
+#: manage/templates/manage/libraries/detail.html:220
 #: manage/templates/manage/photos/_card.html:33
 msgid "Reject"
 msgstr "Rifiuta"
@@ -1223,12 +1256,13 @@ msgstr "Nessuna libreria trovata."
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:4
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:6
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:14
-#: manage/templates/manage/libraries/detail.html:61
+#: manage/templates/manage/libraries/detail.html:68
 #: templates/admin/libraries/library/change_form.html:10
 msgid "AI Enrich"
 msgstr "Arricchisci con IA"
 
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:34
+#: manage/templates/manage/libraries/detail.html:98
 msgid "Current"
 msgstr "Attuale"
 
@@ -1237,7 +1271,7 @@ msgid "AI Suggestion"
 msgstr "Suggerimento IA"
 
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:45
-#: manage/templates/manage/libraries/detail.html:93
+#: manage/templates/manage/libraries/detail.html:139
 #: manage/templates/manage/libraries/edit.html:55
 #: templates/admin/libraries/ai_enrich_confirm.html:32
 msgid "Description"
@@ -1254,79 +1288,112 @@ msgstr "Descrizione"
 msgid "Cancel"
 msgstr "Annulla"
 
-#: manage/templates/manage/libraries/detail.html:28
+#: manage/templates/manage/libraries/detail.html:31
 msgid "View on site"
 msgstr "Visualizza sul sito"
 
-#: manage/templates/manage/libraries/detail.html:41
+#: manage/templates/manage/libraries/detail.html:44
 msgid "No photo"
 msgstr "Nessuna foto"
 
-#: manage/templates/manage/libraries/detail.html:64
+#: manage/templates/manage/libraries/detail.html:53
+msgid "Approve changes"
+msgstr "Approva modifiche"
+
+#: manage/templates/manage/libraries/detail.html:61
+msgid "Reject changes"
+msgstr "Rifiuta modifiche"
+
+#: manage/templates/manage/libraries/detail.html:71
 msgid "Edit details"
 msgstr "Modifica dettagli"
 
-#: manage/templates/manage/libraries/detail.html:65
+#: manage/templates/manage/libraries/detail.html:72
 #: manage/templates/manage/libraries/edit.html:34
 #: manage/templates/manage/users/detail.html:60
 msgid "Edit in Django Admin"
 msgstr "Modifica in Django Admin"
 
-#: manage/templates/manage/libraries/detail.html:76
+#: manage/templates/manage/libraries/detail.html:80
+msgid "Pending changes"
+msgstr "Modifiche in attesa"
+
+#: manage/templates/manage/libraries/detail.html:82
+msgid "Only the proposed changes below are under review. The approved library remains live until these changes are accepted."
+msgstr "Solo le modifiche proposte qui sotto sono in revisione. La libreria approvata rimane visibile finché queste modifiche non vengono accettate."
+
+#: manage/templates/manage/libraries/detail.html:87
+msgid "Replacement photo"
+msgstr "Foto sostitutiva"
+
+#: manage/templates/manage/libraries/detail.html:88
+msgid "Proposed replacement photo"
+msgstr "Foto sostitutiva proposta"
+
+#: manage/templates/manage/libraries/detail.html:97
+#: templates/admin/libraries/ai_enrich_confirm.html:20
+msgid "Field"
+msgstr "Campo"
+
+#: manage/templates/manage/libraries/detail.html:99
+msgid "Proposed"
+msgstr "Proposto"
+
+#: manage/templates/manage/libraries/detail.html:122
 #: manage/templates/manage/libraries/duplicates.html:67
 #: manage/templates/manage/libraries/edit.html:61
 #: templates/admin/libraries/find_duplicates.html:89
 msgid "Address"
 msgstr "Indirizzo"
 
-#: manage/templates/manage/libraries/detail.html:88
+#: manage/templates/manage/libraries/detail.html:134
 #: manage/templates/manage/libraries/edit.html:79
 msgid "Postal code"
 msgstr "CAP"
 
-#: manage/templates/manage/libraries/detail.html:108
+#: manage/templates/manage/libraries/detail.html:154
 #: manage/templates/manage/libraries/edit.html:87
 msgid "Additional info"
 msgstr "Informazioni aggiuntive"
 
-#: manage/templates/manage/libraries/detail.html:111
+#: manage/templates/manage/libraries/detail.html:157
 #: manage/templates/manage/libraries/edit.html:90
 msgid "Wheelchair accessible"
 msgstr "Accessibile in sedia a rotelle"
 
-#: manage/templates/manage/libraries/detail.html:115
+#: manage/templates/manage/libraries/detail.html:161
 #: manage/templates/manage/libraries/edit.html:96
 msgid "Capacity"
 msgstr "Capacità"
 
-#: manage/templates/manage/libraries/detail.html:119
+#: manage/templates/manage/libraries/detail.html:165
 #: manage/templates/manage/libraries/edit.html:102
 msgid "Indoor"
 msgstr "Al chiuso"
 
-#: manage/templates/manage/libraries/detail.html:123
+#: manage/templates/manage/libraries/detail.html:169
 #: manage/templates/manage/libraries/edit.html:108
 msgid "Lit"
 msgstr "Illuminata"
 
-#: manage/templates/manage/libraries/detail.html:127
+#: manage/templates/manage/libraries/detail.html:173
 #: manage/templates/manage/libraries/edit.html:126
 #: manage/templates/manage/libraries/import.html:40
 #: manage/templates/manage/libraries/list.html:38
 msgid "Source"
 msgstr "Fonte"
 
-#: manage/templates/manage/libraries/detail.html:131
+#: manage/templates/manage/libraries/detail.html:177
 #: manage/templates/manage/libraries/edit.html:132
 msgid "Operator"
 msgstr "Gestore"
 
-#: manage/templates/manage/libraries/detail.html:135
+#: manage/templates/manage/libraries/detail.html:181
 #: manage/templates/manage/libraries/edit.html:138
 msgid "Brand"
 msgstr "Marchio"
 
-#: manage/templates/manage/libraries/detail.html:139
+#: manage/templates/manage/libraries/detail.html:185
 #: manage/templates/manage/libraries/duplicates.html:69
 #: manage/templates/manage/libraries/edit.html:144
 #: templates/admin/libraries/find_duplicates.html:91
@@ -1334,15 +1401,15 @@ msgstr "Marchio"
 msgid "External ID"
 msgstr "ID esterno"
 
-#: manage/templates/manage/libraries/detail.html:143
+#: manage/templates/manage/libraries/detail.html:189
 msgid "Submitted by"
 msgstr "Inviata da"
 
-#: manage/templates/manage/libraries/detail.html:152
+#: manage/templates/manage/libraries/detail.html:198
 msgid "Community Photos"
 msgstr "Foto della community"
 
-#: manage/templates/manage/libraries/detail.html:167
+#: manage/templates/manage/libraries/detail.html:213
 msgid "Approve as main photo"
 msgstr "Approva come foto principale"
 
@@ -1424,6 +1491,7 @@ msgid "Contact"
 msgstr "Contatto"
 
 #: manage/templates/manage/libraries/edit.html:154
+#: manage/views/libraries.py:158
 msgid "Location"
 msgstr "Posizione"
 
@@ -1610,28 +1678,36 @@ msgstr "Ruolo"
 msgid "All users"
 msgstr "Tutti gli utenti"
 
-#: manage/views/libraries.py:127
+#: manage/views/libraries.py:201
+msgid "Library changes approved."
+msgstr "Modifiche alla libreria approvate."
+
+#: manage/views/libraries.py:225
 msgid "Library approved."
 msgstr "Libreria approvata."
 
-#: manage/views/libraries.py:155
+#: manage/views/libraries.py:249
+msgid "Library changes rejected."
+msgstr "Modifiche alla libreria rifiutate."
+
+#: manage/views/libraries.py:269
 msgid "Library rejected."
 msgstr "Libreria rifiutata."
 
-#: manage/views/libraries.py:224
+#: manage/views/libraries.py:349
 msgid "Library details saved."
 msgstr "Dettagli della libreria salvati."
 
-#: manage/views/libraries.py:244
+#: manage/views/libraries.py:369
 msgid "Please select a GeoJSON file to upload."
 msgstr "Seleziona un file GeoJSON da caricare."
 
-#: manage/views/libraries.py:251
+#: manage/views/libraries.py:376
 #, python-format
 msgid "Invalid GeoJSON file: %(error)s"
 msgstr "File GeoJSON non valido: %(error)s"
 
-#: manage/views/libraries.py:280
+#: manage/views/libraries.py:405
 #, python-format
 msgid "Import of %(count)d features has been queued for background processing."
 msgstr "L'importazione di %(count)d elementi è stata messa in coda per l'elaborazione."
@@ -1803,10 +1879,6 @@ msgstr "Arricchisci con IA: Rivedi suggerimenti"
 #: templates/admin/libraries/ai_enrich_confirm.html:9
 msgid "Review the AI-generated values below. Click Apply to update the library, or Cancel to discard."
 msgstr "Rivedi i valori generati dall'IA. Clicca Applica per aggiornare la libreria, o Annulla per scartare."
-
-#: templates/admin/libraries/ai_enrich_confirm.html:20
-msgid "Field"
-msgstr "Campo"
 
 #: templates/admin/libraries/ai_enrich_confirm.html:21
 msgid "Current value"
@@ -2236,9 +2308,6 @@ msgstr "Il tuo account è stato eliminato."
 
 #~ msgid "Your submissions"
 #~ msgstr "Le tue librerie"
-
-#~ msgid "No submissions yet"
-#~ msgstr "Nessun invio"
 
 #~ msgid "Manage user accounts."
 #~ msgstr "Gestisci gli account utente."

@@ -10,9 +10,15 @@
   <td>{{ library.city }}</td>
   <td>{{ library.country }}</td>
   <td>
-    <span class="badge badge-sm {% if library.status == 'approved' %}badge-success{% elif library.status == 'rejected' %}badge-error{% else %}badge-warning{% endif %}">
-      {{ library.get_status_display }}
-    </span>
+    {% if library.has_pending_update %}
+      <span class="badge badge-info badge-sm">{% trans "Changes pending" %}</span>
+    {% elif library.status == 'pending' %}
+      <span class="badge badge-warning badge-sm">{% trans "New submission" %}</span>
+    {% else %}
+      <span class="badge badge-sm {% if library.status == 'approved' %}badge-success{% else %}badge-error{% endif %}">
+        {{ library.get_status_display }}
+      </span>
+    {% endif %}
   </td>
   <td class="text-xs text-base-content/60">{{ library.created_at|date:"Y-m-d" }}</td>
   <td>
