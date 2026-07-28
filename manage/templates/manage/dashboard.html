@@ -22,7 +22,7 @@
       <div class="stat-value">{{ total_users }}</div>
     </a>
 
-    <a href="{% url 'manage:library_list' %}?status=pending" class="stat rounded-box border border-base-300 bg-base-100 shadow-sm hover:bg-base-200">
+    <a href="{{ pending_moderation_url }}" class="stat rounded-box border border-base-300 bg-base-100 shadow-sm hover:bg-base-200">
       <div class="stat-title">{% trans "Pending Moderation" %}</div>
       <div class="stat-value {% if total_pending > 0 %}text-warning{% endif %}">{{ total_pending }}</div>
       <div class="stat-desc">{% trans "items awaiting review" %}</div>
@@ -35,7 +35,7 @@
   </div>
 
   {# --- Moderation queues --- #}
-  <div class="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-3">
+  <div id="moderation-queues" class="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-3">
 
     {# Pending libraries #}
     <div class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
@@ -107,7 +107,7 @@
         <ul class="mt-4 space-y-3">
           {% for photo in pending_photos_recent %}
             <li>
-              <a href="{% url 'manage:library_detail' pk=photo.library.pk %}" class="flex items-center justify-between gap-2 rounded-lg p-2 text-sm hover:bg-base-200">
+              <a href="{% url 'manage:library_detail' pk=photo.library.pk %}#photo-card-{{ photo.pk }}-community" class="flex items-center justify-between gap-2 rounded-lg p-2 text-sm hover:bg-base-200">
                 <div class="min-w-0">
                   <p class="truncate font-medium">{{ photo.library.name|default:photo.library.address }}</p>
                   <p class="text-base-content/60">{% if photo.caption %}{{ photo.caption }}{% else %}{% trans "No caption" %}{% endif %}</p>
@@ -119,7 +119,7 @@
         </ul>
         {% if pending_photos_count > 5 %}
           <div class="mt-4">
-            <a href="{% url 'manage:photo_list' %}?status=pending" class="btn btn-outline btn-sm btn-block">{% trans "View all" %}</a>
+            <a href="{% url 'manage:photo_list' %}?status=pending&amp;type=community" class="btn btn-outline btn-sm btn-block">{% trans "View all" %}</a>
           </div>
         {% endif %}
       {% else %}

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Book Corners 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-28 08:02+0000\n"
+"POT-Creation-Date: 2026-07-28 13:25+0000\n"
 "PO-Revision-Date: 2026-02-28 15:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Italian\n"
@@ -382,7 +382,7 @@ msgstr "Librerie inviate"
 #: libraries/templates/libraries/dashboard.html:22
 #: libraries/templates/libraries/dashboard.html:141
 #: manage/templates/manage/base.html:65
-#: manage/templates/manage/libraries/detail.html:169
+#: manage/templates/manage/libraries/detail.html:187
 #: manage/templates/manage/reports/list.html:4
 #: manage/templates/manage/reports/list.html:6
 #: manage/templates/manage/reports/list.html:12
@@ -1159,6 +1159,7 @@ msgstr "Approva"
 
 #: manage/templates/manage/libraries/_row.html:26
 #: manage/templates/manage/libraries/detail.html:55
+#: manage/templates/manage/libraries/detail.html:174
 #: manage/templates/manage/photos/_card.html:33
 msgid "Reject"
 msgstr "Rifiuta"
@@ -1340,6 +1341,10 @@ msgstr "Inviata da"
 #: manage/templates/manage/libraries/detail.html:152
 msgid "Community Photos"
 msgstr "Foto della community"
+
+#: manage/templates/manage/libraries/detail.html:167
+msgid "Approve as main photo"
+msgstr "Approva come foto principale"
 
 #: manage/templates/manage/libraries/duplicates.html:4
 #: manage/templates/manage/libraries/duplicates.html:6
@@ -1631,11 +1636,11 @@ msgstr "File GeoJSON non valido: %(error)s"
 msgid "Import of %(count)d features has been queued for background processing."
 msgstr "L'importazione di %(count)d elementi è stata messa in coda per l'elaborazione."
 
-#: manage/views/photos.py:98
+#: manage/views/photos.py:99
 msgid "Photo approved."
 msgstr "Foto approvata."
 
-#: manage/views/photos.py:116
+#: manage/views/photos.py:121
 msgid "Photo rejected."
 msgstr "Foto rifiutata."
 

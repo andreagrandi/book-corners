@@ -148,16 +148,34 @@
 
       {# Community photos #}
       {% if photos %}
-        <div class="rounded-box border border-base-300 bg-base-100 p-5">
+        <div id="community-photos" class="rounded-box border border-base-300 bg-base-100 p-5">
           <h2 class="text-lg font-semibold">{% trans "Community Photos" %}</h2>
           <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {% for photo in photos %}
-              <div class="relative overflow-hidden rounded-box border border-base-300">
-                <img src="{{ photo.card_photo_url }}" alt="{{ photo.caption }}" class="aspect-square w-full object-cover" loading="lazy">
-                <span class="badge badge-sm absolute right-1 top-1 {% if photo.status == 'approved' %}badge-success{% elif photo.status == 'rejected' %}badge-error{% else %}badge-warning{% endif %}">
-                  {{ photo.get_status_display }}
-                </span>
-              </div>
+              <article id="photo-card-{{ photo.pk }}-community" class="overflow-hidden rounded-box border border-base-300">
+                <figure class="relative">
+                  <img src="{{ photo.card_photo_url }}" alt="{{ photo.caption|default:library.name }}" class="aspect-square w-full object-cover" loading="lazy">
+                  <span class="badge badge-sm absolute right-1 top-1 {% if photo.status == 'approved' %}badge-success{% elif photo.status == 'rejected' %}badge-error{% else %}badge-warning{% endif %}">
+                    {{ photo.get_status_display }}
+                  </span>
+                </figure>
+                <div class="space-y-2 p-2">
+                  {% if photo.status != 'approved' %}
+                    <form method="post" action="{% url 'manage:photo_approve' pk=photo.pk %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="return_to_library" value="1">
+                      <button type="submit" class="btn btn-success btn-xs btn-block">{% trans "Approve as main photo" %}</button>
+                    </form>
+                  {% endif %}
+                  {% if photo.status != 'rejected' %}
+                    <form method="post" action="{% url 'manage:photo_reject' pk=photo.pk %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="return_to_library" value="1">
+                      <button type="submit" class="btn btn-error btn-xs btn-block">{% trans "Reject" %}</button>
+                    </form>
+                  {% endif %}
+                </div>
+              </article>
             {% endfor %}
           </div>
         </div>

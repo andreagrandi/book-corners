@@ -79,7 +79,8 @@ def photo_list(request: HttpRequest) -> HttpResponse:
 @staff_required
 @require_POST
 def photo_approve(request: HttpRequest, pk: int) -> HttpResponse:
-    """Approve a single photo and promote it to the library primary if first."""
+    """Approve a single photo and promote it to the library primary.
+    Returns library-detail actions to their original moderation context."""
     photo = get_object_or_404(
         LibraryPhoto.objects.select_related("library"), pk=pk
     )
@@ -97,13 +98,17 @@ def photo_approve(request: HttpRequest, pk: int) -> HttpResponse:
             request, "manage/photos/_card.html", {"photo": _community_photo_dict(photo)},
             toast_message=_("Photo approved."),
         )
+    if request.POST.get("return_to_library") == "1":
+        library_url = reverse("manage:library_detail", args=[photo.library_id])
+        return redirect(f"{library_url}#community-photos")
     return redirect("manage:photo_list")
 
 
 @staff_required
 @require_POST
 def photo_reject(request: HttpRequest, pk: int) -> HttpResponse:
-    """Reject a single photo."""
+    """Reject a single photo so it remains hidden from public galleries.
+    Returns library-detail actions to their original moderation context."""
     photo = get_object_or_404(
         LibraryPhoto.objects.select_related("library", "created_by"), pk=pk
     )
@@ -115,6 +120,9 @@ def photo_reject(request: HttpRequest, pk: int) -> HttpResponse:
             request, "manage/photos/_card.html", {"photo": _community_photo_dict(photo)},
             toast_message=_("Photo rejected."),
         )
+    if request.POST.get("return_to_library") == "1":
+        library_url = reverse("manage:library_detail", args=[photo.library_id])
+        return redirect(f"{library_url}#community-photos")
     return redirect("manage:photo_list")
 
 
