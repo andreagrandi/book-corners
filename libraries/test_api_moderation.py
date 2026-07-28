@@ -1,6 +1,9 @@
+from typing import Any
+
 import pytest
 from django.contrib.gis.geos import Point
 from django.core.cache import cache
+from django.test import Client
 from ninja_jwt.tokens import RefreshToken
 
 from libraries.models import Library, LibraryPhoto, Report
@@ -450,6 +453,36 @@ class TestLibraryModerationUpdateEndpoint:
         approved_library.refresh_from_db()
         assert response.status_code == 200
         assert approved_library.status == Library.Status.PENDING
+
+    def test_pending_is_idempotent_for_staged_changes(
+        self,
+        client: Client,
+        admin_user: Any,
+        approved_library: Library,
+    ) -> None:
+        """Verify pending preserves an already staged moderation proposal.
+        Returns its preview without mutating the approved live record."""
+        approved_library.stage_update(
+            changes={"name": "Still Pending Proposed Name"}
+        )
+        original_updated_at = approved_library.updated_at
+        original_pending_changes = dict(approved_library.pending_changes or {})
+
+        response = client.patch(
+            f"/api/v1/libraries/moderation/{approved_library.slug}",
+            data={"status": "pending"},
+            content_type="application/json",
+            **_auth_header(user=admin_user),
+        )
+
+        body = response.json()
+        approved_library.refresh_from_db()
+        assert response.status_code == 200
+        assert body["status"] == Library.Status.PENDING
+        assert body["name"] == "Still Pending Proposed Name"
+        assert approved_library.status == Library.Status.APPROVED
+        assert approved_library.pending_changes == original_pending_changes
+        assert approved_library.updated_at == original_updated_at
 
     def test_invalid_status_returns_422(self, client, admin_user, pending_library):
         """Verify unsupported moderation statuses are rejected.

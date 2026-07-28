@@ -146,6 +146,13 @@ def _save_library_moderation_status(
     new_status = payload.status.value
     rejection_reason = payload.rejection_reason.strip()
 
+    staged_pending_no_op = (
+        library.has_pending_update
+        and new_status == Library.Status.PENDING
+    )
+    if staged_pending_no_op:
+        return library
+
     if library.has_pending_update:
         if new_status == Library.Status.APPROVED:
             library.apply_pending_update()

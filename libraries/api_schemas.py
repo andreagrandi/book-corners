@@ -171,7 +171,13 @@ class LibraryModerationUpdateIn(Schema):
     """Payload for updating a library moderation status.
     Staff clients send the target status and optional rejection reason."""
 
-    status: LibraryModerationStatusEnum = Field(description="New moderation status: pending, approved, or rejected.", examples=["approved"])
+    status: LibraryModerationStatusEnum = Field(
+        description=(
+            "New moderation status: pending, approved, or rejected. "
+            "Pending is idempotent when an approved library already has staged edits."
+        ),
+        examples=["approved"],
+    )
     rejection_reason: str = Field(default="", max_length=2000, description="Optional reason stored when rejecting the library.", examples=["Duplicate submission."])
 
 

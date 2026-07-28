@@ -7,6 +7,7 @@
 - Unchanged approved-library edits no longer create moderator notifications or move the item in the review queue.
 - The moderation dashboard now previews proposed values, and library queue rows distinguish new submissions from staged edits.
 - Replacing a library's live photo now removes superseded unreferenced files after the database update commits while preserving files shared with community photos.
+- Setting a staged library update to `pending` through the moderation API is now documented and tested as an idempotent `200 OK` operation.
 
 ## v1.16.0
 

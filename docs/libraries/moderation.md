@@ -112,13 +112,13 @@ Return any library by slug for staff users, including pending and rejected libra
 
 `PATCH /api/v1/libraries/moderation/{slug}`
 
-Set a library moderation status by slug. For a new pending submission, this updates the library status normally. For staged edits to an approved library, `approved` applies the proposed fields and photo to the existing library, while `rejected` discards only the proposed update and leaves the existing library approved.
+Set a library moderation status by slug. For a new pending submission, this updates the library status normally. For staged edits to an approved library, `approved` applies the proposed fields and photo to the existing library, while `rejected` discards only the proposed update and leaves the existing library approved. Sending `pending` for an already staged edit is idempotent: it returns the pending preview with `200 OK` without changing the approved row, staged payload, or update timestamp.
 
 **Auth required:** Yes (`Bearer` token, staff account)
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `status` | string | Yes | New status: `pending`, `approved`, or `rejected` |
+| `status` | string | Yes | New status: `pending`, `approved`, or `rejected`. `pending` is a no-op when an edit is already staged. |
 | `rejection_reason` | string | No | Optional reason stored when rejecting the library |
 
 === "Approve"
