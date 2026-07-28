@@ -8,7 +8,7 @@ from django.contrib.gis.geos import Point
 from django.core import mail
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import RequestFactory, override_settings
+from django.test import Client, RequestFactory, override_settings
 from django.urls import reverse
 from PIL import ExifTags, Image
 from PIL.TiffImagePlugin import IFDRational
@@ -540,6 +540,26 @@ class TestLibraryAdmin:
         """Verify approve libraries action.
         Confirms the expected behavior stays stable."""
         url = reverse("admin:libraries_library_changelist")
+        response = admin_client.post(url, {
+            "action": "approve_libraries",
+            "_selected_action": [admin_library.pk],
+        })
+
+        assert response.status_code == 302
+        admin_library.refresh_from_db()
+        assert admin_library.status == Library.Status.APPROVED
+
+    def test_approve_libraries_action_restores_rejected_library(
+        self,
+        admin_client: Client,
+        admin_library: Library,
+    ) -> None:
+        """Verify admin bulk approval restores a rejected library.
+        Keeps the bulk action aligned with single-library approval."""
+        admin_library.status = Library.Status.REJECTED
+        admin_library.save(update_fields=["status", "updated_at"])
+        url = reverse("admin:libraries_library_changelist")
+
         response = admin_client.post(url, {
             "action": "approve_libraries",
             "_selected_action": [admin_library.pk],

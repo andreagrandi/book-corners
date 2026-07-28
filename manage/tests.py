@@ -274,6 +274,29 @@ def test_staff_approves_staged_changes_without_changing_library_identity(
 
 
 @pytest.mark.django_db
+def test_staff_bulk_approve_restores_rejected_library(
+    admin_client: Client,
+    manage_library: Library,
+) -> None:
+    """Verify manage bulk approval restores a rejected library.
+    Keeps bulk approval behavior aligned with the single-library action."""
+    manage_library.status = Library.Status.REJECTED
+    manage_library.save(update_fields=["status", "updated_at"])
+
+    response = admin_client.post(
+        reverse("manage:library_bulk_action"),
+        data={
+            "action": "approve",
+            "selected": [manage_library.pk],
+        },
+    )
+
+    manage_library.refresh_from_db()
+    assert response.status_code == 302
+    assert manage_library.status == Library.Status.APPROVED
+
+
+@pytest.mark.django_db
 def test_staff_rejects_staged_changes_without_rejecting_live_library(
     admin_client: Client,
     manage_library: Library,

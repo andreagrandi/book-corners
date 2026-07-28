@@ -409,10 +409,12 @@ class LibraryAdmin(admin.GISModelAdmin):
             if library.has_pending_update:
                 library.apply_pending_update()
                 notify_library_update_approved(library)
-            elif library.status == Library.Status.PENDING:
+            elif library.status != Library.Status.APPROVED:
+                was_pending = library.status == Library.Status.PENDING
                 library.status = Library.Status.APPROVED
                 library.save(update_fields=["status", "updated_at"])
-                notify_library_approved(library)
+                if was_pending:
+                    notify_library_approved(library)
         count = len(libraries)
         cache.delete(GEOJSON_CACHE_KEY)
         cache.delete(HOMEPAGE_COUNT_CACHE_KEY)
