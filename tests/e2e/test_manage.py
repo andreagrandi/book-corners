@@ -127,6 +127,34 @@ def sample_photo(staff_user, sample_libraries):
     )
 
 
+@pytest.fixture
+def pending_photo_pair(staff_user):
+    """Create an approved photoless library with two pending photos.
+    Reproduces moderation of community photos submitted for OSM imports."""
+    library = Library.objects.create(
+        name="Imported Photo Review Library",
+        location=Point(x=9.0579, y=48.5216, srid=4326),
+        address="Review Street 1",
+        city="Tübingen",
+        country="DE",
+        status=Library.Status.APPROVED,
+        source="OpenStreetMap",
+        external_id="node/123456",
+        created_by=staff_user,
+    )
+    selected_photo = LibraryPhoto.objects.create(
+        library=library,
+        photo=_make_test_image(name="selected_community_photo.jpg"),
+        created_by=staff_user,
+    )
+    rejected_photo = LibraryPhoto.objects.create(
+        library=library,
+        photo=_make_test_image(name="rejected_community_photo.jpg"),
+        created_by=staff_user,
+    )
+    return library, selected_photo, rejected_photo
+
+
 def test_manage_redirects_non_staff(live_server, page, regular_user):
     """Verify non-staff users are redirected away from /manage/."""
     _force_login_browser(page, live_server, regular_user)
@@ -161,6 +189,60 @@ def test_dashboard_pending_libraries_are_clickable(
     expect(staff_page).to_have_url(
         f"{live_server.url}/manage/libraries/{sample_libraries[0].pk}/"
     )
+
+
+def test_dashboard_photo_moderation_can_choose_main_and_reject_alternative(
+    live_server,
+    staff_page,
+    pending_photo_pair,
+) -> None:
+    """Verify dashboard photo moderation exposes both per-photo decisions.
+    Confirms choosing one main photo and rejecting another persists end to end."""
+    library, selected_photo, rejected_photo = pending_photo_pair
+    staff_page.goto(f"{live_server.url}/manage/")
+
+    moderation_card = staff_page.locator("a.stat").filter(
+        has_text="Pending Moderation"
+    )
+    expect(moderation_card).to_have_attribute(
+        "href",
+        "/manage/photos/?status=pending&type=community",
+    )
+
+    selected_dashboard_link = staff_page.locator(
+        f"a[href='/manage/libraries/{library.pk}/"
+        f"#photo-card-{selected_photo.pk}-community']"
+    )
+    expect(selected_dashboard_link).to_be_visible()
+    selected_dashboard_link.click()
+
+    selected_card = staff_page.locator(
+        f"#photo-card-{selected_photo.pk}-community"
+    )
+    expect(
+        selected_card.get_by_role("button", name="Approve as main photo")
+    ).to_be_visible()
+    expect(selected_card.get_by_role("button", name="Reject")).to_be_visible()
+    selected_card.get_by_role("button", name="Approve as main photo").click()
+
+    expect(staff_page).to_have_url(
+        f"{live_server.url}/manage/libraries/{library.pk}/#community-photos"
+    )
+    selected_photo.refresh_from_db()
+    library.refresh_from_db()
+    assert selected_photo.status == LibraryPhoto.Status.APPROVED
+    assert library.photo.name == selected_photo.photo.name
+
+    rejected_card = staff_page.locator(
+        f"#photo-card-{rejected_photo.pk}-community"
+    )
+    rejected_card.get_by_role("button", name="Reject").click()
+
+    expect(staff_page).to_have_url(
+        f"{live_server.url}/manage/libraries/{library.pk}/#community-photos"
+    )
+    rejected_photo.refresh_from_db()
+    assert rejected_photo.status == LibraryPhoto.Status.REJECTED
 
 
 def test_library_list_loads_with_filters(live_server, staff_page, sample_libraries):

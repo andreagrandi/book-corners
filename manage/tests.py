@@ -5,7 +5,7 @@ from django.contrib.gis.geos import Point
 from django.test import Client
 from django.urls import reverse
 
-from libraries.models import Library
+from libraries.models import Library, LibraryPhoto
 
 
 @pytest.fixture
@@ -161,3 +161,102 @@ def test_staff_can_edit_library_details_and_location(
     assert manage_library.location.x == pytest.approx(11.26, abs=1e-6)
     assert invalidations == [True]
     assert approved_notifications == [manage_library.pk]
+
+
+@pytest.mark.django_db
+def test_pending_moderation_stat_links_to_photo_queue_when_only_photos_are_pending(
+    admin_client: Client,
+    manage_library: Library,
+    user: Any,
+) -> None:
+    """Verify a photo-only moderation total links to the pending photo queue.
+    Prevents the aggregate dashboard card from opening an empty library list."""
+    manage_library.status = Library.Status.APPROVED
+    manage_library.save(update_fields=["status", "updated_at"])
+    LibraryPhoto.objects.create(
+        library=manage_library,
+        created_by=user,
+        photo="libraries/user_photos/dashboard-pending.jpg",
+    )
+
+    response = admin_client.get(reverse("manage:dashboard"))
+
+    photo_list_url = reverse("manage:photo_list")
+    assert response.status_code == 200
+    assert response.context["pending_moderation_url"] == (
+        f"{photo_list_url}?status={LibraryPhoto.Status.PENDING}"
+        "&type=community"
+    )
+
+
+@pytest.mark.django_db
+def test_library_detail_links_pending_photos_to_moderation_actions(
+    admin_client: Client,
+    manage_library: Library,
+    user: Any,
+) -> None:
+    """Verify pending photo cards expose approve-as-main and reject actions.
+    Gives moderators both decisions without leaving the library detail page."""
+    pending_photo = LibraryPhoto.objects.create(
+        library=manage_library,
+        created_by=user,
+        photo="libraries/user_photos/detail-pending.jpg",
+    )
+
+    response = admin_client.get(
+        reverse("manage:library_detail", kwargs={"pk": manage_library.pk})
+    )
+
+    content = response.content.decode()
+    assert response.status_code == 200
+    assert f'id="photo-card-{pending_photo.pk}-community"' in content
+    assert "Approve as main photo" in content
+    assert reverse(
+        "manage:photo_approve", kwargs={"pk": pending_photo.pk}
+    ) in content
+    assert reverse(
+        "manage:photo_reject", kwargs={"pk": pending_photo.pk}
+    ) in content
+
+
+@pytest.mark.django_db
+def test_staff_can_choose_main_photo_and_reject_another_from_library_detail(
+    admin_client: Client,
+    manage_library: Library,
+    user: Any,
+) -> None:
+    """Verify library-detail moderation can choose one photo and reject another.
+    Confirms the selected photo becomes primary and both statuses are persisted."""
+    selected_photo = LibraryPhoto.objects.create(
+        library=manage_library,
+        created_by=user,
+        photo="libraries/user_photos/selected-main.jpg",
+    )
+    rejected_photo = LibraryPhoto.objects.create(
+        library=manage_library,
+        created_by=user,
+        photo="libraries/user_photos/rejected-alternative.jpg",
+    )
+
+    approve_response = admin_client.post(
+        reverse("manage:photo_approve", kwargs={"pk": selected_photo.pk}),
+        data={"return_to_library": "1"},
+    )
+    reject_response = admin_client.post(
+        reverse("manage:photo_reject", kwargs={"pk": rejected_photo.pk}),
+        data={"return_to_library": "1"},
+    )
+
+    library_detail_url = reverse(
+        "manage:library_detail", kwargs={"pk": manage_library.pk}
+    )
+    assert approve_response.status_code == 302
+    assert approve_response.url == f"{library_detail_url}#community-photos"
+    assert reject_response.status_code == 302
+    assert reject_response.url == f"{library_detail_url}#community-photos"
+    selected_photo.refresh_from_db()
+    rejected_photo.refresh_from_db()
+    manage_library.refresh_from_db()
+    assert selected_photo.status == LibraryPhoto.Status.APPROVED
+    assert rejected_photo.status == LibraryPhoto.Status.REJECTED
+    assert manage_library.photo.name == selected_photo.photo.name
