@@ -12,9 +12,11 @@ from django.test import RequestFactory, override_settings
 from django.urls import reverse
 from PIL import ExifTags, Image
 from PIL.TiffImagePlugin import IFDRational
+from pillow_heif import from_pillow
 
 from libraries.geolocation import extract_gps_coordinates
 from libraries.image_processing import (
+    LIBRARY_PHOTO_TARGET_BYTES,
     MIN_ASPECT_RATIO,
     MAX_ASPECT_RATIO,
     _crop_to_aspect_ratio_bounds,
@@ -43,6 +45,26 @@ def _build_uploaded_photo(
         name=file_name,
         content=image_bytes.getvalue(),
         content_type="image/jpeg",
+    )
+
+
+def _build_uploaded_heic(
+    *,
+    file_name: str = "library.heic",
+    width: int = 640,
+    height: int = 480,
+) -> SimpleUploadedFile:
+    """Build an in-memory HEIC upload for mobile photo coverage.
+    Uses pillow-heif directly so application plugin registration remains tested."""
+    image_bytes = BytesIO()
+    image = Image.new("RGB", (width, height), color=(140, 165, 210))
+    from_pillow(image).save(image_bytes, quality=90)
+    image_bytes.seek(0)
+
+    return SimpleUploadedFile(
+        name=file_name,
+        content=image_bytes.getvalue(),
+        content_type="image/heic",
     )
 
 
@@ -2522,6 +2544,56 @@ class TestLibraryReportSubmission:
         assert report.reason == Report.Reason.DAMAGED
         assert report.status == Report.Status.OPEN
 
+    def test_inline_report_photo_is_normalized_and_compressed(
+        self,
+        client,
+        user,
+        settings,
+        tmp_path,
+    ):
+        """Verify report photos are stored as size-bounded JPEG files.
+        Keeps accepted mobile uploads efficient after the larger input limit."""
+        settings.MEDIA_ROOT = tmp_path / "media"
+        library = Library.objects.create(
+            name="Photo Report Shelf",
+            photo="libraries/photos/2026/02/report-photo.jpg",
+            location=Point(x=9.1900, y=45.4642, srid=4326),
+            address="Via Torino 10",
+            city="Milan",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        image_bytes = BytesIO()
+        Image.effect_noise((2500, 1700), 100).convert("RGB").save(
+            image_bytes,
+            format="JPEG",
+            quality=98,
+        )
+        uploaded_photo = SimpleUploadedFile(
+            name="large-report-photo.jpg",
+            content=image_bytes.getvalue(),
+            content_type="image/jpeg",
+        )
+        assert uploaded_photo.size > 5 * 1024 * 1024
+        assert uploaded_photo.size < 10 * 1024 * 1024
+
+        client.force_login(user)
+        response = client.post(
+            reverse("submit_library_report", kwargs={"slug": library.slug}),
+            data={
+                "reason": Report.Reason.OTHER,
+                "details": "A large photo should be normalized after upload.",
+                "photo": uploaded_photo,
+            },
+            HTTP_HX_REQUEST="true",
+        )
+
+        assert response.status_code == 200
+        report = Report.objects.get(library=library)
+        assert report.photo.name.endswith(".jpg")
+        assert report.photo.size <= LIBRARY_PHOTO_TARGET_BYTES
+
     def test_inline_report_submission_returns_validation_errors_without_creating_report(
         self,
         client,
@@ -2971,6 +3043,7 @@ class TestSubmitLibraryView:
         assert library.photo.name
         assert library.photo_thumbnail.name
         assert library.photo.size < original_payload_size
+        assert library.photo.size <= LIBRARY_PHOTO_TARGET_BYTES
 
         with Image.open(library.photo.path) as optimized_image:
             assert max(optimized_image.size) <= 1600
@@ -2980,6 +3053,39 @@ class TestSubmitLibraryView:
             assert thumbnail_image.width <= 400
             assert thumbnail_image.height >= 1
             assert thumbnail_image.format == "JPEG"
+
+    def test_submit_accepts_heic_photo_and_stores_optimized_jpeg(
+        self,
+        client,
+        user,
+        settings,
+        tmp_path,
+    ):
+        """Verify mobile HEIC photos can complete a website submission.
+        Normalizes the upload into browser-compatible optimized JPEG files."""
+        settings.MEDIA_ROOT = tmp_path / "media"
+        client.force_login(user)
+
+        response = client.post(
+            reverse("submit_library"),
+            data={
+                "photo": _build_uploaded_heic(file_name="mobile-library.heic"),
+                "name": "Mobile HEIC Shelf",
+                "description": "Submitted from a mobile photo library.",
+                "address": "Via dei Banchi 3",
+                "city": "Florence",
+                "country": "IT",
+                "postal_code": "50123",
+                "latitude": "43.7696",
+                "longitude": "11.2558",
+            },
+        )
+
+        assert response.status_code == 302
+        assert response.url == reverse("submit_library_confirmation")
+        library = Library.objects.get(name="Mobile HEIC Shelf")
+        assert library.photo.name.endswith(".jpg")
+        assert library.photo_thumbnail.name.endswith(".jpg")
 
     def test_submit_rejects_non_image_photo_upload(self, client, user):
         """Verify submit flow rejects uploads that are not valid images.

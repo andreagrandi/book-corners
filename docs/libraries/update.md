@@ -30,7 +30,7 @@ All fields are optional. Omitted fields keep their current value. Provide at lea
 | `brand` | string | Network or brand name (max 255 chars) |
 | `latitude` | float | Latitude (-90 to 90, WGS 84). Must be sent with `longitude`. |
 | `longitude` | float | Longitude (-180 to 180, WGS 84). Must be sent with `latitude`. |
-| `photo` | file | Optional replacement photo (JPEG/PNG/WEBP, max 8 MB). Omit to keep the current photo. |
+| `photo` | file | Optional replacement photo (JPEG/PNG/WEBP/HEIC/HEIF, max 10 MB). Accepted uploads are normalized to an optimized JPEG targeting about 500 KB. Omit to keep the current photo. |
 
 ## Examples
 
@@ -111,6 +111,6 @@ The response uses the same library object shape as the [detail endpoint](detail.
 | `400` | No fields were provided, coordinates were incomplete, or the photo format is invalid |
 | `401` | Missing or invalid bearer token |
 | `404` | Library not found, not owned by the authenticated user, rejected, or otherwise not editable |
-| `413` | Photo exceeds 8 MB size limit |
+| `413` | Photo exceeds 10 MB size limit |
 | `422` | Request validation error (field too long, invalid type, out-of-range coordinate) |
 | `429` | Rate limit exceeded (see [Rate Limiting](../rate-limiting.md)) |

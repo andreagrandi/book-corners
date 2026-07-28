@@ -6,6 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from ninja_jwt.tokens import RefreshToken
 
+from libraries.image_processing import LIBRARY_PHOTO_TARGET_BYTES
 from libraries.models import Library, Report
 from libraries.tests import _build_uploaded_photo
 
@@ -182,6 +183,8 @@ class TestReportEndpoint:
         assert response.status_code == 201
         report = Report.objects.get(id=response.json()["id"])
         assert report.photo
+        assert report.photo.name.endswith(".jpg")
+        assert report.photo.size <= LIBRARY_PHOTO_TARGET_BYTES
 
     def test_invalid_photo_format_returns_400(self, client, user_jwt, approved_library):
         """Verify a non-image file is rejected with 400.

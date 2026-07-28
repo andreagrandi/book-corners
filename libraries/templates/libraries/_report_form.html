@@ -20,6 +20,7 @@
       enctype="multipart/form-data"
       class="space-y-4"
       hx-post="{% url 'submit_library_report' slug=library.slug %}"
+      hx-encoding="multipart/form-data"
       hx-target="#report-form-panel"
       hx-swap="outerHTML"
     >
@@ -44,6 +45,7 @@
       <label class="flex w-full flex-col gap-1">
         <span class="text-sm font-medium">{% trans "Photo (optional)" %}</span>
         {{ report_form.photo }}
+        {% if report_form.photo.help_text %}<span class="mt-1 text-sm text-base-content/60">{{ report_form.photo.help_text }}</span>{% endif %}
         {% if report_form.photo.errors %}<span class="mt-1 text-sm text-error">{{ report_form.photo.errors.0 }}</span>{% endif %}
       </label>
 

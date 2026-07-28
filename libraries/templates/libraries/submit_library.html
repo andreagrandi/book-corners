@@ -76,6 +76,7 @@
             <span class="text-sm font-medium">{{ photo_label }}</span>
             {{ form.photo }}
             {% if photo_help %}<span class="mt-1 text-sm text-base-content/60">{{ photo_help }}</span>{% endif %}
+            {% if form.photo.help_text %}<span class="mt-1 text-sm text-base-content/60">{{ form.photo.help_text }}</span>{% endif %}
             {% if form.photo.errors %}<span class="mt-1 text-sm text-error">{{ form.photo.errors.0 }}</span>{% endif %}
           </label>
           <div id="photo-preview-container" class="hidden rounded-box border border-base-300 bg-base-200 p-3">

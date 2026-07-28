@@ -20,7 +20,7 @@ Report a problem with an approved library. Reports are reviewed by moderators.
 |-------|------|----------|-------------|
 | `reason` | string | Yes | Issue category (see values below) |
 | `details` | string | No | Free-text description of the issue (max 2000 chars) |
-| `photo` | file | No | Photo showing the issue (JPEG/PNG/WEBP, max 5 MB) |
+| `photo` | file | No | Photo showing the issue (JPEG/PNG/WEBP/HEIC/HEIF, max 10 MB). Accepted uploads are normalized to an optimized JPEG targeting about 500 KB. |
 
 ### Reason values
 
@@ -101,6 +101,6 @@ Report a problem with an approved library. Reports are reviewed by moderators.
 |--------|-------|
 | `400` | Invalid reason value or photo format |
 | `404` | Library not found or not in approved status |
-| `413` | Photo exceeds 5 MB size limit |
+| `413` | Photo exceeds 10 MB size limit |
 | `422` | Request validation error (missing reason) |
 | `429` | Rate limit exceeded (see [Rate Limiting](../rate-limiting.md)) |
