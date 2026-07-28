@@ -363,6 +363,9 @@ class TestI18nLanguageSwitching:
         content = response.content.decode()
         assert response.status_code == 200
         assert "Informativa sulla Privacy" in content
+        assert "Ultimo aggiornamento: 28 luglio 2026" in content
+        assert "Contribuire a OpenStreetMap" in content
+        assert "I dati del tuo account Book Corners" in content
 
     def test_privacy_page_renders_english_template(self, client):
         """Verify the privacy page uses the English template by default.
@@ -371,6 +374,9 @@ class TestI18nLanguageSwitching:
         content = response.content.decode()
         assert response.status_code == 200
         assert "Privacy Policy" in content
+        assert "Last updated: 28th July 2026" in content
+        assert "Contributing to OpenStreetMap" in content
+        assert "Your Book Corners account details" in content
 
     def test_set_language_rejects_invalid_code(self, client, user):
         """Verify invalid language codes are ignored.
