@@ -724,7 +724,7 @@ def submit_library(request, payload: Form[LibrarySubmitIn], photo: UploadedFile 
         )
 
     try:
-        _validate_uploaded_photo(
+        photo = _validate_uploaded_photo(
             uploaded_photo=photo,
             max_size_bytes=settings.MAX_LIBRARY_PHOTO_UPLOAD_BYTES,
         )
@@ -799,7 +799,7 @@ def update_library(
 
     if photo is not None:
         try:
-            _validate_uploaded_photo(
+            photo = _validate_uploaded_photo(
                 uploaded_photo=photo,
                 max_size_bytes=settings.MAX_LIBRARY_PHOTO_UPLOAD_BYTES,
             )
@@ -862,9 +862,10 @@ def submit_library_report(
 
     if photo:
         try:
-            _validate_uploaded_photo(
+            photo = _validate_uploaded_photo(
                 uploaded_photo=photo,
                 max_size_bytes=settings.MAX_REPORT_PHOTO_UPLOAD_BYTES,
+                normalize_to_jpeg=True,
             )
         except ValidationError as exc:
             message = exc.message if hasattr(exc, "message") else str(exc)
@@ -911,7 +912,7 @@ def submit_library_photo(
     library = get_object_or_404(Library, slug=slug, status=Library.Status.APPROVED)
 
     try:
-        _validate_uploaded_photo(
+        photo = _validate_uploaded_photo(
             uploaded_photo=photo,
             max_size_bytes=settings.MAX_LIBRARY_PHOTO_SUBMISSION_BYTES,
         )

@@ -26,8 +26,14 @@ def test_submit_page_renders_form_and_map(
     photo_input = authenticated_page.locator("#id_photo")
     assert photo_input.is_visible()
     assert photo_input.get_attribute("required") is not None
-    assert photo_input.get_attribute("accept") == "image/jpeg,image/png,image/webp"
+    assert photo_input.get_attribute("accept") == (
+        "image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
+    )
     assert authenticated_page.get_by_text("Photo (required)").is_visible()
+    assert authenticated_page.get_by_text(
+        "Maximum file size: 10 MB.",
+        exact=False,
+    ).is_visible()
     assert authenticated_page.locator("#id_address").is_visible()
     assert authenticated_page.locator("#id_city").is_visible()
     assert authenticated_page.locator("#id_country").is_visible()

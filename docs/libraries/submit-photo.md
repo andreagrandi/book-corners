@@ -18,7 +18,7 @@ Submit a community photo for an approved library. The photo starts in **pending*
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `photo` | file | Yes | Photo of the library (JPEG/PNG/WEBP, max 8 MB) |
+| `photo` | file | Yes | Photo of the library (JPEG/PNG/WEBP/HEIC/HEIF, max 10 MB). Accepted uploads are normalized to an optimized JPEG targeting about 500 KB. |
 | `caption` | string | No | Optional caption for the photo (max 200 chars) |
 
 ## Examples
@@ -86,6 +86,6 @@ Submit a community photo for an approved library. The photo starts in **pending*
 |--------|-------|
 | `400` | Invalid photo format, or per-user limit of 3 photos reached for this library |
 | `404` | Library not found or not in approved status |
-| `413` | Photo exceeds 8 MB size limit |
+| `413` | Photo exceeds 10 MB size limit |
 | `422` | Request validation error |
 | `429` | Rate limit exceeded (see [Rate Limiting](../rate-limiting.md)) |

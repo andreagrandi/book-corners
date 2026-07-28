@@ -28,7 +28,7 @@ Submit a new library location with a photo. The library starts in **pending** st
 | `brand` | string | No | Network or brand name (max 255 chars) |
 | `latitude` | float | Yes | Latitude (-90 to 90, WGS 84) |
 | `longitude` | float | Yes | Longitude (-180 to 180, WGS 84) |
-| `photo` | file | Yes | Photo of the library (JPEG/PNG/WEBP, max 8 MB) |
+| `photo` | file | Yes | Photo of the library (JPEG/PNG/WEBP/HEIC/HEIF, max 10 MB). Accepted uploads are normalized to an optimized JPEG targeting about 500 KB. |
 
 ## Examples
 
@@ -108,6 +108,6 @@ Submit a new library location with a photo. The library starts in **pending** st
 | Status | Cause |
 |--------|-------|
 | `400` | Invalid fields or photo format |
-| `413` | Photo exceeds 8 MB size limit |
+| `413` | Photo exceeds 10 MB size limit |
 | `422` | Request validation error (missing required fields, out-of-range values) |
 | `429` | Rate limit exceeded (see [Rate Limiting](../rate-limiting.md)) |

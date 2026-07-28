@@ -12,6 +12,9 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 MAX_LIBRARY_PHOTO_DIMENSION = 1600
 LIBRARY_THUMBNAIL_MAX_WIDTH = 400
 LIBRARY_PHOTO_JPEG_QUALITY = 85
+LIBRARY_PHOTO_MIN_JPEG_QUALITY = 35
+LIBRARY_PHOTO_TARGET_BYTES = 500 * 1024
+LIBRARY_PHOTO_MIN_DIMENSION = 480
 MIN_ASPECT_RATIO = 4 / 5  # 0.8 — Instagram lower bound (4:5 portrait)
 MAX_ASPECT_RATIO = 1.91  # Instagram upper bound (≈ 1.91:1 landscape)
 
@@ -69,13 +72,48 @@ def _encode_jpeg(*, image: Image.Image, quality: int) -> bytes:
     return payload.getvalue()
 
 
-def build_library_photo_files(
-    *,
-    image_file: IO[bytes],
-    original_name: str,
-) -> tuple[tuple[str, ContentFile], tuple[str, ContentFile]]:
-    """Build optimized main and thumbnail files from an uploaded image.
-    Produces JPEG outputs with bounded dimensions for web rendering."""
+def _encode_jpeg_to_target(*, image: Image.Image, target_size_bytes: int) -> bytes:
+    """Encode an RGB image within the preferred stored-file size.
+    Preserves the highest practical quality before reducing dimensions."""
+    working_image = image.copy()
+
+    while True:
+        smallest_payload = b""
+        minimum_quality = LIBRARY_PHOTO_MIN_JPEG_QUALITY
+        maximum_quality = LIBRARY_PHOTO_JPEG_QUALITY
+        best_payload: bytes | None = None
+
+        while minimum_quality <= maximum_quality:
+            quality = (minimum_quality + maximum_quality) // 2
+            payload = _encode_jpeg(image=working_image, quality=quality)
+
+            if len(payload) <= target_size_bytes:
+                best_payload = payload
+                minimum_quality = quality + 1
+            else:
+                smallest_payload = payload
+                maximum_quality = quality - 1
+
+        if best_payload is not None:
+            return best_payload
+
+        current_dimension = max(working_image.size)
+        if current_dimension <= LIBRARY_PHOTO_MIN_DIMENSION:
+            return smallest_payload
+
+        next_dimension = max(
+            LIBRARY_PHOTO_MIN_DIMENSION,
+            round(current_dimension * 0.8),
+        )
+        working_image = _resize_to_max_dimension(
+            image=working_image,
+            max_dimension=next_dimension,
+        )
+
+
+def _load_rgb_image(*, image_file: IO[bytes]) -> Image.Image:
+    """Load an uploaded image as an orientation-corrected RGB image.
+    Restores the source file position after Pillow finishes decoding."""
     start_position: int | None = None
     if hasattr(image_file, "tell"):
         try:
@@ -89,16 +127,7 @@ def build_library_photo_files(
 
         with Image.open(image_file) as source_image:
             normalized_image = ImageOps.exif_transpose(source_image)
-            rgb_image = normalized_image.convert("RGB")
-
-            resized_main_image = _resize_to_max_dimension(
-                image=rgb_image,
-                max_dimension=MAX_LIBRARY_PHOTO_DIMENSION,
-            )
-            thumbnail_image = _resize_to_max_width(
-                image=rgb_image,
-                max_width=LIBRARY_THUMBNAIL_MAX_WIDTH,
-            )
+            return normalized_image.convert("RGB")
     except (UnidentifiedImageError, OSError, ValueError) as error:
         raise ValueError("Could not process uploaded image.") from error
     finally:
@@ -108,9 +137,49 @@ def build_library_photo_files(
             except (OSError, ValueError):
                 pass
 
-    resized_main_bytes = _encode_jpeg(
+
+def build_optimized_photo_file(
+    *,
+    image_file: IO[bytes],
+    original_name: str,
+) -> tuple[str, ContentFile]:
+    """Build one web-compatible JPEG from an uploaded image.
+    Bounds dimensions and targets a stored size of about 500 KB."""
+    rgb_image = _load_rgb_image(image_file=image_file)
+    resized_image = _resize_to_max_dimension(
+        image=rgb_image,
+        max_dimension=MAX_LIBRARY_PHOTO_DIMENSION,
+    )
+    image_bytes = _encode_jpeg_to_target(
+        image=resized_image,
+        target_size_bytes=LIBRARY_PHOTO_TARGET_BYTES,
+    )
+
+    base_name = _normalize_base_filename(original_name=original_name)
+    filename = f"{base_name}-{uuid4().hex[:12]}.jpg"
+    return filename, ContentFile(image_bytes)
+
+
+def build_library_photo_files(
+    *,
+    image_file: IO[bytes],
+    original_name: str,
+) -> tuple[tuple[str, ContentFile], tuple[str, ContentFile]]:
+    """Build optimized main and thumbnail files from an uploaded image.
+    Produces JPEG outputs with bounded dimensions for web rendering."""
+    rgb_image = _load_rgb_image(image_file=image_file)
+    resized_main_image = _resize_to_max_dimension(
+        image=rgb_image,
+        max_dimension=MAX_LIBRARY_PHOTO_DIMENSION,
+    )
+    thumbnail_image = _resize_to_max_width(
+        image=rgb_image,
+        max_width=LIBRARY_THUMBNAIL_MAX_WIDTH,
+    )
+
+    resized_main_bytes = _encode_jpeg_to_target(
         image=resized_main_image,
-        quality=LIBRARY_PHOTO_JPEG_QUALITY,
+        target_size_bytes=LIBRARY_PHOTO_TARGET_BYTES,
     )
     thumbnail_bytes = _encode_jpeg(image=thumbnail_image, quality=LIBRARY_PHOTO_JPEG_QUALITY)
 

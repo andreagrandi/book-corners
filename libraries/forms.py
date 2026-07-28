@@ -8,8 +8,10 @@ from django.conf import settings
 from django import forms
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils.translation import gettext_lazy as _
 
+from libraries.image_processing import build_optimized_photo_file
 from libraries.models import Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
 
 
@@ -26,12 +28,27 @@ SEARCH_COUNTRY_CHOICES = [
     *COUNTRY_CHOICES[1:],
 ]
 
-ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "WEBP"}
+ALLOWED_IMAGE_FORMATS = {"HEIC", "HEIF", "JPEG", "PNG", "WEBP"}
+PHOTO_INPUT_ACCEPT = "image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
 
 
-def _validate_uploaded_photo(*, uploaded_photo: Any, max_size_bytes: int) -> Any:
-    """Validate uploaded image files for size and format.
-    Rejects non-image payloads and files larger than configured limits."""
+def _photo_upload_help_text(*, max_size_bytes: int) -> str:
+    """Build consistent image format and size guidance.
+    Keeps upload limits visible before users submit mobile forms."""
+    max_size_mb = max_size_bytes / (1024 * 1024)
+    return _(
+        "JPEG, PNG, WebP, HEIC, or HEIF. Maximum file size: %(size).0f MB."
+    ) % {"size": max_size_mb}
+
+
+def _validate_uploaded_photo(
+    *,
+    uploaded_photo: Any,
+    max_size_bytes: int,
+    normalize_to_jpeg: bool = False,
+) -> Any:
+    """Validate and normalize uploaded image files.
+    Optionally compresses valid photos to a web-compatible JPEG."""
     if uploaded_photo is None:
         return uploaded_photo
 
@@ -59,15 +76,36 @@ def _validate_uploaded_photo(*, uploaded_photo: Any, max_size_bytes: int) -> Any
         with Image.open(uploaded_photo) as image:
             image_format = (image.format or "").upper()
             if image_format not in ALLOWED_IMAGE_FORMATS:
-                raise ValidationError(_("Upload a valid image in JPEG, PNG, or WEBP format."))
+                raise ValidationError(
+                    _("Upload a valid image in JPEG, PNG, WEBP, HEIC, or HEIF format.")
+                )
     except (UnidentifiedImageError, OSError, ValueError):
-        raise ValidationError(_("Upload a valid image in JPEG, PNG, or WEBP format."))
+        raise ValidationError(
+            _("Upload a valid image in JPEG, PNG, WEBP, HEIC, or HEIF format.")
+        )
     finally:
         if start_position is not None and hasattr(uploaded_photo, "seek"):
             try:
                 uploaded_photo.seek(start_position)
             except (OSError, ValueError):
                 pass
+
+    if normalize_to_jpeg:
+        original_name = str(getattr(uploaded_photo, "name", "") or "photo")
+        try:
+            jpeg_name, jpeg_content = build_optimized_photo_file(
+                image_file=uploaded_photo,
+                original_name=original_name,
+            )
+        except ValueError:
+            raise ValidationError(
+                _("Upload a valid image in JPEG, PNG, WEBP, HEIC, or HEIF format.")
+            )
+        return SimpleUploadedFile(
+            name=jpeg_name,
+            content=jpeg_content.read(),
+            content_type="image/jpeg",
+        )
 
     return uploaded_photo
 
@@ -115,8 +153,11 @@ class LibrarySubmissionForm(forms.ModelForm):
             self.fields["photo"].widget = forms.FileInput()
 
         self.fields["photo"].required = not self.instance.pk
+        self.fields["photo"].help_text = _photo_upload_help_text(
+            max_size_bytes=settings.MAX_LIBRARY_PHOTO_UPLOAD_BYTES,
+        )
         self.fields["photo"].widget.attrs.update({
-            "accept": "image/jpeg,image/png,image/webp",
+            "accept": PHOTO_INPUT_ACCEPT,
             "class": "file-input w-full",
         })
         self.fields["name"].widget.attrs["class"] = "input w-full"
@@ -215,6 +256,9 @@ class LibrarySubmissionForm(forms.ModelForm):
 
 
 class ReportSubmissionForm(forms.ModelForm):
+    """Validate and save reports about an existing library.
+    Normalizes optional evidence photos before moderation."""
+
     details = forms.CharField(max_length=2000, widget=forms.Textarea(attrs={"rows": 4}))
 
     class Meta:
@@ -234,7 +278,13 @@ class ReportSubmissionForm(forms.ModelForm):
 
         self.fields["reason"].widget.attrs["class"] = "select w-full"
         self.fields["details"].widget.attrs["class"] = "textarea w-full"
-        self.fields["photo"].widget.attrs["class"] = "file-input w-full"
+        self.fields["photo"].help_text = _photo_upload_help_text(
+            max_size_bytes=settings.MAX_REPORT_PHOTO_UPLOAD_BYTES,
+        )
+        self.fields["photo"].widget.attrs.update({
+            "accept": PHOTO_INPUT_ACCEPT,
+            "class": "file-input w-full",
+        })
 
     def save(self, commit: bool = True) -> Report:
         """Persist the report bound to the authenticated user and library.
@@ -261,6 +311,7 @@ class ReportSubmissionForm(forms.ModelForm):
         return _validate_uploaded_photo(
             uploaded_photo=photo,
             max_size_bytes=settings.MAX_REPORT_PHOTO_UPLOAD_BYTES,
+            normalize_to_jpeg=True,
         )
 
 
@@ -334,7 +385,8 @@ class LibrarySearchForm(forms.Form):
 
 
 class LibraryPhotoSubmissionForm(forms.ModelForm):
-    """Form for submitting a community photo to an existing library."""
+    """Validate community photos submitted to an existing library.
+    Enforces upload and per-user moderation constraints."""
 
     class Meta:
         model = LibraryPhoto
@@ -347,7 +399,13 @@ class LibraryPhotoSubmissionForm(forms.ModelForm):
         self.library = kwargs.pop("library", None)
         super().__init__(*args, **kwargs)
 
-        self.fields["photo"].widget.attrs["class"] = "file-input w-full"
+        self.fields["photo"].help_text = _photo_upload_help_text(
+            max_size_bytes=settings.MAX_LIBRARY_PHOTO_SUBMISSION_BYTES,
+        )
+        self.fields["photo"].widget.attrs.update({
+            "accept": PHOTO_INPUT_ACCEPT,
+            "class": "file-input w-full",
+        })
         self.fields["caption"].widget.attrs.update({
             "class": "input w-full",
             "placeholder": _("Optional caption for your photo"),

@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.16.0
+
+- Library, replacement, report, and community photo uploads now accept files up to 10 MB in JPEG, PNG, WebP, HEIC, and HEIF formats. Accepted photos are normalized to optimized JPEGs targeting a stored size of about 500 KB for consistent storage and browser rendering.
+
 ## v1.15.0
 
 - Refresh tokens now last 365 days instead of 1 day, so API clients stay signed in until the refresh token expires or the user logs out. Access token lifetime is unchanged (5 minutes).

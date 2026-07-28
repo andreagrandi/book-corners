@@ -6,7 +6,7 @@ from django.test import override_settings
 from ninja_jwt.tokens import RefreshToken
 
 from libraries.models import Library
-from libraries.tests import _build_uploaded_photo
+from libraries.tests import _build_uploaded_heic, _build_uploaded_photo
 
 User = get_user_model()
 
@@ -72,6 +72,23 @@ class TestSubmitLibraryEndpoint:
         body = response.json()
         library = Library.objects.get(id=body["id"])
         assert library.status == Library.Status.PENDING
+
+    def test_heic_submission_is_stored_as_jpeg(self, client, user_jwt, tmp_path, settings):
+        """Verify API clients can submit common mobile HEIC photos.
+        Normalizes accepted uploads before the library image pipeline stores them."""
+        settings.MEDIA_ROOT = tmp_path
+        photo = _build_uploaded_heic(file_name="api-mobile.heic")
+
+        response = client.post(
+            "/api/v1/libraries/",
+            data={**_submit_payload(name="API HEIC Library"), "photo": photo},
+            HTTP_AUTHORIZATION=f"Bearer {user_jwt}",
+        )
+
+        assert response.status_code == 201
+        library = Library.objects.get(id=response.json()["id"])
+        assert library.photo.name.endswith(".jpg")
+        assert library.photo_thumbnail.name.endswith(".jpg")
 
     def test_response_contains_all_library_out_fields(self, client, user_jwt, tmp_path, settings):
         """Verify the response includes every field defined in LibraryOut.
@@ -156,7 +173,7 @@ class TestSubmitLibraryEndpoint:
 
     def test_invalid_photo_format_returns_400(self, client, user_jwt):
         """Verify a non-image file is rejected with 400.
-        Only JPEG, PNG, and WEBP formats are accepted."""
+        Keeps arbitrary payloads out while supported image formats remain accepted."""
         fake_file = SimpleUploadedFile(
             name="malware.txt",
             content=b"this is not an image",

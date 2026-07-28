@@ -204,6 +204,16 @@
       </div>
     </footer>
 
+    <script>
+      document.body.addEventListener("htmx:beforeSwap", function (event) {
+        if (event.detail.xhr.status !== 422) {
+          return;
+        }
+
+        event.detail.shouldSwap = true;
+        event.detail.isError = false;
+      });
+    </script>
     {% block extra_scripts %}{% endblock %}
   </body>
 </html>
