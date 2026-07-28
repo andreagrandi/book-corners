@@ -1,4 +1,5 @@
 from io import BytesIO
+from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
@@ -330,6 +331,92 @@ class TestLibraryModel:
 
         assert library.photo_thumbnail == ""
         assert library.card_photo_url.endswith("/libraries/photos/2026/02/test.jpg")
+
+    def test_applying_staged_photo_deletes_superseded_live_files(
+        self,
+        user: Any,
+        settings: Any,
+        tmp_path: Path,
+        django_capture_on_commit_callbacks: Any,
+    ) -> None:
+        """Verify staged-photo approval cleans up replaced live files.
+        Runs deletion after commit while retaining the newly approved files."""
+        settings.MEDIA_ROOT = tmp_path / "media"
+        library = Library.objects.create(
+            name="Photo Cleanup Shelf",
+            photo=_build_uploaded_photo(file_name="live-photo.jpg"),
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        old_photo_name = library.photo.name
+        old_thumbnail_name = library.photo_thumbnail.name
+        storage = library.photo.storage
+        library.stage_update(
+            changes={},
+            photo=_build_uploaded_photo(file_name="staged-photo.jpg"),
+        )
+        staged_photo_name = library.pending_photo.name
+        staged_thumbnail_name = library.pending_photo_thumbnail.name
+
+        with django_capture_on_commit_callbacks(execute=True):
+            library.apply_pending_update()
+
+        assert not storage.exists(old_photo_name)
+        assert not storage.exists(old_thumbnail_name)
+        assert storage.exists(staged_photo_name)
+        assert storage.exists(staged_thumbnail_name)
+
+    def test_replacing_live_photo_keeps_files_referenced_by_community_photo(
+        self,
+        user: Any,
+        settings: Any,
+        tmp_path: Path,
+        django_capture_on_commit_callbacks: Any,
+    ) -> None:
+        """Verify shared community-photo files survive primary replacement.
+        Prevents cleanup from breaking another model that references the files."""
+        settings.MEDIA_ROOT = tmp_path / "media"
+        library = Library.objects.create(
+            name="Shared Photo Shelf",
+            photo=_build_uploaded_photo(file_name="shared-photo.jpg"),
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        old_photo_name = library.photo.name
+        old_thumbnail_name = library.photo_thumbnail.name
+        storage = library.photo.storage
+        LibraryPhoto.objects.create(
+            library=library,
+            created_by=user,
+            photo=old_photo_name,
+            photo_thumbnail=old_thumbnail_name,
+        )
+
+        with django_capture_on_commit_callbacks(execute=True):
+            library.photo = _build_uploaded_photo(file_name="new-primary.jpg")
+            library.save()
+
+        assert storage.exists(old_photo_name)
+        assert storage.exists(old_thumbnail_name)
+
+    def test_deferred_photo_fields_do_not_trigger_recursive_refresh(
+        self,
+        library: Library,
+    ) -> None:
+        """Verify partial library queries can defer both photo fields.
+        Prevents photo snapshots from recursively loading omitted columns."""
+        deferred_library = Library.objects.only("created_at").get(pk=library.pk)
+
+        assert deferred_library.pk == library.pk
+        assert deferred_library.created_at == library.created_at
 
     def test_slug_uniqueness_adds_numeric_suffix(self, user):
         """Verify slug uniqueness adds numeric suffix.

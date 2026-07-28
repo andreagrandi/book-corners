@@ -1,12 +1,15 @@
 import uuid
 from copy import copy
+from functools import partial
 from typing import Any
 
 from django.conf import settings
 from django.contrib.gis.db.models import PointField
 from django.contrib.gis.geos import Point
 from django.contrib.staticfiles.storage import staticfiles_storage
-from django.db import models
+from django.core.files.storage import Storage
+from django.db import models, transaction
+from django.db.models import Q
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
@@ -126,7 +129,10 @@ class Library(models.Model):
         """Initialize instance and snapshot the current photo name.
         Allows cheap in-memory change detection on save."""
         super().__init__(*args, **kwargs)
-        self._original_photo_name = self.photo.name if self.photo else ""
+        self._original_photo_name = self._loaded_file_name(field_name="photo")
+        self._original_photo_thumbnail_name = self._loaded_file_name(
+            field_name="photo_thumbnail"
+        )
 
     def __str__(self) -> str:
         """Return a readable string representation.
@@ -140,6 +146,9 @@ class Library(models.Model):
     def save(self, *args, **kwargs) -> None:
         """Persist the model instance.
         Applies model-specific rules before writing data."""
+        was_adding = self._state.adding
+        old_photo_name = self._original_photo_name
+        old_thumbnail_name = self._original_photo_thumbnail_name
         save_kwargs = kwargs
 
         if not self.slug:
@@ -150,6 +159,15 @@ class Library(models.Model):
             save_kwargs = self._merge_photo_fields_into_update_kwargs(kwargs=kwargs)
 
         super().save(*args, **save_kwargs)
+        if not was_adding:
+            self._schedule_superseded_photo_cleanup(
+                old_photo_name=old_photo_name,
+                old_thumbnail_name=old_thumbnail_name,
+            )
+        self._original_photo_name = self._loaded_file_name(field_name="photo")
+        self._original_photo_thumbnail_name = self._loaded_file_name(
+            field_name="photo_thumbnail"
+        )
 
     @property
     def has_pending_update(self) -> bool:
@@ -400,6 +418,66 @@ class Library(models.Model):
         merged_update_fields.update({"photo", "photo_thumbnail"})
         merged_kwargs["update_fields"] = merged_update_fields
         return merged_kwargs
+
+    def _schedule_superseded_photo_cleanup(
+        self,
+        *,
+        old_photo_name: str,
+        old_thumbnail_name: str,
+    ) -> None:
+        """Schedule deletion of replaced live photo files after commit.
+        Defers cleanup so a rolled-back database update keeps its files."""
+        photo_field = self._meta.get_field("photo")
+        thumbnail_field = self._meta.get_field("photo_thumbnail")
+        superseded_files = (
+            (
+                old_photo_name,
+                self._loaded_file_name(field_name="photo"),
+                photo_field.storage,
+            ),
+            (
+                old_thumbnail_name,
+                self._loaded_file_name(field_name="photo_thumbnail"),
+                thumbnail_field.storage,
+            ),
+        )
+        for old_name, current_name, storage in superseded_files:
+            if not old_name or old_name == current_name:
+                continue
+            transaction.on_commit(
+                partial(
+                    self._delete_unreferenced_photo_file,
+                    storage=storage,
+                    name=old_name,
+                )
+            )
+
+    @classmethod
+    def _delete_unreferenced_photo_file(
+        cls,
+        *,
+        storage: Storage,
+        name: str,
+    ) -> None:
+        """Delete a superseded file only when no photo field references it.
+        Protects shared community and staged images from premature cleanup."""
+        library_reference = cls.objects.filter(
+            Q(photo=name)
+            | Q(photo_thumbnail=name)
+            | Q(pending_photo=name)
+            | Q(pending_photo_thumbnail=name)
+        ).exists()
+        community_reference = LibraryPhoto.objects.filter(
+            Q(photo=name) | Q(photo_thumbnail=name)
+        ).exists()
+        if not library_reference and not community_reference:
+            storage.delete(name)
+
+    def _loaded_file_name(self, *, field_name: str) -> str:
+        """Return a loaded file field name without resolving deferred data.
+        Avoids recursive refreshes for querysets that omit photo columns."""
+        field_value = self.__dict__.get(field_name, "")
+        return getattr(field_value, "name", field_value) or ""
 
     def _generate_unique_slug(self) -> str:
         """Generate a unique slug from city, address, and optionally name.

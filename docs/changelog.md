@@ -6,6 +6,7 @@
 - Staff moderation lists and detail responses expose staged values as pending previews, and moderation approval or rejection applies to the proposal without withdrawing the live library.
 - Unchanged approved-library edits no longer create moderator notifications or move the item in the review queue.
 - The moderation dashboard now previews proposed values, and library queue rows distinguish new submissions from staged edits.
+- Replacing a library's live photo now removes superseded unreferenced files after the database update commits while preserving files shared with community photos.
 
 ## v1.16.0
 
