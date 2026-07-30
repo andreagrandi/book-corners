@@ -1,0 +1,1964 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="REST API documentation for the Book Corners little free library platform.">
+      
+      
+      
+        <link rel="canonical" href="https://developers.bookcorners.org/openstreetmap-contribution-design/">
+      
+      
+        <link rel="prev" href="../push-notifications/">
+      
+      
+        <link rel="next" href="../libraries/list-and-search/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.52">
+    
+    
+      
+        <title>OpenStreetMap Contribution Design - Book Corners API</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.8b3b5a67.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.dfe2e883.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="Navigation"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#openstreetmap-contribution-design" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="./.." title="Book Corners API" class="md-header__button md-logo" aria-label="Book Corners API" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="Navigation">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Book Corners API
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              OpenStreetMap Contribution Design
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="none" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="Search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="./.." title="Book Corners API" class="md-nav__button md-logo" aria-label="Book Corners API" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    Book Corners API
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="./.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Getting Started
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Authentication
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../push-notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Push Notifications
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  OpenStreetMap Contribution Design
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  OpenStreetMap Contribution Design
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#decision-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Decision summary
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#submission-permission-and-provenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Submission permission and provenance
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Submission permission and provenance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#library-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Library fields
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        API contract
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#eligibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Eligibility
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#osm-state-and-audit-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        OSM state and audit records
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#duplicate-detection-and-conflation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Duplicate detection and conflation
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Duplicate detection and conflation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#candidate-query" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Candidate query
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#match-signals" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Match signals
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resolution-and-freshness" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Resolution and freshness
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-osm-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Supported OSM mapping
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changesets-and-api-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Changesets and API workflow
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentication-and-editing-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Authentication and editing account
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#policy-and-licensing-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Policy and licensing gates
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-credentials-and-service-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Configuration, credentials, and service limits
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Deployment boundaries
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verification-required-by-implementation-tickets" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Verification required by implementation tickets
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sources-reviewed" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Sources reviewed
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Libraries
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Libraries
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../libraries/list-and-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  List & Search
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../libraries/detail/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Detail
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../libraries/submit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Submit
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../libraries/update/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Update
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../libraries/report/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Report
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../libraries/submit-photo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Submit Photo
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../libraries/countries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Countries
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../libraries/favourites/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Favourites
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../libraries/contributions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  My Contributions
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../libraries/moderation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Staff Moderation
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../statistics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Statistics
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Errors
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rate-limiting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Rate Limiting
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/openapi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  API Reference
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Changelog
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#decision-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Decision summary
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#submission-permission-and-provenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Submission permission and provenance
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Submission permission and provenance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#library-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Library fields
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        API contract
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#eligibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Eligibility
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#osm-state-and-audit-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        OSM state and audit records
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#duplicate-detection-and-conflation" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Duplicate detection and conflation
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Duplicate detection and conflation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#candidate-query" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Candidate query
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#match-signals" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Match signals
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resolution-and-freshness" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Resolution and freshness
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-osm-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Supported OSM mapping
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changesets-and-api-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Changesets and API workflow
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentication-and-editing-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Authentication and editing account
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#policy-and-licensing-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Policy and licensing gates
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-credentials-and-service-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Configuration, credentials, and service limits
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Deployment boundaries
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verification-required-by-implementation-tickets" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Verification required by implementation tickets
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sources-reviewed" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Sources reviewed
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+<h1 id="openstreetmap-contribution-design">OpenStreetMap Contribution Design<a class="headerlink" href="#openstreetmap-contribution-design" title="Permanent link">&para;</a></h1>
+<p><strong>Status:</strong> Accepted implementation contract for <a href="https://github.com/andreagrandi/book-corners/issues/124">issue #124</a></p>
+<p><strong>Last reviewed:</strong> 2026-07-30</p>
+<p>This document defines how Book Corners may prepare and manually contribute a
+user-submitted public bookcase to OpenStreetMap (OSM). It defines future work; it
+does not enable or perform an OSM write.</p>
+<h2 id="decision-summary">Decision summary<a class="headerlink" href="#decision-summary" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Permission is an unchecked, per-submission boolean. It defaults to <code>false</code>.</li>
+<li>Existing records and clients that omit the field are not opted in.</li>
+<li>There is no account-level OSM preference or dashboard setting.</li>
+<li>A true value permits later review. It never submits, queues, schedules, or
+  guarantees an OSM contribution.</li>
+<li>The public library API does not expose the permission. The create response and
+  the authenticated submitter's contribution response do.</li>
+<li>Later owner edits cannot enable or change the permission.</li>
+<li>Only approved, directly user-submitted, opted-in libraries with no unresolved
+  update, duplicate, or previous contribution can become candidates.</li>
+<li>OSM imports, legacy records, staff-created records, ownerless records, and
+  records with unknown provenance are ineligible.</li>
+<li>Every write is initiated and confirmed by an authorized administrator after a
+  fresh duplicate check and exact tag preview.</li>
+<li>A dedicated OSM import account and an OAuth 2.0 token with only <code>write_api</code>
+  permission are used. Book Corners never collects a submitter's OSM credentials.</li>
+<li>Account details, private contacts, photos, AI-generated text, and internal
+  database identifiers are never sent to OSM.</li>
+<li>Production writes remain disabled until the OSM import/automated-edit review,
+  local community consultation, and data-licensing gates in this document are
+  complete.</li>
+</ul>
+<h2 id="submission-permission-and-provenance">Submission permission and provenance<a class="headerlink" href="#submission-permission-and-provenance" title="Permanent link">&para;</a></h2>
+<h3 id="library-fields">Library fields<a class="headerlink" href="#library-fields" title="Permanent link">&para;</a></h3>
+<p>The existing <code>Library</code> row is the submission record. Add these fields in
+<a href="https://github.com/andreagrandi/book-corners/issues/126">issue #126</a>:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type and default</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>osm_submission_allowed</code></td>
+<td><code>BooleanField(default=False)</code></td>
+<td>The submitter permitted later manual OSM review for this submission. Do not add a database index to this low-cardinality field.</td>
+</tr>
+<tr>
+<td><code>osm_submission_allowed_at</code></td>
+<td>nullable timestamp</td>
+<td>When a true permission was recorded. It remains null when the value is false or omitted.</td>
+</tr>
+<tr>
+<td><code>submission_origin</code></td>
+<td>indexed text choice, default <code>legacy</code></td>
+<td>Durable provenance with <code>legacy</code>, <code>user</code>, <code>staff</code>, and <code>import</code> values.</td>
+</tr>
+</tbody>
+</table>
+<p>The data migration must set every existing row to
+<code>osm_submission_allowed=false</code>, <code>osm_submission_allowed_at=null</code>, and
+<code>submission_origin=legacy</code>. It must not infer consent or direct submission from
+<code>created_by</code>, because the GeoJSON importer also records a staff user in that
+field.</p>
+<p>New records set provenance as follows:</p>
+<ul>
+<li>Authenticated web and API creates set <code>submission_origin=user</code>.</li>
+<li>Django admin creates set <code>submission_origin=staff</code>.</li>
+<li>GeoJSON and future bulk imports set <code>submission_origin=import</code>.</li>
+<li>No import or staff workflow accepts <code>osm_submission_allowed=true</code>.</li>
+</ul>
+<p><code>source</code> and <code>external_id</code> remain data-origin metadata. They are additional
+safety signals, not substitutes for <code>submission_origin</code>.</p>
+<h3 id="api-contract">API contract<a class="headerlink" href="#api-contract" title="Permanent link">&para;</a></h3>
+<p><code>POST /api/v1/libraries/</code> accepts this optional multipart form field:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>osm_submission_allowed</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td>Permit an administrator to consider this submission for a later manual OSM contribution.</td>
+</tr>
+</tbody>
+</table>
+<p>The server stores the value only after authenticated validation succeeds. A
+true value has no external side effect.</p>
+<p>The <code>201 Created</code> response uses a submission-specific response schema that
+extends the existing library response with <code>osm_submission_allowed</code>. The same
+field is added to each item returned by authenticated
+<code>GET /api/v1/libraries/mine</code>, so a client can confirm the stored choice after
+reconnecting.</p>
+<p>The field is intentionally absent from public list and detail responses,
+favourites, statistics, and unauthenticated schemas. It is permission metadata,
+not a public property of a bookcase.</p>
+<p><code>PATCH /api/v1/libraries/{slug}</code> does not accept this field. An attempted update
+is rejected as an unsupported field and does not change the stored value. Owner
+edits, including staged edits to approved libraries, preserve the original
+submission permission.</p>
+<p>If a submitter asks to withdraw permission before contribution, staff may only
+change <code>true</code> to <code>false</code>; staff cannot grant permission on the submitter's
+behalf. The withdrawal and actor are recorded in the audit model described
+below. The field is read-only in the generic Django admin; withdrawal uses a
+dedicated action that enforces this direction. Enabling permission after the
+original submission is outside this rollout and would require a new explicit
+user-facing consent flow.</p>
+<h2 id="eligibility">Eligibility<a class="headerlink" href="#eligibility" title="Permanent link">&para;</a></h2>
+<p>A library is eligible for an OSM preview only when every condition below is
+true:</p>
+<ol>
+<li><code>status=approved</code>.</li>
+<li><code>submission_origin=user</code>.</li>
+<li><code>created_by</code> still references the authenticated submitter.</li>
+<li><code>osm_submission_allowed=true</code>.</li>
+<li><code>source</code> does not identify OpenStreetMap and <code>external_id</code> does not contain
+   an OSM element identifier.</li>
+<li>No staged <code>pending_changes</code> or <code>pending_photo</code> awaits moderation.</li>
+<li>No OSM element has already been recorded for the library.</li>
+<li>The latest duplicate check is successful, has no unresolved possible
+   duplicate, and is recent enough for the final confirmation.</li>
+<li>The global policy, licensing, credentials, and production feature gates are
+   enabled.</li>
+</ol>
+<p>The same predicate is used for admin filters, the preview page, and the
+transaction immediately before a write. The write path must re-read the row
+with a database lock and re-evaluate the predicate; it must not trust a stale
+admin page.</p>
+<p>Deleting an account sets <code>created_by</code> to null under the existing model
+relationship and therefore makes an unsubmitted library ineligible. Approval or
+opt-in alone is never sufficient.</p>
+<h2 id="osm-state-and-audit-records">OSM state and audit records<a class="headerlink" href="#osm-state-and-audit-records" title="Permanent link">&para;</a></h2>
+<p>Add a one-to-one <code>OpenStreetMapContribution</code> model in
+<a href="https://github.com/andreagrandi/book-corners/issues/127">issue #127</a>. It stores
+the current operational state without overloading <code>Library.source</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>library</code></td>
+<td>One-to-one link to <code>Library</code>.</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>Indexed choice: <code>unchecked</code>, <code>no_match</code>, <code>possible_duplicate</code>, <code>already_present</code>, <code>submitting</code>, <code>contributed</code>, or <code>failed</code>.</td>
+</tr>
+<tr>
+<td><code>checked_at</code></td>
+<td>Time of the most recent completed duplicate check.</td>
+</tr>
+<tr>
+<td><code>duplicate_candidates</code></td>
+<td>Sanitized JSON list of OSM element type, ID, distance, relevant tags, and match signals.</td>
+</tr>
+<tr>
+<td><code>osm_element_type</code></td>
+<td><code>node</code>, <code>way</code>, or <code>relation</code>; the initial create path only creates a node.</td>
+</tr>
+<tr>
+<td><code>osm_element_id</code></td>
+<td>OSM element ID when an existing or created feature is confirmed.</td>
+</tr>
+<tr>
+<td><code>changeset_id</code></td>
+<td>OSM changeset used for the contribution.</td>
+</tr>
+<tr>
+<td><code>contributed_at</code></td>
+<td>Time Book Corners confirmed the OSM result.</td>
+</tr>
+<tr>
+<td><code>contributed_by</code></td>
+<td>Staff user who confirmed the write.</td>
+</tr>
+<tr>
+<td><code>last_attempt_key</code></td>
+<td>Unique UUID used to serialize and reconcile one write attempt.</td>
+</tr>
+<tr>
+<td><code>last_error_code</code></td>
+<td>Stable internal error category without credentials or response bodies.</td>
+</tr>
+<tr>
+<td><code>last_error_message</code></td>
+<td>Sanitized operator-facing failure detail.</td>
+</tr>
+</tbody>
+</table>
+<p>Add a conditional uniqueness constraint for non-null
+<code>(osm_element_type, osm_element_id)</code>. One Book Corners library may link to one
+OSM feature, and the same OSM feature cannot satisfy two Book Corners
+contributions.</p>
+<p>Add an append-only <code>OpenStreetMapContributionEvent</code> model. Each event stores the
+library/contribution, event type, outcome, staff actor when applicable,
+timestamp, attempt UUID, and sanitized JSON details. Event types cover:</p>
+<ul>
+<li>permission withdrawal;</li>
+<li>duplicate check and its candidate snapshot;</li>
+<li>duplicate resolution with the staff reason;</li>
+<li>write started with the exact outgoing coordinate, tags, and changeset tags;</li>
+<li>write succeeded with the OSM element and changeset IDs;</li>
+<li>write failed or required reconciliation.</li>
+</ul>
+<p>The event table is the audit history; the one-to-one record is the current
+filterable state. Tokens, client secrets, private contacts, photos, and full HTTP
+headers or bodies must never enter either model or application logs.</p>
+<h2 id="duplicate-detection-and-conflation">Duplicate detection and conflation<a class="headerlink" href="#duplicate-detection-and-conflation" title="Permanent link">&para;</a></h2>
+<p>The existing <code>find_duplicates</code> command detects Book Corners records by
+normalized address and by same-street proximity within 100 metres. OSM
+conflation is a separate check against current OSM data and must not reuse a
+cached Book Corners-only result.</p>
+<h3 id="candidate-query">Candidate query<a class="headerlink" href="#candidate-query" title="Permanent link">&para;</a></h3>
+<p>For a manual preview, query a configured Overpass-compatible endpoint for
+nodes, ways, and relations within 100 metres of the submitted point. Request:</p>
+<ul>
+<li>every <code>amenity=public_bookcase</code> feature;</li>
+<li>nearby features with <code>amenity=library</code>, <code>amenity=give_box</code>, or <code>shop=books</code>
+  for secondary warnings; and</li>
+<li>the tags needed to compare <code>name</code>, address, <code>brand</code>, and <code>operator</code>.</li>
+</ul>
+<p>The checker calculates distance to nodes and to the representative point of ways
+and relations. It stores only the element type, element ID, distance, relevant
+public tags, and triggered signals.</p>
+<h3 id="match-signals">Match signals<a class="headerlink" href="#match-signals" title="Permanent link">&para;</a></h3>
+<p>A result becomes a blocking <code>possible_duplicate</code> when any condition is true:</p>
+<ul>
+<li>an <code>amenity=public_bookcase</code> is within 25 metres;</li>
+<li>an <code>amenity=public_bookcase</code> within 100 metres has the same normalized name;</li>
+<li>an <code>amenity=public_bookcase</code> within 100 metres has the same normalized street
+  and house number;</li>
+<li>a feature within 100 metres has matching normalized <code>brand</code> or <code>operator</code>
+  together with a compatible book-sharing tag; or</li>
+<li>its OSM element ID is already linked to any Book Corners library.</li>
+</ul>
+<p>Normalization trims whitespace, case-folds Unicode, removes punctuation for
+comparison, and compares address components only when both sides contain them.
+Missing tags never count as proof that no duplicate exists.</p>
+<p>Other returned features are warnings in the preview. An authorized
+administrator must still inspect the map and tags before confirming no match.</p>
+<h3 id="resolution-and-freshness">Resolution and freshness<a class="headerlink" href="#resolution-and-freshness" title="Permanent link">&para;</a></h3>
+<p>A possible duplicate blocks creation. The administrator must choose one of
+these recorded outcomes:</p>
+<ul>
+<li><strong>Same feature:</strong> link the existing OSM element, mark the contribution
+  <code>already_present</code>, and do not create anything.</li>
+<li><strong>Different feature:</strong> record a reason explaining the distinction. A fresh
+  duplicate check is still required immediately before creation.</li>
+<li><strong>Unclear:</strong> leave <code>possible_duplicate</code> and stop.</li>
+</ul>
+<p>A failed query, rate limit, timeout, malformed response, or check older than 15
+minutes blocks the write. The final confirmation always reruns the check; cached
+results may render the preview but cannot authorize a write.</p>
+<h2 id="supported-osm-mapping">Supported OSM mapping<a class="headerlink" href="#supported-osm-mapping" title="Permanent link">&para;</a></h2>
+<p>The initial integration creates only a node at the approved, reviewed
+<code>Library.location</code>. It does not modify existing OSM geometry.</p>
+<table>
+<thead>
+<tr>
+<th>Book Corners value</th>
+<th>OSM output</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Library type</td>
+<td><code>amenity=public_bookcase</code></td>
+<td>Always present.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>name=*</code></td>
+<td>Only when staff verifies it is a real on-site proper name. Never send an AI-generated or generic display name.</td>
+</tr>
+<tr>
+<td><code>capacity</code></td>
+<td><code>capacity=*</code></td>
+<td>Positive integer only.</td>
+</tr>
+<tr>
+<td><code>is_indoor=true</code></td>
+<td><code>location=indoor</code></td>
+<td>Omit for false or unknown.</td>
+</tr>
+<tr>
+<td><code>wheelchair_accessible</code></td>
+<td><code>wheelchair=yes</code>, <code>no</code>, or <code>limited</code></td>
+<td>Map only the existing explicit values.</td>
+</tr>
+<tr>
+<td><code>is_lit</code></td>
+<td><code>lit=yes</code> or <code>lit=no</code></td>
+<td>Omit when unknown.</td>
+</tr>
+<tr>
+<td><code>brand</code></td>
+<td><code>brand=*</code></td>
+<td>Only when visible or otherwise independently verified.</td>
+</tr>
+<tr>
+<td><code>operator</code></td>
+<td><code>operator=*</code></td>
+<td>Only when it is the public operator of the physical bookcase.</td>
+</tr>
+<tr>
+<td><code>website</code></td>
+<td><code>website=*</code></td>
+<td>Only when it is a public page specifically for the bookcase or its operator.</td>
+</tr>
+</tbody>
+</table>
+<p>The admin preview starts with this allowlist and shows the exact final tags.
+Unsupported fields cannot be added through free-form admin input.</p>
+<p>The initial mapping deliberately excludes:</p>
+<ul>
+<li><code>description</code>, because it may contain AI-generated or subjective text;</li>
+<li>combined Book Corners <code>address</code>, city, country, and postal code, because the
+  current model cannot reliably produce a structured OSM address;</li>
+<li><code>contact</code> and every account, email, phone, or private-contact field;</li>
+<li>Book Corners photos, thumbnails, captions, and media URLs;</li>
+<li>Book Corners IDs, slugs, moderation state, timestamps, and internal source
+  metadata;</li>
+<li><code>source</code> or <code>external_id</code> as element tags; and</li>
+<li>fields copied from an incompatible third-party map or dataset.</li>
+</ul>
+<p>Adding another object tag or creating areas, ways, or relations changes the
+consulted import scope and requires a new design review and, where applicable,
+renewed OSM community approval.</p>
+<h2 id="changesets-and-api-workflow">Changesets and API workflow<a class="headerlink" href="#changesets-and-api-workflow" title="Permanent link">&para;</a></h2>
+<p>Every library is checked and confirmed individually. A one-off confirmation may
+use a one-node changeset, but the system must not create a stream of one-object
+changesets from a bulk selection. Repeated confirmations in one operator session
+must be grouped by a small geographic area using a reviewed batch and one
+changeset. A changeset never spans unrelated cities or regions. The final
+grouping thresholds are recorded in the consulted OSM plan; changing them later
+requires renewed consultation.</p>
+<p>The changeset includes:</p>
+<table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>comment</code></td>
+<td>Human-readable text such as <code>Add a reviewed public bookcase in Florence</code>.</td>
+</tr>
+<tr>
+<td><code>created_by</code></td>
+<td><code>Book Corners/&lt;deployed version&gt;</code>.</td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td>The source wording approved during import consultation, expected to identify an individually reviewed Book Corners user submission.</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>Public OSM wiki URL documenting the import/automated-edit plan and contact route.</td>
+</tr>
+<tr>
+<td><code>mechanical</code></td>
+<td><code>yes</code>, unless the recorded OSM consultation explicitly requires a different classification.</td>
+</tr>
+<tr>
+<td><code>review_requested</code></td>
+<td><code>yes</code> during the initial monitored rollout.</td>
+</tr>
+</tbody>
+</table>
+<p>Attribution is carried by the approved <code>source</code> value, the linked wiki plan, the
+dedicated account profile, and an OSM Contributors wiki entry if the consultation
+requires one. If the approved data permission has a concise licence identifier,
+record it as <code>source:license</code> on the changeset. Do not add attribution, licence,
+or source metadata to the public-bookcase element itself unless the OSM
+consultation specifically requires it.</p>
+<p>The implementation uses the OSM API v0.6 workflow:</p>
+<ol>
+<li>Revalidate eligibility and acquire the local write lock.</li>
+<li>Record the <code>write_started</code> audit event and set <code>status=submitting</code>.</li>
+<li>Create the changeset with <code>PUT /api/0.6/changeset/create</code> and immediately
+   persist its ID.</li>
+<li>Create the reviewed node with <code>POST /api/0.6/nodes</code>, or use the diff upload
+   endpoint for a reviewed same-area batch.</li>
+<li>Persist the returned node ID, close the changeset, and record success.</li>
+<li>If closing fails after the node was created, preserve the successful element
+   ID and reconcile the changeset rather than creating another node.</li>
+</ol>
+<p>OSM changesets are not atomic. If a create response is lost or ambiguous, the
+system must download the recorded changeset and reconcile its contents before
+offering a retry. It must never blindly retry an OSM write.</p>
+<h2 id="authentication-and-editing-account">Authentication and editing account<a class="headerlink" href="#authentication-and-editing-account" title="Permanent link">&para;</a></h2>
+<p>Use a dedicated import account following the OSM naming convention, for example
+<code>BookCorners_Import</code>. Its public profile links to:</p>
+<ul>
+<li>the responsible Book Corners project/account;</li>
+<li>the published import or automated-edit plan;</li>
+<li>a monitored contact route; and</li>
+<li>the relevant consultation record.</li>
+</ul>
+<p>The account accepts the OSM contributor terms and is used only for this
+documented workflow. Staff members do not contribute through personal OSM
+accounts, and submitters are never asked for OSM access.</p>
+<p>Register Book Corners as a confidential OAuth 2.0 application. Authorize the
+dedicated account once with only the <code>write_api</code> scope. Do not request profile,
+preferences, GPX, notes, diary, messaging, or other unrelated scopes.</p>
+<p>The runtime sends the bearer token in the authorization header and verifies
+<code>allow_write_api</code> through <code>GET /api/0.6/permissions</code> before enabling the admin
+action. OSM access tokens do not currently expire automatically, but they can be
+revoked; a missing permission or <code>401</code> response disables writes until an
+operator rotates the token. The development OSM server uses a separate account,
+application, and token because it does not share production data.</p>
+<h2 id="policy-and-licensing-gates">Policy and licensing gates<a class="headerlink" href="#policy-and-licensing-gates" title="Permanent link">&para;</a></h2>
+<p>Book Corners must treat this workflow as an external-data import and a
+script-assisted edit unless the OSM community explicitly records a different
+classification. Individual admin review does not waive the import requirements.</p>
+<p>Before the first production write:</p>
+<ol>
+<li>Publish an OSM wiki plan covering the dataset, rights, field mapping,
+   conflation, software source, account, changeset tags, quality assurance,
+   rollback, frequency, and community opt-out route.</li>
+<li>Discuss the plan on the OSM Community Forum and with the appropriate local
+   communities. Do not write until at least the documented import-review period
+   has passed and concerns are resolved.</li>
+<li>Record confirmation that Book Corners may release the submitted factual data
+   under terms compatible with OSM's ODbL. A privacy notice or checkbox that
+   merely permits submission is not, by itself, a data licence.</li>
+<li>Make the frontend consent copy state that the submitter supplied factual
+   information they are entitled to share, that it may be published in OSM
+   under OSM's terms, and that it was not copied from an incompatible source
+   such as Google Maps.</li>
+<li>Publish the exact source attribution accepted during consultation and use it
+   consistently in the wiki plan, account profile, and changesets.</li>
+<li>Document how Book Corners will stop, investigate, and if necessary revert
+   its changes in response to community concerns or opt-out requests.</li>
+</ol>
+<p>These are hard launch gates. If licensing or community approval is uncertain,
+the feature remains disabled even when a submitter opted in.</p>
+<p>The rollback procedure is manual: disable writes, preserve the affected
+changeset and audit records, notify the consulted community, and use an
+experienced OSM mapper or the Data Working Group to plan a revert. Book Corners
+must not run an automatic inverse edit because later mapper changes can make a
+blind rollback destructive.</p>
+<h2 id="configuration-credentials-and-service-limits">Configuration, credentials, and service limits<a class="headerlink" href="#configuration-credentials-and-service-limits" title="Permanent link">&para;</a></h2>
+<p>All settings are environment configuration. Suggested names are:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OSM_WRITE_ENABLED</code></td>
+<td>Defaults to <code>false</code>. It is the production kill switch.</td>
+</tr>
+<tr>
+<td><code>OSM_API_BASE_URL</code></td>
+<td>Required when enabled. Production and development URLs must be explicitly selected.</td>
+</tr>
+<tr>
+<td><code>OSM_OAUTH_ACCESS_TOKEN</code></td>
+<td>Secret bearer token for the dedicated account.</td>
+</tr>
+<tr>
+<td><code>OSM_OVERPASS_URL</code></td>
+<td>Configured duplicate-query provider.</td>
+</tr>
+<tr>
+<td><code>OSM_USER_AGENT</code></td>
+<td>Required application/version plus a monitored contact URL.</td>
+</tr>
+<tr>
+<td><code>OSM_PLAN_URL</code></td>
+<td>Published OSM wiki plan used in changeset metadata.</td>
+</tr>
+<tr>
+<td><code>OSM_DUPLICATE_RADIUS_METERS</code></td>
+<td>Defaults to <code>100</code>.</td>
+</tr>
+<tr>
+<td><code>OSM_DUPLICATE_CHECK_MAX_AGE_SECONDS</code></td>
+<td>Defaults to <code>900</code> (15 minutes).</td>
+</tr>
+</tbody>
+</table>
+<p>Store secrets through Dokku configuration, following the existing production
+secret-management pattern. Do not store the bearer token in the database,
+repository, admin forms, audit JSON, or logs. OAuth client credentials used for
+manual token rotation are operator secrets and need not be available to the web
+process.</p>
+<p>OSM does not promise a fixed request allowance for this use case. The client
+must:</p>
+<ul>
+<li>send a valid, contactable User-Agent containing the application version;</li>
+<li>query API capabilities rather than hard-code server element limits;</li>
+<li>keep this workflow manual and low-volume with one in-flight write;</li>
+<li>set bounded connect and response timeouts;</li>
+<li>respect <code>Retry-After</code> for <code>429</code> responses;</li>
+<li>retry read-only duplicate checks at most three times with bounded exponential
+  backoff; and</li>
+<li>never automatically retry a create, update, or delete request with an
+  ambiguous outcome.</li>
+</ul>
+<p>Duplicate-check failures remain visible and block contribution. Write failures
+record a sanitized stable error, preserve all known OSM IDs, and require
+reconciliation before an administrator can retry.</p>
+<h2 id="deployment-boundaries">Deployment boundaries<a class="headerlink" href="#deployment-boundaries" title="Permanent link">&para;</a></h2>
+<p>Deliver the epic in this order:</p>
+<ol>
+<li><strong>#126:</strong> add default-off permission and provenance, API input, private
+   responses, migrations, and tests. No OSM client or external side effect.</li>
+<li><strong>#127:</strong> add state/audit models, duplicate checks, admin filters, warnings,
+   and resolution. No OSM write.</li>
+<li><strong>#125:</strong> add the exact preview, confirmation, OAuth client, reconciliation,
+   and manual write action behind <code>OSM_WRITE_ENABLED=false</code>.</li>
+<li>Complete the policy, licensing, account, credentials, development-server,
+   and community gates.</li>
+<li>Enable the web and iOS opt-in interfaces only after steps 1-4 are safely
+   deployed. Existing and omitted values remain false, so backend-first
+   deployment creates no candidates.</li>
+<li>Perform a small, monitored production rollout. Keep the kill switch available
+   and review every early changeset and any community feedback.</li>
+</ol>
+<p>There is no task queue or periodic job for OSM contribution. Background AI
+enrichment, moderation approval, and receipt of a true API field must never call
+the OSM client.</p>
+<h2 id="verification-required-by-implementation-tickets">Verification required by implementation tickets<a class="headerlink" href="#verification-required-by-implementation-tickets" title="Permanent link">&para;</a></h2>
+<p>Automated tests must use a fake OSM transport and prove:</p>
+<ul>
+<li>omitted and explicit false permissions remain ineligible;</li>
+<li>different submissions by one user store independent values;</li>
+<li>legacy, imported, staff, ownerless, rejected, unapproved, and
+  pending-update records are blocked;</li>
+<li>public responses do not expose permission;</li>
+<li>owner edits cannot enable or change permission;</li>
+<li>duplicate signals, stale checks, failed checks, and unresolved candidates
+  block writes;</li>
+<li>permissions, provenance, approval, duplicate state, and prior contribution
+  are rechecked inside the write lock;</li>
+<li>exact node and changeset payloads contain only allowlisted values;</li>
+<li>private contacts, photos, account data, and AI-generated text never enter
+  payloads, audit data, or logs;</li>
+<li>concurrent or repeated actions cannot create a second feature;</li>
+<li>ambiguous outcomes require reconciliation rather than retry; and</li>
+<li>no test reaches the production OSM service.</li>
+</ul>
+<p>Manual pre-production verification uses
+<code>https://master.apis.dev.openstreetmap.org</code> with its separate account and token.
+The operator must inspect the created node, changeset tags, audit history,
+duplicate preview, error handling, and kill switch before production can be
+considered.</p>
+<h2 id="sources-reviewed">Sources reviewed<a class="headerlink" href="#sources-reviewed" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://wiki.openstreetmap.org/wiki/Import/Guidelines">OSM Import Guidelines</a></li>
+<li><a href="https://wiki.openstreetmap.org/wiki/Automated_Edits_code_of_conduct">OSM Automated Edits code of conduct</a></li>
+<li><a href="https://wiki.openstreetmap.org/wiki/Api06">OSM API v0.6</a></li>
+<li><a href="https://wiki.openstreetmap.org/wiki/OAuth">OSM OAuth 2.0</a></li>
+<li><a href="https://operations.osmfoundation.org/policies/api/">OSM API Usage Policy</a></li>
+<li><a href="https://wiki.openstreetmap.org/wiki/Tag%3Aamenity%3Dpublic_bookcase"><code>amenity=public_bookcase</code> tagging</a></li>
+<li><a href="https://wiki.openstreetmap.org/wiki/Changeset">OSM changesets</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["navigation.sections","navigation.top","search.suggest","content.code.copy","content.tabs.link"],"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.ed145cee.min.js"></script>
+      
+    
+  </body>
+</html>
