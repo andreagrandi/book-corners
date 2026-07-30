@@ -2412,6 +2412,7 @@ class TestEditLibraryView:
         assert "Replace photo (optional)" in content
         assert "Save changes" in content
         assert "Changes are reviewed before they become live" in content
+        assert "id=\"osm-contribution-notice\"" not in content
 
     def test_owner_can_edit_pending_library_and_keep_photo(self, client, user):
         """Verify owners can update pending library details.
@@ -3089,6 +3090,9 @@ class TestSubmitLibraryView:
         assert "Photo (required)" in content
         assert "Upload a clear photo showing the library" in content
         assert "id=\"photo-preview-container\"" in content
+        assert "id=\"osm-contribution-notice\"" in content
+        assert "factual location data from approved submissions" in content
+        assert f'href="{reverse("privacy_page")}"' in content
         assert response.context["form"].fields["photo"].required is True
 
         country_position = content.find(">Country<")
@@ -3096,6 +3100,31 @@ class TestSubmitLibraryView:
         address_position = content.find(">Address (optional)<")
         postal_code_position = content.find(">Postal code (optional)<")
         assert country_position < city_position < address_position < postal_code_position
+
+    def test_italian_catalog_contains_osm_notice(self):
+        """Verify the tracked Italian catalog contains the complete OSM notice.
+        Covers translated copy and the privacy link without generated binaries."""
+        catalog = (
+            django_settings.BASE_DIR
+            / "locale"
+            / "it"
+            / "LC_MESSAGES"
+            / "django.po"
+        ).read_text(encoding="utf-8")
+        expected_msgid = (
+            'msgid "After moderation, factual location data from approved submissions '
+            "may be contributed to OpenStreetMap in the future. Learn more in our "
+            '<a href=\\"%(privacy_url)s\\" class=\\"link link-hover\\">privacy policy</a>."'
+        )
+        expected_msgstr = (
+            'msgstr "Dopo la moderazione, le informazioni oggettive sulla posizione '
+            "dei contributi approvati potranno essere aggiunte a OpenStreetMap in futuro. "
+            "Scopri di più nella nostra "
+            '<a href=\\"%(privacy_url)s\\" class=\\"link link-hover\\">informativa sulla privacy</a>."'
+        )
+
+        assert expected_msgid in catalog
+        assert expected_msgstr in catalog
 
     def test_authenticated_submit_creates_pending_library_and_redirects_to_confirmation(self, client, user):
         """Verify valid submissions create pending libraries and redirect.
