@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Book Corners 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-28 17:07+0000\n"
+"POT-Creation-Date: 2026-07-30 10:01+0000\n"
 "PO-Revision-Date: 2026-02-28 15:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Italian\n"
@@ -42,7 +42,7 @@ msgstr "Nome e descrizione generati dall'IA applicati."
 msgid "No AI values to apply."
 msgstr "Nessun valore IA da applicare."
 
-#: libraries/forms.py:25 libraries/templates/libraries/submit_library.html:352
+#: libraries/forms.py:25 libraries/templates/libraries/submit_library.html:362
 msgid "Select a country"
 msgstr "Seleziona un paese"
 
@@ -122,7 +122,7 @@ msgstr "Didascalia opzionale per la tua foto"
 msgid "You can submit at most %(max)s photos per library."
 msgstr "Puoi inviare al massimo %(max)s foto per libreria."
 
-#: libraries/models.py:40 libraries/models.py:496
+#: libraries/models.py:43 libraries/models.py:574
 #: manage/templates/manage/libraries/import.html:49
 #: manage/templates/manage/photos/list.html:29
 #: templates/admin/libraries/geojson_import_form.html:37
@@ -130,7 +130,7 @@ msgstr "Puoi inviare al massimo %(max)s foto per libreria."
 msgid "Pending"
 msgstr "In attesa"
 
-#: libraries/models.py:41 libraries/models.py:497
+#: libraries/models.py:44 libraries/models.py:575
 #: manage/templates/manage/libraries/import.html:48
 #: manage/templates/manage/photos/list.html:30
 #: templates/admin/libraries/geojson_import_form.html:36
@@ -138,13 +138,13 @@ msgstr "In attesa"
 msgid "Approved"
 msgstr "Approvato"
 
-#: libraries/models.py:42 libraries/models.py:498
+#: libraries/models.py:45 libraries/models.py:576
 #: manage/templates/manage/photos/list.html:31
 #: templates/admin/libraries/photo_grid.html:147
 msgid "Rejected"
 msgstr "Rifiutato"
 
-#: libraries/models.py:45 libraries/templates/libraries/library_detail.html:62
+#: libraries/models.py:48 libraries/templates/libraries/library_detail.html:62
 #: libraries/templates/libraries/library_detail.html:63
 #: manage/templates/manage/libraries/detail.html:166
 #: manage/templates/manage/libraries/detail.html:170
@@ -152,7 +152,7 @@ msgstr "Rifiutato"
 msgid "Yes"
 msgstr "Sì"
 
-#: libraries/models.py:46 libraries/templates/libraries/library_detail.html:62
+#: libraries/models.py:49 libraries/templates/libraries/library_detail.html:62
 #: libraries/templates/libraries/library_detail.html:63
 #: manage/templates/manage/libraries/detail.html:166
 #: manage/templates/manage/libraries/detail.html:170
@@ -160,44 +160,44 @@ msgstr "Sì"
 msgid "No"
 msgstr "No"
 
-#: libraries/models.py:47
+#: libraries/models.py:50
 msgid "Limited"
 msgstr "Limitato"
 
-#: libraries/models.py:95 manage/templates/manage/libraries/detail.html:145
+#: libraries/models.py:98 manage/templates/manage/libraries/detail.html:145
 #: manage/templates/manage/libraries/edit.html:186
 msgid "Rejection reason"
 msgstr "Motivo del rifiuto"
 
-#: libraries/models.py:441
+#: libraries/models.py:519
 msgid "Damaged"
 msgstr "Danneggiato"
 
-#: libraries/models.py:442
+#: libraries/models.py:520
 msgid "Missing"
 msgstr "Mancante"
 
-#: libraries/models.py:443
+#: libraries/models.py:521
 msgid "Incorrect Info"
 msgstr "Informazioni errate"
 
-#: libraries/models.py:444
+#: libraries/models.py:522
 msgid "Inappropriate"
 msgstr "Inappropriato"
 
-#: libraries/models.py:445
+#: libraries/models.py:523
 msgid "Other"
 msgstr "Altro"
 
-#: libraries/models.py:448
+#: libraries/models.py:526
 msgid "Open"
 msgstr "Aperto"
 
-#: libraries/models.py:449
+#: libraries/models.py:527
 msgid "Resolved"
 msgstr "Risolto"
 
-#: libraries/models.py:450
+#: libraries/models.py:528
 msgid "Dismissed"
 msgstr "Archiviato"
 
@@ -779,27 +779,32 @@ msgstr "Paesi principali"
 msgid "Growth over time"
 msgstr "Crescita nel tempo"
 
-#: libraries/templates/libraries/submit_library.html:64
+#: libraries/templates/libraries/submit_library.html:68
+#, python-format
+msgid "After moderation, factual location data from approved submissions may be contributed to OpenStreetMap in the future. Learn more in our <a href=\"%(privacy_url)s\" class=\"link link-hover\">privacy policy</a>."
+msgstr "Dopo la moderazione, le informazioni oggettive sulla posizione dei contributi approvati potranno essere aggiunte a OpenStreetMap in futuro. Scopri di più nella nostra <a href=\"%(privacy_url)s\" class=\"link link-hover\">informativa sulla privacy</a>."
+
+#: libraries/templates/libraries/submit_library.html:74
 msgid "Fields marked with <span class=\"font-medium\">(optional)</span> can be left blank."
 msgstr "I campi contrassegnati con <span class=\"font-medium\">(opzionale)</span> possono essere lasciati vuoti."
 
-#: libraries/templates/libraries/submit_library.html:86
+#: libraries/templates/libraries/submit_library.html:96
 msgid "Selected photo preview"
 msgstr "Anteprima della foto selezionata"
 
-#: libraries/templates/libraries/submit_library.html:91
+#: libraries/templates/libraries/submit_library.html:101
 msgid "Choose another photo"
 msgstr "Scegli un'altra foto"
 
-#: libraries/templates/libraries/submit_library.html:97
+#: libraries/templates/libraries/submit_library.html:107
 msgid "Name (optional)"
 msgstr "Nome (opzionale)"
 
-#: libraries/templates/libraries/submit_library.html:103
+#: libraries/templates/libraries/submit_library.html:113
 msgid "Description (optional)"
 msgstr "Descrizione (opzionale)"
 
-#: libraries/templates/libraries/submit_library.html:109
+#: libraries/templates/libraries/submit_library.html:119
 #: manage/templates/manage/libraries/_table.html:21
 #: manage/templates/manage/libraries/detail.html:130
 #: manage/templates/manage/libraries/duplicates.html:38
@@ -808,7 +813,7 @@ msgstr "Descrizione (opzionale)"
 msgid "Country"
 msgstr "Paese"
 
-#: libraries/templates/libraries/submit_library.html:115
+#: libraries/templates/libraries/submit_library.html:125
 #: manage/templates/manage/libraries/_table.html:20
 #: manage/templates/manage/libraries/detail.html:126
 #: manage/templates/manage/libraries/duplicates.html:34
@@ -819,67 +824,67 @@ msgstr "Paese"
 msgid "City"
 msgstr "Città"
 
-#: libraries/templates/libraries/submit_library.html:121
+#: libraries/templates/libraries/submit_library.html:131
 msgid "Address (optional)"
 msgstr "Indirizzo (opzionale)"
 
-#: libraries/templates/libraries/submit_library.html:131
+#: libraries/templates/libraries/submit_library.html:141
 msgid "Postal code (optional)"
 msgstr "CAP (opzionale)"
 
-#: libraries/templates/libraries/submit_library.html:147
+#: libraries/templates/libraries/submit_library.html:157
 msgid "Center from address"
 msgstr "Centra dall'indirizzo"
 
-#: libraries/templates/libraries/submit_library.html:323
+#: libraries/templates/libraries/submit_library.html:333
 msgid "Marker moved. Coordinates updated."
 msgstr "Marcatore spostato. Coordinate aggiornate."
 
-#: libraries/templates/libraries/submit_library.html:328
+#: libraries/templates/libraries/submit_library.html:338
 msgid "Map point selected. Coordinates updated."
 msgstr "Punto sulla mappa selezionato. Coordinate aggiornate."
 
-#: libraries/templates/libraries/submit_library.html:427
+#: libraries/templates/libraries/submit_library.html:437
 msgid "Suggestion selected. Marker centered from autocomplete; drag to refine if needed."
 msgstr "Suggerimento selezionato. Marcatore centrato dall'autocompletamento; trascina per affinare se necessario."
 
-#: libraries/templates/libraries/submit_library.html:535
+#: libraries/templates/libraries/submit_library.html:545
 msgid "Reading GPS metadata from the selected photo..."
 msgstr "Lettura dei metadati GPS dalla foto selezionata..."
 
-#: libraries/templates/libraries/submit_library.html:552
+#: libraries/templates/libraries/submit_library.html:562
 msgid "No GPS metadata found in this photo. Set location manually on the map."
 msgstr "Nessun metadato GPS trovato in questa foto. Imposta la posizione manualmente sulla mappa."
 
-#: libraries/templates/libraries/submit_library.html:567
+#: libraries/templates/libraries/submit_library.html:577
 msgid "GPS metadata found. Map centered and address fields pre-filled from the photo."
 msgstr "Metadati GPS trovati. Mappa centrata e campi indirizzo precompilati dalla foto."
 
-#: libraries/templates/libraries/submit_library.html:571
+#: libraries/templates/libraries/submit_library.html:581
 msgid "GPS metadata found. Map centered from photo location."
 msgstr "Metadati GPS trovati. Mappa centrata dalla posizione della foto."
 
-#: libraries/templates/libraries/submit_library.html:573
+#: libraries/templates/libraries/submit_library.html:583
 msgid "Could not read photo metadata right now. Set the location manually on the map."
 msgstr "Impossibile leggere i metadati della foto al momento. Imposta la posizione manualmente sulla mappa."
 
-#: libraries/templates/libraries/submit_library.html:596
+#: libraries/templates/libraries/submit_library.html:606
 msgid "Finding location from address..."
 msgstr "Ricerca della posizione dall'indirizzo..."
 
-#: libraries/templates/libraries/submit_library.html:613
+#: libraries/templates/libraries/submit_library.html:623
 msgid "Address not found. Move the marker manually on the map."
 msgstr "Indirizzo non trovato. Sposta il marcatore manualmente sulla mappa."
 
-#: libraries/templates/libraries/submit_library.html:620
+#: libraries/templates/libraries/submit_library.html:630
 msgid "Address lookup returned invalid coordinates."
 msgstr "La ricerca dell'indirizzo ha restituito coordinate non valide."
 
-#: libraries/templates/libraries/submit_library.html:625
+#: libraries/templates/libraries/submit_library.html:635
 msgid "Map centered from address. Drag marker if you need to refine the point."
 msgstr "Mappa centrata dall'indirizzo. Trascina il marcatore se devi affinare il punto."
 
-#: libraries/templates/libraries/submit_library.html:627
+#: libraries/templates/libraries/submit_library.html:637
 msgid "Geocoding is unavailable right now. You can still click the map to pick coordinates."
 msgstr "La geocodifica non è disponibile al momento. Puoi comunque cliccare sulla mappa per scegliere le coordinate."
 

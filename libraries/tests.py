@@ -2412,6 +2412,7 @@ class TestEditLibraryView:
         assert "Replace photo (optional)" in content
         assert "Save changes" in content
         assert "Changes are reviewed before they become live" in content
+        assert "id=\"osm-contribution-notice\"" not in content
 
     def test_owner_can_edit_pending_library_and_keep_photo(self, client, user):
         """Verify owners can update pending library details.
@@ -3089,6 +3090,9 @@ class TestSubmitLibraryView:
         assert "Photo (required)" in content
         assert "Upload a clear photo showing the library" in content
         assert "id=\"photo-preview-container\"" in content
+        assert "id=\"osm-contribution-notice\"" in content
+        assert "factual location data from approved submissions" in content
+        assert f'href="{reverse("privacy_page")}"' in content
         assert response.context["form"].fields["photo"].required is True
 
         country_position = content.find(">Country<")
@@ -3096,6 +3100,22 @@ class TestSubmitLibraryView:
         address_position = content.find(">Address (optional)<")
         postal_code_position = content.find(">Postal code (optional)<")
         assert country_position < city_position < address_position < postal_code_position
+
+    def test_submit_view_renders_osm_notice_in_italian(self, client, user):
+        """Verify the submission notice uses the contributor's Italian preference.
+        Covers the translated future OpenStreetMap disclosure and privacy link."""
+        user.language = "it"
+        user.save(update_fields=["language"])
+        client.force_login(user)
+
+        response = client.get(reverse("submit_library"))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "id=\"osm-contribution-notice\"" in content
+        assert "informazioni oggettive sulla posizione" in content
+        assert "potranno essere aggiunte a OpenStreetMap in futuro" in content
+        assert f'href="{reverse("privacy_page")}"' in content
 
     def test_authenticated_submit_creates_pending_library_and_redirects_to_confirmation(self, client, user):
         """Verify valid submissions create pending libraries and redirect.
