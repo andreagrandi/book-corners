@@ -3101,21 +3101,30 @@ class TestSubmitLibraryView:
         postal_code_position = content.find(">Postal code (optional)<")
         assert country_position < city_position < address_position < postal_code_position
 
-    def test_submit_view_renders_osm_notice_in_italian(self, client, user):
-        """Verify the submission notice uses the contributor's Italian preference.
-        Covers the translated future OpenStreetMap disclosure and privacy link."""
-        user.language = "it"
-        user.save(update_fields=["language"])
-        client.force_login(user)
+    def test_italian_catalog_contains_osm_notice(self):
+        """Verify the tracked Italian catalog contains the complete OSM notice.
+        Covers translated copy and the privacy link without generated binaries."""
+        catalog = (
+            django_settings.BASE_DIR
+            / "locale"
+            / "it"
+            / "LC_MESSAGES"
+            / "django.po"
+        ).read_text(encoding="utf-8")
+        expected_msgid = (
+            'msgid "After moderation, factual location data from approved submissions '
+            "may be contributed to OpenStreetMap in the future. Learn more in our "
+            '<a href=\\"%(privacy_url)s\\" class=\\"link link-hover\\">privacy policy</a>."'
+        )
+        expected_msgstr = (
+            'msgstr "Dopo la moderazione, le informazioni oggettive sulla posizione '
+            "dei contributi approvati potranno essere aggiunte a OpenStreetMap in futuro. "
+            "Scopri di più nella nostra "
+            '<a href=\\"%(privacy_url)s\\" class=\\"link link-hover\\">informativa sulla privacy</a>."'
+        )
 
-        response = client.get(reverse("submit_library"))
-
-        content = response.content.decode()
-        assert response.status_code == 200
-        assert "id=\"osm-contribution-notice\"" in content
-        assert "informazioni oggettive sulla posizione" in content
-        assert "potranno essere aggiunte a OpenStreetMap in futuro" in content
-        assert f'href="{reverse("privacy_page")}"' in content
+        assert expected_msgid in catalog
+        assert expected_msgstr in catalog
 
     def test_authenticated_submit_creates_pending_library_and_redirects_to_confirmation(self, client, user):
         """Verify valid submissions create pending libraries and redirect.
