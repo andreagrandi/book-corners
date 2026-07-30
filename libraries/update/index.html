@@ -1029,6 +1029,7 @@
 <p><strong>Content type:</strong> <code>multipart/form-data</code></p>
 <h2 id="fields">Fields<a class="headerlink" href="#fields" title="Permanent link">&para;</a></h2>
 <p>All fields are optional. Omitted fields keep their current value. Provide at least one field.</p>
+<p>The per-submission <code>osm_submission_allowed</code> choice is creation-only and cannot be added or changed through this endpoint. Sending it produces a validation error and preserves the stored choice.</p>
 <table>
 <thead>
 <tr>
@@ -1205,7 +1206,7 @@
 <tbody>
 <tr>
 <td><code>400</code></td>
-<td>No fields were provided, coordinates were incomplete, or the photo format is invalid</td>
+<td>No fields were provided, coordinates were incomplete, the photo format is invalid, or a creation-only field such as <code>osm_submission_allowed</code> was sent</td>
 </tr>
 <tr>
 <td><code>401</code></td>
@@ -1221,7 +1222,7 @@
 </tr>
 <tr>
 <td><code>422</code></td>
-<td>Request validation error (field too long, invalid type, out-of-range coordinate)</td>
+<td>Request validation error (field too long, invalid type, or out-of-range coordinate)</td>
 </tr>
 <tr>
 <td><code>429</code></td>

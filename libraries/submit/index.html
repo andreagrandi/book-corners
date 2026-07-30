@@ -1101,6 +1101,12 @@
 <td>Longitude (-180 to 180, WGS 84)</td>
 </tr>
 <tr>
+<td><code>osm_submission_allowed</code></td>
+<td>bool</td>
+<td>No</td>
+<td>Defaults to <code>false</code>. When <code>true</code>, permits an administrator to consider this specific submission for a possible later manual OpenStreetMap contribution. It does not trigger or guarantee a contribution.</td>
+</tr>
+<tr>
 <td><code>photo</code></td>
 <td>file</td>
 <td>Yes</td>
@@ -1122,7 +1128,8 @@
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;postal_code=10117&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;latitude=52.52&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;longitude=13.405&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;photo=@library.jpg&quot;</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;osm_submission_allowed=true&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;photo=@library.jpg&quot;</span>
 </code></pre></div>
 </div>
 <div class="tabbed-block">
@@ -1140,10 +1147,11 @@
 <a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>        <span class="s2">&quot;postal_code&quot;</span><span class="p">:</span> <span class="s2">&quot;10117&quot;</span><span class="p">,</span>
 <a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>        <span class="s2">&quot;latitude&quot;</span><span class="p">:</span> <span class="mf">52.52</span><span class="p">,</span>
 <a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>        <span class="s2">&quot;longitude&quot;</span><span class="p">:</span> <span class="mf">13.405</span><span class="p">,</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>    <span class="p">},</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    <span class="n">files</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;photo&quot;</span><span class="p">:</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;library.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)},</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="p">)</span>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="nb">print</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>        <span class="s2">&quot;osm_submission_allowed&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    <span class="p">},</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>    <span class="n">files</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;photo&quot;</span><span class="p">:</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;library.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)},</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="p">)</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="nb">print</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
 </code></pre></div>
 </div>
 </div>
@@ -1171,12 +1179,15 @@
 <a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">  </span><span class="nt">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
 <a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">  </span><span class="nt">&quot;operator&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
 <a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">  </span><span class="nt">&quot;brand&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">  </span><span class="nt">&quot;created_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2025-06-15T14:30:00Z&quot;</span>
-<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="p">}</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">  </span><span class="nt">&quot;created_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2025-06-15T14:30:00Z&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">  </span><span class="nt">&quot;is_favourited&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">  </span><span class="nt">&quot;osm_submission_allowed&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="p">}</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The returned library will have <strong>pending</strong> status. It won't appear in public listing or search results until approved by a moderator. You can view your pending library via the <a href="../detail/">detail endpoint</a> while authenticated.</p>
+<p><code>osm_submission_allowed</code> is private submission metadata. It is returned by this create response and the authenticated <a href="../contributions/">My Contributions</a> library list, but not by public library responses. A true value only records permission for future manual administrator review; this request never writes to OpenStreetMap.</p>
 </div>
 <h2 id="errors">Errors<a class="headerlink" href="#errors" title="Permanent link">&para;</a></h2>
 <table>

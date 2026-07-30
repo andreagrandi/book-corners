@@ -771,7 +771,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LibraryOut"
+                  "$ref": "#/components/schemas/LibrarySubmissionOut"
                 }
               }
             }
@@ -991,6 +991,15 @@
                     "minimum": -180,
                     "title": "Longitude",
                     "type": "number"
+                  },
+                  "osm_submission_allowed": {
+                    "default": false,
+                    "description": "Permit an administrator to consider this submission for a later manual OpenStreetMap contribution. This does not trigger or guarantee an external submission.",
+                    "examples": [
+                      false
+                    ],
+                    "title": "Osm Submission Allowed",
+                    "type": "boolean"
                   },
                   "photo": {
                     "format": "binary",
@@ -4013,6 +4022,253 @@
         "title": "PaginationMeta",
         "type": "object"
       },
+      "LibrarySubmissionOut": {
+        "description": "Serialized response for an authenticated library submission.\nExposes the private per-submission OSM permission to its submitter.",
+        "properties": {
+          "id": {
+            "description": "Unique library identifier.",
+            "examples": [
+              42
+            ],
+            "title": "Id",
+            "type": "integer"
+          },
+          "slug": {
+            "description": "URL-friendly unique slug.",
+            "examples": [
+              "berlin-friedrichstr-12-corner-books"
+            ],
+            "title": "Slug",
+            "type": "string"
+          },
+          "name": {
+            "description": "Display name of the library.",
+            "examples": [
+              "Corner Books"
+            ],
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "description": "Free-text description of the library.",
+            "examples": [
+              "A cozy little free library near the park entrance."
+            ],
+            "title": "Description",
+            "type": "string"
+          },
+          "photo_url": {
+            "description": "Full-size photo URL, or empty string if unavailable.",
+            "examples": [
+              "/media/libraries/photos/corner-books.jpg"
+            ],
+            "title": "Photo Url",
+            "type": "string"
+          },
+          "thumbnail_url": {
+            "description": "Thumbnail photo URL, or empty string if unavailable.",
+            "examples": [
+              "/media/libraries/thumbnails/corner-books.jpg"
+            ],
+            "title": "Thumbnail Url",
+            "type": "string"
+          },
+          "lat": {
+            "description": "Latitude of the library location (WGS 84).",
+            "examples": [
+              52.52
+            ],
+            "title": "Lat",
+            "type": "number"
+          },
+          "lng": {
+            "description": "Longitude of the library location (WGS 84).",
+            "examples": [
+              13.405
+            ],
+            "title": "Lng",
+            "type": "number"
+          },
+          "address": {
+            "description": "Street address, or empty string when the library has no street address (e.g. inside a park).",
+            "examples": [
+              "Friedrichstr. 12"
+            ],
+            "title": "Address",
+            "type": "string"
+          },
+          "city": {
+            "description": "City name.",
+            "examples": [
+              "Berlin"
+            ],
+            "title": "City",
+            "type": "string"
+          },
+          "country": {
+            "description": "ISO 3166-1 alpha-2 country code.",
+            "examples": [
+              "DE"
+            ],
+            "title": "Country",
+            "type": "string"
+          },
+          "postal_code": {
+            "description": "Postal or ZIP code.",
+            "examples": [
+              "10117"
+            ],
+            "title": "Postal Code",
+            "type": "string"
+          },
+          "wheelchair_accessible": {
+            "description": "Wheelchair accessibility: yes, no, limited, or empty.",
+            "examples": [
+              "yes"
+            ],
+            "title": "Wheelchair Accessible",
+            "type": "string"
+          },
+          "capacity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Approximate book capacity.",
+            "examples": [
+              50
+            ],
+            "title": "Capacity"
+          },
+          "is_indoor": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Whether the library is inside a building.",
+            "examples": [
+              false
+            ],
+            "title": "Is Indoor"
+          },
+          "is_lit": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Whether the library is illuminated at night.",
+            "examples": [
+              true
+            ],
+            "title": "Is Lit"
+          },
+          "website": {
+            "description": "External website link.",
+            "examples": [
+              "https://littlefreelibrary.org/charter/12345"
+            ],
+            "title": "Website",
+            "type": "string"
+          },
+          "contact": {
+            "description": "Contact information (email, phone, etc.).",
+            "examples": [
+              "info@example.org"
+            ],
+            "title": "Contact",
+            "type": "string"
+          },
+          "source": {
+            "description": "Data origin, e.g. OpenStreetMap.",
+            "examples": [
+              "OpenStreetMap"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "operator": {
+            "description": "Organisation that maintains the library.",
+            "examples": [
+              "City Library Association"
+            ],
+            "title": "Operator",
+            "type": "string"
+          },
+          "brand": {
+            "description": "Network or brand name.",
+            "examples": [
+              "Little Free Library"
+            ],
+            "title": "Brand",
+            "type": "string"
+          },
+          "created_at": {
+            "description": "Timestamp when the library was created (UTC).",
+            "examples": [
+              "2025-06-15T14:30:00Z"
+            ],
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "is_favourited": {
+            "default": false,
+            "description": "Whether the current authenticated user has favourited this library. Always false for unauthenticated requests.",
+            "examples": [
+              false
+            ],
+            "title": "Is Favourited",
+            "type": "boolean"
+          },
+          "osm_submission_allowed": {
+            "description": "Whether the submitter allowed later manual administrator review for a possible OpenStreetMap contribution.",
+            "examples": [
+              false
+            ],
+            "title": "Osm Submission Allowed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "description",
+          "photo_url",
+          "thumbnail_url",
+          "lat",
+          "lng",
+          "address",
+          "city",
+          "country",
+          "postal_code",
+          "wheelchair_accessible",
+          "capacity",
+          "is_indoor",
+          "is_lit",
+          "website",
+          "contact",
+          "source",
+          "operator",
+          "brand",
+          "created_at",
+          "osm_submission_allowed"
+        ],
+        "title": "LibrarySubmissionOut",
+        "type": "object"
+      },
       "LibrarySubmitIn": {
         "description": "Input schema for submitting a new library.\nCaptures location and descriptive fields from authenticated users.",
         "properties": {
@@ -4189,6 +4445,15 @@
             "minimum": -180,
             "title": "Longitude",
             "type": "number"
+          },
+          "osm_submission_allowed": {
+            "default": false,
+            "description": "Permit an administrator to consider this submission for a later manual OpenStreetMap contribution. This does not trigger or guarantee an external submission.",
+            "examples": [
+              false
+            ],
+            "title": "Osm Submission Allowed",
+            "type": "boolean"
           }
         },
         "required": [
@@ -4602,6 +4867,14 @@
             ],
             "title": "Rejection Reason",
             "type": "string"
+          },
+          "osm_submission_allowed": {
+            "description": "Whether this submission allows later manual administrator review for a possible OpenStreetMap contribution.",
+            "examples": [
+              false
+            ],
+            "title": "Osm Submission Allowed",
+            "type": "boolean"
           }
         },
         "required": [
@@ -4628,7 +4901,8 @@
           "brand",
           "created_at",
           "status",
-          "rejection_reason"
+          "rejection_reason",
+          "osm_submission_allowed"
         ],
         "title": "ContributionLibraryOut",
         "type": "object"
