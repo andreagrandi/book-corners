@@ -98,6 +98,19 @@ class LibraryListOut(Schema):
     pagination: PaginationMeta = Field(description="Pagination metadata for navigating the result set.")
 
 
+class LibrarySubmissionOut(LibraryOut):
+    """Serialized response for an authenticated library submission.
+    Exposes the private per-submission OSM permission to its submitter."""
+
+    osm_submission_allowed: bool = Field(
+        description=(
+            "Whether the submitter allowed later manual administrator review "
+            "for a possible OpenStreetMap contribution."
+        ),
+        examples=[False],
+    )
+
+
 class ModerationUserOut(Schema):
     """Compact user representation for staff moderation responses.
     Identifies submitters and reporters without exposing account management data."""
@@ -390,6 +403,13 @@ class ContributionLibraryOut(LibraryOut):
 
     status: str = Field(description="Current moderation status of the library.", examples=["pending"])
     rejection_reason: str = Field(description="Reason shown when the library is rejected, or an empty string.", examples=["Duplicate submission."])
+    osm_submission_allowed: bool = Field(
+        description=(
+            "Whether this submission allows later manual administrator review "
+            "for a possible OpenStreetMap contribution."
+        ),
+        examples=[False],
+    )
 
 
 class ContributionLibraryListOut(Schema):
@@ -511,6 +531,15 @@ class LibrarySubmitIn(Schema):
     brand: str = Field(default="", max_length=255, description="Network or brand name.", examples=["Little Free Library"])
     latitude: float = Field(ge=-90, le=90, description="Latitude of the library (WGS 84).", examples=[52.5200])
     longitude: float = Field(ge=-180, le=180, description="Longitude of the library (WGS 84).", examples=[13.4050])
+    osm_submission_allowed: bool = Field(
+        default=False,
+        description=(
+            "Permit an administrator to consider this submission for a later "
+            "manual OpenStreetMap contribution. This does not trigger or "
+            "guarantee an external submission."
+        ),
+        examples=[False],
+    )
 
 
 class LibraryUpdateIn(Schema):

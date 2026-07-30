@@ -282,6 +282,9 @@ class TestGeoJSONImporter:
         assert library.source == "OSM"
         assert library.status == "approved"
         assert library.created_by == import_user
+        assert library.osm_submission_allowed is False
+        assert library.osm_submission_allowed_at is None
+        assert library.submission_origin == Library.SubmissionOrigin.IMPORT
         assert library.location.x == pytest.approx(10.62)
         assert library.location.y == pytest.approx(43.89)
 

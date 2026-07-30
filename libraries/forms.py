@@ -249,6 +249,8 @@ class LibrarySubmissionForm(forms.ModelForm):
         library = super().save(commit=False)
         library.status = Library.Status.PENDING
         library.created_by = self.created_by
+        if library._state.adding:
+            library.submission_origin = Library.SubmissionOrigin.USER
         library.location = Point(
             x=self.cleaned_data["longitude"],
             y=self.cleaned_data["latitude"],

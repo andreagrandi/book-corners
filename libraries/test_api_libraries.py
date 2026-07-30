@@ -6,6 +6,7 @@ from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, override_settings
 from django.test.client import BOUNDARY, MULTIPART_CONTENT, encode_multipart
+from django.utils import timezone
 from ninja_jwt.tokens import RefreshToken
 
 from libraries.models import Library
@@ -407,6 +408,41 @@ class TestLibraryUpdateEndpoint:
         assert pending_library.description == "Updated via API."
         assert pending_library.capacity == 42
         assert pending_library.status == Library.Status.PENDING
+
+    def test_owner_cannot_change_osm_permission_after_submission(
+        self,
+        client,
+        pending_library,
+        user_jwt,
+    ):
+        """Verify owner edits reject the submission-only OSM permission.
+        Preserves the original choice instead of silently changing consent."""
+        pending_library.osm_submission_allowed = True
+        pending_library.osm_submission_allowed_at = timezone.now()
+        pending_library.submission_origin = Library.SubmissionOrigin.USER
+        pending_library.save(
+            update_fields=[
+                "osm_submission_allowed",
+                "osm_submission_allowed_at",
+                "submission_origin",
+                "updated_at",
+            ]
+        )
+
+        response = _patch_multipart(
+            client,
+            f"/api/v1/libraries/{pending_library.slug}",
+            {"osm_submission_allowed": "false"},
+            user_jwt,
+        )
+
+        pending_library.refresh_from_db()
+        assert response.status_code == 400
+        assert response.json()["message"] == (
+            "OSM submission permission can only be set during creation."
+        )
+        assert pending_library.osm_submission_allowed is True
+        assert pending_library.osm_submission_allowed_at is not None
 
     def test_owner_editing_approved_library_stages_changes_and_keeps_it_live(
         self,

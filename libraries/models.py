@@ -44,6 +44,12 @@ class Library(models.Model):
         APPROVED = "approved", _("Approved")
         REJECTED = "rejected", _("Rejected")
 
+    class SubmissionOrigin(models.TextChoices):
+        LEGACY = "legacy", _("Legacy")
+        USER = "user", _("User")
+        STAFF = "staff", _("Staff")
+        IMPORT = "import", _("Import")
+
     class WheelchairAccess(models.TextChoices):
         YES = "yes", _("Yes")
         NO = "no", _("No")
@@ -106,6 +112,13 @@ class Library(models.Model):
         blank=True,
         related_name="libraries",
     )
+    osm_submission_allowed = models.BooleanField(default=False)
+    osm_submission_allowed_at = models.DateTimeField(null=True, blank=True)
+    submission_origin = models.CharField(
+        max_length=10,
+        choices=SubmissionOrigin.choices,
+        default=SubmissionOrigin.LEGACY,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -113,6 +126,22 @@ class Library(models.Model):
         db_table = "libraries"
         ordering = ["-created_at"]
         verbose_name_plural = "libraries"
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    Q(
+                        osm_submission_allowed=False,
+                        osm_submission_allowed_at__isnull=True,
+                    )
+                    | Q(
+                        osm_submission_allowed=True,
+                        osm_submission_allowed_at__isnull=False,
+                        submission_origin="user",
+                    )
+                ),
+                name="lib_osm_permission_valid",
+            ),
+        ]
         indexes = [
             models.Index(fields=["city", "address"], name="idx_lib_city_address"),
             models.Index(fields=["country"], name="idx_lib_country"),
@@ -123,6 +152,10 @@ class Library(models.Model):
             models.Index(fields=["created_by", "-created_at"], name="idx_lib_creator_created"),
             models.Index(fields=["operator"], name="idx_lib_operator"),
             models.Index(fields=["brand"], name="idx_lib_brand"),
+            models.Index(
+                fields=["submission_origin"],
+                name="idx_lib_submission_origin",
+            ),
         ]
 
     def __init__(self, *args, **kwargs):

@@ -7,6 +7,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db.models import Case, Exists, IntegerField, OuterRef, Q, Value, When
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from ninja import File, Form, Query, Router
 from ninja.files import UploadedFile
 from ninja_jwt.authentication import JWTAuth
@@ -33,6 +34,7 @@ from libraries.api_schemas import (
     LibraryPhotoOut,
     LibrarySearchParams,
     LibrarySubmitIn,
+    LibrarySubmissionOut,
     LibraryUpdateIn,
     ModerationSummaryOut,
     ModerationStatusFilterEnum,
@@ -767,7 +769,7 @@ def get_library(request, slug: str):
 
 @library_router.post(
     "/",
-    response={201: LibraryOut, 400: ErrorOut, 413: ErrorOut, 429: ErrorOut},
+    response={201: LibrarySubmissionOut, 400: ErrorOut, 413: ErrorOut, 429: ErrorOut},
     auth=JWTAuth(),
     summary="Submit a new library",
 )
@@ -814,6 +816,11 @@ def submit_library(request, payload: Form[LibrarySubmitIn], photo: UploadedFile 
         location=Point(x=payload.longitude, y=payload.latitude, srid=4326),
         status=Library.Status.PENDING,
         created_by=request.user,
+        osm_submission_allowed=payload.osm_submission_allowed,
+        osm_submission_allowed_at=(
+            timezone.now() if payload.osm_submission_allowed else None
+        ),
+        submission_origin=Library.SubmissionOrigin.USER,
     )
     library.save()
     try:
@@ -852,6 +859,11 @@ def update_library(
     coordinate_fields = {"latitude", "longitude"}
     submitted_coordinates = submitted_fields & coordinate_fields
     submitted_update_fields = submitted_fields & set(LIBRARY_UPDATE_FIELDS)
+
+    if "osm_submission_allowed" in submitted_fields:
+        return 400, ErrorOut(
+            message="OSM submission permission can only be set during creation."
+        )
 
     if len(submitted_coordinates) == 1:
         return 400, ErrorOut(message="Latitude and longitude must be provided together.")

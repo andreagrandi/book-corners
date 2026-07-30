@@ -64,7 +64,15 @@ class LibraryAdmin(admin.GISModelAdmin):
         "brand",
     ]
     search_fields = ["name", "address", "city"]
-    readonly_fields = ["slug", "photo_preview", "created_at", "updated_at"]
+    readonly_fields = [
+        "slug",
+        "photo_preview",
+        "osm_submission_allowed",
+        "osm_submission_allowed_at",
+        "submission_origin",
+        "created_at",
+        "updated_at",
+    ]
     autocomplete_fields = ["created_by"]
     fields = [
         "name",
@@ -90,6 +98,9 @@ class LibraryAdmin(admin.GISModelAdmin):
         "status",
         "rejection_reason",
         "created_by",
+        "osm_submission_allowed",
+        "osm_submission_allowed_at",
+        "submission_origin",
         "slug",
         "created_at",
         "updated_at",
@@ -429,6 +440,10 @@ class LibraryAdmin(admin.GISModelAdmin):
         old_status = None
         if change and obj.pk:
             old_status = Library.objects.filter(pk=obj.pk).values_list("status", flat=True).first()
+        if not change:
+            obj.osm_submission_allowed = False
+            obj.osm_submission_allowed_at = None
+            obj.submission_origin = Library.SubmissionOrigin.STAFF
         super().save_model(request, obj, form, change)
         cache.delete(GEOJSON_CACHE_KEY)
         cache.delete(HOMEPAGE_COUNT_CACHE_KEY)

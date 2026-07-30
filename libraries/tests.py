@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import pytest
 from django.conf import settings as django_settings
+from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
 from django.core import mail
@@ -16,6 +17,7 @@ from PIL import ExifTags, Image
 from PIL.TiffImagePlugin import IFDRational
 from pillow_heif import from_pillow
 
+from libraries.admin import LibraryAdmin
 from libraries.geolocation import extract_gps_coordinates
 from libraries.image_processing import (
     LIBRARY_PHOTO_TARGET_BYTES,
@@ -623,6 +625,37 @@ class TestReportModel:
 @pytest.mark.django_db
 class TestLibraryAdmin:
     """Tests for Library admin actions."""
+
+    def test_admin_create_records_staff_provenance(
+        self,
+        admin_user,
+    ):
+        """Verify direct admin creates cannot record user OSM permission.
+        Marks staff-entered libraries with durable staff provenance."""
+        request = RequestFactory().post("/")
+        request.user = admin_user
+        model_admin = LibraryAdmin(model=Library, admin_site=admin.site)
+        library = Library(
+            name="Staff Library",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Staff 1",
+            city="Florence",
+            country="IT",
+            created_by=admin_user,
+            osm_submission_allowed=True,
+        )
+
+        model_admin.save_model(
+            request=request,
+            obj=library,
+            form=None,
+            change=False,
+        )
+
+        library.refresh_from_db()
+        assert library.submission_origin == Library.SubmissionOrigin.STAFF
+        assert library.osm_submission_allowed is False
+        assert library.osm_submission_allowed_at is None
 
     def test_approve_libraries_action(self, admin_client, admin_library):
         """Verify approve libraries action.
@@ -2643,6 +2676,9 @@ class TestEditLibraryView:
         assert library.photo.name != "libraries/photos/2026/02/old-photo.jpg"
         assert library.photo.name
         assert library.photo_thumbnail.name
+        assert library.osm_submission_allowed is False
+        assert library.osm_submission_allowed_at is None
+        assert library.submission_origin == Library.SubmissionOrigin.LEGACY
 
     def test_edit_returns_404_for_non_owner_and_rejected_library(self, client, user):
         """Verify edit access is denied for non-owners and rejected rows.
@@ -3157,6 +3193,9 @@ class TestSubmitLibraryView:
         assert library.location.x == pytest.approx(4.9041, abs=1e-6)
         assert library.photo.name
         assert library.photo_thumbnail.name
+        assert library.osm_submission_allowed is False
+        assert library.osm_submission_allowed_at is None
+        assert library.submission_origin == Library.SubmissionOrigin.USER
 
     def test_authenticated_submit_without_photo_rerenders_form_without_creating_library(
         self,
