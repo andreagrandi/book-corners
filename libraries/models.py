@@ -1,3 +1,4 @@
+import re
 import uuid
 from copy import copy
 from functools import partial
@@ -11,7 +12,7 @@ from django.core.files.storage import Storage
 from django.db import models, transaction
 from django.db.models import Q
 from django.utils.text import slugify
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 
 from libraries.image_processing import build_library_photo_files
 
@@ -175,6 +176,86 @@ class Library(models.Model):
         if self.address:
             return f"{self.address}, {self.city}"
         return self.city
+
+    def osm_precheck_ineligibility_reason(self) -> str | None:
+        """Return the first reason an OSM duplicate check is unavailable.
+        Applies durable submission and provenance safeguards in one place."""
+        if self.status != self.Status.APPROVED:
+            return gettext("The library is not approved.")
+        if self.submission_origin != self.SubmissionOrigin.USER:
+            return gettext("The library was not submitted directly by a user.")
+        if self.created_by_id is None:
+            return gettext("The original submitter account is no longer linked.")
+        if not self.osm_submission_allowed:
+            return gettext("The submitter did not allow OpenStreetMap submission.")
+        if self._has_osm_origin():
+            return gettext("The library originated from OpenStreetMap.")
+        if self.has_pending_update or self.pending_photo:
+            return gettext("The library has an update awaiting moderation.")
+
+        contribution = self._osm_contribution_or_none()
+        if contribution is None:
+            return None
+        if contribution.status == OpenStreetMapContribution.Status.CONTRIBUTED:
+            return gettext("The library was already contributed to OpenStreetMap.")
+        if (
+            contribution.status == OpenStreetMapContribution.Status.ALREADY_PRESENT
+            or contribution.osm_element_id is not None
+        ):
+            return gettext("An existing OpenStreetMap feature is already linked.")
+        if contribution.status == OpenStreetMapContribution.Status.SUBMITTING:
+            return gettext("An OpenStreetMap submission is already in progress.")
+        return None
+
+    def osm_contribution_ineligibility_reason(
+        self,
+        *,
+        max_age_seconds: int,
+    ) -> str | None:
+        """Return the first reason a future OSM contribution is blocked.
+        Extends base eligibility with duplicate-check state and freshness."""
+        precheck_reason = self.osm_precheck_ineligibility_reason()
+        if precheck_reason is not None:
+            return precheck_reason
+
+        contribution = self._osm_contribution_or_none()
+        if (
+            contribution is None
+            or contribution.status == OpenStreetMapContribution.Status.UNCHECKED
+        ):
+            return gettext("An OpenStreetMap duplicate check has not been completed.")
+        if contribution.status == OpenStreetMapContribution.Status.POSSIBLE_DUPLICATE:
+            return gettext("A possible OpenStreetMap duplicate requires resolution.")
+        if contribution.status == OpenStreetMapContribution.Status.FAILED:
+            return gettext("The latest OpenStreetMap duplicate check failed.")
+        if contribution.status != OpenStreetMapContribution.Status.NO_MATCH:
+            return gettext("The OpenStreetMap state does not allow contribution.")
+        if not contribution.duplicate_check_is_current(
+            max_age_seconds=max_age_seconds
+        ):
+            return gettext("The latest OpenStreetMap duplicate check is stale.")
+        return None
+
+    def _has_osm_origin(self) -> bool:
+        """Return whether source metadata identifies an OSM record.
+        Provides a second safety check in addition to durable provenance."""
+        compact_source = re.sub(r"[^a-z0-9]", "", self.source.casefold())
+        if compact_source == "osm" or "openstreetmap" in compact_source:
+            return True
+        return bool(
+            re.search(
+                r"(?:^|[\s:/])(?:node|way|relation)[/:]\d+(?:$|[\s/?#])",
+                self.external_id.casefold(),
+            )
+        )
+
+    def _osm_contribution_or_none(self) -> "OpenStreetMapContribution | None":
+        """Return the related OSM state without raising for absent rows.
+        Treats missing state as the explicit unchecked condition."""
+        try:
+            return self.osm_contribution
+        except OpenStreetMapContribution.DoesNotExist:
+            return None
 
     def save(self, *args, **kwargs) -> None:
         """Persist the model instance.
@@ -543,6 +624,180 @@ class Library(models.Model):
                 max_suffix = max(max_suffix, int(suffix))
 
         return f"{base}-{max_suffix + 1}"
+
+
+class OpenStreetMapContribution(models.Model):
+    """Store the current OpenStreetMap review state for one library.
+    Keeps operational state separate from source and permission metadata."""
+
+    class Status(models.TextChoices):
+        UNCHECKED = "unchecked", _("Unchecked")
+        NO_MATCH = "no_match", _("No match found")
+        POSSIBLE_DUPLICATE = "possible_duplicate", _("Possible duplicate")
+        ALREADY_PRESENT = "already_present", _("Already present")
+        SUBMITTING = "submitting", _("Submitting")
+        CONTRIBUTED = "contributed", _("Contributed")
+        FAILED = "failed", _("Failed")
+
+    class ElementType(models.TextChoices):
+        NODE = "node", _("Node")
+        WAY = "way", _("Way")
+        RELATION = "relation", _("Relation")
+
+    library = models.OneToOneField(
+        Library,
+        on_delete=models.CASCADE,
+        related_name="osm_contribution",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.UNCHECKED,
+        db_index=True,
+    )
+    checked_at = models.DateTimeField(null=True, blank=True)
+    duplicate_candidates = models.JSONField(default=list, blank=True)
+    osm_element_type = models.CharField(
+        max_length=8,
+        choices=ElementType.choices,
+        blank=True,
+        default="",
+    )
+    osm_element_id = models.BigIntegerField(null=True, blank=True)
+    changeset_id = models.BigIntegerField(null=True, blank=True)
+    contributed_at = models.DateTimeField(null=True, blank=True)
+    contributed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="osm_contributions",
+    )
+    last_attempt_key = models.UUIDField(null=True, blank=True, unique=True)
+    last_error_code = models.CharField(max_length=50, blank=True, default="")
+    last_error_message = models.CharField(max_length=500, blank=True, default="")
+    last_error_retryable = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "openstreetmap_contributions"
+        ordering = ["-checked_at", "library_id"]
+        indexes = [
+            models.Index(
+                fields=["-checked_at", "library"],
+                name="idx_osm_checked_library",
+            ),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    Q(osm_element_id__isnull=True, osm_element_type="")
+                    | (
+                        Q(osm_element_id__isnull=False)
+                        & ~Q(osm_element_type="")
+                    )
+                ),
+                name="osm_element_fields_paired",
+            ),
+            models.UniqueConstraint(
+                fields=["osm_element_type", "osm_element_id"],
+                condition=Q(osm_element_id__isnull=False),
+                name="unique_osm_element_link",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        """Return a readable current-state label.
+        Identifies the library and OSM review status in admin screens."""
+        return f"{self.library}: {self.get_status_display()}"
+
+    def duplicate_check_is_current(self, *, max_age_seconds: int) -> bool:
+        """Return whether the latest duplicate check remains fresh.
+        Requires a successful no-match state and a completed timestamp."""
+        if self.status != self.Status.NO_MATCH or self.checked_at is None:
+            return False
+        from django.utils import timezone
+
+        age = timezone.now() - self.checked_at
+        return age.total_seconds() <= max_age_seconds
+
+
+class OpenStreetMapContributionEvent(models.Model):
+    """Store one immutable event in the OpenStreetMap audit history.
+    Retains sanitized staff actions, checks, and future write outcomes."""
+
+    class EventType(models.TextChoices):
+        PERMISSION_WITHDRAWN = "permission_withdrawn", _("Permission withdrawn")
+        DUPLICATE_CHECK = "duplicate_check", _("Duplicate check")
+        DUPLICATE_RESOLUTION = "duplicate_resolution", _("Duplicate resolution")
+        WRITE_STARTED = "write_started", _("Write started")
+        WRITE_SUCCEEDED = "write_succeeded", _("Write succeeded")
+        WRITE_FAILED = "write_failed", _("Write failed")
+        RECONCILIATION_REQUIRED = (
+            "reconciliation_required",
+            _("Reconciliation required"),
+        )
+
+    class Outcome(models.TextChoices):
+        SUCCESS = "success", _("Success")
+        FAILED = "failed", _("Failed")
+        BLOCKED = "blocked", _("Blocked")
+
+    contribution = models.ForeignKey(
+        OpenStreetMapContribution,
+        on_delete=models.CASCADE,
+        related_name="events",
+    )
+    event_type = models.CharField(max_length=30, choices=EventType.choices)
+    outcome = models.CharField(max_length=10, choices=Outcome.choices)
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="osm_contribution_events",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    attempt_key = models.UUIDField(null=True, blank=True, db_index=True)
+    details = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        db_table = "openstreetmap_contribution_events"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(
+                fields=["-created_at"],
+                name="idx_osm_event_created",
+            ),
+            models.Index(
+                fields=["contribution", "-created_at"],
+                name="idx_osm_event_contrib_created",
+            ),
+            models.Index(
+                fields=["event_type", "-created_at"],
+                name="idx_osm_event_type_created",
+            ),
+            models.Index(
+                fields=["outcome", "-created_at"],
+                name="idx_osm_event_outcome_created",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        """Return a readable audit-event label.
+        Identifies the library and event type without exposing details."""
+        return f"{self.contribution.library}: {self.get_event_type_display()}"
+
+    def save(self, *args, **kwargs) -> None:
+        """Create a new audit event without allowing later mutation.
+        Enforces append-only behavior through the model write path."""
+        if not self._state.adding:
+            raise ValueError("OpenStreetMap contribution events are immutable.")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs) -> None:
+        """Reject direct deletion of an existing audit event.
+        Preserves the append-only audit trail during normal operations."""
+        raise ValueError("OpenStreetMap contribution events cannot be deleted.")
 
 
 class Report(models.Model):

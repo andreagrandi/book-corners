@@ -2,6 +2,27 @@
 {% load i18n %}
 
 {% block object-tools-items %}
+{% if original %}
+<li>
+    <form id="osm-check-form" method="post" action="{% url 'admin:libraries_library_osm_check' original.pk %}" style="display:none;">
+        {% csrf_token %}
+    </form>
+    <a href="#" class="historylink" onclick="document.getElementById('osm-check-form').submit(); return false;">{% trans "Check OSM duplicates" %}</a>
+</li>
+{% if original.osm_submission_allowed %}
+<li>
+    <form id="osm-withdraw-form" method="post" action="{% url 'admin:libraries_library_osm_withdraw' original.pk %}" style="display:none;">
+        {% csrf_token %}
+    </form>
+    <a href="#" class="deletelink" onclick="if (confirm('{% trans "Withdraw this submission's OSM permission?" %}')) document.getElementById('osm-withdraw-form').submit(); return false;">{% trans "Withdraw OSM permission" %}</a>
+</li>
+{% endif %}
+{% if original.osm_contribution.status == "possible_duplicate" %}
+<li>
+    <a href="{% url 'admin:libraries_library_osm_resolve' original.pk %}" class="historylink">{% trans "Resolve OSM duplicate" %}</a>
+</li>
+{% endif %}
+{% endif %}
 {% if original and original.photo %}
 <li>
     <form id="ai-enrich-form" method="post" action="{% url 'admin:libraries_library_ai_enrich' original.pk %}" style="display:none;">

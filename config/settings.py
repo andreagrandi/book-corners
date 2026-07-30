@@ -355,6 +355,17 @@ try:
 except ValueError:
     NOMINATIM_TIMEOUT_SECONDS = 5
 
+OSM_OVERPASS_URL = os.environ.get("OSM_OVERPASS_URL", "")
+OSM_USER_AGENT = os.environ.get("OSM_USER_AGENT", "")
+OSM_DUPLICATE_RADIUS_METERS = _env_int(
+    name="OSM_DUPLICATE_RADIUS_METERS",
+    default=100,
+)
+OSM_DUPLICATE_CHECK_MAX_AGE_SECONDS = _env_int(
+    name="OSM_DUPLICATE_CHECK_MAX_AGE_SECONDS",
+    default=900,
+)
+
 
 # Sentry error tracking
 # Enabled automatically when SENTRY_DSN is set. No-op otherwise.

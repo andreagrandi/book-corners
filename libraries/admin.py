@@ -1,15 +1,16 @@
 import json
 
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.admin import SimpleListFilter
 from django.contrib.gis import admin
 from django.core.cache import cache
 from django.core.paginator import Paginator
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import path, reverse
-from django.utils.html import format_html
-
+from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
 
 from libraries.geojson_import import parse_geojson
@@ -17,13 +18,79 @@ from libraries.management.commands.find_duplicates import (
     DEFAULT_RADIUS_METERS,
     find_duplicate_groups,
 )
-from libraries.models import Favourite, Library, LibraryPhoto, Report, SocialPost
+from libraries.models import (
+    Favourite,
+    Library,
+    LibraryPhoto,
+    OpenStreetMapContribution,
+    OpenStreetMapContributionEvent,
+    Report,
+    SocialPost,
+)
 from libraries.notifications import (
     notify_library_approved,
     notify_library_rejected,
     notify_library_update_approved,
 )
 from libraries.views import GEOJSON_CACHE_KEY, HOMEPAGE_COUNT_CACHE_KEY, invalidate_cluster_cache
+
+
+class OpenStreetMapStateFilter(SimpleListFilter):
+    """Filter libraries by their current OpenStreetMap review state.
+    Groups low-level states into the operator-facing workflow categories."""
+
+    title = _("OpenStreetMap state")
+    parameter_name = "osm_state"
+
+    def lookups(self, request, model_admin):
+        """Return the supported operator-facing OSM state filters.
+        Keeps absent state distinct from known duplicate-check outcomes."""
+        return [
+            ("unknown", _("Unknown")),
+            ("absent", _("Absent")),
+            ("possible_duplicate", _("Possible duplicate")),
+            ("present", _("Present")),
+            ("failed", _("Failed")),
+        ]
+
+    def queryset(self, request, queryset):
+        """Apply the selected OpenStreetMap state grouping.
+        Includes missing contribution rows in the explicit unknown state."""
+        value = self.value()
+        if value == "unknown":
+            return queryset.filter(
+                Q(osm_contribution__isnull=True)
+                | Q(
+                    osm_contribution__status=(
+                        OpenStreetMapContribution.Status.UNCHECKED
+                    )
+                )
+            )
+        if value == "absent":
+            return queryset.filter(
+                osm_contribution__status=OpenStreetMapContribution.Status.NO_MATCH
+            )
+        if value == "possible_duplicate":
+            return queryset.filter(
+                osm_contribution__status=(
+                    OpenStreetMapContribution.Status.POSSIBLE_DUPLICATE
+                )
+            )
+        if value == "present":
+            return queryset.filter(
+                Q(osm_contribution__osm_element_id__isnull=False)
+                | Q(
+                    osm_contribution__status__in=[
+                        OpenStreetMapContribution.Status.ALREADY_PRESENT,
+                        OpenStreetMapContribution.Status.CONTRIBUTED,
+                    ]
+                )
+            )
+        if value == "failed":
+            return queryset.filter(
+                osm_contribution__status=OpenStreetMapContribution.Status.FAILED
+            )
+        return queryset
 
 
 class LibraryPhotoInline(admin.TabularInline):
@@ -53,7 +120,15 @@ class LibraryAdmin(admin.GISModelAdmin):
 
     change_list_template = "admin/libraries/library_changelist.html"
     change_form_template = "admin/libraries/library/change_form.html"
-    list_display = ["name", "city", "country", "status", "created_at"]
+    list_display = [
+        "name",
+        "city",
+        "country",
+        "status",
+        "osm_state",
+        "osm_candidate",
+        "created_at",
+    ]
     list_filter = [
         "status",
         "country",
@@ -62,6 +137,9 @@ class LibraryAdmin(admin.GISModelAdmin):
         "is_lit",
         "source",
         "brand",
+        "osm_submission_allowed",
+        "submission_origin",
+        OpenStreetMapStateFilter,
     ]
     search_fields = ["name", "address", "city"]
     readonly_fields = [
@@ -70,6 +148,10 @@ class LibraryAdmin(admin.GISModelAdmin):
         "osm_submission_allowed",
         "osm_submission_allowed_at",
         "submission_origin",
+        "osm_state_detail",
+        "osm_candidate_detail",
+        "osm_duplicate_candidates",
+        "osm_audit_history",
         "created_at",
         "updated_at",
     ]
@@ -101,12 +183,168 @@ class LibraryAdmin(admin.GISModelAdmin):
         "osm_submission_allowed",
         "osm_submission_allowed_at",
         "submission_origin",
+        "osm_state_detail",
+        "osm_candidate_detail",
+        "osm_duplicate_candidates",
+        "osm_audit_history",
         "slug",
         "created_at",
         "updated_at",
     ]
     actions = ["approve_libraries", "reject_libraries"]
     inlines = [LibraryPhotoInline]
+
+    def get_queryset(self, request):
+        """Load related OSM state with each admin library row.
+        Avoids repeated one-to-one queries in list and detail displays."""
+        return super().get_queryset(request).select_related("osm_contribution")
+
+    @admin.display(description=_("OSM state"), ordering="osm_contribution__status")
+    def osm_state(self, obj: Library) -> str:
+        """Return the compact operator-facing OSM state.
+        Treats a missing state row as unchecked rather than an error."""
+        contribution = obj._osm_contribution_or_none()
+        if contribution is None:
+            return str(_("Unknown"))
+        return contribution.get_status_display()
+
+    @admin.display(description=_("OSM candidate"))
+    def osm_candidate(self, obj: Library) -> str:
+        """Return a compact OSM eligibility indicator.
+        Distinguishes base ineligibility from completed duplicate checks."""
+        reason = obj.osm_precheck_ineligibility_reason()
+        if reason is not None:
+            return str(_("Ineligible"))
+        contribution = obj._osm_contribution_or_none()
+        if (
+            contribution is not None
+            and contribution.status == OpenStreetMapContribution.Status.NO_MATCH
+        ):
+            return str(_("Checked"))
+        return str(_("Needs check"))
+
+    @admin.display(description=_("OpenStreetMap state"))
+    def osm_state_detail(self, obj: Library) -> str:
+        """Render the current OSM state and recorded audit identifiers.
+        Shows operator-safe values without exposing any credentials."""
+        contribution = obj._osm_contribution_or_none()
+        if contribution is None:
+            return str(_("Unknown; no duplicate check has been recorded."))
+        values = [str(contribution.get_status_display())]
+        if contribution.checked_at is not None:
+            values.append(
+                str(_("Checked at: %(timestamp)s"))
+                % {"timestamp": contribution.checked_at}
+            )
+        if contribution.osm_element_id is not None:
+            values.append(
+                str(_("OSM feature: %(type)s/%(identifier)s"))
+                % {
+                    "type": contribution.osm_element_type,
+                    "identifier": contribution.osm_element_id,
+                }
+            )
+        if contribution.changeset_id is not None:
+            values.append(
+                str(_("Changeset: %(identifier)s"))
+                % {"identifier": contribution.changeset_id}
+            )
+        if contribution.last_error_message:
+            values.append(
+                str(_("Latest error: %(message)s"))
+                % {"message": contribution.last_error_message}
+            )
+            values.append(
+                str(_("Retryable error: %(value)s"))
+                % {
+                    "value": (
+                        _("Yes")
+                        if contribution.last_error_retryable
+                        else _("No")
+                    )
+                }
+            )
+        return format_html_join("<br>", "{}", ((value,) for value in values))
+
+    @admin.display(description=_("OpenStreetMap eligibility"))
+    def osm_candidate_detail(self, obj: Library) -> str:
+        """Explain the exact current OSM eligibility result.
+        Uses the shared predicate intended for the future write workflow."""
+        reason = obj.osm_contribution_ineligibility_reason(
+            max_age_seconds=max(
+                settings.OSM_DUPLICATE_CHECK_MAX_AGE_SECONDS,
+                0,
+            )
+        )
+        if reason is not None:
+            return reason
+        return str(
+            _(
+                "No library or duplicate-state blocker. Future policy and "
+                "write gates still apply."
+            )
+        )
+
+    @admin.display(description=_("OSM duplicate candidates"))
+    def osm_duplicate_candidates(self, obj: Library) -> str:
+        """Render the sanitized candidate snapshot and match signals.
+        Exposes only public OSM identifiers, tags, distance, and warnings."""
+        contribution = obj._osm_contribution_or_none()
+        if contribution is None or not contribution.duplicate_candidates:
+            return str(_("No duplicate candidates recorded."))
+
+        rows = []
+        for candidate in contribution.duplicate_candidates:
+            tags = ", ".join(
+                f"{key}={value}"
+                for key, value in candidate.get("tags", {}).items()
+            )
+            signals = ", ".join(candidate.get("signals", [])) or str(
+                _("secondary warning only")
+            )
+            rows.append((
+                candidate.get("element_type", ""),
+                candidate.get("element_id", ""),
+                candidate.get("distance_meters", ""),
+                signals,
+                tags or str(_("no relevant tags")),
+            ))
+        return format_html(
+            "<ul>{}</ul>",
+            format_html_join(
+                "",
+                "<li><strong>{}/{}</strong> — {} m — {} — {}</li>",
+                rows,
+            ),
+        )
+
+    @admin.display(description=_("OSM audit history"))
+    def osm_audit_history(self, obj: Library) -> str:
+        """Render the latest immutable OSM audit events.
+        Keeps detailed JSON out of the library form while showing provenance."""
+        contribution = obj._osm_contribution_or_none()
+        if contribution is None:
+            return str(_("No OpenStreetMap audit events recorded."))
+        events = contribution.events.select_related("actor")[:10]
+        rows = [
+            (
+                event.created_at,
+                event.get_event_type_display(),
+                event.get_outcome_display(),
+                str(event.actor) if event.actor is not None else str(_("System")),
+            )
+            for event in events
+        ]
+        if not rows:
+            return str(_("No OpenStreetMap audit events recorded."))
+        return format_html(
+            "<ul>{}</ul>",
+            format_html_join(
+                "",
+                "<li>{} — {} — {} — {}</li>",
+                rows,
+            ),
+        )
 
     @admin.display(description="Photo preview")
     def photo_preview(self, obj: Library) -> str:
@@ -118,8 +356,23 @@ class LibraryAdmin(admin.GISModelAdmin):
 
     def get_urls(self):
         """Extend admin URLs with custom management endpoints.
-        Adds GeoJSON import, duplicate finder, photo grid, and AI enrichment views."""
+        Adds OSM review, imports, duplicate finder, photos, and AI views."""
         custom_urls = [
+            path(
+                "<path:object_id>/osm-check/",
+                self.admin_site.admin_view(self.osm_check_view),
+                name="libraries_library_osm_check",
+            ),
+            path(
+                "<path:object_id>/osm-withdraw/",
+                self.admin_site.admin_view(self.osm_withdraw_view),
+                name="libraries_library_osm_withdraw",
+            ),
+            path(
+                "<path:object_id>/osm-resolve/",
+                self.admin_site.admin_view(self.osm_resolve_view),
+                name="libraries_library_osm_resolve",
+            ),
             path(
                 "<path:object_id>/ai-enrich/",
                 self.admin_site.admin_view(self.ai_enrich_view),
@@ -147,6 +400,189 @@ class LibraryAdmin(admin.GISModelAdmin):
             ),
         ]
         return custom_urls + super().get_urls()
+
+    def osm_check_view(
+        self,
+        request: HttpRequest,
+        object_id: str,
+    ) -> HttpResponse:
+        """Run a read-only OSM duplicate check for one library.
+        Redirects back to the protected admin detail with a clear result."""
+        library = self.get_object(request=request, object_id=object_id)
+        change_url = reverse(
+            "admin:libraries_library_change",
+            args=[object_id],
+        )
+        if library is None:
+            messages.error(request, _("The library no longer exists."))
+            return redirect("admin:libraries_library_changelist")
+        if request.method != "POST":
+            return redirect(change_url)
+
+        from libraries.osm_contributions import run_osm_duplicate_check
+
+        try:
+            contribution = run_osm_duplicate_check(
+                library=library,
+                actor=request.user,
+            )
+        except ValueError as exc:
+            messages.error(request, str(exc))
+            return redirect(change_url)
+
+        if contribution.status == OpenStreetMapContribution.Status.FAILED:
+            messages.error(
+                request,
+                contribution.last_error_message
+                or _("The OpenStreetMap duplicate check failed."),
+            )
+        elif (
+            contribution.status
+            == OpenStreetMapContribution.Status.POSSIBLE_DUPLICATE
+        ):
+            messages.warning(
+                request,
+                _("Possible OpenStreetMap duplicates require staff resolution."),
+            )
+        else:
+            messages.success(
+                request,
+                _("No blocking OpenStreetMap match was found."),
+            )
+        return redirect(change_url)
+
+    def osm_withdraw_view(
+        self,
+        request: HttpRequest,
+        object_id: str,
+    ) -> HttpResponse:
+        """Withdraw unconsumed OSM permission for one library.
+        Records the staff actor in the append-only audit history."""
+        library = self.get_object(request=request, object_id=object_id)
+        change_url = reverse(
+            "admin:libraries_library_change",
+            args=[object_id],
+        )
+        if library is None:
+            messages.error(request, _("The library no longer exists."))
+            return redirect("admin:libraries_library_changelist")
+        if request.method != "POST":
+            return redirect(change_url)
+
+        from libraries.osm_contributions import withdraw_osm_submission_permission
+
+        try:
+            withdraw_osm_submission_permission(
+                library=library,
+                actor=request.user,
+            )
+        except ValueError as exc:
+            messages.error(request, str(exc))
+        else:
+            messages.success(
+                request,
+                _("OpenStreetMap submission permission was withdrawn."),
+            )
+        return redirect(change_url)
+
+    def osm_resolve_view(
+        self,
+        request: HttpRequest,
+        object_id: str,
+    ) -> HttpResponse:
+        """Render and process one possible-duplicate resolution.
+        Requires an explicit candidate, outcome, and staff explanation."""
+        library = self.get_object(request=request, object_id=object_id)
+        change_url = reverse(
+            "admin:libraries_library_change",
+            args=[object_id],
+        )
+        if library is None:
+            messages.error(request, _("The library no longer exists."))
+            return redirect("admin:libraries_library_changelist")
+
+        contribution = library._osm_contribution_or_none()
+        if (
+            contribution is None
+            or contribution.status
+            != OpenStreetMapContribution.Status.POSSIBLE_DUPLICATE
+        ):
+            messages.warning(
+                request,
+                _("This library has no unresolved OpenStreetMap duplicate."),
+            )
+            return redirect(change_url)
+
+        if request.method == "POST":
+            candidate_value = request.POST.get("candidate", "")
+            resolution = request.POST.get("resolution", "")
+            reason = request.POST.get("reason", "")
+            try:
+                element_type, raw_element_id = candidate_value.split(":", 1)
+                element_id = int(raw_element_id)
+            except (TypeError, ValueError):
+                messages.error(
+                    request,
+                    _("Select a valid OpenStreetMap duplicate candidate."),
+                )
+            else:
+                from libraries.osm_contributions import resolve_osm_duplicate
+
+                try:
+                    resolved = resolve_osm_duplicate(
+                        contribution=contribution,
+                        actor=request.user,
+                        resolution=resolution,
+                        element_type=element_type,
+                        element_id=element_id,
+                        reason=reason,
+                    )
+                except ValueError as exc:
+                    messages.error(request, str(exc))
+                else:
+                    if (
+                        resolved.status
+                        == OpenStreetMapContribution.Status.ALREADY_PRESENT
+                    ):
+                        messages.success(
+                            request,
+                            _("The existing OpenStreetMap feature was linked."),
+                        )
+                    elif resolution == "different_feature":
+                        messages.success(
+                            request,
+                            _(
+                                "The candidate was recorded as a different feature. "
+                                "Run a fresh duplicate check before continuing."
+                            ),
+                        )
+                    else:
+                        messages.warning(
+                            request,
+                            _("The candidate remains an unresolved duplicate."),
+                        )
+                    return redirect(change_url)
+
+        from libraries.osm_contributions import (
+            get_unresolved_osm_duplicate_candidates,
+        )
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": _("Resolve OpenStreetMap duplicate"),
+            "opts": self.model._meta,
+            "library": library,
+            "contribution": contribution,
+            "candidates": get_unresolved_osm_duplicate_candidates(
+                contribution=contribution
+            ),
+            "change_url": change_url,
+        }
+        return render(
+            request,
+            "admin/libraries/osm_duplicate_resolution.html",
+            context,
+        )
 
     def ai_enrich_view(self, request: HttpRequest, object_id: str) -> HttpResponse:
         """Generate AI name and description for a library and show confirmation.
@@ -268,7 +704,6 @@ class LibraryAdmin(admin.GISModelAdmin):
         candidates = parse_geojson(geojson_data)
 
         import tempfile
-        from django.conf import settings
 
         imports_dir = settings.MEDIA_ROOT / "geojson_imports"
         imports_dir.mkdir(parents=True, exist_ok=True)
@@ -473,6 +908,103 @@ class LibraryAdmin(admin.GISModelAdmin):
         self.message_user(
             request, f"{count} {'library' if count == 1 else 'libraries'} rejected."
         )
+
+
+@admin.register(OpenStreetMapContribution)
+class OpenStreetMapContributionAdmin(admin.ModelAdmin):
+    """Expose current OpenStreetMap state as a read-only admin record.
+    Directs all transitions through the guarded Library admin workflow."""
+
+    list_display = [
+        "library",
+        "status",
+        "checked_at",
+        "osm_element_type",
+        "osm_element_id",
+        "contributed_at",
+    ]
+    list_filter = ["status"]
+    list_select_related = ["library", "contributed_by"]
+    search_fields = [
+        "library__name",
+        "library__city",
+        "osm_element_id",
+        "changeset_id",
+    ]
+    readonly_fields = [
+        "library",
+        "status",
+        "checked_at",
+        "duplicate_candidates",
+        "osm_element_type",
+        "osm_element_id",
+        "changeset_id",
+        "contributed_at",
+        "contributed_by",
+        "last_attempt_key",
+        "last_error_code",
+        "last_error_message",
+        "last_error_retryable",
+    ]
+
+    def has_add_permission(self, request):
+        """Disable direct creation of current OSM state records.
+        Ensures guarded checks and resolutions create the state."""
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        """Disable direct edits to current OSM state records.
+        Keeps all state transitions inside audited service methods."""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Disable direct deletion of current OSM state records.
+        Preserves state and its linked audit history."""
+        return False
+
+
+@admin.register(OpenStreetMapContributionEvent)
+class OpenStreetMapContributionEventAdmin(admin.ModelAdmin):
+    """Expose append-only OpenStreetMap events for staff inspection.
+    Prevents admin creation, editing, and deletion of audit records."""
+
+    list_display = [
+        "contribution",
+        "event_type",
+        "outcome",
+        "actor",
+        "created_at",
+    ]
+    list_filter = ["event_type", "outcome", "created_at"]
+    list_select_related = ["contribution__library", "actor"]
+    search_fields = [
+        "contribution__library__name",
+        "contribution__library__city",
+    ]
+    readonly_fields = [
+        "contribution",
+        "event_type",
+        "outcome",
+        "actor",
+        "created_at",
+        "attempt_key",
+        "details",
+    ]
+
+    def has_add_permission(self, request):
+        """Disable direct creation of OSM audit events.
+        Allows only guarded service methods to append events."""
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        """Disable mutation of existing OSM audit events.
+        Preserves the recorded operator history."""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Disable deletion of existing OSM audit events.
+        Preserves the append-only operator history."""
+        return False
 
 
 @admin.register(Report)
