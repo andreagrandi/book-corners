@@ -21,7 +21,7 @@ Return the authenticated user's submitted libraries across all moderation status
 
 ### Response (`200 OK`)
 
-Each item uses the standard library response fields plus `status` and `rejection_reason`.
+Each item uses the standard library response fields plus `status`, `rejection_reason`, and the private `osm_submission_allowed` choice recorded for that submission. The OSM field only confirms whether the submitter permitted possible later manual administrator review; it does not indicate that a contribution will occur.
 
 ```json
 {
@@ -51,7 +51,8 @@ Each item uses the standard library response fields plus `status` and `rejection
       "created_at": "2025-06-15T14:30:00Z",
       "is_favourited": false,
       "status": "pending",
-      "rejection_reason": ""
+      "rejection_reason": "",
+      "osm_submission_allowed": false
     }
   ],
   "pagination": {

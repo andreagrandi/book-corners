@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.18.0
+
+- Authenticated library submissions can include an optional, default-off `osm_submission_allowed` choice for that individual submission. The create response and authenticated `GET /api/v1/libraries/mine` items expose the stored choice, while public responses and owner edits do not.
+- Library records now keep durable `legacy`, `user`, `staff`, or `import` submission provenance and the timestamp of an explicit true OSM permission. Existing records remain default-off legacy entries, and imports and direct staff creates cannot record user permission.
+- Recording permission only allows possible later manual administrator review. It never triggers or guarantees an OpenStreetMap contribution.
+
 ## v1.17.0
 
 - Updates to approved libraries now stage only the proposed fields and replacement photo for moderation. The existing approved library remains publicly available with the same ID and slug until the update is approved; rejecting the update discards only the proposal.

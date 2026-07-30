@@ -28,6 +28,7 @@ Submit a new library location with a photo. The library starts in **pending** st
 | `brand` | string | No | Network or brand name (max 255 chars) |
 | `latitude` | float | Yes | Latitude (-90 to 90, WGS 84) |
 | `longitude` | float | Yes | Longitude (-180 to 180, WGS 84) |
+| `osm_submission_allowed` | bool | No | Defaults to `false`. When `true`, permits an administrator to consider this specific submission for a possible later manual OpenStreetMap contribution. It does not trigger or guarantee a contribution. |
 | `photo` | file | Yes | Photo of the library (JPEG/PNG/WEBP/HEIC/HEIF, max 10 MB). Accepted uploads are normalized to an optimized JPEG targeting about 500 KB. |
 
 ## Examples
@@ -45,6 +46,7 @@ Submit a new library location with a photo. The library starts in **pending** st
       -F "postal_code=10117" \
       -F "latitude=52.52" \
       -F "longitude=13.405" \
+      -F "osm_submission_allowed=true" \
       -F "photo=@library.jpg"
     ```
 
@@ -65,6 +67,7 @@ Submit a new library location with a photo. The library starts in **pending** st
             "postal_code": "10117",
             "latitude": 52.52,
             "longitude": 13.405,
+            "osm_submission_allowed": True,
         },
         files={"photo": open("library.jpg", "rb")},
     )
@@ -96,12 +99,16 @@ Submit a new library location with a photo. The library starts in **pending** st
   "source": "",
   "operator": "",
   "brand": "",
-  "created_at": "2025-06-15T14:30:00Z"
+  "created_at": "2025-06-15T14:30:00Z",
+  "is_favourited": false,
+  "osm_submission_allowed": true
 }
 ```
 
 !!! note
     The returned library will have **pending** status. It won't appear in public listing or search results until approved by a moderator. You can view your pending library via the [detail endpoint](detail.md) while authenticated.
+
+    `osm_submission_allowed` is private submission metadata. It is returned by this create response and the authenticated [My Contributions](contributions.md) library list, but not by public library responses. A true value only records permission for future manual administrator review; this request never writes to OpenStreetMap.
 
 ## Errors
 

@@ -12,6 +12,8 @@ Update a library you submitted. The library must be in **pending** or **approved
 
 All fields are optional. Omitted fields keep their current value. Provide at least one field.
 
+The per-submission `osm_submission_allowed` choice is creation-only and cannot be added or changed through this endpoint. Sending it produces a validation error and preserves the stored choice.
+
 | Field | Type | Description |
 |-------|------|-------------|
 | `name` | string | Display name (max 255 chars) |
@@ -108,9 +110,9 @@ The response uses the same library object shape as the [detail endpoint](detail.
 
 | Status | Cause |
 |--------|-------|
-| `400` | No fields were provided, coordinates were incomplete, or the photo format is invalid |
+| `400` | No fields were provided, coordinates were incomplete, the photo format is invalid, or a creation-only field such as `osm_submission_allowed` was sent |
 | `401` | Missing or invalid bearer token |
 | `404` | Library not found, not owned by the authenticated user, rejected, or otherwise not editable |
 | `413` | Photo exceeds 10 MB size limit |
-| `422` | Request validation error (field too long, invalid type, out-of-range coordinate) |
+| `422` | Request validation error (field too long, invalid type, or out-of-range coordinate) |
 | `429` | Rate limit exceeded (see [Rate Limiting](../rate-limiting.md)) |

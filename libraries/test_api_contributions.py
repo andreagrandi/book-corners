@@ -6,6 +6,7 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.gis.geos import Point
 from django.core.cache import cache
 from django.test import override_settings
+from django.utils import timezone
 from ninja_jwt.tokens import RefreshToken
 
 from libraries.models import Library, LibraryPhoto, Report
@@ -32,6 +33,7 @@ def _create_library(
     address: str,
     city: str = "Florence",
     country: str = "IT",
+    osm_submission_allowed: bool = False,
 ) -> Library:
     """Create a library contribution for API tests.
     Keeps location and media defaults consistent across contribution cases."""
@@ -45,6 +47,11 @@ def _create_library(
         country=country,
         status=status,
         created_by=user,
+        osm_submission_allowed=osm_submission_allowed,
+        osm_submission_allowed_at=(
+            timezone.now() if osm_submission_allowed else None
+        ),
+        submission_origin=Library.SubmissionOrigin.USER,
     )
 
 
@@ -129,6 +136,36 @@ class TestMyLibrariesEndpoint:
         }
         assert body["items"][0]["slug"] == pending.slug
         assert body["pagination"]["total"] == 3
+
+    def test_returns_each_submissions_osm_permission(self, client, user) -> None:
+        """Verify the private contribution list returns stored OSM choices.
+        Lets clients confirm independent permission after reconnecting."""
+        allowed = _create_library(
+            user=user,
+            name="Allowed Mine",
+            status=Library.Status.PENDING,
+            address="Via Allowed 1",
+            osm_submission_allowed=True,
+        )
+        declined = _create_library(
+            user=user,
+            name="Declined Mine",
+            status=Library.Status.PENDING,
+            address="Via Declined 1",
+            osm_submission_allowed=False,
+        )
+
+        response = client.get(self.url, **_auth_header(user=user))
+
+        choices = {
+            item["slug"]: item["osm_submission_allowed"]
+            for item in response.json()["items"]
+        }
+        assert response.status_code == 200
+        assert choices == {
+            allowed.slug: True,
+            declined.slug: False,
+        }
 
     def test_paginates_libraries(self, client, user) -> None:
         """Verify library contributions use standard pagination metadata.
@@ -391,5 +428,3 @@ class TestContributionRateLimit:
         response = client.get(url, **_auth_header(user=user))
 
         assert response.status_code == 429
-
-

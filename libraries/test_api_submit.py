@@ -108,9 +108,126 @@ class TestSubmitLibraryEndpoint:
             "lat", "lng", "address", "city", "country", "postal_code",
             "wheelchair_accessible", "capacity", "is_indoor", "is_lit",
             "website", "contact", "source", "operator", "brand",
-            "created_at", "is_favourited",
+            "created_at", "is_favourited", "osm_submission_allowed",
         }
         assert set(body.keys()) == expected_fields
+
+    def test_omitted_osm_permission_defaults_to_false(
+        self,
+        client,
+        user_jwt,
+        tmp_path,
+        settings,
+    ):
+        """Verify omitted OSM permission is stored as an explicit false.
+        Keeps older clients backward compatible without inferring consent."""
+        settings.MEDIA_ROOT = tmp_path
+
+        response = client.post(
+            "/api/v1/libraries/",
+            data={**_submit_payload(), "photo": _build_uploaded_photo()},
+            HTTP_AUTHORIZATION=f"Bearer {user_jwt}",
+        )
+
+        library = Library.objects.get(id=response.json()["id"])
+        assert response.status_code == 201
+        assert response.json()["osm_submission_allowed"] is False
+        assert library.osm_submission_allowed is False
+        assert library.osm_submission_allowed_at is None
+        assert library.submission_origin == Library.SubmissionOrigin.USER
+
+    def test_explicit_osm_permission_is_stored_with_timestamp(
+        self,
+        client,
+        user_jwt,
+        tmp_path,
+        settings,
+    ):
+        """Verify explicit OSM permission is stored for this submission.
+        Records when consent was captured without triggering an OSM write."""
+        settings.MEDIA_ROOT = tmp_path
+
+        response = client.post(
+            "/api/v1/libraries/",
+            data={
+                **_submit_payload(),
+                "osm_submission_allowed": "true",
+                "photo": _build_uploaded_photo(),
+            },
+            HTTP_AUTHORIZATION=f"Bearer {user_jwt}",
+        )
+
+        library = Library.objects.get(id=response.json()["id"])
+        assert response.status_code == 201
+        assert response.json()["osm_submission_allowed"] is True
+        assert library.osm_submission_allowed is True
+        assert library.osm_submission_allowed_at is not None
+        assert library.submission_origin == Library.SubmissionOrigin.USER
+
+    def test_osm_permission_is_independent_for_each_submission(
+        self,
+        client,
+        user_jwt,
+        tmp_path,
+        settings,
+    ):
+        """Verify one user can make a different choice per submission.
+        Prevents the permission from behaving like an account-wide preference."""
+        settings.MEDIA_ROOT = tmp_path
+
+        allowed_response = client.post(
+            "/api/v1/libraries/",
+            data={
+                **_submit_payload(name="Allowed Library"),
+                "osm_submission_allowed": "true",
+                "photo": _build_uploaded_photo(file_name="allowed.jpg"),
+            },
+            HTTP_AUTHORIZATION=f"Bearer {user_jwt}",
+        )
+        declined_response = client.post(
+            "/api/v1/libraries/",
+            data={
+                **_submit_payload(name="Declined Library"),
+                "osm_submission_allowed": "false",
+                "photo": _build_uploaded_photo(file_name="declined.jpg"),
+            },
+            HTTP_AUTHORIZATION=f"Bearer {user_jwt}",
+        )
+
+        assert allowed_response.status_code == 201
+        assert declined_response.status_code == 201
+        assert (
+            Library.objects.get(id=allowed_response.json()["id"]).osm_submission_allowed
+            is True
+        )
+        assert (
+            Library.objects.get(id=declined_response.json()["id"]).osm_submission_allowed
+            is False
+        )
+
+    def test_invalid_osm_permission_is_rejected(
+        self,
+        client,
+        user_jwt,
+        tmp_path,
+        settings,
+    ):
+        """Verify non-boolean OSM permission values fail validation.
+        Avoids storing an ambiguous consent choice."""
+        settings.MEDIA_ROOT = tmp_path
+
+        response = client.post(
+            "/api/v1/libraries/",
+            data={
+                **_submit_payload(),
+                "osm_submission_allowed": "sometimes",
+                "photo": _build_uploaded_photo(),
+            },
+            HTTP_AUTHORIZATION=f"Bearer {user_jwt}",
+        )
+
+        assert response.status_code == 422
+        assert not Library.objects.filter(name="My Little Library").exists()
 
     def test_coordinates_stored_correctly(self, client, user_jwt, tmp_path, settings):
         """Verify latitude and longitude are stored and returned accurately.

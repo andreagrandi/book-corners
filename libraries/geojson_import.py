@@ -317,6 +317,8 @@ class GeoJSONImporter:
             external_id=candidate.external_id,
             status=self.status,
             created_by=self.created_by,
+            osm_submission_allowed=False,
+            submission_origin=Library.SubmissionOrigin.IMPORT,
         )
 
         library.save()
