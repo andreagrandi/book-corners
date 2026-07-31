@@ -779,32 +779,27 @@ msgstr "Paesi principali"
 msgid "Growth since March 1, 2026"
 msgstr "Crescita dal 1° marzo 2026"
 
-#: libraries/templates/libraries/submit_library.html:68
-#, python-format
-msgid "After moderation, factual location data from approved submissions may be contributed to OpenStreetMap in the future. Learn more in our <a href=\"%(privacy_url)s\" class=\"link link-hover\">privacy policy</a>."
-msgstr "Dopo la moderazione, le informazioni oggettive sulla posizione dei contributi approvati potranno essere aggiunte a OpenStreetMap in futuro. Scopri di più nella nostra <a href=\"%(privacy_url)s\" class=\"link link-hover\">informativa sulla privacy</a>."
-
-#: libraries/templates/libraries/submit_library.html:74
+#: libraries/templates/libraries/submit_library.html:64
 msgid "Fields marked with <span class=\"font-medium\">(optional)</span> can be left blank."
 msgstr "I campi contrassegnati con <span class=\"font-medium\">(opzionale)</span> possono essere lasciati vuoti."
 
-#: libraries/templates/libraries/submit_library.html:96
+#: libraries/templates/libraries/submit_library.html:86
 msgid "Selected photo preview"
 msgstr "Anteprima della foto selezionata"
 
-#: libraries/templates/libraries/submit_library.html:101
+#: libraries/templates/libraries/submit_library.html:91
 msgid "Choose another photo"
 msgstr "Scegli un'altra foto"
 
-#: libraries/templates/libraries/submit_library.html:107
+#: libraries/templates/libraries/submit_library.html:97
 msgid "Name (optional)"
 msgstr "Nome (opzionale)"
 
-#: libraries/templates/libraries/submit_library.html:113
+#: libraries/templates/libraries/submit_library.html:103
 msgid "Description (optional)"
 msgstr "Descrizione (opzionale)"
 
-#: libraries/templates/libraries/submit_library.html:119
+#: libraries/templates/libraries/submit_library.html:109
 #: manage/templates/manage/libraries/_table.html:21
 #: manage/templates/manage/libraries/detail.html:130
 #: manage/templates/manage/libraries/duplicates.html:38
@@ -813,7 +808,7 @@ msgstr "Descrizione (opzionale)"
 msgid "Country"
 msgstr "Paese"
 
-#: libraries/templates/libraries/submit_library.html:125
+#: libraries/templates/libraries/submit_library.html:115
 #: manage/templates/manage/libraries/_table.html:20
 #: manage/templates/manage/libraries/detail.html:126
 #: manage/templates/manage/libraries/duplicates.html:34
@@ -824,67 +819,67 @@ msgstr "Paese"
 msgid "City"
 msgstr "Città"
 
-#: libraries/templates/libraries/submit_library.html:131
+#: libraries/templates/libraries/submit_library.html:121
 msgid "Address (optional)"
 msgstr "Indirizzo (opzionale)"
 
-#: libraries/templates/libraries/submit_library.html:141
+#: libraries/templates/libraries/submit_library.html:131
 msgid "Postal code (optional)"
 msgstr "CAP (opzionale)"
 
-#: libraries/templates/libraries/submit_library.html:157
+#: libraries/templates/libraries/submit_library.html:147
 msgid "Center from address"
 msgstr "Centra dall'indirizzo"
 
-#: libraries/templates/libraries/submit_library.html:333
+#: libraries/templates/libraries/submit_library.html:323
 msgid "Marker moved. Coordinates updated."
 msgstr "Marcatore spostato. Coordinate aggiornate."
 
-#: libraries/templates/libraries/submit_library.html:338
+#: libraries/templates/libraries/submit_library.html:328
 msgid "Map point selected. Coordinates updated."
 msgstr "Punto sulla mappa selezionato. Coordinate aggiornate."
 
-#: libraries/templates/libraries/submit_library.html:437
+#: libraries/templates/libraries/submit_library.html:427
 msgid "Suggestion selected. Marker centered from autocomplete; drag to refine if needed."
 msgstr "Suggerimento selezionato. Marcatore centrato dall'autocompletamento; trascina per affinare se necessario."
 
-#: libraries/templates/libraries/submit_library.html:545
+#: libraries/templates/libraries/submit_library.html:535
 msgid "Reading GPS metadata from the selected photo..."
 msgstr "Lettura dei metadati GPS dalla foto selezionata..."
 
-#: libraries/templates/libraries/submit_library.html:562
+#: libraries/templates/libraries/submit_library.html:552
 msgid "No GPS metadata found in this photo. Set location manually on the map."
 msgstr "Nessun metadato GPS trovato in questa foto. Imposta la posizione manualmente sulla mappa."
 
-#: libraries/templates/libraries/submit_library.html:577
+#: libraries/templates/libraries/submit_library.html:567
 msgid "GPS metadata found. Map centered and address fields pre-filled from the photo."
 msgstr "Metadati GPS trovati. Mappa centrata e campi indirizzo precompilati dalla foto."
 
-#: libraries/templates/libraries/submit_library.html:581
+#: libraries/templates/libraries/submit_library.html:571
 msgid "GPS metadata found. Map centered from photo location."
 msgstr "Metadati GPS trovati. Mappa centrata dalla posizione della foto."
 
-#: libraries/templates/libraries/submit_library.html:583
+#: libraries/templates/libraries/submit_library.html:573
 msgid "Could not read photo metadata right now. Set the location manually on the map."
 msgstr "Impossibile leggere i metadati della foto al momento. Imposta la posizione manualmente sulla mappa."
 
-#: libraries/templates/libraries/submit_library.html:606
+#: libraries/templates/libraries/submit_library.html:596
 msgid "Finding location from address..."
 msgstr "Ricerca della posizione dall'indirizzo..."
 
-#: libraries/templates/libraries/submit_library.html:623
+#: libraries/templates/libraries/submit_library.html:613
 msgid "Address not found. Move the marker manually on the map."
 msgstr "Indirizzo non trovato. Sposta il marcatore manualmente sulla mappa."
 
-#: libraries/templates/libraries/submit_library.html:630
+#: libraries/templates/libraries/submit_library.html:620
 msgid "Address lookup returned invalid coordinates."
 msgstr "La ricerca dell'indirizzo ha restituito coordinate non valide."
 
-#: libraries/templates/libraries/submit_library.html:635
+#: libraries/templates/libraries/submit_library.html:625
 msgid "Map centered from address. Drag marker if you need to refine the point."
 msgstr "Mappa centrata dall'indirizzo. Trascina il marcatore se devi affinare il punto."
 
-#: libraries/templates/libraries/submit_library.html:637
+#: libraries/templates/libraries/submit_library.html:627
 msgid "Geocoding is unavailable right now. You can still click the map to pick coordinates."
 msgstr "La geocodifica non è disponibile al momento. Puoi comunque cliccare sulla mappa per scegliere le coordinate."
 

@@ -61,16 +61,6 @@
             <span>{{ review_notice }}</span>
           </div>
         {% endif %}
-        {% if not is_edit_mode %}
-          {% url "privacy_page" as privacy_url %}
-          <div id="osm-contribution-notice" class="alert alert-info text-sm" role="note">
-            <span>
-              {% blocktrans trimmed %}
-                After moderation, factual location data from approved submissions may be contributed to OpenStreetMap in the future. Learn more in our <a href="{{ privacy_url }}" class="link link-hover">privacy policy</a>.
-              {% endblocktrans %}
-            </span>
-          </div>
-        {% endif %}
         <p class="text-sm text-base-content/60">{% blocktrans %}Fields marked with <span class="font-medium">(optional)</span> can be left blank.{% endblocktrans %}</p>
 
         <form method="post" enctype="multipart/form-data" class="space-y-4">
