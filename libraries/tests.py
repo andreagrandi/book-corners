@@ -1364,6 +1364,31 @@ class TestAboutPageTemplate:
         assert "https://github.com/andreagrandi/book-corners" in content
 
 
+class TestPrivacyPage:
+    def test_english_privacy_page_omits_osm_contribution_policy(self, client):
+        """Verify the English privacy policy omits future OSM contributions.
+        Keeps the published policy aligned with the suspended integration."""
+        response = client.get(reverse("privacy_page"))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Contributing to OpenStreetMap" not in content
+        assert "may also be added to OpenStreetMap" not in content
+
+    def test_italian_privacy_page_omits_osm_contribution_policy(self, client):
+        """Verify the Italian privacy policy omits future OSM contributions.
+        Keeps both published policy languages aligned with the decision."""
+        response = client.get(
+            reverse("privacy_page"),
+            headers={"accept-language": "it"},
+        )
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Contribuire a OpenStreetMap" not in content
+        assert "potrebbe essere aggiunta anche a OpenStreetMap" not in content
+
+
 @pytest.mark.django_db
 class TestSeoMetadata:
     def test_public_pages_render_custom_meta_descriptions(self, client):
@@ -3171,9 +3196,8 @@ class TestSubmitLibraryView:
         assert "Photo (required)" in content
         assert "Upload a clear photo showing the library" in content
         assert "id=\"photo-preview-container\"" in content
-        assert "id=\"osm-contribution-notice\"" in content
-        assert "factual location data from approved submissions" in content
-        assert f'href="{reverse("privacy_page")}"' in content
+        assert "id=\"osm-contribution-notice\"" not in content
+        assert "factual location data from approved submissions" not in content
         assert response.context["form"].fields["photo"].required is True
 
         country_position = content.find(">Country<")
@@ -3182,9 +3206,9 @@ class TestSubmitLibraryView:
         postal_code_position = content.find(">Postal code (optional)<")
         assert country_position < city_position < address_position < postal_code_position
 
-    def test_italian_catalog_contains_osm_notice(self):
-        """Verify the tracked Italian catalog contains the complete OSM notice.
-        Covers translated copy and the privacy link without generated binaries."""
+    def test_italian_catalog_omits_osm_notice(self):
+        """Verify the tracked Italian catalog omits the retired OSM notice.
+        Prevents removed contribution wording from lingering in translations."""
         catalog = (
             django_settings.BASE_DIR
             / "locale"
@@ -3204,8 +3228,8 @@ class TestSubmitLibraryView:
             '<a href=\\"%(privacy_url)s\\" class=\\"link link-hover\\">informativa sulla privacy</a>."'
         )
 
-        assert expected_msgid in catalog
-        assert expected_msgstr in catalog
+        assert expected_msgid not in catalog
+        assert expected_msgstr not in catalog
 
     def test_authenticated_submit_creates_pending_library_and_redirects_to_confirmation(self, client, user):
         """Verify valid submissions create pending libraries and redirect.

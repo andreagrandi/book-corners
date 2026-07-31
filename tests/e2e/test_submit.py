@@ -38,10 +38,14 @@ def test_submit_page_renders_form_and_map(
     assert authenticated_page.locator("#id_city").is_visible()
     assert authenticated_page.locator("#id_country").is_visible()
 
-    osm_notice = authenticated_page.locator("#osm-contribution-notice")
-    assert osm_notice.is_visible()
-    assert "may be contributed to OpenStreetMap in the future" in osm_notice.text_content()
-    assert osm_notice.locator("a").get_attribute("href") == "/privacy/"
+    assert authenticated_page.locator("#osm-contribution-notice").count() == 0
+    assert (
+        authenticated_page.get_by_text(
+            "may be contributed to OpenStreetMap in the future",
+            exact=False,
+        ).count()
+        == 0
+    )
 
     leaflet_map = authenticated_page.locator(
         "#submit-library-map.leaflet-container"
