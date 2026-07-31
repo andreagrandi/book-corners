@@ -1320,6 +1320,7 @@
 <li>Authenticated library submissions can include an optional, default-off <code>osm_submission_allowed</code> choice for that individual submission. The create response and authenticated <code>GET /api/v1/libraries/mine</code> items expose the stored choice, while public responses and owner edits do not.</li>
 <li>Library records now keep durable <code>legacy</code>, <code>user</code>, <code>staff</code>, or <code>import</code> submission provenance and the timestamp of an explicit true OSM permission. Existing records remain default-off legacy entries, and imports and direct staff creates cannot record user permission.</li>
 <li>Recording permission only allows possible later manual administrator review. It never triggers or guarantees an OpenStreetMap contribution.</li>
+<li>Administrators can now filter OSM candidates, run read-only duplicate checks, inspect sanitized match warnings, record resolutions, and withdraw permission with an append-only audit history. This workflow never writes to OpenStreetMap.</li>
 </ul>
 <h2 id="v1170">v1.17.0<a class="headerlink" href="#v1170" title="Permanent link">&para;</a></h2>
 <ul>
