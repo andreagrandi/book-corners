@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
 from typing import Any
@@ -1247,6 +1248,50 @@ class TestStatsPageView:
         response = client.get(reverse("stats_page"))
 
         assert response.context["stats"]["granularity"] == "daily"
+
+    def test_stats_page_growth_chart_starts_at_import_baseline(self, client, user):
+        """Verify the website growth chart excludes data before March 1, 2026.
+        Keeps the import spike from flattening later organic growth."""
+        before_import = Library.objects.create(
+            name="Before import",
+            photo="libraries/photos/2026/02/test.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 15",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        import_baseline = Library.objects.create(
+            name="Import baseline",
+            photo="libraries/photos/2026/03/test.jpg",
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            address="Via Rosina 16",
+            city="Florence",
+            country="IT",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+        Library.objects.filter(pk=before_import.pk).update(
+            created_at=datetime(2026, 2, 28, 12, tzinfo=UTC),
+        )
+        Library.objects.filter(pk=import_baseline.pk).update(
+            created_at=datetime(2026, 3, 1, 12, tzinfo=UTC),
+        )
+
+        response = client.get(reverse("stats_page"))
+
+        chart_series = response.context["growth_chart_series"]
+        assert chart_series == [
+            {
+                "period": "2026-03-01",
+                "cumulative_count": 2,
+            },
+        ]
+        assert response.context["stats"]["cumulative_series"][0] == {
+            "period": "2026-02-01",
+            "cumulative_count": 1,
+        }
 
     def test_stats_page_contains_chart_js_script(self, client):
         """Verify the stats page loads Chart.js from CDN.
