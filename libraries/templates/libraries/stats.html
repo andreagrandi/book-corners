@@ -36,7 +36,7 @@
     </div>
   </div>
   <div class="rounded-box border border-base-300 bg-base-100 p-6">
-    <h2 class="mb-4 text-lg font-semibold">{% trans "Growth over time" %}</h2>
+    <h2 class="mb-4 text-lg font-semibold">{% trans "Growth since March 1, 2026" %}</h2>
     <div class="h-80">
       <canvas id="growth-chart"></canvas>
     </div>
@@ -44,7 +44,7 @@
 </div>
 
 {{ stats.top_countries|json_script:"countries-data" }}
-{{ stats.cumulative_series|json_script:"growth-data" }}
+{{ growth_chart_series|json_script:"growth-data" }}
 {% endblock %}
 
 {% block extra_scripts %}
@@ -118,6 +118,7 @@
 
   if (growthRaw.length > 0) {
     var growthCtx = document.getElementById("growth-chart").getContext("2d");
+    var growthBaselineCount = growthRaw[0].cumulative_count;
     new Chart(growthCtx, {
       type: "line",
       data: {
@@ -137,7 +138,11 @@
         plugins: { legend: { display: false } },
         scales: {
           x: { ticks: { maxTicksToShow: 10 } },
-          y: { beginAtZero: true, ticks: { precision: 0 } }
+          y: {
+            beginAtZero: false,
+            min: growthBaselineCount,
+            ticks: { precision: 0 }
+          }
         }
       }
     });

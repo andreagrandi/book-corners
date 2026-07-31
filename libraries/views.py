@@ -39,6 +39,7 @@ DEFAULT_MAP_CENTER_LATITUDE = 50.1109
 DEFAULT_MAP_CENTER_LONGITUDE = 8.6821
 DEFAULT_MAP_ZOOM_LEVEL = 5
 MAP_LIST_PAGE_SIZE = 12
+GROWTH_CHART_START_PERIOD = "2026-03-01"
 
 
 def _parse_page_number(value: str | None) -> int:
@@ -891,7 +892,19 @@ def stats_page(request: HttpRequest) -> HttpResponse:
     """Render the public statistics page with charts and summary data.
     Displays library growth, geographic distribution, and photo coverage."""
     stats = build_stats_data()
-    return render(request, "libraries/stats.html", {"stats": stats})
+    growth_chart_series = [
+        point
+        for point in stats["cumulative_series"]
+        if point["period"] >= GROWTH_CHART_START_PERIOD
+    ]
+    return render(
+        request,
+        "libraries/stats.html",
+        {
+            "stats": stats,
+            "growth_chart_series": growth_chart_series,
+        },
+    )
 
 
 def privacy_page(request: HttpRequest) -> HttpResponse:

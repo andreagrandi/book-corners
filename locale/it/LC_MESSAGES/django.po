@@ -776,8 +776,8 @@ msgid "Top countries"
 msgstr "Paesi principali"
 
 #: libraries/templates/libraries/stats.html:39
-msgid "Growth over time"
-msgstr "Crescita nel tempo"
+msgid "Growth since March 1, 2026"
+msgstr "Crescita dal 1° marzo 2026"
 
 #: libraries/templates/libraries/submit_library.html:68
 #, python-format
