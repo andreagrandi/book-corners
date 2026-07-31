@@ -2311,6 +2311,324 @@ msgstr "La tua password è stata cambiata."
 msgid "Your account has been deleted."
 msgstr "Il tuo account è stato eliminato."
 
+# OpenStreetMap candidate review
+msgid "The library is not approved."
+msgstr "La libreria non è approvata."
+
+msgid "The library was not submitted directly by a user."
+msgstr "La libreria non è stata inviata direttamente da un utente."
+
+msgid "The original submitter account is no longer linked."
+msgstr "L'account dell'utente che ha effettuato l'invio non è più collegato."
+
+msgid "The submitter did not allow OpenStreetMap submission."
+msgstr "L'utente non ha autorizzato l'invio a OpenStreetMap."
+
+msgid "The library originated from OpenStreetMap."
+msgstr "La libreria proviene da OpenStreetMap."
+
+msgid "The library has an update awaiting moderation."
+msgstr "La libreria ha un aggiornamento in attesa di moderazione."
+
+msgid "The library was already contributed to OpenStreetMap."
+msgstr "La libreria è già stata aggiunta a OpenStreetMap."
+
+msgid "An existing OpenStreetMap feature is already linked."
+msgstr "È già collegato un elemento OpenStreetMap esistente."
+
+msgid "An OpenStreetMap submission is already in progress."
+msgstr "È già in corso un invio a OpenStreetMap."
+
+msgid "An OpenStreetMap duplicate check has not been completed."
+msgstr "Non è stato completato un controllo dei duplicati su OpenStreetMap."
+
+msgid "A possible OpenStreetMap duplicate requires resolution."
+msgstr "Un possibile duplicato su OpenStreetMap richiede una decisione."
+
+msgid "The latest OpenStreetMap duplicate check failed."
+msgstr "L'ultimo controllo dei duplicati su OpenStreetMap non è riuscito."
+
+msgid "The OpenStreetMap state does not allow contribution."
+msgstr "Lo stato OpenStreetMap non consente l'invio."
+
+msgid "The latest OpenStreetMap duplicate check is stale."
+msgstr "L'ultimo controllo dei duplicati su OpenStreetMap è scaduto."
+
+msgid "Unchecked"
+msgstr "Non controllato"
+
+msgid "No match found"
+msgstr "Nessuna corrispondenza"
+
+msgid "Possible duplicate"
+msgstr "Possibile duplicato"
+
+msgid "Already present"
+msgstr "Già presente"
+
+msgid "Submitting"
+msgstr "Invio in corso"
+
+msgid "Contributed"
+msgstr "Aggiunta"
+
+msgid "Failed"
+msgstr "Non riuscito"
+
+msgid "Node"
+msgstr "Nodo"
+
+msgid "Way"
+msgstr "Way"
+
+msgid "Relation"
+msgstr "Relazione"
+
+msgid "Permission withdrawn"
+msgstr "Autorizzazione revocata"
+
+msgid "Duplicate check"
+msgstr "Controllo duplicati"
+
+msgid "Duplicate resolution"
+msgstr "Decisione sul duplicato"
+
+msgid "Write started"
+msgstr "Scrittura avviata"
+
+msgid "Write succeeded"
+msgstr "Scrittura riuscita"
+
+msgid "Write failed"
+msgstr "Scrittura non riuscita"
+
+msgid "Reconciliation required"
+msgstr "Riconciliazione necessaria"
+
+msgid "Success"
+msgstr "Riuscito"
+
+msgid "Blocked"
+msgstr "Bloccato"
+
+msgid "OpenStreetMap permission is not currently granted."
+msgstr "L'autorizzazione per OpenStreetMap non è attualmente concessa."
+
+msgid "OpenStreetMap permission cannot be withdrawn after linking or submission."
+msgstr "L'autorizzazione per OpenStreetMap non può essere revocata dopo il collegamento o l'invio."
+
+msgid "Select a valid duplicate resolution."
+msgstr "Seleziona una decisione valida per il duplicato."
+
+msgid "Select a valid OpenStreetMap element type."
+msgstr "Seleziona un tipo di elemento OpenStreetMap valido."
+
+msgid "This library has no unresolved possible duplicate."
+msgstr "Questa libreria non ha possibili duplicati ancora da risolvere."
+
+msgid "The selected OpenStreetMap candidate is not current."
+msgstr "Il candidato OpenStreetMap selezionato non è più attuale."
+
+msgid "This OpenStreetMap feature is already linked to another library."
+msgstr "Questo elemento OpenStreetMap è già collegato a un'altra libreria."
+
+msgid "OpenStreetMap duplicate checks require an Overpass endpoint and contactable user agent."
+msgstr "I controlli dei duplicati su OpenStreetMap richiedono un endpoint Overpass e uno user agent con un contatto valido."
+
+msgid "The OpenStreetMap duplicate service returned invalid JSON."
+msgstr "Il servizio di controllo duplicati OpenStreetMap ha restituito JSON non valido."
+
+msgid "The OpenStreetMap duplicate service returned an invalid result."
+msgstr "Il servizio di controllo duplicati OpenStreetMap ha restituito un risultato non valido."
+
+msgid "The OpenStreetMap duplicate service could not complete the query."
+msgstr "Il servizio di controllo duplicati OpenStreetMap non ha potuto completare la richiesta."
+
+msgid "The OpenStreetMap duplicate service returned invalid elements."
+msgstr "Il servizio di controllo duplicati OpenStreetMap ha restituito elementi non validi."
+
+msgid "The OpenStreetMap duplicate check timed out."
+msgstr "Il controllo dei duplicati su OpenStreetMap è scaduto."
+
+msgid "The OpenStreetMap duplicate service could not be reached."
+msgstr "Impossibile raggiungere il servizio di controllo duplicati OpenStreetMap."
+
+msgid "The OpenStreetMap duplicate service is rate limited."
+msgstr "Il servizio di controllo duplicati OpenStreetMap ha raggiunto il limite di richieste."
+
+msgid "The OpenStreetMap duplicate service is unavailable."
+msgstr "Il servizio di controllo duplicati OpenStreetMap non è disponibile."
+
+msgid "The OpenStreetMap duplicate service rejected the request."
+msgstr "Il servizio di controllo duplicati OpenStreetMap ha rifiutato la richiesta."
+
+msgid "The OpenStreetMap duplicate check failed."
+msgstr "Il controllo dei duplicati su OpenStreetMap non è riuscito."
+
+msgid "Explain the duplicate resolution."
+msgstr "Spiega la decisione sul duplicato."
+
+msgid "Remove private contact details or credentials from the resolution."
+msgstr "Rimuovi dalla spiegazione i contatti privati o le credenziali."
+
+msgid "OpenStreetMap state"
+msgstr "Stato OpenStreetMap"
+
+msgid "Unknown"
+msgstr "Sconosciuto"
+
+msgid "Absent"
+msgstr "Assente"
+
+msgid "Present"
+msgstr "Presente"
+
+msgid "OSM state"
+msgstr "Stato OSM"
+
+msgid "OSM candidate"
+msgstr "Candidato OSM"
+
+msgid "Ineligible"
+msgstr "Non idoneo"
+
+msgid "Checked"
+msgstr "Controllato"
+
+msgid "Needs check"
+msgstr "Da controllare"
+
+msgid "Unknown; no duplicate check has been recorded."
+msgstr "Sconosciuto; non è stato registrato alcun controllo dei duplicati."
+
+#, python-format
+msgid "Checked at: %(timestamp)s"
+msgstr "Controllato il: %(timestamp)s"
+
+#, python-format
+msgid "OSM feature: %(type)s/%(identifier)s"
+msgstr "Elemento OSM: %(type)s/%(identifier)s"
+
+#, python-format
+msgid "Changeset: %(identifier)s"
+msgstr "Changeset: %(identifier)s"
+
+#, python-format
+msgid "Latest error: %(message)s"
+msgstr "Ultimo errore: %(message)s"
+
+#, python-format
+msgid "Retryable error: %(value)s"
+msgstr "Errore ritentabile: %(value)s"
+
+msgid "OpenStreetMap eligibility"
+msgstr "Idoneità OpenStreetMap"
+
+msgid "No library or duplicate-state blocker. Future policy and write gates still apply."
+msgstr "Nessun blocco relativo alla libreria o ai duplicati. Restano validi i futuri requisiti delle policy e della scrittura."
+
+msgid "OSM duplicate candidates"
+msgstr "Possibili duplicati OSM"
+
+msgid "No duplicate candidates recorded."
+msgstr "Nessun possibile duplicato registrato."
+
+msgid "secondary warning only"
+msgstr "solo avviso secondario"
+
+msgid "no relevant tags"
+msgstr "nessun tag rilevante"
+
+msgid "OSM audit history"
+msgstr "Cronologia di audit OSM"
+
+msgid "No OpenStreetMap audit events recorded."
+msgstr "Nessun evento di audit OpenStreetMap registrato."
+
+msgid "System"
+msgstr "Sistema"
+
+msgid "The library no longer exists."
+msgstr "La libreria non esiste più."
+
+msgid "Possible OpenStreetMap duplicates require staff resolution."
+msgstr "I possibili duplicati su OpenStreetMap richiedono una decisione dello staff."
+
+msgid "No blocking OpenStreetMap match was found."
+msgstr "Non è stata trovata alcuna corrispondenza OpenStreetMap bloccante."
+
+msgid "OpenStreetMap submission permission was withdrawn."
+msgstr "L'autorizzazione all'invio a OpenStreetMap è stata revocata."
+
+msgid "This library has no unresolved OpenStreetMap duplicate."
+msgstr "Questa libreria non ha duplicati OpenStreetMap ancora da risolvere."
+
+msgid "Select a valid OpenStreetMap duplicate candidate."
+msgstr "Seleziona un possibile duplicato OpenStreetMap valido."
+
+msgid "The existing OpenStreetMap feature was linked."
+msgstr "L'elemento OpenStreetMap esistente è stato collegato."
+
+msgid "The candidate was recorded as a different feature. Run a fresh duplicate check before continuing."
+msgstr "Il candidato è stato registrato come elemento diverso. Esegui un nuovo controllo dei duplicati prima di continuare."
+
+msgid "The candidate remains an unresolved duplicate."
+msgstr "Il candidato rimane un duplicato non risolto."
+
+msgid "Resolve OpenStreetMap duplicate"
+msgstr "Risolvi duplicato OpenStreetMap"
+
+msgid "Review the public OpenStreetMap candidates below. This decision is recorded in the append-only audit history and does not write to OpenStreetMap."
+msgstr "Controlla i candidati OpenStreetMap pubblici qui sotto. La decisione viene registrata nella cronologia di audit append-only e non scrive su OpenStreetMap."
+
+msgid "Candidate"
+msgstr "Candidato"
+
+msgid "metres away"
+msgstr "metri di distanza"
+
+msgid "Signals:"
+msgstr "Segnali:"
+
+msgid "Relevant public tags:"
+msgstr "Tag pubblici rilevanti:"
+
+msgid "No blocking candidate is available to resolve."
+msgstr "Non è disponibile alcun candidato bloccante da risolvere."
+
+msgid "Resolution"
+msgstr "Decisione"
+
+msgid "Same feature — link the existing OSM element and stop."
+msgstr "Stesso elemento — collega l'elemento OSM esistente e interrompi."
+
+msgid "Different feature — record the distinction and require a fresh check."
+msgstr "Elemento diverso — registra la distinzione e richiedi un nuovo controllo."
+
+msgid "Unclear — keep the duplicate warning unresolved."
+msgstr "Non chiaro — mantieni irrisolto l'avviso di duplicato."
+
+msgid "Reason:"
+msgstr "Motivo:"
+
+msgid "Explain what staff verified. Do not include private contact details or credentials."
+msgstr "Spiega cosa ha verificato lo staff. Non includere contatti privati o credenziali."
+
+msgid "Record resolution"
+msgstr "Registra decisione"
+
+msgid "Check OSM duplicates"
+msgstr "Controlla duplicati OSM"
+
+msgid "Withdraw this submission's OSM permission?"
+msgstr "Revocare l'autorizzazione OSM per questo invio?"
+
+msgid "Withdraw OSM permission"
+msgstr "Revoca autorizzazione OSM"
+
+msgid "Resolve OSM duplicate"
+msgstr "Risolvi duplicato OSM"
+
 #~ msgid "Your submissions"
 #~ msgstr "Le tue librerie"
 

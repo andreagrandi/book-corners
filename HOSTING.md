@@ -179,6 +179,21 @@ sudo dokku config:set --no-restart book-corners \
 
 Use `--no-restart` before the first deploy to avoid restart errors when no container exists yet.
 
+### OpenStreetMap duplicate checks (optional)
+
+The admin duplicate checker is read-only. It remains disabled until both an
+Overpass-compatible endpoint and a contactable application user agent are set.
+
+```bash
+sudo dokku config:set book-corners \
+  OSM_OVERPASS_URL="https://overpass-api.de/api/interpreter" \
+  OSM_USER_AGENT="bookcorners.org/1.0 (https://www.bookcorners.org/)" \
+  OSM_DUPLICATE_RADIUS_METERS="100" \
+  OSM_DUPLICATE_CHECK_MAX_AGE_SECONDS="900"
+```
+
+These settings do not configure credentials or enable writes to OpenStreetMap.
+
 ### Google OAuth (optional)
 
 ```bash

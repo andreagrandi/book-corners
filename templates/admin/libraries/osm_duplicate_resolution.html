@@ -1,0 +1,84 @@
+{% extends "admin/base_site.html" %}
+{% load i18n l10n %}
+
+{% block title %}{% trans "Resolve OpenStreetMap duplicate" %} | {{ site_title|default:_("Django site admin") }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans "Home" %}</a>
+    &rsaquo; <a href="{% url 'admin:libraries_library_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; <a href="{{ change_url }}">{{ library }}</a>
+    &rsaquo; {% trans "Resolve OpenStreetMap duplicate" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <p>
+        {% trans "Review the public OpenStreetMap candidates below. This decision is recorded in the append-only audit history and does not write to OpenStreetMap." %}
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <fieldset class="module aligned">
+            <h2>{% trans "Candidate" %}</h2>
+            {% for candidate in candidates %}
+            <div class="form-row">
+                <label>
+                    <input type="radio" name="candidate" value="{{ candidate.element_type }}:{{ candidate.element_id|unlocalize }}" required>
+                    <strong>{{ candidate.element_type }}/{{ candidate.element_id|unlocalize }}</strong>
+                    — {{ candidate.distance_meters }} {% trans "metres away" %}
+                </label>
+                <div class="help">
+                    {% trans "Signals:" %} {{ candidate.signals|join:", " }}
+                    {% if candidate.tags %}
+                    <br>
+                    {% trans "Relevant public tags:" %}
+                    {% for key, value in candidate.tags.items %}
+                        <code>{{ key }}={{ value }}</code>{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <p>{% trans "No blocking candidate is available to resolve." %}</p>
+            {% endfor %}
+        </fieldset>
+
+        <fieldset class="module aligned">
+            <h2>{% trans "Resolution" %}</h2>
+            <div class="form-row">
+                <label>
+                    <input type="radio" name="resolution" value="same_feature" required>
+                    {% trans "Same feature — link the existing OSM element and stop." %}
+                </label>
+            </div>
+            <div class="form-row">
+                <label>
+                    <input type="radio" name="resolution" value="different_feature" required>
+                    {% trans "Different feature — record the distinction and require a fresh check." %}
+                </label>
+            </div>
+            <div class="form-row">
+                <label>
+                    <input type="radio" name="resolution" value="unclear" required>
+                    {% trans "Unclear — keep the duplicate warning unresolved." %}
+                </label>
+            </div>
+            <div class="form-row">
+                <label for="id_reason">{% trans "Reason:" %}</label>
+                <textarea id="id_reason" name="reason" rows="4" required></textarea>
+                <div class="help">
+                    {% trans "Explain what staff verified. Do not include private contact details or credentials." %}
+                </div>
+            </div>
+        </fieldset>
+
+        <div class="submit-row">
+            <input type="submit" value="{% trans 'Record resolution' %}" class="default">
+            <a href="{{ change_url }}" class="button cancel-link">{% trans "Cancel" %}</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
