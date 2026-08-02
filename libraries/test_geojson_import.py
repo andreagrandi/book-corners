@@ -270,7 +270,11 @@ class TestGeoJSONImporter:
         """Verify a complete candidate creates a Library record.
         Checks all fields are correctly mapped to the database."""
         candidate = self._make_candidate()
-        importer = GeoJSONImporter(source="OSM", status="approved", created_by=import_user)
+        importer = GeoJSONImporter(
+            source=Library.OPENSTREETMAP_SOURCE,
+            status="approved",
+            created_by=import_user,
+        )
 
         result = importer.run([candidate])
 
@@ -279,7 +283,7 @@ class TestGeoJSONImporter:
         assert library.name == "Test Bookcase"
         assert library.city == "Florence"
         assert library.country == "IT"
-        assert library.source == "OSM"
+        assert library.source == Library.OPENSTREETMAP_SOURCE
         assert library.status == "approved"
         assert library.created_by == import_user
         assert library.osm_submission_allowed is False
@@ -352,6 +356,29 @@ class TestGeoJSONImporter:
 
         library = Library.objects.get(external_id="node/12345")
         assert library.source == "MapComplete"
+
+    @pytest.mark.parametrize(
+        "source",
+        ["OSM", "osm", "OpenStreetMap", "openstreetmap", " OpenStreetMap "],
+    )
+    def test_osm_source_aliases_are_stored_canonically(
+        self,
+        import_user,
+        source: str,
+    ) -> None:
+        """Verify explicit OSM import spellings use the canonical source.
+        Prevents future OSM batches from becoming ineligible for export."""
+        candidate = self._make_candidate()
+        importer = GeoJSONImporter(
+            source=source,
+            status="approved",
+            created_by=import_user,
+        )
+
+        importer.run([candidate])
+
+        library = Library.objects.get(external_id="node/12345")
+        assert library.source == Library.OPENSTREETMAP_SOURCE
 
     def test_status_selection_applied(self, import_user):
         """Verify the status parameter is applied to created libraries.

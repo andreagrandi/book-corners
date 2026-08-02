@@ -194,6 +194,24 @@ class LibraryAdmin(admin.GISModelAdmin):
     actions = ["approve_libraries", "reject_libraries"]
     inlines = [LibraryPhotoInline]
 
+    def get_readonly_fields(
+        self,
+        request: HttpRequest,
+        obj: Library | None = None,
+    ) -> list[str]:
+        """Return fields staff cannot edit for the current library.
+        Protects existing canonical OSM source markers from admin changes."""
+        readonly_fields = list(
+            super().get_readonly_fields(request=request, obj=obj)
+        )
+        if (
+            obj is not None
+            and obj.pk is not None
+            and obj.source == Library.OPENSTREETMAP_SOURCE
+        ):
+            readonly_fields.append("source")
+        return readonly_fields
+
     def get_queryset(self, request):
         """Load related OSM state with each admin library row.
         Avoids repeated one-to-one queries in list and detail displays."""
