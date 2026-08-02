@@ -12,6 +12,10 @@
       {
         "command": "python manage.py refresh_instagram_token",
         "schedule": "0 9 */30 * *"
+      },
+      {
+        "command": "python manage.py generate_library_export",
+        "schedule": "0 2 * * *"
       }
     ],
     "healthchecks": {
