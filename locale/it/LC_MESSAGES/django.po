@@ -2624,6 +2624,94 @@ msgstr "Revoca autorizzazione OSM"
 msgid "Resolve OSM duplicate"
 msgstr "Risolvi duplicato OSM"
 
+#: libraries/templates/libraries/dashboard.html:35
+#: libraries/templates/libraries/library_export_download.html:4
+#: libraries/templates/libraries/library_export_download.html:10
+msgid "Download library data"
+msgstr "Scarica i dati delle librerie"
+
+#: libraries/templates/libraries/dashboard.html:36
+msgid "Download the complete approved library catalogue as a GeoJSON file."
+msgstr "Scarica il catalogo completo delle librerie approvate in formato GeoJSON."
+
+#: libraries/templates/libraries/dashboard.html:38
+msgid "View download"
+msgstr "Apri la pagina di download"
+
+#: libraries/templates/libraries/library_export_download.html:5
+msgid "Download the complete approved Book Corners library catalogue as GeoJSON."
+msgstr "Scarica il catalogo completo delle librerie approvate di Book Corners in formato GeoJSON."
+
+#: libraries/templates/libraries/library_export_download.html:13
+msgid "Download the complete catalogue of approved Book Corners libraries as a GeoJSON file."
+msgstr "Scarica il catalogo completo delle librerie approvate di Book Corners in formato GeoJSON."
+
+#: libraries/templates/libraries/library_export_download.html:22
+msgid "File size"
+msgstr "Dimensione del file"
+
+#: libraries/templates/libraries/library_export_download.html:26
+msgid "Data updated"
+msgstr "Dati aggiornati"
+
+#: libraries/templates/libraries/library_export_download.html:32
+msgid "Download GeoJSON"
+msgstr "Scarica GeoJSON"
+
+#: libraries/templates/libraries/library_export_download.html:33
+msgid "View metadata"
+msgstr "Visualizza metadati"
+
+#: libraries/templates/libraries/library_export_download.html:37
+msgid "The export contains every currently approved library. Pending, rejected, moderation, account, and report information is excluded."
+msgstr "L'esportazione contiene tutte le librerie attualmente approvate. Sono escluse le informazioni su elementi in attesa, rifiutati, moderazione, account e segnalazioni."
+
+#: libraries/templates/libraries/library_export_download.html:39
+msgid "The complete exported database is available under the"
+msgstr "Il database completo esportato è disponibile secondo la"
+
+#: libraries/templates/libraries/library_export_download.html:40
+msgid "Open Database License (ODbL) v1.0"
+msgstr "Open Database License (ODbL) v1.0"
+
+#: libraries/templates/libraries/library_export_download.html:41
+msgid "Please attribute"
+msgstr "Attribuisci i dati a"
+
+#: libraries/templates/libraries/library_export_download.html:43
+msgid "and"
+msgstr "e"
+
+#: libraries/templates/libraries/library_export_download.html:45
+msgid "OpenStreetMap contributors"
+msgstr "i contributori di OpenStreetMap"
+
+#: libraries/templates/libraries/library_export_download.html:46
+msgid "when required."
+msgstr "quando richiesto."
+
+#: libraries/templates/libraries/library_export_download.html:48
+msgid "Photo URLs identify publicly displayed media; they do not independently grant permission to redistribute or relicense image files."
+msgstr "Gli URL delle foto identificano i media mostrati pubblicamente; non concedono autonomamente il permesso di ridistribuire o rilasciare nuovamente i file delle immagini."
+
+#: libraries/templates/libraries/library_export_download.html:49
+#, python-format
+msgid "Last checked: %(checked_at)s."
+msgstr "Ultimo controllo: %(checked_at)s."
+
+#: libraries/templates/libraries/library_export_download.html:53
+msgid "Technical details"
+msgstr "Dettagli tecnici"
+
+#: libraries/templates/libraries/library_export_download.html:55
+msgid "Format: GeoJSON"
+msgstr "Formato: GeoJSON"
+
+#: libraries/export_views.py:135
+#: libraries/templates/libraries/library_export_download.html:61
+msgid "The library export is temporarily unavailable. Please try again later."
+msgstr "L'esportazione delle librerie non è temporaneamente disponibile. Riprova più tardi."
+
 #~ msgid "Your submissions"
 #~ msgstr "Le tue librerie"
 

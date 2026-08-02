@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Authenticated users can download the complete approved-library GeoJSON export and its metadata through `GET /api/v1/libraries/export/latest.geojson` and `GET /api/v1/libraries/export/metadata.json` with a JWT Bearer token. Current immutable artifact URLs are also available through the API.
+
 ## v1.18.0
 
 - Authenticated library submissions can include an optional, default-off `osm_submission_allowed` choice for that individual submission. The create response and authenticated `GET /api/v1/libraries/mine` items expose the stored choice, while public responses and owner edits do not.

@@ -9,6 +9,7 @@ All windows are **5 minutes** (300 seconds).
 | Tier | Endpoints | Max requests per window |
 |------|-----------|------------------------|
 | **Read** | `GET /libraries/`, `GET /libraries/latest`, `GET /libraries/{slug}`, `GET /libraries/countries/`, `GET /libraries/favourites`, `GET /libraries/mine`, `GET /libraries/mine/reports`, `GET /libraries/mine/photos`, `GET /libraries/moderation/summary`, `GET /libraries/moderation`, `GET /libraries/moderation/pending`, `GET /libraries/moderation/{slug}`, `GET /libraries/moderation/reports`, `GET /libraries/moderation/photos`, `GET /statistics/` | 60 |
+| **Bulk export** | `GET /libraries/export/latest.geojson`, `GET /libraries/export/metadata.json`, `GET /libraries/export/{filename}` | Not rate-limited; JWT required |
 | **Write** | `POST /auth/devices`, `DELETE /auth/devices/{token}`, `POST /libraries/`, `PATCH /libraries/moderation/{slug}`, `PATCH /libraries/moderation/reports/{report_id}`, `PATCH /libraries/moderation/photos/{photo_id}`, `POST /libraries/{slug}/report`, `POST /libraries/{slug}/photo`, `POST /libraries/{slug}/favourite`, `DELETE /libraries/{slug}/favourite` | 10 |
 | **Auth — Login** | `POST /auth/login` | 10 |
 | **Auth — Register** | `POST /auth/register` | 5 |

@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /data/libraries/
 
 Sitemap: {{ request.scheme }}://{{ request.get_host }}{% url 'sitemap' %}

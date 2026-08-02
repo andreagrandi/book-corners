@@ -6,9 +6,11 @@ from django.contrib.gis.geos import Point
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db.models import Case, Exists, IntegerField, OuterRef, Q, Value, When
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from ninja import File, Form, Query, Router
+from ninja.errors import HttpError
 from ninja.files import UploadedFile
 from ninja_jwt.authentication import JWTAuth
 
@@ -53,6 +55,14 @@ from libraries.api_schemas import (
 from libraries.api_security import is_api_rate_limited
 from libraries.stats import build_stats_data, get_countries
 from libraries.forms import _validate_uploaded_photo
+from libraries.library_export_delivery import (
+    IMMUTABLE_LIBRARY_EXPORT_CACHE_CONTROL,
+    LATEST_LIBRARY_EXPORT_CACHE_CONTROL,
+    LibraryExportDelivery,
+    build_library_export_artifact_response,
+    get_library_export_delivery,
+    is_library_export_delivery_enabled,
+)
 from libraries.models import (
     LIBRARY_EDITABLE_FIELDS,
     MAX_LIBRARY_PHOTOS_PER_USER,
@@ -135,6 +145,18 @@ def _library_moderation_items(items: list[Library]) -> list[Library]:
     """Overlay proposed values on staff moderation response items.
     Presents staged updates as pending without changing live database rows."""
     return [library.moderation_preview() for library in items]
+
+
+def _current_library_export() -> LibraryExportDelivery:
+    """Return the current export or raise its API availability response.
+    Keeps JWT download endpoints consistent with the browser delivery state.
+    """
+    if not is_library_export_delivery_enabled():
+        raise Http404
+    export = get_library_export_delivery()
+    if export is None:
+        raise HttpError(503, "Library export is temporarily unavailable.")
+    return export
 
 
 def _save_library_moderation_status(
@@ -283,6 +305,73 @@ def list_countries(request):
 
     countries = get_countries()
     return 200, {"items": countries}
+
+
+@library_router.get(
+    "/export/latest.geojson",
+    auth=JWTAuth(),
+    summary="Download the current library GeoJSON export",
+)
+def download_library_export_latest(request):
+    """Stream the current full GeoJSON export to an authenticated API client.
+    Uses the same immutable artifact and validators as browser delivery.
+    """
+    export = _current_library_export()
+    return build_library_export_artifact_response(
+        request=request,
+        artifact=export.geojson,
+        cache_control=LATEST_LIBRARY_EXPORT_CACHE_CONTROL,
+        vary_header="Authorization",
+        generated_at=export.generated_at,
+    )
+
+
+@library_router.get(
+    "/export/metadata.json",
+    auth=JWTAuth(),
+    summary="Get current library export metadata",
+)
+def get_library_export_metadata(request):
+    """Stream the current export metadata to an authenticated API client.
+    Describes the complete GeoJSON artifact, license, schema, and checksums.
+    """
+    export = _current_library_export()
+    return build_library_export_artifact_response(
+        request=request,
+        artifact=export.metadata,
+        cache_control=LATEST_LIBRARY_EXPORT_CACHE_CONTROL,
+        vary_header="Authorization",
+        generated_at=export.generated_at,
+    )
+
+
+@library_router.get(
+    "/export/{filename}",
+    auth=JWTAuth(),
+    summary="Download a current immutable library export artifact",
+)
+def download_library_export_artifact(request, filename: str):
+    """Stream one manifest-listed immutable artifact to an API client.
+    Rejects arbitrary and retained filenames outside the active manifest.
+    """
+    export = _current_library_export()
+    artifact = next(
+        (
+            candidate
+            for candidate in (export.geojson, export.metadata)
+            if candidate.filename == filename
+        ),
+        None,
+    )
+    if artifact is None:
+        raise Http404
+    return build_library_export_artifact_response(
+        request=request,
+        artifact=artifact,
+        cache_control=IMMUTABLE_LIBRARY_EXPORT_CACHE_CONTROL,
+        vary_header="Authorization",
+        generated_at=export.generated_at,
+    )
 
 
 @library_router.get("/favourites", response={200: FavouriteListOut, 429: ErrorOut}, auth=JWTAuth(), summary="List favourite libraries")

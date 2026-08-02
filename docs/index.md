@@ -29,6 +29,7 @@ https://bookcorners.org/api/v1/
 | [Report an Issue](libraries/report.md) | Flag problems with a library |
 | [Submit a Community Photo](libraries/submit-photo.md) | Add a photo to an existing library |
 | [My Contributions](libraries/contributions.md) | Track your own submissions, reports, and photos |
+| [Bulk Download](libraries/bulk-export.md) | Download the complete approved library catalogue with JWT authentication |
 | [Staff Moderation](libraries/moderation.md) | Staff-only queues and status updates |
 | [Statistics](statistics.md) | Platform-wide aggregate statistics |
 | [Errors](errors.md) | Error response format and status codes |

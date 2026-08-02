@@ -28,6 +28,18 @@
       </article>
     </div>
 
+    {% if library_export_available %}
+      <article id="library-export-card" class="rounded-box border border-primary/30 bg-primary/5 p-6 shadow-sm">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-xl font-semibold">{% trans "Download library data" %}</h2>
+            <p class="mt-1 text-base-content/75">{% trans "Download the complete approved library catalogue as a GeoJSON file." %}</p>
+          </div>
+          <a href="{% url 'library_export_download' %}" class="btn btn-primary">{% trans "View download" %}</a>
+        </div>
+      </article>
+    {% endif %}
+
     <div class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm">
       <h2 class="text-xl font-semibold">{% trans "Account information" %}</h2>
       <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">

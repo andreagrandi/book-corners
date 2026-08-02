@@ -22,6 +22,12 @@ from django.urls import include, path
 from django.views.generic import TemplateView
 
 from config.api import api
+from libraries.export_views import (
+    library_export_artifact,
+    library_export_download,
+    library_export_latest_geojson,
+    library_export_metadata,
+)
 from config.views import health
 from libraries.sitemaps import LibrarySitemap, StaticViewSitemap
 from users.views import set_language_view
@@ -75,6 +81,22 @@ urlpatterns = [
     path("map/libraries.geojson", map_libraries_geojson, name="map_libraries_geojson"),
     path("map/libraries/list/", map_libraries_list, name="map_libraries_list"),
     path("dashboard/", dashboard, name="dashboard"),
+    path("data/libraries/", library_export_download, name="library_export_download"),
+    path(
+        "data/libraries/latest.geojson",
+        library_export_latest_geojson,
+        name="library_export_latest_geojson",
+    ),
+    path(
+        "data/libraries/metadata.json",
+        library_export_metadata,
+        name="library_export_metadata",
+    ),
+    path(
+        "data/libraries/<str:filename>",
+        library_export_artifact,
+        name="library_export_artifact",
+    ),
     path("latest-entries/", latest_entries, name="latest_entries"),
     path("library/<slug:slug>/", library_detail, name="library_detail"),
     path("library/<slug:slug>/edit/", edit_library, name="edit_library"),

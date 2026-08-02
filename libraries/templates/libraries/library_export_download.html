@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Download library data" %} - Book Corners{% endblock %}
+{% block meta_description %}{% trans "Download the complete approved Book Corners library catalogue as GeoJSON." %}{% endblock %}
+
+{% block content %}
+  <section class="mx-auto max-w-3xl">
+    <div class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm sm:p-8">
+      <h1 class="text-3xl font-bold">{% trans "Download library data" %}</h1>
+      {% if export %}
+        <p class="mt-3 text-base-content/75">
+          {% trans "Download the complete catalogue of approved Book Corners libraries as a GeoJSON file." %}
+        </p>
+
+        <dl class="mt-6 grid gap-4 sm:grid-cols-3">
+          <div class="rounded-box bg-base-200 p-4">
+            <dt class="text-sm text-base-content/65">{% trans "Libraries" %}</dt>
+            <dd class="mt-1 text-2xl font-semibold">{{ export.record_count }}</dd>
+          </div>
+          <div class="rounded-box bg-base-200 p-4">
+            <dt class="text-sm text-base-content/65">{% trans "File size" %}</dt>
+            <dd class="mt-1 text-2xl font-semibold">{{ export.geojson.byte_size|filesizeformat }}</dd>
+          </div>
+          <div class="rounded-box bg-base-200 p-4">
+            <dt class="text-sm text-base-content/65">{% trans "Data updated" %}</dt>
+            <dd class="mt-1 font-semibold">{{ export.generated_at|date:"N j, Y" }}</dd>
+          </div>
+        </dl>
+
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href="{% url 'library_export_latest_geojson' %}" class="btn btn-primary">{% trans "Download GeoJSON" %}</a>
+          <a href="{% url 'library_export_metadata' %}" class="btn btn-outline">{% trans "View metadata" %}</a>
+        </div>
+
+        <div class="mt-8 space-y-3 text-sm text-base-content/75">
+          <p>{% trans "The export contains every currently approved library. Pending, rejected, moderation, account, and report information is excluded." %}</p>
+          <p>
+            {% trans "The complete exported database is available under the" %}
+            <a href="https://opendatacommons.org/licenses/odbl/1-0/" class="link" target="_blank" rel="noopener noreferrer">{% trans "Open Database License (ODbL) v1.0" %}</a>.
+            {% trans "Please attribute" %}
+            <a href="https://bookcorners.org/" class="link" target="_blank" rel="noopener noreferrer">Book Corners</a>
+            {% trans "and" %}
+            <a href="https://www.openstreetmap.org/copyright" class="link" target="_blank" rel="noopener noreferrer">{% trans "OpenStreetMap contributors" %}</a>
+            {% trans "when required." %}
+          </p>
+          <p>{% trans "Photo URLs identify publicly displayed media; they do not independently grant permission to redistribute or relicense image files." %}</p>
+          <p>{% blocktrans with checked_at=export.checked_at|date:"N j, Y" %}Last checked: {{ checked_at }}.{% endblocktrans %}</p>
+        </div>
+
+        <details class="mt-6 rounded-box border border-base-300 p-4 text-sm">
+          <summary class="cursor-pointer font-medium">{% trans "Technical details" %}</summary>
+          <ul class="mt-3 list-inside list-disc space-y-1 text-base-content/75">
+            <li>{% trans "Format: GeoJSON" %}</li>
+            <li><a href="{% url 'library_export_artifact' filename=export.geojson.filename %}" class="link">{{ export.geojson.filename }}</a></li>
+            <li><a href="{% url 'library_export_artifact' filename=export.metadata.filename %}" class="link">{{ export.metadata.filename }}</a></li>
+          </ul>
+        </details>
+      {% else %}
+        <p class="mt-4 text-base-content/75">{% trans "The library export is temporarily unavailable. Please try again later." %}</p>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}
