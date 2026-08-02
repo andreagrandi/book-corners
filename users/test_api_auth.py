@@ -197,9 +197,16 @@ class TestAuthAPI:
         AUTH_RATE_LIMIT_WINDOW_SECONDS=300,
         AUTH_RATE_LIMIT_LOGIN_ATTEMPTS=1,
     )
-    def test_login_rate_limit_returns_429_after_excessive_attempts(self, client, user):
+    @patch("users.security.time")
+    def test_login_rate_limit_returns_429_after_excessive_attempts(
+        self,
+        mock_time,
+        client,
+        user,
+    ):
         """Verify API login endpoint throttles excessive attempts.
         Protects token issuance from brute-force credential probing."""
+        mock_time.time.return_value = 1_700_000_000
         cache.clear()
 
         first_response = client.post(
@@ -414,10 +421,17 @@ class TestSocialLoginAPI:
         AUTH_RATE_LIMIT_WINDOW_SECONDS=300,
         AUTH_RATE_LIMIT_SOCIAL_ATTEMPTS=1,
     )
+    @patch("users.security.time")
     @patch("allauth.socialaccount.providers.apple.provider.AppleProvider.verify_token")
-    def test_social_login_rate_limit_returns_429(self, mock_verify, client):
+    def test_social_login_rate_limit_returns_429(
+        self,
+        mock_verify,
+        mock_time,
+        client,
+    ):
         """Verify social login endpoint throttles excessive attempts.
         Protects against brute-force token probing."""
+        mock_time.time.return_value = 1_700_000_000
         cache.clear()
         mock_verify.return_value = _make_social_login(
             provider="apple", uid="apple-uid-rate", email="rate@example.com",
