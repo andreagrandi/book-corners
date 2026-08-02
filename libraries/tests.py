@@ -1249,9 +1249,13 @@ class TestStatsPageView:
 
         assert response.context["stats"]["granularity"] == "daily"
 
-    def test_stats_page_growth_chart_starts_at_import_baseline(self, client, user):
-        """Verify the website growth chart excludes data before March 1, 2026.
-        Keeps the import spike from flattening later organic growth."""
+    @patch("libraries.views.timezone.localdate")
+    def test_stats_page_growth_chart_uses_period_end_dates(
+        self, mock_localdate, client, user
+    ):
+        """Verify monthly totals use month-end dates and extend through today.
+        Prevents a current cumulative total from appearing on the first."""
+        mock_localdate.return_value = datetime(2026, 7, 31, tzinfo=UTC).date()
         before_import = Library.objects.create(
             name="Before import",
             photo="libraries/photos/2026/02/test.jpg",
@@ -1284,7 +1288,11 @@ class TestStatsPageView:
         chart_series = response.context["growth_chart_series"]
         assert chart_series == [
             {
-                "period": "2026-03-01",
+                "period": "2026-03-31",
+                "cumulative_count": 2,
+            },
+            {
+                "period": "2026-07-31",
                 "cumulative_count": 2,
             },
         ]
