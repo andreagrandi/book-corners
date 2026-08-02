@@ -8,6 +8,7 @@ import pytest
 from django.contrib.gis.geos import Point
 
 from libraries.library_export import generate_library_export
+from libraries.library_export_delivery import get_library_export_delivery
 from libraries.models import Library
 
 
@@ -37,6 +38,8 @@ def test_dashboard_opens_export_page_and_starts_geojson_download(
     )
     result = generate_library_export()
     assert result.geojson_filename is not None
+    export = get_library_export_delivery()
+    assert export is not None
 
     authenticated_page.goto(f"{live_server.url}/dashboard/")
     authenticated_page.locator("#library-export-card").wait_for(state="visible")
@@ -45,6 +48,6 @@ def test_dashboard_opens_export_page_and_starts_geojson_download(
     authenticated_page.wait_for_url("**/data/libraries/")
     assert authenticated_page.get_by_role("heading", name="Download library data").is_visible()
     with authenticated_page.expect_download() as download_info:
-        authenticated_page.get_by_role("link", name="Download GeoJSON").click()
+        authenticated_page.get_by_role("link", name="Download compressed GeoJSON").click()
     download = download_info.value
-    assert download.suggested_filename == result.geojson_filename
+    assert download.suggested_filename == export.geojson_gzip.filename

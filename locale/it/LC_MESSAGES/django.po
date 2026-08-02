@@ -2655,8 +2655,8 @@ msgid "Data updated"
 msgstr "Dati aggiornati"
 
 #: libraries/templates/libraries/library_export_download.html:32
-msgid "Download GeoJSON"
-msgstr "Scarica GeoJSON"
+msgid "Download compressed GeoJSON"
+msgstr "Scarica GeoJSON compresso"
 
 #: libraries/templates/libraries/library_export_download.html:33
 msgid "View metadata"
