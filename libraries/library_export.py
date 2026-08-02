@@ -182,7 +182,7 @@ def generate_library_export() -> LibraryExportResult:
     """
     started_at = time.monotonic()
     checked_at = timezone.now()
-    export_directory = _export_directory()
+    export_directory = library_export_directory()
     export_directory.mkdir(parents=True, exist_ok=True)
 
     with transaction.atomic():
@@ -315,7 +315,7 @@ def generate_library_export() -> LibraryExportResult:
                 _remove_file(path=metadata_path)
 
 
-def _export_directory() -> Path:
+def library_export_directory() -> Path:
     """Return the persistent directory reserved for export artifacts.
     Resolves from MEDIA_ROOT so tests and deployment share one convention.
     """
@@ -843,7 +843,21 @@ def _replace_manifest(*, export_directory: Path, manifest: dict[str, object]) ->
         _remove_file(path=temporary_path)
 
 
-def _load_valid_active_manifest(*, export_directory: Path) -> dict[str, object] | None:
+def load_active_library_export_manifest(
+    *, verify_checksums: bool = True
+) -> dict[str, object] | None:
+    """Load the active export manifest from configured persistent storage.
+    Allows delivery to validate immutable artifact metadata without rehashing data.
+    """
+    return _load_valid_active_manifest(
+        export_directory=library_export_directory(),
+        verify_checksums=verify_checksums,
+    )
+
+
+def _load_valid_active_manifest(
+    *, export_directory: Path, verify_checksums: bool = True
+) -> dict[str, object] | None:
     """Load the active manifest only when its files still pass integrity checks.
     Allows a fresh valid candidate to recover from missing or damaged artifacts.
     """
@@ -854,7 +868,11 @@ def _load_valid_active_manifest(*, export_directory: Path) -> dict[str, object] 
         payload = json.loads(manifest_path.read_text(encoding="utf-8"))
         if not isinstance(payload, dict):
             raise LibraryExportValidationError("Active export manifest must be an object.")
-        _validate_manifest(manifest=payload, export_directory=export_directory)
+        _validate_manifest(
+            manifest=payload,
+            export_directory=export_directory,
+            verify_checksums=verify_checksums,
+        )
     except (LibraryExportValidationError, OSError, json.JSONDecodeError) as exc:
         logger.warning(
             "library_export_active_manifest_invalid",
@@ -864,7 +882,12 @@ def _load_valid_active_manifest(*, export_directory: Path) -> dict[str, object] 
     return payload
 
 
-def _validate_manifest(*, manifest: dict[str, object], export_directory: Path) -> None:
+def _validate_manifest(
+    *,
+    manifest: dict[str, object],
+    export_directory: Path,
+    verify_checksums: bool = True,
+) -> None:
     """Validate a manifest and the immutable artifacts it references.
     Prevents unchanged checks from trusting corrupted or unsafe file paths.
     """
@@ -904,11 +927,13 @@ def _validate_manifest(*, manifest: dict[str, object], export_directory: Path) -
         descriptor=geojson,
         export_directory=export_directory,
         required_suffix=".geojson",
+        verify_checksum=verify_checksums,
     )
     _validate_artifact_descriptor(
         descriptor=metadata,
         export_directory=export_directory,
         required_suffix=".metadata.json",
+        verify_checksum=verify_checksums,
     )
     if geojson["sha256"] != export["data_checksum"]:
         raise LibraryExportValidationError("Export manifest data checksum is inconsistent.")
@@ -938,6 +963,7 @@ def _validate_artifact_descriptor(
     descriptor: dict[str, object],
     export_directory: Path,
     required_suffix: str,
+    verify_checksum: bool,
 ) -> None:
     """Validate one manifest artifact descriptor and its on-disk checksum.
     Restricts future file serving to regular export-directory filenames only.
@@ -961,15 +987,27 @@ def _validate_artifact_descriptor(
         raise LibraryExportValidationError("Export artifact descriptor is invalid.")
     artifact_path = export_directory / filename
     try:
-        actual_checksum, actual_byte_size = _hash_file(path=artifact_path)
+        if (
+            artifact_path.parent != export_directory
+            or artifact_path.is_symlink()
+            or not artifact_path.is_file()
+        ):
+            raise OSError("Export artifact is not a regular file.")
+        actual_byte_size = artifact_path.stat().st_size
     except OSError as exc:
         raise LibraryExportValidationError(
             f"Export artifact {filename} is unavailable."
         ) from exc
-    if actual_checksum != checksum or actual_byte_size != byte_size:
+    if actual_byte_size != byte_size:
         raise LibraryExportValidationError(
             f"Export artifact {filename} failed integrity validation."
         )
+    if verify_checksum:
+        actual_checksum, _ = _hash_file(path=artifact_path)
+        if actual_checksum != checksum:
+            raise LibraryExportValidationError(
+                f"Export artifact {filename} failed integrity validation."
+            )
 
 
 def _matches_active_export(

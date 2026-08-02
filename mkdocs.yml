@@ -51,6 +51,7 @@ nav:
       - Countries: libraries/countries.md
       - Favourites: libraries/favourites.md
       - My Contributions: libraries/contributions.md
+      - Bulk Download: libraries/bulk-export.md
       - Staff Moderation: libraries/moderation.md
   - Statistics: statistics.md
   - Errors: errors.md

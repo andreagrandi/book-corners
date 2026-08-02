@@ -29,6 +29,7 @@ from libraries.geolocation import (
     forward_geocode_place,
     reverse_geocode_coordinates,
 )
+from libraries.library_export_delivery import is_library_export_delivery_available
 from libraries.models import Favourite, Library, LibraryPhoto, Report
 from libraries.search import DEFAULT_SEARCH_RADIUS_KM, apply_text_search, run_library_search
 from libraries.stats import build_stats_data
@@ -834,6 +835,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
             "photos": photos,
             "is_social_only": is_social_only_user(request.user),
             "favourites": favourites,
+            "library_export_available": is_library_export_delivery_available(),
         },
     )
 
