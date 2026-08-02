@@ -637,6 +637,33 @@
   
   
     <li class="md-nav__item">
+      <a href="../libraries/bulk-export/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Bulk Download
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../libraries/moderation/" class="md-nav__link">
         
   
@@ -832,6 +859,17 @@
       On this page
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#unreleased" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Unreleased
+      </span>
+    </span>
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#v1180" class="md-nav__link">
@@ -1091,6 +1129,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#unreleased" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Unreleased
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v1180" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1315,6 +1364,10 @@
                   
 
 <h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
+<h2 id="unreleased">Unreleased<a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Authenticated users can download the complete approved-library GeoJSON export and its metadata through <code>GET /api/v1/libraries/export/latest.geojson</code> and <code>GET /api/v1/libraries/export/metadata.json</code> with a JWT Bearer token. Current immutable artifact URLs are also available through the API.</li>
+</ul>
 <h2 id="v1180">v1.18.0<a class="headerlink" href="#v1180" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Authenticated library submissions can include an optional, default-off <code>osm_submission_allowed</code> choice for that individual submission. The create response and authenticated <code>GET /api/v1/libraries/mine</code> items expose the stored choice, while public responses and owner edits do not.</li>

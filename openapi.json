@@ -1121,6 +1121,79 @@
         ]
       }
     },
+    "/api/v1/libraries/export/latest.geojson": {
+      "get": {
+        "operationId": "libraries_api_download_library_export_latest",
+        "summary": "Download the current library GeoJSON export",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "Stream the current full GeoJSON export to an authenticated API client.\nUses the same immutable artifact and validators as browser delivery.",
+        "tags": [
+          "libraries"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/libraries/export/metadata.json": {
+      "get": {
+        "operationId": "libraries_api_get_library_export_metadata",
+        "summary": "Get current library export metadata",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "Stream the current export metadata to an authenticated API client.\nDescribes the complete GeoJSON artifact, license, schema, and checksums.",
+        "tags": [
+          "libraries"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/libraries/export/{filename}": {
+      "get": {
+        "operationId": "libraries_api_download_library_export_artifact",
+        "summary": "Download a current immutable library export artifact",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "filename",
+            "schema": {
+              "title": "Filename",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "Stream one manifest-listed immutable artifact to an API client.\nRejects arbitrary and retained filenames outside the active manifest.",
+        "tags": [
+          "libraries"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
     "/api/v1/libraries/favourites": {
       "get": {
         "operationId": "libraries_api_list_favourites",

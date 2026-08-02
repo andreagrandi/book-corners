@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://developers.bookcorners.org/libraries/submit-photo/">
+        <link rel="canonical" href="https://developers.bookcorners.org/libraries/bulk-export/">
       
       
-        <link rel="prev" href="../report/">
+        <link rel="prev" href="../contributions/">
       
       
-        <link rel="next" href="../countries/">
+        <link rel="next" href="../moderation/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Submit a Community Photo - Book Corners API</title>
+        <title>Bulk Download - Book Corners API</title>
       
     
     
@@ -83,7 +83,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#submit-a-community-photo" class="md-skip">
+        <a href="#bulk-download" class="md-skip">
           Skip to content
         </a>
       
@@ -119,7 +119,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Submit a Community Photo
+              Bulk Download
             
           </span>
         </div>
@@ -530,36 +530,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-  Submit Photo
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="././" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../submit-photo/" class="md-nav__link">
         
   
   
@@ -574,99 +548,6 @@
   
 
       </a>
-      
-        
-
-
-<nav class="md-nav md-nav--secondary" aria-label="On this page">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      On this page
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#path-parameters" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Path parameters
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#fields" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Fields
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Examples
-      </span>
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Examples">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#submit-without-a-caption" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Submit without a caption
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#response-201-created" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Response (<code>201 Created</code>)
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#errors" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Errors
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -757,10 +638,36 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../bulk-export/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Bulk Download
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
         
   
   
@@ -775,6 +682,71 @@
   
 
       </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#current-geojson" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Current GeoJSON
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Metadata
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#immutable-artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Immutable artifacts
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caching-and-availability" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Caching and availability
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -985,10 +957,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#path-parameters" class="md-nav__link">
+  <a href="#current-geojson" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Path parameters
+        Current GeoJSON
       </span>
     </span>
   </a>
@@ -996,10 +968,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#fields" class="md-nav__link">
+  <a href="#metadata" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Fields
+        Metadata
       </span>
     </span>
   </a>
@@ -1007,38 +979,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
+  <a href="#immutable-artifacts" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Examples
-      </span>
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Examples">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#submit-without-a-caption" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Submit without a caption
-      </span>
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#response-201-created" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Response (<code>201 Created</code>)
+        Immutable artifacts
       </span>
     </span>
   </a>
@@ -1046,10 +990,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#errors" class="md-nav__link">
+  <a href="#caching-and-availability" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Errors
+        Caching and availability
       </span>
     </span>
   </a>
@@ -1071,139 +1015,30 @@
                 
                   
 
-<h1 id="submit-a-community-photo">Submit a Community Photo<a class="headerlink" href="#submit-a-community-photo" title="Permanent link">&para;</a></h1>
-<p><code>POST /api/v1/libraries/{slug}/photo</code></p>
-<p>Submit a community photo for an approved library. The photo starts in <strong>pending</strong> status and must be approved by a moderator before it appears publicly. Each user can submit up to 3 photos per library.</p>
-<p><strong>Auth required:</strong> Yes (<code>Bearer</code> token)</p>
-<p><strong>Content type:</strong> <code>multipart/form-data</code></p>
-<h2 id="path-parameters">Path parameters<a class="headerlink" href="#path-parameters" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>slug</code></td>
-<td>string</td>
-<td>URL slug of the library to add a photo to</td>
-</tr>
-</tbody>
-</table>
-<h2 id="fields">Fields<a class="headerlink" href="#fields" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Type</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>photo</code></td>
-<td>file</td>
-<td>Yes</td>
-<td>Photo of the library (JPEG/PNG/WEBP/HEIC/HEIF, max 10 MB). Accepted uploads are normalized to an optimized JPEG targeting about 500 KB.</td>
-</tr>
-<tr>
-<td><code>caption</code></td>
-<td>string</td>
-<td>No</td>
-<td>Optional caption for the photo (max 200 chars)</td>
-</tr>
-</tbody>
-</table>
-<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">curl</label><label for="__tabbed_1_2">Python</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://bookcorners.org/api/v1/libraries/berlin-friedrichstr-12-corner-books/photo<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer eyJhbGciOiJIUzI1NiIs...&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;photo=@community-photo.jpg&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;caption=Summer view from the park side&quot;</span>
+<h1 id="bulk-download">Bulk Download<a class="headerlink" href="#bulk-download" title="Permanent link">&para;</a></h1>
+<p>Authenticated users can download the complete catalogue of approved Book Corners libraries as a pre-generated GeoJSON file. The export is designed for offline use and avoids paginating or scraping the normal library-list endpoint. Signed-in website users can use the download card in the Contribution center; programmatic clients can use the JWT API endpoints below.</p>
+<p>The API endpoints require an access token:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Authorization: Bearer &lt;access-token&gt;
 </code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="s2">&quot;https://bookcorners.org/api/v1/libraries/berlin-friedrichstr-12-corner-books/photo&quot;</span><span class="p">,</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">access_token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">},</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;caption&quot;</span><span class="p">:</span> <span class="s2">&quot;Summer view from the park side&quot;</span><span class="p">},</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">files</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;photo&quot;</span><span class="p">:</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;community-photo.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)},</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="p">)</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="nb">print</span><span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>
+<h2 id="current-geojson">Current GeoJSON<a class="headerlink" href="#current-geojson" title="Permanent link">&para;</a></h2>
+<p><code>GET /api/v1/libraries/export/latest.geojson</code></p>
+<p>Downloads the current complete GeoJSON artifact with <code>application/geo+json</code> and an attachment filename matching its immutable version.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>--location<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>--header<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$BOOK_CORNERS_ACCESS_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>--output<span class="w"> </span>libraries.geojson<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>https://bookcorners.org/api/v1/libraries/export/latest.geojson
 </code></pre></div>
-</div>
-</div>
-</div>
-<h3 id="submit-without-a-caption">Submit without a caption<a class="headerlink" href="#submit-without-a-caption" title="Permanent link">&para;</a></h3>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">curl</label><label for="__tabbed_2_2">Python</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>https://bookcorners.org/api/v1/libraries/berlin-friedrichstr-12-corner-books/photo<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer eyJhbGciOiJIUzI1NiIs...&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>-F<span class="w"> </span><span class="s2">&quot;photo=@community-photo.jpg&quot;</span>
+<h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
+<p><code>GET /api/v1/libraries/export/metadata.json</code></p>
+<p>Returns the matching metadata document, including the GeoJSON filename, record count, SHA-256 checksums, schema, ODbL 1.0 terms, Book Corners/OpenStreetMap attribution, and photo-URL notice.</p>
+<h2 id="immutable-artifacts">Immutable artifacts<a class="headerlink" href="#immutable-artifacts" title="Permanent link">&para;</a></h2>
+<p>The metadata and authenticated download page link to the current immutable artifact URLs:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>GET /api/v1/libraries/export/{filename}
 </code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="s2">&quot;https://bookcorners.org/api/v1/libraries/berlin-friedrichstr-12-corner-books/photo&quot;</span><span class="p">,</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">access_token</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">},</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">files</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;photo&quot;</span><span class="p">:</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;community-photo.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)},</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="p">)</span>
-</code></pre></div>
-</div>
-</div>
-</div>
-<h2 id="response-201-created">Response (<code>201 Created</code>)<a class="headerlink" href="#response-201-created" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="p">,</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">&quot;caption&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Summer view from the park side&quot;</span><span class="p">,</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pending&quot;</span><span class="p">,</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nt">&quot;created_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2025-06-15T14:30:00Z&quot;</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">}</span>
-</code></pre></div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The photo will have <strong>pending</strong> status. It won't appear on the library detail page until approved by a moderator. Each user can submit up to 3 photos per library (rejected photos do not count towards this limit).</p>
-</div>
-<h2 id="errors">Errors<a class="headerlink" href="#errors" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Status</th>
-<th>Cause</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>400</code></td>
-<td>Invalid photo format, or per-user limit of 3 photos reached for this library</td>
-</tr>
-<tr>
-<td><code>404</code></td>
-<td>Library not found or not in approved status</td>
-</tr>
-<tr>
-<td><code>413</code></td>
-<td>Photo exceeds 10 MB size limit</td>
-</tr>
-<tr>
-<td><code>422</code></td>
-<td>Request validation error</td>
-</tr>
-<tr>
-<td><code>429</code></td>
-<td>Rate limit exceeded (see <a href="../../rate-limiting/">Rate Limiting</a>)</td>
-</tr>
-</tbody>
-</table>
+<p>Only the GeoJSON and metadata filenames listed in the active manifest are available. Arbitrary paths and retained historical files return <code>404</code>.</p>
+<h2 id="caching-and-availability">Caching and availability<a class="headerlink" href="#caching-and-availability" title="Permanent link">&para;</a></h2>
+<p>Latest aliases return strong <code>ETag</code> and <code>Last-Modified</code> headers with <code>Cache-Control: private, no-cache</code>; clients can use <code>If-None-Match</code> or <code>If-Modified-Since</code> and receive <code>304 Not Modified</code> when the bytes are unchanged. Immutable URLs use one-year private immutable caching.</p>
+<p>The export is checked daily and may be unchanged. A disabled delivery feature or an unknown artifact returns <code>404</code>; an enabled service without a valid current artifact returns <code>503</code> with the normal API error shape. These bulk-download requests are not subject to the paginated API read rate limit.</p>
 
 
 
