@@ -13,7 +13,7 @@ Every push to `master` that passes CI is automatically deployed to production vi
 Dokku then:
 1. Builds a Docker image using the multi-stage `Dockerfile` (CSS build + Python app)
 2. Runs `collectstatic` (inside the Dockerfile)
-3. Runs migrations, creates the cache table, and generates the current library export (from the `app.json` predeploy hook)
+3. Runs migrations and creates the cache table (from the `app.json` predeploy hook)
 4. Starts the new container with gunicorn
 5. Runs the health check (`/health/`) before routing traffic
 6. Removes the old container
@@ -128,7 +128,7 @@ Migrations run automatically on every deploy via the `app.json` predeploy hook:
 {
   "scripts": {
     "dokku": {
-      "predeploy": "python manage.py migrate --noinput && python manage.py createcachetable --database default && python manage.py generate_library_export"
+      "predeploy": "python manage.py migrate --noinput && python manage.py createcachetable --database default"
     }
   }
 }
