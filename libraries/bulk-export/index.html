@@ -700,10 +700,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-geojson" class="md-nav__link">
+  <a href="#current-compressed-geojson" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Current GeoJSON
+        Current compressed GeoJSON
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-raw-geojson" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Current raw GeoJSON
       </span>
     </span>
   </a>
@@ -957,10 +968,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-geojson" class="md-nav__link">
+  <a href="#current-compressed-geojson" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Current GeoJSON
+        Current compressed GeoJSON
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-raw-geojson" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Current raw GeoJSON
       </span>
     </span>
   </a>
@@ -1020,25 +1042,33 @@
 <p>The API endpoints require an access token:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Authorization: Bearer &lt;access-token&gt;
 </code></pre></div>
-<h2 id="current-geojson">Current GeoJSON<a class="headerlink" href="#current-geojson" title="Permanent link">&para;</a></h2>
-<p><code>GET /api/v1/libraries/export/latest.geojson</code></p>
-<p>Downloads the current complete GeoJSON artifact with <code>application/geo+json</code> and an attachment filename matching its immutable version.</p>
+<h2 id="current-compressed-geojson">Current compressed GeoJSON<a class="headerlink" href="#current-compressed-geojson" title="Permanent link">&para;</a></h2>
+<p><code>GET /api/v1/libraries/export/latest.geojson.gz</code></p>
+<p>Downloads the recommended pre-generated gzip artifact with <code>application/gzip</code>. This avoids transferring the much larger raw GeoJSON or spending request-time CPU on compression.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>--location<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>--header<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$BOOK_CORNERS_ACCESS_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>--output<span class="w"> </span>libraries.geojson<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>https://bookcorners.org/api/v1/libraries/export/latest.geojson
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>--output<span class="w"> </span>libraries.geojson.gz<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>https://bookcorners.org/api/v1/libraries/export/latest.geojson.gz
+</code></pre></div>
+<h2 id="current-raw-geojson">Current raw GeoJSON<a class="headerlink" href="#current-raw-geojson" title="Permanent link">&para;</a></h2>
+<p><code>GET /api/v1/libraries/export/latest.geojson</code></p>
+<p>Downloads the uncompressed complete GeoJSON artifact with <code>application/geo+json</code> and an attachment filename matching its immutable version.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>--location<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>--header<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$BOOK_CORNERS_ACCESS_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>--output<span class="w"> </span>libraries.geojson<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>https://bookcorners.org/api/v1/libraries/export/latest.geojson
 </code></pre></div>
 <h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
 <p><code>GET /api/v1/libraries/export/metadata.json</code></p>
-<p>Returns the matching metadata document, including the GeoJSON filename, record count, SHA-256 checksums, schema, ODbL 1.0 terms, Book Corners/OpenStreetMap attribution, and photo-URL notice.</p>
+<p>Returns the matching metadata document, including raw and gzip filenames, byte sizes, SHA-256 checksums, record count, schema, ODbL 1.0 terms, Book Corners/OpenStreetMap attribution, and photo-URL notice.</p>
 <h2 id="immutable-artifacts">Immutable artifacts<a class="headerlink" href="#immutable-artifacts" title="Permanent link">&para;</a></h2>
 <p>The metadata and authenticated download page link to the current immutable artifact URLs:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>GET /api/v1/libraries/export/{filename}
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>GET /api/v1/libraries/export/{filename}
 </code></pre></div>
-<p>Only the GeoJSON and metadata filenames listed in the active manifest are available. Arbitrary paths and retained historical files return <code>404</code>.</p>
+<p>Only the raw GeoJSON, gzip GeoJSON, and metadata filenames listed in the active manifest are available. Arbitrary paths and retained historical files return <code>404</code>.</p>
 <h2 id="caching-and-availability">Caching and availability<a class="headerlink" href="#caching-and-availability" title="Permanent link">&para;</a></h2>
 <p>Latest aliases return strong <code>ETag</code> and <code>Last-Modified</code> headers with <code>Cache-Control: private, no-cache</code>; clients can use <code>If-None-Match</code> or <code>If-Modified-Since</code> and receive <code>304 Not Modified</code> when the bytes are unchanged. Immutable URLs use one-year private immutable caching.</p>
-<p>The export is checked daily and may be unchanged. A disabled delivery feature or an unknown artifact returns <code>404</code>; an enabled service without a valid current artifact returns <code>503</code> with the normal API error shape. These bulk-download requests are not subject to the paginated API read rate limit.</p>
+<p>Deployment generates the export before the new application containers are scheduled, so the first release exposes a download immediately. The export is also checked daily and may be unchanged. After publishing a changed export successfully, the generator removes older recognized artifacts while retaining the active version and seven previous complete versions; this is version-based retention, not a seven-day expiry. A disabled delivery feature or an unknown artifact returns <code>404</code>; an enabled service without a valid current artifact returns <code>503</code> with the normal API error shape. These bulk-download requests are not subject to the paginated API read rate limit.</p>
 
 
 

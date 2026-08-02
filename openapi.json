@@ -1142,6 +1142,27 @@
         ]
       }
     },
+    "/api/v1/libraries/export/latest.geojson.gz": {
+      "get": {
+        "operationId": "libraries_api_download_library_export_latest_gzip",
+        "summary": "Download the current compressed library GeoJSON export",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "description": "Stream precompressed GeoJSON to an authenticated API client.\nAvoids repeated runtime compression for the recommended bulk download.",
+        "tags": [
+          "libraries"
+        ],
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
     "/api/v1/libraries/export/metadata.json": {
       "get": {
         "operationId": "libraries_api_get_library_export_metadata",
