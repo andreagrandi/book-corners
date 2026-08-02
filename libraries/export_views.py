@@ -64,6 +64,25 @@ def library_export_latest_geojson(request: HttpRequest) -> HttpResponse:
 
 @login_required(login_url="login")
 @require_safe
+def library_export_latest_geojson_gzip(request: HttpRequest) -> HttpResponse:
+    """Stream precompressed GeoJSON to an authenticated browser user.
+    Makes the smaller gzip artifact the default human-facing download.
+    """
+    _require_library_export_delivery()
+    export = get_library_export_delivery()
+    if export is None:
+        return _unavailable_response()
+    return build_library_export_artifact_response(
+        request=request,
+        artifact=export.geojson_gzip,
+        cache_control=LATEST_LIBRARY_EXPORT_CACHE_CONTROL,
+        vary_header="Cookie",
+        generated_at=export.generated_at,
+    )
+
+
+@login_required(login_url="login")
+@require_safe
 def library_export_metadata(request: HttpRequest) -> HttpResponse:
     """Stream current export metadata to an authenticated browser user.
     Keeps the latest alias private while preserving HTTP validators.
@@ -91,7 +110,10 @@ def library_export_artifact(request: HttpRequest, filename: str) -> HttpResponse
     export = get_library_export_delivery()
     if export is None:
         raise Http404
-    artifact = _matching_artifact(export_artifacts=(export.geojson, export.metadata), filename=filename)
+    artifact = _matching_artifact(
+        export_artifacts=(export.geojson, export.geojson_gzip, export.metadata),
+        filename=filename,
+    )
     if artifact is None:
         raise Http404
     return build_library_export_artifact_response(
@@ -112,7 +134,7 @@ def _require_library_export_delivery() -> None:
 
 
 def _matching_artifact(
-    *, export_artifacts: tuple[LibraryExportArtifact, LibraryExportArtifact], filename: str
+    *, export_artifacts: tuple[LibraryExportArtifact, ...], filename: str
 ) -> LibraryExportArtifact | None:
     """Return the current manifest artifact matching one exact requested name.
     Prevents retained files and arbitrary paths from becoming downloadable.

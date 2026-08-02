@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gzip
 import io
 import json
 import threading
@@ -135,13 +136,21 @@ class TestLibraryExport:
         assert "osm_submission_allowed" not in properties
         export = manifest["export"]
         assert isinstance(export, dict)
+        geojson = export["geojson"]
+        geojson_gzip = export["geojson_gzip"]
         metadata = export["metadata"]
+        assert isinstance(geojson, dict)
+        assert isinstance(geojson_gzip, dict)
         assert isinstance(metadata, dict)
+        raw_bytes = (export_directory / str(geojson["filename"])).read_bytes()
+        gzip_bytes = (export_directory / str(geojson_gzip["filename"])).read_bytes()
         metadata_payload = json.loads(
             (export_directory / str(metadata["filename"])).read_text(encoding="utf-8")
         )
         assert metadata_payload["license"]["name"].endswith("ODbL) v1.0")
-        assert metadata_payload["data"]["filename"] == export["geojson"]["filename"]
+        assert metadata_payload["data"]["filename"] == geojson["filename"]
+        assert metadata_payload["gzip"]["filename"] == geojson_gzip["filename"]
+        assert gzip.decompress(gzip_bytes) == raw_bytes
 
     def test_serializes_missing_provenance_as_explicit_nulls(
         self,
@@ -192,6 +201,7 @@ class TestLibraryExport:
         assert second_manifest["checked_at"] >= first_manifest["checked_at"]
         assert first_geojson_path.read_bytes() == first_contents
         assert len(list(export_directory.glob("libraries-*.geojson"))) == 1
+        assert len(list(export_directory.glob("libraries-*.geojson.gz"))) == 1
         assert len(list(export_directory.glob("libraries-*.metadata.json"))) == 1
 
     def test_schema_change_publishes_when_data_bytes_are_identical(
@@ -250,7 +260,7 @@ class TestLibraryExport:
         self,
         export_directory: Path,
     ) -> None:
-        """Remove only superseded complete pairs after repeated changed publishes.
+        """Remove only superseded complete sets after repeated changed publishes.
         Preserves eight rollback-ready versions including the current artifact.
         """
         library = _create_library(index=1)
@@ -263,6 +273,7 @@ class TestLibraryExport:
             assert result.outcome == "published"
 
         assert len(list(export_directory.glob("libraries-*.geojson"))) == 8
+        assert len(list(export_directory.glob("libraries-*.geojson.gz"))) == 8
         assert len(list(export_directory.glob("libraries-*.metadata.json"))) == 8
 
     def test_removes_stale_candidate_files_after_acquiring_the_lock(
@@ -415,7 +426,7 @@ class TestLibraryExport:
 
 def test_app_json_schedules_the_library_export_daily() -> None:
     """Schedule one daily command invocation through Dokku's app manifest.
-    Keeps artifact generation independent from web requests and deployment hooks.
+    Keeps regular refreshes running after the predeploy bootstrap.
     """
     app_json_path = Path(__file__).resolve().parent.parent / "app.json"
     app_config = json.loads(app_json_path.read_text(encoding="utf-8"))
@@ -424,3 +435,41 @@ def test_app_json_schedules_the_library_export_daily() -> None:
         "command": "python manage.py generate_library_export",
         "schedule": "0 2 * * *",
     } in app_config["cron"]
+
+
+def test_app_json_generates_the_export_during_predeploy() -> None:
+    """Generate an initial export before new containers receive traffic.
+    Makes first-deploy download availability independent of the daily cron.
+    """
+    app_json_path = Path(__file__).resolve().parent.parent / "app.json"
+    app_config = json.loads(app_json_path.read_text(encoding="utf-8"))
+
+    predeploy = app_config["scripts"]["dokku"]["predeploy"]
+    assert predeploy.endswith("&& python manage.py generate_library_export")
+
+
+def test_gzip_output_is_deterministic(tmp_path: Path) -> None:
+    """Produce identical compressed bytes for identical GeoJSON bytes.
+    Keeps immutable gzip checksums independent of wall-clock generation time.
+    """
+    source = tmp_path / "libraries.geojson"
+    first = tmp_path / "first.geojson.gz"
+    second = tmp_path / "second.geojson.gz"
+    source.write_bytes(b'{"type":"FeatureCollection","features":[]}\n')
+    checksum, byte_size = library_export._hash_file(path=source)
+
+    library_export._write_gzip_candidate(
+        source=source,
+        destination=first,
+        expected_checksum=checksum,
+        expected_byte_size=byte_size,
+    )
+    library_export._write_gzip_candidate(
+        source=source,
+        destination=second,
+        expected_checksum=checksum,
+        expected_byte_size=byte_size,
+    )
+
+    assert first.read_bytes() == second.read_bytes()
+    assert gzip.decompress(first.read_bytes()) == source.read_bytes()

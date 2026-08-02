@@ -20,7 +20,7 @@
           </div>
           <div class="rounded-box bg-base-200 p-4">
             <dt class="text-sm text-base-content/65">{% trans "File size" %}</dt>
-            <dd class="mt-1 text-2xl font-semibold">{{ export.geojson.byte_size|filesizeformat }}</dd>
+            <dd class="mt-1 text-2xl font-semibold">{{ export.geojson_gzip.byte_size|filesizeformat }}</dd>
           </div>
           <div class="rounded-box bg-base-200 p-4">
             <dt class="text-sm text-base-content/65">{% trans "Data updated" %}</dt>
@@ -29,7 +29,7 @@
         </dl>
 
         <div class="mt-6 flex flex-wrap gap-3">
-          <a href="{% url 'library_export_latest_geojson' %}" class="btn btn-primary">{% trans "Download GeoJSON" %}</a>
+          <a href="{% url 'library_export_latest_geojson_gzip' %}" class="btn btn-primary">{% trans "Download compressed GeoJSON" %}</a>
           <a href="{% url 'library_export_metadata' %}" class="btn btn-outline">{% trans "View metadata" %}</a>
         </div>
 
@@ -52,6 +52,7 @@
           <summary class="cursor-pointer font-medium">{% trans "Technical details" %}</summary>
           <ul class="mt-3 list-inside list-disc space-y-1 text-base-content/75">
             <li>{% trans "Format: GeoJSON" %}</li>
+            <li><a href="{% url 'library_export_artifact' filename=export.geojson_gzip.filename %}" class="link">{{ export.geojson_gzip.filename }}</a></li>
             <li><a href="{% url 'library_export_artifact' filename=export.geojson.filename %}" class="link">{{ export.geojson.filename }}</a></li>
             <li><a href="{% url 'library_export_artifact' filename=export.metadata.filename %}" class="link">{{ export.metadata.filename }}</a></li>
           </ul>

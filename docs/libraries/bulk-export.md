@@ -8,11 +8,24 @@ The API endpoints require an access token:
 Authorization: Bearer <access-token>
 ```
 
-## Current GeoJSON
+## Current compressed GeoJSON
+
+`GET /api/v1/libraries/export/latest.geojson.gz`
+
+Downloads the recommended pre-generated gzip artifact with `application/gzip`. This avoids transferring the much larger raw GeoJSON or spending request-time CPU on compression.
+
+```bash
+curl --location \
+  --header "Authorization: Bearer $BOOK_CORNERS_ACCESS_TOKEN" \
+  --output libraries.geojson.gz \
+  https://bookcorners.org/api/v1/libraries/export/latest.geojson.gz
+```
+
+## Current raw GeoJSON
 
 `GET /api/v1/libraries/export/latest.geojson`
 
-Downloads the current complete GeoJSON artifact with `application/geo+json` and an attachment filename matching its immutable version.
+Downloads the uncompressed complete GeoJSON artifact with `application/geo+json` and an attachment filename matching its immutable version.
 
 ```bash
 curl --location \
@@ -25,7 +38,7 @@ curl --location \
 
 `GET /api/v1/libraries/export/metadata.json`
 
-Returns the matching metadata document, including the GeoJSON filename, record count, SHA-256 checksums, schema, ODbL 1.0 terms, Book Corners/OpenStreetMap attribution, and photo-URL notice.
+Returns the matching metadata document, including raw and gzip filenames, byte sizes, SHA-256 checksums, record count, schema, ODbL 1.0 terms, Book Corners/OpenStreetMap attribution, and photo-URL notice.
 
 ## Immutable artifacts
 
@@ -35,10 +48,10 @@ The metadata and authenticated download page link to the current immutable artif
 GET /api/v1/libraries/export/{filename}
 ```
 
-Only the GeoJSON and metadata filenames listed in the active manifest are available. Arbitrary paths and retained historical files return `404`.
+Only the raw GeoJSON, gzip GeoJSON, and metadata filenames listed in the active manifest are available. Arbitrary paths and retained historical files return `404`.
 
 ## Caching and availability
 
 Latest aliases return strong `ETag` and `Last-Modified` headers with `Cache-Control: private, no-cache`; clients can use `If-None-Match` or `If-Modified-Since` and receive `304 Not Modified` when the bytes are unchanged. Immutable URLs use one-year private immutable caching.
 
-The export is checked daily and may be unchanged. A disabled delivery feature or an unknown artifact returns `404`; an enabled service without a valid current artifact returns `503` with the normal API error shape. These bulk-download requests are not subject to the paginated API read rate limit.
+Deployment generates the export before the new application containers are scheduled, so the first release exposes a download immediately. The export is also checked daily and may be unchanged. After publishing a changed export successfully, the generator removes older recognized artifacts while retaining the active version and seven previous complete versions; this is version-based retention, not a seven-day expiry. A disabled delivery feature or an unknown artifact returns `404`; an enabled service without a valid current artifact returns `503` with the normal API error shape. These bulk-download requests are not subject to the paginated API read rate limit.

@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Authenticated users can download the complete approved-library GeoJSON export and its metadata through `GET /api/v1/libraries/export/latest.geojson` and `GET /api/v1/libraries/export/metadata.json` with a JWT Bearer token. Current immutable artifact URLs are also available through the API.
+- Deployments now generate the first export before starting the new application, and `GET /api/v1/libraries/export/latest.geojson.gz` provides the recommended precompressed download while the raw GeoJSON endpoint remains available.
 
 ## v1.18.0
 

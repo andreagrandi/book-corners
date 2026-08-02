@@ -50,6 +50,7 @@ class LibraryExportDelivery:
     generated_at: datetime
     record_count: int
     geojson: LibraryExportArtifact
+    geojson_gzip: LibraryExportArtifact
     metadata: LibraryExportArtifact
 
 
@@ -88,12 +89,17 @@ def get_library_export_delivery() -> LibraryExportDelivery | None:
         export_directory=export_directory,
         kind="geojson",
     )
+    geojson_gzip = _manifest_artifact(
+        descriptor=export.get("geojson_gzip"),
+        export_directory=export_directory,
+        kind="geojson_gzip",
+    )
     metadata = _manifest_artifact(
         descriptor=export.get("metadata"),
         export_directory=export_directory,
         kind="metadata",
     )
-    if geojson is None or metadata is None:
+    if geojson is None or geojson_gzip is None or metadata is None:
         return None
 
     return LibraryExportDelivery(
@@ -101,6 +107,7 @@ def get_library_export_delivery() -> LibraryExportDelivery | None:
         generated_at=generated_at,
         record_count=record_count,
         geojson=geojson,
+        geojson_gzip=geojson_gzip,
         metadata=metadata,
     )
 
@@ -179,7 +186,7 @@ def _manifest_artifact(
     *,
     descriptor: object,
     export_directory: Path,
-    kind: Literal["geojson", "metadata"],
+    kind: Literal["geojson", "geojson_gzip", "metadata"],
 ) -> LibraryExportArtifact | None:
     """Build one safe artifact descriptor from the active manifest.
     Restricts delivery to regular files named by the published export only.
@@ -189,7 +196,11 @@ def _manifest_artifact(
     filename = descriptor.get("filename")
     byte_size = descriptor.get("byte_size")
     checksum = descriptor.get("sha256")
-    expected_suffix = ".geojson" if kind == "geojson" else ".metadata.json"
+    expected_suffix = {
+        "geojson": ".geojson",
+        "geojson_gzip": ".geojson.gz",
+        "metadata": ".metadata.json",
+    }[kind]
     if (
         not isinstance(filename, str)
         or Path(filename).name != filename
@@ -219,6 +230,10 @@ def _manifest_artifact(
         path=artifact_path,
         byte_size=byte_size,
         checksum=checksum,
-        content_type=GEOJSON_MEDIA_TYPE if kind == "geojson" else "application/json",
-        as_attachment=kind == "geojson",
+        content_type={
+            "geojson": GEOJSON_MEDIA_TYPE,
+            "geojson_gzip": "application/gzip",
+            "metadata": "application/json",
+        }[kind],
+        as_attachment=kind != "metadata",
     )

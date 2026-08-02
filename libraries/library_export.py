@@ -4,6 +4,7 @@ Publishes only validated changed data through an atomic manifest swap.
 
 from __future__ import annotations
 
+import gzip
 import hashlib
 import json
 import math
@@ -27,11 +28,12 @@ logger = structlog.get_logger(__name__)
 
 EXPORT_DIRECTORY_NAME = "library_exports"
 EXPORT_SCHEMA_VERSION = 1
-EXPORT_MANIFEST_VERSION = 1
+EXPORT_MANIFEST_VERSION = 2
 EXPORT_ITERATOR_CHUNK_SIZE = 1000
 EXPORT_RETAIN_PREVIOUS = 7
 EXPORT_ADVISORY_LOCK_ID = 6_824_601_389_155_425_722
-EXPORT_METADATA_VERSION = 1
+EXPORT_METADATA_VERSION = 2
+EXPORT_GZIP_COMPRESSION_LEVEL = 9
 GEOJSON_MEDIA_TYPE = "application/geo+json"
 
 EXPORTED_PROPERTY_NAMES = (
@@ -201,6 +203,7 @@ def generate_library_export() -> LibraryExportResult:
         _cleanup_temporary_files(export_directory=export_directory)
         active_manifest = _load_valid_active_manifest(export_directory=export_directory)
         candidate_path: Path | None = None
+        gzip_candidate_path: Path | None = None
         metadata_path: Path | None = None
         published_paths: list[Path] = []
 
@@ -251,7 +254,18 @@ def generate_library_export() -> LibraryExportResult:
                 data_checksum=candidate.data_checksum,
             )
             geojson_filename = f"libraries-{version}.geojson"
+            gzip_filename = f"{geojson_filename}.gz"
             metadata_filename = f"libraries-{version}.metadata.json"
+            gzip_candidate_path = _temporary_path(
+                export_directory=export_directory,
+                suffix=".geojson.gz.tmp",
+            )
+            gzip_artifact = _write_gzip_candidate(
+                source=candidate.path,
+                destination=gzip_candidate_path,
+                expected_checksum=candidate.data_checksum,
+                expected_byte_size=candidate.byte_size,
+            )
             metadata_path = _temporary_path(
                 export_directory=export_directory,
                 suffix=".metadata.json.tmp",
@@ -261,13 +275,21 @@ def generate_library_export() -> LibraryExportResult:
                 generated_at=generated_at,
                 candidate=candidate,
                 geojson_filename=geojson_filename,
+                gzip_artifact=gzip_artifact,
+                gzip_filename=gzip_filename,
                 schema_checksum=schema_checksum,
             )
 
             geojson_path = export_directory / geojson_filename
+            final_gzip_path = export_directory / gzip_filename
             final_metadata_path = export_directory / metadata_filename
             _install_immutable_file(source=candidate.path, destination=geojson_path)
             published_paths.append(geojson_path)
+            _install_immutable_file(
+                source=gzip_artifact.path,
+                destination=final_gzip_path,
+            )
+            published_paths.append(final_gzip_path)
             _install_immutable_file(
                 source=metadata_artifact.path,
                 destination=final_metadata_path,
@@ -279,6 +301,8 @@ def generate_library_export() -> LibraryExportResult:
                 generated_at=generated_at,
                 candidate=candidate,
                 geojson_filename=geojson_filename,
+                gzip_artifact=gzip_artifact,
+                gzip_filename=gzip_filename,
                 metadata_artifact=metadata_artifact,
                 metadata_filename=metadata_filename,
                 schema_checksum=schema_checksum,
@@ -295,6 +319,7 @@ def generate_library_export() -> LibraryExportResult:
                 "library_export_published",
                 data_checksum=candidate.data_checksum,
                 geojson_filename=geojson_filename,
+                gzip_filename=gzip_filename,
                 record_count=candidate.record_count,
                 schema_checksum=schema_checksum,
                 duration_seconds=round(time.monotonic() - started_at, 3),
@@ -311,6 +336,8 @@ def generate_library_export() -> LibraryExportResult:
         finally:
             if candidate_path is not None:
                 _remove_file(path=candidate_path)
+            if gzip_candidate_path is not None:
+                _remove_file(path=gzip_candidate_path)
             if metadata_path is not None:
                 _remove_file(path=metadata_path)
 
@@ -656,16 +683,77 @@ def _artifact_version(
     return f"{timestamp}-{schema_checksum[:12]}-{data_checksum[:12]}"
 
 
+def _write_gzip_candidate(
+    *,
+    source: Path,
+    destination: Path,
+    expected_checksum: str,
+    expected_byte_size: int,
+) -> WrittenArtifact:
+    """Write and validate a deterministic gzip representation of GeoJSON.
+    Streams both compression and verification to keep memory use bounded.
+    """
+    with source.open("rb") as source_handle, destination.open("wb") as raw_handle:
+        with gzip.GzipFile(
+            filename="",
+            mode="wb",
+            compresslevel=EXPORT_GZIP_COMPRESSION_LEVEL,
+            fileobj=raw_handle,
+            mtime=0,
+        ) as gzip_handle:
+            while chunk := source_handle.read(1024 * 1024):
+                gzip_handle.write(chunk)
+        raw_handle.flush()
+        os.fsync(raw_handle.fileno())
+
+    _validate_gzip_candidate(
+        path=destination,
+        expected_checksum=expected_checksum,
+        expected_byte_size=expected_byte_size,
+    )
+    checksum, byte_size = _hash_file(path=destination)
+    return WrittenArtifact(
+        path=destination,
+        byte_size=byte_size,
+        checksum=checksum,
+    )
+
+
+def _validate_gzip_candidate(
+    *, path: Path, expected_checksum: str, expected_byte_size: int
+) -> None:
+    """Validate gzip integrity against the raw GeoJSON representation.
+    Rejects truncated or mismatched compressed artifacts before publication.
+    """
+    digest = hashlib.sha256()
+    byte_size = 0
+    try:
+        with gzip.open(path, "rb") as handle:
+            while chunk := handle.read(1024 * 1024):
+                digest.update(chunk)
+                byte_size += len(chunk)
+    except OSError as exc:
+        raise LibraryExportValidationError(
+            "Compressed GeoJSON candidate is not valid gzip."
+        ) from exc
+    if byte_size != expected_byte_size or digest.hexdigest() != expected_checksum:
+        raise LibraryExportValidationError(
+            "Compressed GeoJSON candidate does not match its source."
+        )
+
+
 def _write_metadata_candidate(
     *,
     path: Path,
     generated_at: datetime,
     candidate: CandidateGeoJSON,
     geojson_filename: str,
+    gzip_artifact: WrittenArtifact,
+    gzip_filename: str,
     schema_checksum: str,
 ) -> WrittenArtifact:
-    """Write and validate metadata describing one immutable GeoJSON file.
-    Preserves schema, licensing, and artifact-integrity information beside data.
+    """Write and validate metadata describing raw and compressed GeoJSON.
+    Preserves schema, licensing, and artifact integrity beside both files.
     """
     metadata = {
         "metadata_version": EXPORT_METADATA_VERSION,
@@ -684,6 +772,11 @@ def _write_metadata_candidate(
             "filename": geojson_filename,
             "byte_size": candidate.byte_size,
             "sha256": candidate.data_checksum,
+        },
+        "gzip": {
+            "filename": gzip_filename,
+            "byte_size": gzip_artifact.byte_size,
+            "sha256": gzip_artifact.checksum,
         },
         "license": {
             "name": "Open Data Commons Open Database License (ODbL) v1.0",
@@ -709,6 +802,8 @@ def _write_metadata_candidate(
         path=path,
         expected_geojson_filename=geojson_filename,
         expected_checksum=candidate.data_checksum,
+        expected_gzip_filename=gzip_filename,
+        expected_gzip_checksum=gzip_artifact.checksum,
         expected_record_count=candidate.record_count,
         expected_schema_checksum=schema_checksum,
     )
@@ -738,11 +833,13 @@ def _validate_metadata_file(
     path: Path,
     expected_geojson_filename: str,
     expected_checksum: str,
+    expected_gzip_filename: str,
+    expected_gzip_checksum: str,
     expected_record_count: int,
     expected_schema_checksum: str,
 ) -> None:
-    """Validate the small metadata document before it can be published.
-    Ensures it refers exactly to the candidate GeoJSON and schema.
+    """Validate the small metadata document before publication.
+    Ensures it refers exactly to both GeoJSON representations and the schema.
     """
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -751,12 +848,19 @@ def _validate_metadata_file(
     if not isinstance(payload, dict):
         raise LibraryExportValidationError("Export metadata must be a JSON object.")
     data = payload.get("data")
+    gzip_data = payload.get("gzip")
     schema = payload.get("schema")
-    if not isinstance(data, dict) or not isinstance(schema, dict):
+    if (
+        not isinstance(data, dict)
+        or not isinstance(gzip_data, dict)
+        or not isinstance(schema, dict)
+    ):
         raise LibraryExportValidationError("Export metadata is missing data or schema details.")
     if (
         data.get("filename") != expected_geojson_filename
         or data.get("sha256") != expected_checksum
+        or gzip_data.get("filename") != expected_gzip_filename
+        or gzip_data.get("sha256") != expected_gzip_checksum
         or payload.get("record_count") != expected_record_count
         or schema.get("sha256") != expected_schema_checksum
     ):
@@ -797,6 +901,8 @@ def _build_manifest(
     generated_at: datetime,
     candidate: CandidateGeoJSON,
     geojson_filename: str,
+    gzip_artifact: WrittenArtifact,
+    gzip_filename: str,
     metadata_artifact: WrittenArtifact,
     metadata_filename: str,
     schema_checksum: str,
@@ -817,6 +923,11 @@ def _build_manifest(
                 "filename": geojson_filename,
                 "byte_size": candidate.byte_size,
                 "sha256": candidate.data_checksum,
+            },
+            "geojson_gzip": {
+                "filename": gzip_filename,
+                "byte_size": gzip_artifact.byte_size,
+                "sha256": gzip_artifact.checksum,
             },
             "metadata": {
                 "filename": metadata_filename,
@@ -905,6 +1016,7 @@ def _validate_manifest(
         "schema_checksum",
         "data_checksum",
         "geojson",
+        "geojson_gzip",
         "metadata",
     }
     if set(export) != required_fields:
@@ -920,13 +1032,24 @@ def _validate_manifest(
         raise LibraryExportValidationError("Export manifest descriptor values are invalid.")
 
     geojson = export["geojson"]
+    geojson_gzip = export["geojson_gzip"]
     metadata = export["metadata"]
-    if not isinstance(geojson, dict) or not isinstance(metadata, dict):
+    if (
+        not isinstance(geojson, dict)
+        or not isinstance(geojson_gzip, dict)
+        or not isinstance(metadata, dict)
+    ):
         raise LibraryExportValidationError("Export manifest artifact descriptors are invalid.")
     _validate_artifact_descriptor(
         descriptor=geojson,
         export_directory=export_directory,
         required_suffix=".geojson",
+        verify_checksum=verify_checksums,
+    )
+    _validate_artifact_descriptor(
+        descriptor=geojson_gzip,
+        export_directory=export_directory,
+        required_suffix=".geojson.gz",
         verify_checksum=verify_checksums,
     )
     _validate_artifact_descriptor(
@@ -946,12 +1069,21 @@ def _validate_manifest(
     if not isinstance(metadata_payload, dict):
         raise LibraryExportValidationError("Published metadata must be a JSON object.")
     data = metadata_payload.get("data")
+    gzip_data = metadata_payload.get("gzip")
     schema = metadata_payload.get("schema")
-    if not isinstance(data, dict) or not isinstance(schema, dict):
+    if (
+        not isinstance(data, dict)
+        or not isinstance(gzip_data, dict)
+        or not isinstance(schema, dict)
+    ):
         raise LibraryExportValidationError("Published metadata has no data or schema details.")
     if (
         data.get("filename") != geojson["filename"]
+        or data.get("byte_size") != geojson["byte_size"]
         or data.get("sha256") != geojson["sha256"]
+        or gzip_data.get("filename") != geojson_gzip["filename"]
+        or gzip_data.get("byte_size") != geojson_gzip["byte_size"]
+        or gzip_data.get("sha256") != geojson_gzip["sha256"]
         or metadata_payload.get("record_count") != export["record_count"]
         or schema.get("sha256") != export["schema_checksum"]
     ):
@@ -1017,7 +1149,7 @@ def _matches_active_export(
     data_checksum: str,
 ) -> bool:
     """Return whether a valid active export has identical schema and data.
-    Keeps daily checks from publishing duplicate immutable artifact pairs.
+    Keeps daily checks from publishing duplicate immutable artifact sets.
     """
     if active_manifest is None:
         return False
@@ -1066,7 +1198,7 @@ def _cleanup_retained_artifacts(
     *, export_directory: Path,
     active_manifest: dict[str, object],
 ) -> None:
-    """Keep the active export and seven previous complete artifact pairs.
+    """Keep the active export and seven previous complete artifact sets.
     Removes only recognized stale files after a successful manifest operation.
     """
     try:
@@ -1075,6 +1207,8 @@ def _cleanup_retained_artifacts(
         versions: dict[str, set[Path]] = {}
         for path in export_directory.glob("libraries-*.geojson"):
             versions.setdefault(path.name.removesuffix(".geojson"), set()).add(path)
+        for path in export_directory.glob("libraries-*.geojson.gz"):
+            versions.setdefault(path.name.removesuffix(".geojson.gz"), set()).add(path)
         for path in export_directory.glob("libraries-*.metadata.json"):
             versions.setdefault(path.name.removesuffix(".metadata.json"), set()).add(path)
 
@@ -1083,6 +1217,7 @@ def _cleanup_retained_artifacts(
             for version, paths in versions.items()
             if {
                 export_directory / f"{version}.geojson",
+                export_directory / f"{version}.geojson.gz",
                 export_directory / f"{version}.metadata.json",
             }.issubset(paths)
         ]
@@ -1099,7 +1234,7 @@ def _cleanup_retained_artifacts(
         )
 
         for version, paths in versions.items():
-            if version in retained_versions and len(paths) == 2:
+            if version in retained_versions and len(paths) == 3:
                 continue
             for path in paths:
                 _remove_file(path=path)

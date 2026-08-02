@@ -327,6 +327,25 @@ def download_library_export_latest(request):
 
 
 @library_router.get(
+    "/export/latest.geojson.gz",
+    auth=JWTAuth(),
+    summary="Download the current compressed library GeoJSON export",
+)
+def download_library_export_latest_gzip(request):
+    """Stream precompressed GeoJSON to an authenticated API client.
+    Avoids repeated runtime compression for the recommended bulk download.
+    """
+    export = _current_library_export()
+    return build_library_export_artifact_response(
+        request=request,
+        artifact=export.geojson_gzip,
+        cache_control=LATEST_LIBRARY_EXPORT_CACHE_CONTROL,
+        vary_header="Authorization",
+        generated_at=export.generated_at,
+    )
+
+
+@library_router.get(
     "/export/metadata.json",
     auth=JWTAuth(),
     summary="Get current library export metadata",
@@ -358,7 +377,7 @@ def download_library_export_artifact(request, filename: str):
     artifact = next(
         (
             candidate
-            for candidate in (export.geojson, export.metadata)
+            for candidate in (export.geojson, export.geojson_gzip, export.metadata)
             if candidate.filename == filename
         ),
         None,

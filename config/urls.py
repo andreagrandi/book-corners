@@ -26,6 +26,7 @@ from libraries.export_views import (
     library_export_artifact,
     library_export_download,
     library_export_latest_geojson,
+    library_export_latest_geojson_gzip,
     library_export_metadata,
 )
 from config.views import health
@@ -86,6 +87,11 @@ urlpatterns = [
         "data/libraries/latest.geojson",
         library_export_latest_geojson,
         name="library_export_latest_geojson",
+    ),
+    path(
+        "data/libraries/latest.geojson.gz",
+        library_export_latest_geojson_gzip,
+        name="library_export_latest_geojson_gzip",
     ),
     path(
         "data/libraries/metadata.json",

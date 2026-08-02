@@ -4,6 +4,7 @@ Exercises manifest safety, HTTP caching, and download availability behavior.
 
 from __future__ import annotations
 
+import gzip
 import json
 from pathlib import Path
 
@@ -39,7 +40,7 @@ def export_directory(settings, tmp_path) -> Path:
 @pytest.fixture
 def published_export(export_directory: Path) -> LibraryExportDelivery:
     """Generate one approved-library export for authenticated delivery tests.
-    Provides a manifest-backed current GeoJSON and metadata artifact pair.
+    Provides a manifest-backed current GeoJSON, gzip, and metadata artifact set.
     """
     Library.objects.create(
         name="Export Delivery Library",
@@ -79,6 +80,7 @@ def _response_bytes(response) -> bytes:
     [
         "/data/libraries/",
         "/data/libraries/latest.geojson",
+        "/data/libraries/latest.geojson.gz",
         "/data/libraries/metadata.json",
         "/data/libraries/libraries-example.geojson",
     ],
@@ -97,6 +99,7 @@ def test_web_export_routes_require_authentication(client, url: str) -> None:
     "url",
     [
         "/api/v1/libraries/export/latest.geojson",
+        "/api/v1/libraries/export/latest.geojson.gz",
         "/api/v1/libraries/export/metadata.json",
         "/api/v1/libraries/export/libraries-example.geojson",
     ],
@@ -155,6 +158,29 @@ def test_api_latest_geojson_streams_private_download(
     assert json.loads(_response_bytes(response))["type"] == "FeatureCollection"
 
 
+def test_api_latest_gzip_streams_precompressed_download(
+    client,
+    published_export: LibraryExportDelivery,
+    user_jwt: str,
+) -> None:
+    """Verify JWT clients can download the pre-generated gzip artifact.
+    Confirms the recommended bulk response is smaller and decompresses to GeoJSON.
+    """
+    response = client.get(
+        "/api/v1/libraries/export/latest.geojson.gz",
+        HTTP_AUTHORIZATION=f"Bearer {user_jwt}",
+    )
+
+    response_bytes = _response_bytes(response)
+    assert response.status_code == 200
+    assert response.headers["Content-Type"] == "application/gzip"
+    assert published_export.geojson_gzip.filename in response.headers["Content-Disposition"]
+    assert response.headers["ETag"] == f'"{published_export.geojson_gzip.checksum}"'
+    assert len(response_bytes) == published_export.geojson_gzip.byte_size
+    assert len(response_bytes) < published_export.geojson.byte_size
+    assert json.loads(gzip.decompress(response_bytes))["type"] == "FeatureCollection"
+
+
 def test_api_metadata_and_immutable_artifacts_use_expected_headers(
     client,
     published_export: LibraryExportDelivery,
@@ -168,7 +194,7 @@ def test_api_metadata_and_immutable_artifacts_use_expected_headers(
         HTTP_AUTHORIZATION=f"Bearer {user_jwt}",
     )
     immutable_response = client.get(
-        f"/api/v1/libraries/export/{published_export.geojson.filename}",
+        f"/api/v1/libraries/export/{published_export.geojson_gzip.filename}",
         HTTP_AUTHORIZATION=f"Bearer {user_jwt}",
     )
 
@@ -179,7 +205,8 @@ def test_api_metadata_and_immutable_artifacts_use_expected_headers(
     assert json.loads(_response_bytes(metadata_response))["record_count"] == 1
     assert immutable_response.status_code == 200
     assert immutable_response.headers["Cache-Control"] == IMMUTABLE_LIBRARY_EXPORT_CACHE_CONTROL
-    assert published_export.geojson.filename in immutable_response.headers["Content-Disposition"]
+    assert immutable_response.headers["Content-Type"] == "application/gzip"
+    assert published_export.geojson_gzip.filename in immutable_response.headers["Content-Disposition"]
 
 
 def test_authenticated_latest_aliases_support_conditional_requests(
@@ -237,7 +264,8 @@ def test_download_page_and_dashboard_expose_available_export(
     assert page_response.status_code == 200
     assert "Download the complete catalogue of approved Book Corners libraries" in page_content
     assert str(published_export.record_count) in page_content
-    assert reverse("library_export_latest_geojson") in page_content
+    assert reverse("library_export_latest_geojson_gzip") in page_content
+    assert published_export.geojson_gzip.filename in page_content
     assert published_export.geojson.filename in page_content
 
 
