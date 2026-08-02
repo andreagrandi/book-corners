@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 
 import pytest
 from django.core.cache import cache
+from django.utils import timezone
 
 from libraries.models import Library
 
@@ -39,11 +40,11 @@ def test_stats_page_shows_totals(
     assert total_text != "0"
 
 
-def test_growth_chart_zooms_to_the_import_baseline(
+def test_growth_chart_uses_accurate_period_end_dates(
     live_server, page, mock_external_apis, approved_libraries
 ):
-    """Verify the growth chart starts in March and uses that total as its minimum.
-    Makes post-import additions visible without changing cumulative totals."""
+    """Verify the chart labels monthly totals at period-end and ends today.
+    Keeps cumulative values attached to the dates they represent."""
     Library.objects.filter(pk=approved_libraries[0].pk).update(
         created_at=datetime(2026, 2, 28, 12, tzinfo=UTC),
     )
@@ -69,6 +70,7 @@ def test_growth_chart_zooms_to_the_import_baseline(
     )
 
     assert "2026-02-01" not in chart_data["labels"]
-    assert chart_data["labels"][0] == "2026-03-01"
+    assert chart_data["labels"][0] == "2026-03-31"
+    assert chart_data["labels"][-1] == timezone.localdate().isoformat()
     assert chart_data["beginAtZero"] is False
     assert chart_data["minimum"] == chart_data["counts"][0]

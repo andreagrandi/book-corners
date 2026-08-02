@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from calendar import monthrange
+from datetime import date
 import json
 
 from django.conf import settings
@@ -15,6 +17,7 @@ from django.db.models import Case, IntegerField, Q, QuerySet, Value, When
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from libraries.clustering import CLUSTER_ZOOM_THRESHOLD, build_clustered_features, get_grid_size_for_zoom
@@ -57,6 +60,40 @@ def _parse_page_number(value: str | None) -> int:
         return 1
 
     return page_number
+
+
+def _build_growth_chart_series(
+    *, stats: dict, current_date: date
+) -> list[dict[str, object]]:
+    """Return web growth points labeled by the dates their totals represent.
+    Places monthly totals at month-end and extends the series through today."""
+    series = [
+        {
+            "period": str(point["period"]),
+            "cumulative_count": point["cumulative_count"],
+        }
+        for point in stats["cumulative_series"]
+        if point["period"] >= GROWTH_CHART_START_PERIOD
+    ]
+    if not series:
+        return series
+
+    if stats["granularity"] == "monthly":
+        for point in series:
+            period = date.fromisoformat(str(point["period"]))
+            period_end = period.replace(
+                day=monthrange(period.year, period.month)[1]
+            )
+            point["period"] = min(period_end, current_date).isoformat()
+
+    current_period = current_date.isoformat()
+    if series[-1]["period"] != current_period:
+        series.append({
+            "period": current_period,
+            "cumulative_count": stats["total_approved"],
+        })
+
+    return series
 
 
 def _get_latest_entries_page(*, page_number: int) -> tuple[Page, int]:
@@ -892,11 +929,10 @@ def stats_page(request: HttpRequest) -> HttpResponse:
     """Render the public statistics page with charts and summary data.
     Displays library growth, geographic distribution, and photo coverage."""
     stats = build_stats_data()
-    growth_chart_series = [
-        point
-        for point in stats["cumulative_series"]
-        if point["period"] >= GROWTH_CHART_START_PERIOD
-    ]
+    growth_chart_series = _build_growth_chart_series(
+        stats=stats,
+        current_date=timezone.localdate(),
+    )
     return render(
         request,
         "libraries/stats.html",
