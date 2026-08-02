@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -80,9 +82,16 @@ class TestAuthPages:
         AUTH_RATE_LIMIT_WINDOW_SECONDS=300,
         AUTH_RATE_LIMIT_LOGIN_ATTEMPTS=1,
     )
-    def test_login_rate_limit_blocks_excessive_attempts(self, client, user):
+    @patch("users.security.time")
+    def test_login_rate_limit_blocks_excessive_attempts(
+        self,
+        mock_time,
+        client,
+        user,
+    ):
         """Verify repeated login attempts trigger auth throttling.
         Confirms brute-force protection returns HTTP 429 on excess attempts."""
+        mock_time.time.return_value = 1_700_000_000
         cache.clear()
 
         first_response = client.post(
