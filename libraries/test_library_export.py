@@ -426,7 +426,7 @@ class TestLibraryExport:
 
 def test_app_json_schedules_the_library_export_daily() -> None:
     """Schedule one daily command invocation through Dokku's app manifest.
-    Keeps regular refreshes running after the predeploy bootstrap.
+    Keeps regular export refreshes independent from application deployments.
     """
     app_json_path = Path(__file__).resolve().parent.parent / "app.json"
     app_config = json.loads(app_json_path.read_text(encoding="utf-8"))
@@ -437,15 +437,19 @@ def test_app_json_schedules_the_library_export_daily() -> None:
     } in app_config["cron"]
 
 
-def test_app_json_generates_the_export_during_predeploy() -> None:
-    """Generate an initial export before new containers receive traffic.
-    Makes first-deploy download availability independent of the daily cron.
+def test_app_json_does_not_generate_the_export_during_predeploy() -> None:
+    """Keep export generation out of the application deployment path.
+    Prevents catalogue serialization from delaying every release.
     """
     app_json_path = Path(__file__).resolve().parent.parent / "app.json"
     app_config = json.loads(app_json_path.read_text(encoding="utf-8"))
 
     predeploy = app_config["scripts"]["dokku"]["predeploy"]
-    assert predeploy.endswith("&& python manage.py generate_library_export")
+    assert predeploy == (
+        "python manage.py migrate --noinput "
+        "&& python manage.py createcachetable --database default"
+    )
+    assert "generate_library_export" not in predeploy
 
 
 def test_gzip_output_is_deterministic(tmp_path: Path) -> None:
