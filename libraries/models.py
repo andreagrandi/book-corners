@@ -1,8 +1,7 @@
-import re
 import uuid
 from copy import copy
 from functools import partial
-from typing import Any
+from typing import Any, ClassVar
 
 from django.conf import settings
 from django.contrib.gis.db.models import PointField
@@ -39,6 +38,8 @@ LIBRARY_EDITABLE_FIELDS = (
 
 class Library(models.Model):
     """A community book exchange library location with its details."""
+
+    OPENSTREETMAP_SOURCE: ClassVar[str] = "OpenStreetMap"
 
     class Status(models.TextChoices):
         PENDING = "pending", _("Pending")
@@ -237,17 +238,9 @@ class Library(models.Model):
         return None
 
     def _has_osm_origin(self) -> bool:
-        """Return whether source metadata identifies an OSM record.
-        Provides a second safety check in addition to durable provenance."""
-        compact_source = re.sub(r"[^a-z0-9]", "", self.source.casefold())
-        if compact_source == "osm" or "openstreetmap" in compact_source:
-            return True
-        return bool(
-            re.search(
-                r"(?:^|[\s:/])(?:node|way|relation)[/:]\d+(?:$|[\s/?#])",
-                self.external_id.casefold(),
-            )
-        )
+        """Return whether the source exactly marks an OSM-origin record.
+        Keeps provenance classification limited to the canonical stored value."""
+        return self.source == self.OPENSTREETMAP_SOURCE
 
     def _osm_contribution_or_none(self) -> "OpenStreetMapContribution | None":
         """Return the related OSM state without raising for absent rows.

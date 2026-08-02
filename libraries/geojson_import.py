@@ -211,10 +211,14 @@ class GeoJSONImporter:
 
     PROXIMITY_METERS = 100
 
-    def __init__(self, *, source: str, status: str, created_by):
+    def __init__(self, *, source: str, status: str, created_by: Any) -> None:
         """Initialise the importer with shared field values.
         All created libraries share the same source, status, and creator."""
-        self.source = source
+        normalized_source = source.strip().casefold()
+        if normalized_source in {"osm", Library.OPENSTREETMAP_SOURCE.casefold()}:
+            self.source = Library.OPENSTREETMAP_SOURCE
+        else:
+            self.source = source
         self.status = status
         self.created_by = created_by
 

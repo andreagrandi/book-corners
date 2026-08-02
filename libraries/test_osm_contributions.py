@@ -101,11 +101,7 @@ class TestOpenStreetMapEligibility:
                 "The submitter did not allow OpenStreetMap submission.",
             ),
             (
-                {"source": "OpenStreetMap"},
-                "The library originated from OpenStreetMap.",
-            ),
-            (
-                {"external_id": "node/12345"},
+                {"source": Library.OPENSTREETMAP_SOURCE},
                 "The library originated from OpenStreetMap.",
             ),
             (
@@ -128,6 +124,27 @@ class TestOpenStreetMapEligibility:
         reason = eligible_osm_library.osm_precheck_ineligibility_reason()
 
         assert reason == expected_reason
+
+    @pytest.mark.parametrize(
+        ("field_name", "value"),
+        [
+            ("source", "OSM"),
+            ("source", "openstreetmap"),
+            ("source", "OpenStreetMap import"),
+            ("external_id", "node/12345"),
+        ],
+    )
+    def test_osm_origin_requires_the_exact_canonical_source(
+        self,
+        eligible_osm_library: Library,
+        field_name: str,
+        value: str,
+    ) -> None:
+        """Verify similar values do not infer OpenStreetMap provenance.
+        Keeps classification independent from aliases and external identifiers."""
+        setattr(eligible_osm_library, field_name, value)
+
+        assert eligible_osm_library._has_osm_origin() is False
 
     def test_contribution_requires_a_fresh_successful_check(
         self,

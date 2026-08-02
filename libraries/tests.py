@@ -627,6 +627,52 @@ class TestReportModel:
 class TestLibraryAdmin:
     """Tests for Library admin actions."""
 
+    def test_existing_osm_source_is_read_only(
+        self,
+        admin_user,
+        admin_library: Library,
+    ) -> None:
+        """Verify staff cannot edit an existing canonical OSM source.
+        Protects the marker used to select records for public export."""
+        admin_library.source = Library.OPENSTREETMAP_SOURCE
+        admin_library.save(update_fields=["source", "updated_at"])
+        request = RequestFactory().get("/")
+        request.user = admin_user
+        model_admin = LibraryAdmin(model=Library, admin_site=admin.site)
+
+        readonly_fields = model_admin.get_readonly_fields(
+            request=request,
+            obj=admin_library,
+        )
+
+        assert "source" in readonly_fields
+
+    def test_non_osm_and_new_sources_remain_editable(
+        self,
+        admin_user,
+        admin_library: Library,
+    ) -> None:
+        """Verify source editing remains available outside existing OSM rows.
+        Preserves staff creation and support for unrelated import sources."""
+        admin_library.source = "MapComplete"
+        admin_library.save(update_fields=["source", "updated_at"])
+        new_osm_library = Library(source=Library.OPENSTREETMAP_SOURCE)
+        request = RequestFactory().get("/")
+        request.user = admin_user
+        model_admin = LibraryAdmin(model=Library, admin_site=admin.site)
+
+        existing_readonly_fields = model_admin.get_readonly_fields(
+            request=request,
+            obj=admin_library,
+        )
+        new_readonly_fields = model_admin.get_readonly_fields(
+            request=request,
+            obj=new_osm_library,
+        )
+
+        assert "source" not in existing_readonly_fields
+        assert "source" not in new_readonly_fields
+
     def test_admin_create_records_staff_provenance(
         self,
         admin_user,
