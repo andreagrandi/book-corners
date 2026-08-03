@@ -700,10 +700,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-compressed-geojson" class="md-nav__link">
+  <a href="#download-urls" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Current compressed GeoJSON
+        Download URLs
       </span>
     </span>
   </a>
@@ -711,10 +711,38 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#current-raw-geojson" class="md-nav__link">
+  <a href="#geojson-structure" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Current raw GeoJSON
+        GeoJSON structure
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GeoJSON structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#excluded-and-transformed-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Excluded and transformed data
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metadata-and-checksums" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Metadata and checksums
       </span>
     </span>
   </a>
@@ -722,10 +750,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#metadata" class="md-nav__link">
+  <a href="#refreshes-caching-and-availability" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Metadata
+        Refreshes, caching, and availability
       </span>
     </span>
   </a>
@@ -733,10 +761,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#immutable-artifacts" class="md-nav__link">
+  <a href="#license-attribution-and-photos" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Immutable artifacts
+        License, attribution, and photos
       </span>
     </span>
   </a>
@@ -744,10 +772,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#caching-and-availability" class="md-nav__link">
+  <a href="#report-incorrect-data" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Caching and availability
+        Report incorrect data
       </span>
     </span>
   </a>
@@ -968,10 +996,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-compressed-geojson" class="md-nav__link">
+  <a href="#download-urls" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Current compressed GeoJSON
+        Download URLs
       </span>
     </span>
   </a>
@@ -979,10 +1007,38 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#current-raw-geojson" class="md-nav__link">
+  <a href="#geojson-structure" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Current raw GeoJSON
+        GeoJSON structure
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GeoJSON structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#excluded-and-transformed-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Excluded and transformed data
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metadata-and-checksums" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Metadata and checksums
       </span>
     </span>
   </a>
@@ -990,10 +1046,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#metadata" class="md-nav__link">
+  <a href="#refreshes-caching-and-availability" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Metadata
+        Refreshes, caching, and availability
       </span>
     </span>
   </a>
@@ -1001,10 +1057,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#immutable-artifacts" class="md-nav__link">
+  <a href="#license-attribution-and-photos" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Immutable artifacts
+        License, attribution, and photos
       </span>
     </span>
   </a>
@@ -1012,10 +1068,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#caching-and-availability" class="md-nav__link">
+  <a href="#report-incorrect-data" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
-        Caching and availability
+        Report incorrect data
       </span>
     </span>
   </a>
@@ -1038,37 +1094,300 @@
                   
 
 <h1 id="bulk-download">Bulk Download<a class="headerlink" href="#bulk-download" title="Permanent link">&para;</a></h1>
-<p>Authenticated users can download the complete catalogue of approved Book Corners libraries as a pre-generated GeoJSON file. The export is designed for offline use and avoids paginating or scraping the normal library-list endpoint. Signed-in website users can use the download card in the Contribution center; programmatic clients can use the JWT API endpoints below.</p>
-<p>The API endpoints require an access token:</p>
+<p>Authenticated users can download the complete catalogue of approved Book Corners libraries as a pre-generated GeoJSON file. The export is intended for offline reuse and is the supported way to retrieve every approved record; do not paginate or scrape the normal library-list endpoint to copy the catalogue.</p>
+<p>Every library whose current status is <code>approved</code> is included, regardless of how it was submitted or imported. Pending and rejected libraries are excluded. Signed-in website users can use the download card in the Contribution center, while programmatic clients can use the JWT API endpoints.</p>
+<h2 id="download-urls">Download URLs<a class="headerlink" href="#download-urls" title="Permanent link">&para;</a></h2>
+<p>The recommended artifact is the precompressed GeoJSON file. The raw GeoJSON and its metadata remain available for clients that need them.</p>
+<table>
+<thead>
+<tr>
+<th>Purpose</th>
+<th>Website session</th>
+<th>JWT API</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Download page</td>
+<td><code>GET /data/libraries/</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>Current compressed GeoJSON</td>
+<td><code>GET /data/libraries/latest.geojson.gz</code></td>
+<td><code>GET /api/v1/libraries/export/latest.geojson.gz</code></td>
+</tr>
+<tr>
+<td>Current raw GeoJSON</td>
+<td><code>GET /data/libraries/latest.geojson</code></td>
+<td><code>GET /api/v1/libraries/export/latest.geojson</code></td>
+</tr>
+<tr>
+<td>Current metadata</td>
+<td><code>GET /data/libraries/metadata.json</code></td>
+<td><code>GET /api/v1/libraries/export/metadata.json</code></td>
+</tr>
+<tr>
+<td>Current immutable artifact</td>
+<td><code>GET /data/libraries/{filename}</code></td>
+<td><code>GET /api/v1/libraries/export/{filename}</code></td>
+</tr>
+</tbody>
+</table>
+<p>Website routes require a signed-in Book Corners session. API routes require a JWT access token:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Authorization: Bearer &lt;access-token&gt;
 </code></pre></div>
-<h2 id="current-compressed-geojson">Current compressed GeoJSON<a class="headerlink" href="#current-compressed-geojson" title="Permanent link">&para;</a></h2>
-<p><code>GET /api/v1/libraries/export/latest.geojson.gz</code></p>
-<p>Downloads the recommended pre-generated gzip artifact with <code>application/gzip</code>. This avoids transferring the much larger raw GeoJSON or spending request-time CPU on compression.</p>
+<p>Download the recommended gzip artifact:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>--location<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>--header<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$BOOK_CORNERS_ACCESS_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>--output<span class="w"> </span>libraries.geojson.gz<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>https://bookcorners.org/api/v1/libraries/export/latest.geojson.gz
 </code></pre></div>
-<h2 id="current-raw-geojson">Current raw GeoJSON<a class="headerlink" href="#current-raw-geojson" title="Permanent link">&para;</a></h2>
-<p><code>GET /api/v1/libraries/export/latest.geojson</code></p>
-<p>Downloads the uncompressed complete GeoJSON artifact with <code>application/geo+json</code> and an attachment filename matching its immutable version.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>--location<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>--header<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$BOOK_CORNERS_ACCESS_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>--output<span class="w"> </span>libraries.geojson<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>https://bookcorners.org/api/v1/libraries/export/latest.geojson
+<p>The compressed response has MIME type <code>application/gzip</code>. The uncompressed response has MIME type <code>application/geo+json</code>, and metadata uses <code>application/json</code>.</p>
+<p>Only the raw GeoJSON, gzip GeoJSON, and metadata filenames listed in the active manifest are downloadable. Arbitrary paths and retained historical files return <code>404</code>.</p>
+<h2 id="geojson-structure">GeoJSON structure<a class="headerlink" href="#geojson-structure" title="Permanent link">&para;</a></h2>
+<p>The raw artifact is UTF-8 encoded GeoJSON. Its top-level fields are:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td>Always <code>FeatureCollection</code>.</td>
+</tr>
+<tr>
+<td><code>book_corners_schema_version</code></td>
+<td>Integer version of the public export schema; currently <code>1</code>.</td>
+</tr>
+<tr>
+<td><code>features</code></td>
+<td>Approved libraries ordered by ascending Book Corners <code>id</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Each item in <code>features</code> is a GeoJSON <code>Feature</code> with a WGS 84 <code>Point</code> geometry. Coordinates use GeoJSON order: <code>[longitude, latitude]</code>.</p>
+<p>All documented properties are present on every feature:</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type and null behavior</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>integer</td>
+<td>Stable Book Corners record identifier. Use this to identify and reconcile records.</td>
+</tr>
+<tr>
+<td><code>slug</code></td>
+<td>string</td>
+<td>Book Corners URL slug for the library detail page.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>string</td>
+<td>Public library name; may be an empty string.</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>Public description; may be an empty string.</td>
+</tr>
+<tr>
+<td><code>photo_url</code></td>
+<td>absolute URI string</td>
+<td>Current primary-photo URL, or an empty string when no primary photo is available.</td>
+</tr>
+<tr>
+<td><code>address</code></td>
+<td>string</td>
+<td>Street or place address; may be an empty string.</td>
+</tr>
+<tr>
+<td><code>city</code></td>
+<td>string</td>
+<td>City or locality.</td>
+</tr>
+<tr>
+<td><code>country</code></td>
+<td>string</td>
+<td>Two-letter country code.</td>
+</tr>
+<tr>
+<td><code>postal_code</code></td>
+<td>string</td>
+<td>Postal or ZIP code; may be an empty string.</td>
+</tr>
+<tr>
+<td><code>wheelchair_accessible</code></td>
+<td>string</td>
+<td><code>yes</code>, <code>no</code>, <code>limited</code>, or an empty string when unknown.</td>
+</tr>
+<tr>
+<td><code>capacity</code></td>
+<td>integer or <code>null</code></td>
+<td>Estimated book capacity, or <code>null</code> when unknown.</td>
+</tr>
+<tr>
+<td><code>is_indoor</code></td>
+<td>boolean or <code>null</code></td>
+<td>Whether the library is indoors, or <code>null</code> when unknown.</td>
+</tr>
+<tr>
+<td><code>is_lit</code></td>
+<td>boolean or <code>null</code></td>
+<td>Whether the library is lit, or <code>null</code> when unknown.</td>
+</tr>
+<tr>
+<td><code>website</code></td>
+<td>URI string</td>
+<td>Public website, or an empty string when unavailable.</td>
+</tr>
+<tr>
+<td><code>contact</code></td>
+<td>string</td>
+<td>Public contact information, or an empty string when unavailable.</td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td>string or <code>null</code></td>
+<td>Provenance label supplied for the record, or <code>null</code> when unavailable.</td>
+</tr>
+<tr>
+<td><code>operator</code></td>
+<td>string</td>
+<td>Public operator name, or an empty string when unavailable.</td>
+</tr>
+<tr>
+<td><code>brand</code></td>
+<td>string</td>
+<td>Public brand name, or an empty string when unavailable.</td>
+</tr>
+<tr>
+<td><code>external_id</code></td>
+<td>string or <code>null</code></td>
+<td>Identifier assigned by the named source, or <code>null</code> when unavailable.</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>UTC date-time string</td>
+<td>Record creation time in RFC 3339 format ending in <code>Z</code>.</td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td>UTC date-time string</td>
+<td>Last live-record update time in RFC 3339 format ending in <code>Z</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>The nullable values are limited to <code>capacity</code>, <code>is_indoor</code>, <code>is_lit</code>, <code>source</code>, and <code>external_id</code>. Other unknown optional values use an empty string. A schema change increments <code>book_corners_schema_version</code> and produces a new immutable artifact.</p>
+<h3 id="excluded-and-transformed-data">Excluded and transformed data<a class="headerlink" href="#excluded-and-transformed-data" title="Permanent link">&para;</a></h3>
+<p>The export contains the live public values of approved libraries only:</p>
+<ul>
+<li><code>location</code> is transformed into the GeoJSON <code>Point</code> geometry, and the primary <code>photo</code> storage name is transformed into <code>photo_url</code>.</li>
+<li>The library fields <code>photo_thumbnail</code>, <code>pending_photo</code>, <code>pending_photo_thumbnail</code>, and <code>pending_changes</code> are excluded.</li>
+<li>The library fields <code>status</code>, <code>rejection_reason</code>, <code>created_by</code>, <code>submission_origin</code>, <code>osm_submission_allowed</code>, and <code>osm_submission_allowed_at</code> are excluded.</li>
+<li>Pending and rejected library rows are excluded entirely.</li>
+<li>User accounts, authentication data, reports and comments, community-photo submissions, favourites, moderation queues, social-post records, and OpenStreetMap contribution or audit records are excluded.</li>
+</ul>
+<p>The <code>source</code> and <code>external_id</code> properties are provenance metadata. They may be absent, are not guaranteed to be unique, and must not replace the Book Corners <code>id</code> as the record identifier.</p>
+<h2 id="metadata-and-checksums">Metadata and checksums<a class="headerlink" href="#metadata-and-checksums" title="Permanent link">&para;</a></h2>
+<p>The metadata document describes the exact raw and gzip artifacts. Its fields are:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>metadata_version</code></td>
+<td>Version of the metadata document format; currently <code>2</code>.</td>
+</tr>
+<tr>
+<td><code>title</code>, <code>scope</code>, <code>format</code>, <code>media_type</code></td>
+<td>Human-readable dataset description and the raw GeoJSON MIME type.</td>
+</tr>
+<tr>
+<td><code>generated_at</code></td>
+<td>UTC RFC 3339 time when this data version was generated.</td>
+</tr>
+<tr>
+<td><code>record_count</code></td>
+<td>Number of GeoJSON features.</td>
+</tr>
+<tr>
+<td><code>schema.version</code></td>
+<td>Public GeoJSON schema version.</td>
+</tr>
+<tr>
+<td><code>schema.sha256</code></td>
+<td>SHA-256 of the canonical schema definition.</td>
+</tr>
+<tr>
+<td><code>schema.definition</code></td>
+<td>Machine-readable geometry and property type definition.</td>
+</tr>
+<tr>
+<td><code>data.filename</code>, <code>data.byte_size</code>, <code>data.sha256</code></td>
+<td>Immutable raw GeoJSON filename, size, and SHA-256.</td>
+</tr>
+<tr>
+<td><code>gzip.filename</code>, <code>gzip.byte_size</code>, <code>gzip.sha256</code></td>
+<td>Immutable gzip filename, size, and SHA-256.</td>
+</tr>
+<tr>
+<td><code>license</code></td>
+<td>ODbL 1.0 name and license URL.</td>
+</tr>
+<tr>
+<td><code>attribution</code></td>
+<td>Linked Book Corners and OpenStreetMap contributor credits.</td>
+</tr>
+<tr>
+<td><code>photo_notice</code></td>
+<td>Reminder that photo-file rights are separate from database rights.</td>
+</tr>
+</tbody>
+</table>
+<p>Validate a completed download against the matching metadata:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>sha256sum<span class="w"> </span>libraries.geojson.gz
 </code></pre></div>
-<h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
-<p><code>GET /api/v1/libraries/export/metadata.json</code></p>
-<p>Returns the matching metadata document, including raw and gzip filenames, byte sizes, SHA-256 checksums, record count, schema, ODbL 1.0 terms, Book Corners/OpenStreetMap attribution, and photo-URL notice.</p>
-<h2 id="immutable-artifacts">Immutable artifacts<a class="headerlink" href="#immutable-artifacts" title="Permanent link">&para;</a></h2>
-<p>The metadata and authenticated download page link to the current immutable artifact URLs:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>GET /api/v1/libraries/export/{filename}
+<p>Immutable filenames use this convention:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>libraries-&lt;UTC timestamp&gt;-&lt;schema SHA-256 prefix&gt;-&lt;data SHA-256 prefix&gt;.geojson
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>libraries-&lt;UTC timestamp&gt;-&lt;schema SHA-256 prefix&gt;-&lt;data SHA-256 prefix&gt;.geojson.gz
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>libraries-&lt;UTC timestamp&gt;-&lt;schema SHA-256 prefix&gt;-&lt;data SHA-256 prefix&gt;.metadata.json
 </code></pre></div>
-<p>Only the raw GeoJSON, gzip GeoJSON, and metadata filenames listed in the active manifest are available. Arbitrary paths and retained historical files return <code>404</code>.</p>
-<h2 id="caching-and-availability">Caching and availability<a class="headerlink" href="#caching-and-availability" title="Permanent link">&para;</a></h2>
-<p>Latest aliases return strong <code>ETag</code> and <code>Last-Modified</code> headers with <code>Cache-Control: private, no-cache</code>; clients can use <code>If-None-Match</code> or <code>If-Modified-Since</code> and receive <code>304 Not Modified</code> when the bytes are unchanged. Immutable URLs use one-year private immutable caching.</p>
-<p>The scheduled generator checks the export daily and may leave it unchanged. Export generation does not run during application deployment. After publishing a changed export successfully, the generator removes older recognized artifacts while retaining the active version and seven previous complete versions; this is version-based retention, not a seven-day expiry. A disabled delivery feature or an unknown artifact returns <code>404</code>; an enabled service without a valid current artifact returns <code>503</code> with the normal API error shape. These bulk-download requests are not subject to the paginated API read rate limit.</p>
+<p>The timestamp is formatted as <code>YYYYMMDDTHHMMSSffffffZ</code>; each checksum prefix contains 12 hexadecimal characters.</p>
+<h2 id="refreshes-caching-and-availability">Refreshes, caching, and availability<a class="headerlink" href="#refreshes-caching-and-availability" title="Permanent link">&para;</a></h2>
+<p>The scheduled generator checks the approved catalogue once per day. It creates a new immutable version only when either the deterministic raw GeoJSON checksum or the schema checksum changes. An unchanged run updates the latest successful check time while preserving the existing filenames, <code>generated_at</code>, and content checksums.</p>
+<p>Under normal operation, a newly approved or updated record can therefore take up to 24 hours to appear. The download page shows when the catalogue was last checked and when the active data version was generated. If a generation attempt fails, the last valid version remains active and can become more than 24 hours old until a later run succeeds.</p>
+<p>Latest aliases return strong <code>ETag</code> and <code>Last-Modified</code> headers with <code>Cache-Control: private, no-cache</code>. Clients can send <code>If-None-Match</code> or <code>If-Modified-Since</code> and receive <code>304 Not Modified</code> when the bytes are unchanged. Immutable URLs use one-year private immutable caching.</p>
+<p>After a successful check, the generator retains the active version and seven previous complete versions in persistent storage. Retention is version-based, not a seven-day expiry, and only the active version is downloadable.</p>
+<p>A disabled delivery feature or an unknown artifact returns <code>404</code>. An enabled service without a valid current artifact returns <code>503</code> with the normal API error shape. Bulk-download requests are not subject to the paginated API read rate limit.</p>
+<h2 id="license-attribution-and-photos">License, attribution, and photos<a class="headerlink" href="#license-attribution-and-photos" title="Permanent link">&para;</a></h2>
+<p>The complete exported database is made available under the <a href="https://opendatacommons.org/licenses/odbl/1-0/">Open Data Commons Open Database License (ODbL) v1.0</a>. The license permits reuse subject to its notice, attribution, and share-alike conditions. In summary:</p>
+<ul>
+<li>When publicly conveying the database or a derivative database, include the ODbL URI and keep the database-right and license notices intact.</li>
+<li>A publicly used derivative database must use ODbL 1.0, a permitted later version, or a compatible license, and the ODbL conditions for machine-readable access apply.</li>
+<li>A publicly used produced work must include a notice that its data came from the Book Corners export and is available under ODbL 1.0.</li>
+</ul>
+<p>Consult the license text for the complete conditions.</p>
+<p>When attribution is required, credit both <a href="https://bookcorners.org/">Book Corners</a> and <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>, and link to the ODbL 1.0 license. For example:</p>
+<blockquote>
+<p>Contains information from the Book Corners approved library export, made available under ODbL 1.0. Attribution: Book Corners and OpenStreetMap contributors.</p>
+</blockquote>
+<p>ODbL covers the exported database, not independent rights in each linked image file. <code>photo_url</code> identifies media displayed by Book Corners; it does not grant permission to copy, redistribute, or relicense that image.</p>
+<h2 id="report-incorrect-data">Report incorrect data<a class="headerlink" href="#report-incorrect-data" title="Permanent link">&para;</a></h2>
+<p>Use a feature's <code>slug</code> to open <code>https://bookcorners.org/library/{slug}/</code>, sign in, and select <strong>Report an issue</strong> on the library detail page. Reports are sent to Book Corners moderators and are not included in the export.</p>
 
 
 
