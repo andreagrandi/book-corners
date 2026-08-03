@@ -76,6 +76,8 @@ def test_staff_can_open_library_edit_form(
     assert response.status_code == 200
     assert "Edit library" in content
     assert "manage-library-map" in content
+    assert '"https://tile.openstreetmap.org/{z}/{x}/{y}.png"' in content
+    assert 'referrerPolicy: "strict-origin-when-cross-origin"' in content
     assert "Edit in Django Admin" in content
 
 

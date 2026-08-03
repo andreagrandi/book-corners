@@ -138,7 +138,7 @@ def mock_external_apis(page: Page):
             json=NOMINATIM_MOCK_RESPONSE,
         )
 
-    page.route("**/*.tile.openstreetmap.org/**", handle_tile_route)
+    page.route("https://tile.openstreetmap.org/**", handle_tile_route)
     page.route("**/photon.komoot.io/api/**", handle_photon_route)
     page.route("**/nominatim.openstreetmap.org/**", handle_nominatim_route)
 
