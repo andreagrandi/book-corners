@@ -372,7 +372,9 @@ class TestI18nLanguageSwitching:
         content = response.content.decode()
         assert response.status_code == 200
         assert "Informativa sulla Privacy" in content
-        assert "Ultimo aggiornamento: 31 luglio 2026" in content
+        assert "Ultimo aggiornamento: 2 agosto 2026" in content
+        assert "download completo riutilizzabile" in content
+        assert "Database License (ODbL) v1.0" in content
         assert "Contribuire a OpenStreetMap" not in content
         assert "I dati del tuo account Book Corners" not in content
 
@@ -383,7 +385,9 @@ class TestI18nLanguageSwitching:
         content = response.content.decode()
         assert response.status_code == 200
         assert "Privacy Policy" in content
-        assert "Last updated: 31st July 2026" in content
+        assert "Last updated: 2nd August 2026" in content
+        assert "reusable bulk download" in content
+        assert "Open Database License (ODbL) v1.0" in content
         assert "Contributing to OpenStreetMap" not in content
         assert "Your Book Corners account details" not in content
 

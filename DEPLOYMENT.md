@@ -86,6 +86,77 @@ After every deploy, verify these manually or review in monitoring:
 - [ ] Admin panel accessible: `https://bookcorners.org/admin/`
 - [ ] Health check passes: `https://bookcorners.org/health/`
 
+## Library bulk export operations
+
+The approved-library GeoJSON export is generated independently from application deployments. `app.json` schedules `python manage.py generate_library_export` for 02:00 server time every day; predeploy intentionally runs no export work.
+
+### Storage and retention
+
+Artifacts are written under Django's persistent `MEDIA_ROOT/library_exports/` directory. In production this maps to `/var/lib/dokku/data/storage/book-corners/media/library_exports/` on the host, so deployments do not remove the active manifest or its files and the normal media backup includes them.
+
+Each successful changed run publishes raw GeoJSON, gzip GeoJSON, and metadata files, then atomically replaces `latest.json`. A successful unchanged run only advances the manifest's `checked_at`. Cleanup retains the active version and seven previous complete versions. Retention is version-based; retained inactive versions are recovery material and are not exposed by download routes.
+
+### Manual generation and verification
+
+Generate or refresh the export without deploying:
+
+```bash
+sudo dokku run book-corners python manage.py generate_library_export
+```
+
+The command reports `published`, `unchanged`, or an overlapping-run skip. Any generation failure exits non-zero, logs `library_export_failed`, and leaves the previous valid manifest active.
+
+Fully validate the active manifest and checksum its three artifacts:
+
+```bash
+sudo dokku run book-corners python manage.py shell -c '
+from pprint import pprint
+from libraries.library_export import load_active_library_export_manifest
+pprint(load_active_library_export_manifest(verify_checksums=True))
+'
+```
+
+The result must be a manifest rather than `None`. Confirm that `checked_at` is about one daily interval old or newer, the record count is plausible, and `generated_at` advances when approved data or the schema changes. Investigate when no successful check occurs within 26 hours.
+
+### Privacy review and rollout
+
+There is no permanent staging environment. Before first rollout or after changing the export allowlist, use a temporary staging deployment with synthetic or otherwise approved-for-review data:
+
+1. Keep `LIBRARY_EXPORT_DELIVERY_ENABLED=false` so no website or API download is advertised.
+2. Run the generator manually and inspect representative features, the schema definition, metadata, absolute photo URLs, and both compressed and raw checksums.
+3. Confirm that only approved libraries are present and that account, ownership, moderation, staged changes, reports, audit data, and pending photos are absent.
+4. Review the English and Italian privacy notices and the authenticated download page.
+5. Repeat the manual generation and inspection in production, then enable delivery:
+
+```bash
+sudo dokku config:set book-corners LIBRARY_EXPORT_DELIVERY_ENABLED=true
+```
+
+The feature flag affects authenticated delivery only. Set it back to `false` to hide all export routes while investigating a privacy, licensing, or integrity problem; scheduled generation remains enabled.
+
+### Monitoring
+
+The normal `/health/` endpoint does not validate export freshness. Check the dedicated structured events after the daily schedule:
+
+```bash
+logcli query '{app="book-corners"} |= "library_export_"' --since 26h --limit 20
+logcli query '{app="book-corners"} |= "library_export_failed"' --since 26h --limit 20
+```
+
+Expected healthy outcomes are `library_export_published` or `library_export_unchanged`. `library_export_skipped_locked` is harmless for one overlapping run, but repeated skips require checking for duplicate schedules or a long-running job. Alert on `library_export_failed`, no published/unchanged event in 26 hours, a manifest older than 26 hours, or an authenticated metadata request returning `503`.
+
+### Failure recovery
+
+Candidate files are validated before publication and `latest.json` is swapped atomically, so an interrupted or failed run keeps the last valid version available. To recover:
+
+1. Disable delivery immediately if the active data has a privacy, licensing, or integrity problem.
+2. Inspect `library_export_failed` and nearby application logs. Check free disk space, the persistent media mount and permissions, `SITE_URL`, database availability, and the scheduled command configuration.
+3. Correct the data, configuration, storage, or application problem, then run `generate_library_export` manually.
+4. Verify the manifest with checksums and review the authenticated download page before re-enabling delivery.
+5. If persistent artifacts were lost or damaged, restore the media backup and verify it against the database backup from the same archive. Prefer generating a fresh export from the current verified database when possible.
+
+Do not copy a retained historical file over the active filenames. Delivery trusts only the validated files named by `latest.json`, and a fresh successful run is the normal recovery path.
+
 ## Rollback
 
 ### Revert to the previous release

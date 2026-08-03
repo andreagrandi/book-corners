@@ -123,7 +123,7 @@ sudo dokku config:show book-corners | grep DATABASE_URL
 
 ## Persistent storage
 
-Dokku containers are ephemeral. Media uploads are stored on a mounted host directory that survives redeployments.
+Dokku containers are ephemeral. Media uploads and generated library export artifacts are stored on a mounted host directory that survives redeployments.
 
 ```bash
 # Create the host directory
@@ -134,7 +134,7 @@ sudo chown -R 32767:32767 /var/lib/dokku/data/storage/book-corners/media
 sudo dokku storage:mount book-corners /var/lib/dokku/data/storage/book-corners/media:/app/media
 ```
 
-Django's `MEDIA_ROOT` resolves to `/app/media` inside the container, which maps to the persistent host path.
+Django's `MEDIA_ROOT` resolves to `/app/media` inside the container, which maps to the persistent host path. Library export artifacts and their active manifest are stored below `/app/media/library_exports/`, or `/var/lib/dokku/data/storage/book-corners/media/library_exports/` on the host. The media backup therefore includes both uploaded photos and export artifacts.
 
 ## SSL / TLS
 
@@ -174,10 +174,13 @@ sudo dokku config:set --no-restart book-corners \
   DJANGO_SESSION_COOKIE_SECURE="true" \
   DJANGO_CSRF_COOKIE_SECURE="true" \
   DJANGO_SECURE_HSTS_SECONDS="31536000" \
+  LIBRARY_EXPORT_DELIVERY_ENABLED="false" \
   NOMINATIM_USER_AGENT="bookcorners.org/1.0"
 ```
 
 Use `--no-restart` before the first deploy to avoid restart errors when no container exists yet.
+
+Keep `LIBRARY_EXPORT_DELIVERY_ENABLED` set to `false` until the initial artifact and privacy review described in [DEPLOYMENT.md](DEPLOYMENT.md#library-bulk-export-operations) are complete. The setting controls authenticated website and API delivery only; the scheduled generator continues to run while delivery is disabled.
 
 ### OpenStreetMap duplicate checks (optional)
 
@@ -282,6 +285,7 @@ sudo dokku config:show book-corners
 | Dokku app (bare git repo) | `/home/dokku/book-corners/` |
 | Backup/restore scripts (deployed by CI) | `/home/deploy/backup.sh`, `/home/deploy/restore.sh` |
 | Media files (mounted into container) | `/var/lib/dokku/data/storage/book-corners/media/` |
+| Library export artifacts | `/var/lib/dokku/data/storage/book-corners/media/library_exports/` |
 | Postgres data (managed by plugin) | `/var/lib/dokku/services/postgres/book-corners-db/` |
 | Backup log | `/var/log/book-corners-backup.log` |
 
@@ -406,6 +410,7 @@ You can also explore logs in the Grafana Cloud UI at **Explore → Loki**.
 - **UptimeRobot** monitors `https://bookcorners.org/health/` every 5 minutes
 - **Sentry** error tracking (free developer plan) — reports unhandled exceptions and API 500s
 - **Grafana Cloud Loki** — centralized log aggregation, queryable via LogCLI or Grafana UI
+- **Library export** — monitor its scheduled structured logs and last successful check separately; `/health/` does not validate export freshness
 
 ## Cost sheet
 

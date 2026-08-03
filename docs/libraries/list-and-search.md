@@ -8,6 +8,10 @@ Return a paginated list of approved libraries with optional search filters.
 
 **Auth required:** No
 
+!!! tip "Need the complete catalogue?"
+
+    Use the authenticated [Bulk Download](bulk-export.md) to retrieve every approved library as one reusable GeoJSON artifact. Do not paginate or scrape this endpoint to copy the full catalogue.
+
 ### Query parameters
 
 | Parameter | Type | Default | Description |
