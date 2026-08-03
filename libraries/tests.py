@@ -1764,6 +1764,8 @@ class TestMapPageView:
         assert "id=\"map-list-results\"" in content
         assert "leaflet@1.9.4" in content
         assert "leaflet.markercluster@1.5.3" in content
+        assert '"https://tile.openstreetmap.org/{z}/{x}/{y}.png"' in content
+        assert 'referrerPolicy: "strict-origin-when-cross-origin"' in content
         assert reverse("map_libraries_geojson") in content
         assert reverse("map_libraries_list") in content
         assert "data-view-mode=\"split\"" in content
@@ -2362,6 +2364,8 @@ class TestLibraryDetailView:
         assert "Country:</span> NL" in content
         assert "id=\"library-detail-map\"" in content
         assert "leaflet@1.9.4" in content
+        assert '"https://tile.openstreetmap.org/{z}/{x}/{y}.png"' in content
+        assert 'referrerPolicy: "strict-origin-when-cross-origin"' in content
 
     def test_pending_library_detail_returns_404(self, client, user):
         """Verify pending library detail returns 404.
@@ -3243,6 +3247,8 @@ class TestSubmitLibraryView:
         assert "id=\"id_longitude\"" in content
         assert "Center from address" in content
         assert "id=\"address-suggestions\"" in content
+        assert '"https://tile.openstreetmap.org/{z}/{x}/{y}.png"' in content
+        assert 'referrerPolicy: "strict-origin-when-cross-origin"' in content
         assert "photon.komoot.io/api" in content
         assert "Name (optional)" in content
         assert "Description (optional)" in content

@@ -18,6 +18,11 @@ def test_map_page_loads_with_leaflet(
     leaflet_map.wait_for(state="attached", timeout=10000)
     assert leaflet_map.count() == 1
 
+    tile = leaflet_map.locator(".leaflet-tile").first
+    tile.wait_for(state="attached", timeout=10000)
+    assert tile.get_attribute("src").startswith("https://tile.openstreetmap.org/")
+    assert tile.get_attribute("referrerpolicy") == "strict-origin-when-cross-origin"
+
 
 def test_map_view_mode_switching(
     live_server, page, mock_external_apis, approved_libraries
