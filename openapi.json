@@ -17,7 +17,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/TokenPairOut"
+                  "$ref": "#/components/schemas/SocialTokenPairOut"
                 }
               }
             }
@@ -43,7 +43,7 @@
             }
           }
         },
-        "description": "Exchange a native Apple/Google identity token for a JWT token pair.\nCreates or links accounts automatically based on email matching.",
+        "description": "Exchange a native Apple/Google identity token for a JWT token pair.\nRequires current agreement acceptance only when a new account is created.",
         "tags": [
           "auth"
         ],
@@ -280,6 +280,84 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/DeleteAccountIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "JWTAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/me/contributor-agreement": {
+      "post": {
+        "operationId": "users_api_accept_contributor_agreement",
+        "summary": "Accept the current contributor agreement",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContributorAgreementStatusOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            }
+          }
+        },
+        "description": "Record current agreement acceptance for the authenticated user.\nUses server-owned audit fields and is idempotent for repeated submissions.",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContributorAgreementIn"
               }
             }
           },
@@ -3202,8 +3280,8 @@
   },
   "components": {
     "schemas": {
-      "TokenPairOut": {
-        "description": "JWT access and refresh token pair.\nReturned on successful registration or login.",
+      "SocialTokenPairOut": {
+        "description": "JWT pair plus whether this request created an account.\nLets clients distinguish a new social registration from an existing login.",
         "properties": {
           "access": {
             "description": "Short-lived JWT access token.",
@@ -3220,13 +3298,22 @@
             ],
             "title": "Refresh",
             "type": "string"
+          },
+          "account_created": {
+            "description": "True when this request created a new account.",
+            "examples": [
+              true
+            ],
+            "title": "Account Created",
+            "type": "boolean"
           }
         },
         "required": [
           "access",
-          "refresh"
+          "refresh",
+          "account_created"
         ],
-        "title": "TokenPairOut",
+        "title": "SocialTokenPairOut",
         "type": "object"
       },
       "ErrorOut": {
@@ -3301,6 +3388,37 @@
             "maxLength": 150,
             "title": "Last Name",
             "type": "string"
+          },
+          "contributor_agreement_version": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Exact current contributor agreement version. Optional during the backward-compatible rollout and required for new accounts after activation.",
+            "examples": [
+              "1.0"
+            ],
+            "title": "Contributor Agreement Version"
+          },
+          "contributor_agreement_accepted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "JSON boolean acceptance. Optional during the backward-compatible rollout and must be true for new accounts after activation.",
+            "examples": [
+              true
+            ],
+            "title": "Contributor Agreement Accepted"
           }
         },
         "required": [
@@ -3310,8 +3428,35 @@
         "title": "SocialLoginIn",
         "type": "object"
       },
+      "TokenPairOut": {
+        "description": "JWT access and refresh token pair.\nReturned on successful registration or login.",
+        "properties": {
+          "access": {
+            "description": "Short-lived JWT access token.",
+            "examples": [
+              "eyJhbGciOiJIUzI1NiIs..."
+            ],
+            "title": "Access",
+            "type": "string"
+          },
+          "refresh": {
+            "description": "Long-lived JWT refresh token.",
+            "examples": [
+              "eyJhbGciOiJIUzI1NiIs..."
+            ],
+            "title": "Refresh",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access",
+          "refresh"
+        ],
+        "title": "TokenPairOut",
+        "type": "object"
+      },
       "RegisterIn": {
-        "description": "Registration payload for creating a new user account.\nAll fields are required and validated server-side.",
+        "description": "Registration payload for creating a new user account.\nAgreement fields stay optional until deliberate enforcement activation.",
         "properties": {
           "username": {
             "description": "Unique username (3-150 characters).",
@@ -3342,6 +3487,37 @@
             "minLength": 3,
             "title": "Email",
             "type": "string"
+          },
+          "contributor_agreement_version": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Exact current contributor agreement version. Optional during the backward-compatible rollout and required when enforcement is enabled.",
+            "examples": [
+              "1.0"
+            ],
+            "title": "Contributor Agreement Version"
+          },
+          "contributor_agreement_accepted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "JSON boolean acceptance. Optional during the backward-compatible rollout and must be true when enforcement is enabled.",
+            "examples": [
+              true
+            ],
+            "title": "Contributor Agreement Accepted"
           }
         },
         "required": [
@@ -3421,8 +3597,44 @@
         "title": "RefreshIn",
         "type": "object"
       },
+      "ContributorAgreementStatusOut": {
+        "description": "Current contributor agreement status for an authenticated user.\nReports the deployed version, immutable public copy, and exact acceptance state.",
+        "properties": {
+          "current_version": {
+            "description": "Current contributor agreement version.",
+            "examples": [
+              "1.0"
+            ],
+            "title": "Current Version",
+            "type": "string"
+          },
+          "agreement_url": {
+            "description": "Absolute URL for the immutable current agreement copy.",
+            "examples": [
+              "https://bookcorners.org/contributor-agreement/1.0/en/"
+            ],
+            "title": "Agreement Url",
+            "type": "string"
+          },
+          "is_current": {
+            "description": "True when this user accepted the current version.",
+            "examples": [
+              true
+            ],
+            "title": "Is Current",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "current_version",
+          "agreement_url",
+          "is_current"
+        ],
+        "title": "ContributorAgreementStatusOut",
+        "type": "object"
+      },
       "MeOut": {
-        "description": "Current authenticated user profile.\nReturns basic account information and authentication type.",
+        "description": "Current authenticated user profile.\nReturns basic account information, authentication type, and agreement status.",
         "properties": {
           "id": {
             "description": "Unique user identifier.",
@@ -3463,6 +3675,10 @@
             ],
             "title": "Is Staff",
             "type": "boolean"
+          },
+          "contributor_agreement": {
+            "$ref": "#/components/schemas/ContributorAgreementStatusOut",
+            "description": "Current contributor agreement status."
           }
         },
         "required": [
@@ -3470,7 +3686,8 @@
           "username",
           "email",
           "is_social_only",
-          "is_staff"
+          "is_staff",
+          "contributor_agreement"
         ],
         "title": "MeOut",
         "type": "object"
@@ -3512,6 +3729,34 @@
           }
         },
         "title": "DeleteAccountIn",
+        "type": "object"
+      },
+      "ContributorAgreementIn": {
+        "description": "Payload for accepting the current contributor agreement.\nRequires an exact version and the strict JSON boolean true.",
+        "properties": {
+          "contributor_agreement_version": {
+            "description": "Exact current contributor agreement version.",
+            "examples": [
+              "1.0"
+            ],
+            "maxLength": 32,
+            "title": "Contributor Agreement Version",
+            "type": "string"
+          },
+          "contributor_agreement_accepted": {
+            "description": "Must be the JSON boolean true.",
+            "examples": [
+              true
+            ],
+            "title": "Contributor Agreement Accepted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "contributor_agreement_version",
+          "contributor_agreement_accepted"
+        ],
+        "title": "ContributorAgreementIn",
         "type": "object"
       },
       "DeviceTokenOut": {
