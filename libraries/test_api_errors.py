@@ -47,6 +47,8 @@ class TestAPIErrorHandlers:
                 "username": "errortest",
                 "password": "StrongPass123!",
                 "email": "errortest@example.com",
+                "contributor_agreement_version": "1.0",
+                "contributor_agreement_accepted": True,
             },
             content_type="application/json",
         )

@@ -5,11 +5,12 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.models import AbstractBaseUser
 from django.core.exceptions import ImproperlyConfigured, ValidationError as DjangoValidationError
 from django.core.validators import validate_email
+from django.db import transaction
 from ninja import Router, Schema
 from ninja_jwt.authentication import JWTAuth
 from ninja_jwt.exceptions import TokenError
 from ninja_jwt.tokens import RefreshToken
-from pydantic import Field
+from pydantic import Field, StrictBool
 
 from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 
@@ -17,7 +18,12 @@ from config.api_schemas import ErrorOut
 from libraries.api_security import is_api_rate_limited
 from users.api_schemas import DeviceTokenIn, DeviceTokenOut
 from users.auth import is_social_only_user, resolve_login_identifier
-from users.models import DeviceToken
+from users.contributor_agreements import (
+    current_agreement_status,
+    record_current_acceptance,
+    validate_acceptance,
+)
+from users.models import ContributorAgreementAcceptance, DeviceToken
 from users.security import is_auth_rate_limited
 
 MessageOut = ErrorOut
@@ -44,13 +50,37 @@ class AccessTokenOut(Schema):
     access: str = Field(description="Short-lived JWT access token.", examples=["eyJhbGciOiJIUzI1NiIs..."])
 
 
+class SocialTokenPairOut(TokenPairOut):
+    """JWT pair plus whether this request created an account.
+    Lets clients distinguish a new social registration from an existing login."""
+
+    account_created: bool = Field(description="True when this request created a new account.", examples=[True])
+
+
 class RegisterIn(Schema):
     """Registration payload for creating a new user account.
-    All fields are required and validated server-side."""
+    Agreement fields stay optional until deliberate enforcement activation."""
 
     username: str = Field(min_length=3, max_length=150, description="Unique username (3-150 characters).", examples=["janedoe"])
     password: str = Field(min_length=8, max_length=128, description="Password (8-128 characters, validated against Django password policies).", examples=["s3cure!Pass"])
     email: str = Field(min_length=3, max_length=254, description="Email address.", examples=["jane@example.com"])
+    contributor_agreement_version: str | None = Field(
+        default=None,
+        max_length=32,
+        description=(
+            "Exact current contributor agreement version. Optional during the "
+            "backward-compatible rollout and required when enforcement is enabled."
+        ),
+        examples=["1.0"],
+    )
+    contributor_agreement_accepted: StrictBool | None = Field(
+        default=None,
+        description=(
+            "JSON boolean acceptance. Optional during the backward-compatible "
+            "rollout and must be true when enforcement is enabled."
+        ),
+        examples=[True],
+    )
 
 
 class LoginIn(Schema):
@@ -69,6 +99,38 @@ class SocialLoginIn(Schema):
     id_token: str = Field(min_length=20, description="Identity token JWT from the native SDK.")
     first_name: str = Field(default="", max_length=150, description="Optional first name (Apple only provides on first sign-in).")
     last_name: str = Field(default="", max_length=150, description="Optional last name (Apple only provides on first sign-in).")
+    contributor_agreement_version: str | None = Field(
+        default=None,
+        max_length=32,
+        description=(
+            "Exact current contributor agreement version. Optional during the "
+            "backward-compatible rollout and required for new accounts after activation."
+        ),
+        examples=["1.0"],
+    )
+    contributor_agreement_accepted: StrictBool | None = Field(
+        default=None,
+        description=(
+            "JSON boolean acceptance. Optional during the backward-compatible "
+            "rollout and must be true for new accounts after activation."
+        ),
+        examples=[True],
+    )
+
+
+class ContributorAgreementIn(Schema):
+    """Payload for accepting the current contributor agreement.
+    Requires an exact version and the strict JSON boolean true."""
+
+    contributor_agreement_version: str = Field(
+        max_length=32,
+        description="Exact current contributor agreement version.",
+        examples=["1.0"],
+    )
+    contributor_agreement_accepted: StrictBool = Field(
+        description="Must be the JSON boolean true.",
+        examples=[True],
+    )
 
 
 class RefreshIn(Schema):
@@ -78,15 +140,25 @@ class RefreshIn(Schema):
     refresh: str = Field(min_length=20, description="Refresh token obtained from login or registration.", examples=["eyJhbGciOiJIUzI1NiIs..."])
 
 
+class ContributorAgreementStatusOut(Schema):
+    """Current contributor agreement status for an authenticated user.
+    Reports the deployed version, immutable public copy, and exact acceptance state."""
+
+    current_version: str = Field(description="Current contributor agreement version.", examples=["1.0"])
+    agreement_url: str = Field(description="Absolute URL for the immutable current agreement copy.", examples=["https://bookcorners.org/contributor-agreement/1.0/en/"])
+    is_current: bool = Field(description="True when this user accepted the current version.", examples=[True])
+
+
 class MeOut(Schema):
     """Current authenticated user profile.
-    Returns basic account information and authentication type."""
+    Returns basic account information, authentication type, and agreement status."""
 
     id: int = Field(description="Unique user identifier.", examples=[1])
     username: str = Field(description="Username.", examples=["janedoe"])
     email: str = Field(description="Email address.", examples=["jane@example.com"])
     is_social_only: bool = Field(description="True when the account uses social login only (no local password). Email and password changes are unavailable for these accounts.", examples=[False])
     is_staff: bool = Field(description="True when the account can access staff-only moderation endpoints.", examples=[False])
+    contributor_agreement: ContributorAgreementStatusOut = Field(description="Current contributor agreement status.")
 
 
 def build_token_pair(*, user: AbstractBaseUser) -> TokenPairOut:
@@ -99,13 +171,39 @@ def build_token_pair(*, user: AbstractBaseUser) -> TokenPairOut:
     )
 
 
+def build_social_token_pair(*, user: AbstractBaseUser, account_created: bool) -> SocialTokenPairOut:
+    """Create social-login tokens with account-creation provenance.
+    Keeps token fields identical while exposing the new-versus-existing distinction."""
+    token_pair = build_token_pair(user=user)
+    return SocialTokenPairOut(
+        access=token_pair.access,
+        refresh=token_pair.refresh,
+        account_created=account_created,
+    )
+
+
+def build_me(*, user: AbstractBaseUser) -> MeOut:
+    """Build the authenticated profile response in one place.
+    Prevents agreement status from drifting between profile endpoints."""
+    return MeOut(
+        id=user.id,
+        username=user.username,
+        email=user.email,
+        is_social_only=is_social_only_user(user),
+        is_staff=user.is_staff,
+        contributor_agreement=ContributorAgreementStatusOut(
+            **current_agreement_status(user=user),
+        ),
+    )
+
+
 _SUPPORTED_SOCIAL_PROVIDERS = frozenset({"apple", "google"})
 
 
-@auth_router.post("/social", response={200: TokenPairOut, 400: ErrorOut, 429: ErrorOut}, auth=None, summary="Social login with native identity token")
+@auth_router.post("/social", response={200: SocialTokenPairOut, 400: ErrorOut, 429: ErrorOut}, auth=None, summary="Social login with native identity token")
 def social_login(request, payload: SocialLoginIn):
     """Exchange a native Apple/Google identity token for a JWT token pair.
-    Creates or links accounts automatically based on email matching."""
+    Requires current agreement acceptance only when a new account is created."""
     limited, _ = is_auth_rate_limited(
         request=request,
         scope="api-social",
@@ -131,7 +229,14 @@ def social_login(request, payload: SocialLoginIn):
         # Email match without linked social account — connect it now
         if not sociallogin.account.pk:
             sociallogin.connect(request, user)
-        return 200, build_token_pair(user=user)
+        return 200, build_social_token_pair(user=user, account_created=False)
+
+    agreement_error = validate_acceptance(
+        agreement_version=payload.contributor_agreement_version,
+        agreement_accepted=payload.contributor_agreement_accepted,
+    )
+    if agreement_error and settings.CONTRIBUTOR_AGREEMENT_REGISTRATION_REQUIRED:
+        return 400, {"message": agreement_error}
 
     # New user — set name from Apple first sign-in before saving
     if payload.first_name:
@@ -139,9 +244,22 @@ def social_login(request, payload: SocialLoginIn):
     if payload.last_name:
         sociallogin.user.last_name = payload.last_name
 
-    user = adapter.save_user(request, sociallogin)
+    candidate_user = sociallogin.user
+    channel = (
+        ContributorAgreementAcceptance.Channel.API_SOCIAL_APPLE
+        if payload.provider == "apple"
+        else ContributorAgreementAcceptance.Channel.API_SOCIAL_GOOGLE
+    )
+    with transaction.atomic():
+        user = adapter.save_user(request, sociallogin)
+        if user is candidate_user:
+            if agreement_error is None:
+                record_current_acceptance(user=user, channel=channel)
+            account_created = True
+        else:
+            account_created = False
     logger.info("social_login_new_user", provider=payload.provider, user_id=user.pk)
-    return 200, build_token_pair(user=user)
+    return 200, build_social_token_pair(user=user, account_created=account_created)
 
 
 @auth_router.post("/register", response={201: TokenPairOut, 400: ErrorOut, 429: ErrorOut}, auth=None, summary="Register a new user")
@@ -155,6 +273,13 @@ def register(request, payload: RegisterIn):
     )
     if limited:
         return 429, {"message": "Too many registration attempts. Please try again later."}
+
+    agreement_error = validate_acceptance(
+        agreement_version=payload.contributor_agreement_version,
+        agreement_accepted=payload.contributor_agreement_accepted,
+    )
+    if agreement_error and settings.CONTRIBUTOR_AGREEMENT_REGISTRATION_REQUIRED:
+        return 400, {"message": agreement_error}
 
     normalized_username = payload.username.strip()
     normalized_email = str(payload.email).strip().lower()
@@ -176,11 +301,17 @@ def register(request, payload: RegisterIn):
         message = str(error.messages[0]) if error.messages else "Password does not meet security requirements."
         return 400, {"message": message}
 
-    user = User.objects.create_user(
-        username=normalized_username,
-        email=normalized_email,
-        password=payload.password,
-    )
+    with transaction.atomic():
+        user = User.objects.create_user(
+            username=normalized_username,
+            email=normalized_email,
+            password=payload.password,
+        )
+        if agreement_error is None:
+            record_current_acceptance(
+                user=user,
+                channel=ContributorAgreementAcceptance.Channel.API_CREDENTIAL_REGISTRATION,
+            )
     return 201, build_token_pair(user=user)
 
 
@@ -233,12 +364,48 @@ def refresh(request, payload: RefreshIn):
 def me(request):
     """Return the profile of the currently authenticated user.
     Requires a valid JWT access token in the Authorization header."""
-    return MeOut(
-        id=request.user.id,
-        username=request.user.username,
-        email=request.user.email,
-        is_social_only=is_social_only_user(request.user),
-        is_staff=request.user.is_staff,
+    return build_me(user=request.user)
+
+
+@auth_router.post(
+    "/me/contributor-agreement",
+    response={
+        200: ContributorAgreementStatusOut,
+        400: ErrorOut,
+        401: ErrorOut,
+        422: ErrorOut,
+        429: ErrorOut,
+    },
+    auth=JWTAuth(),
+    summary="Accept the current contributor agreement",
+)
+def accept_contributor_agreement(request, payload: ContributorAgreementIn):
+    """Record current agreement acceptance for the authenticated user.
+    Uses server-owned audit fields and is idempotent for repeated submissions."""
+    limited, retry_after = is_api_rate_limited(
+        request=request,
+        scope="api-auth-contributor-agreement",
+        max_requests=settings.API_RATE_LIMIT_WRITE_REQUESTS,
+    )
+    if limited:
+        return 429, ErrorOut(
+            message="Too many requests. Please try again later.",
+            details={"retry_after": retry_after},
+        )
+
+    agreement_error = validate_acceptance(
+        agreement_version=payload.contributor_agreement_version,
+        agreement_accepted=payload.contributor_agreement_accepted,
+    )
+    if agreement_error:
+        return 400, {"message": agreement_error}
+
+    record_current_acceptance(
+        user=request.user,
+        channel=ContributorAgreementAcceptance.Channel.API_EXISTING_USER,
+    )
+    return 200, ContributorAgreementStatusOut(
+        **current_agreement_status(user=request.user),
     )
 
 
@@ -351,13 +518,7 @@ def change_email(request, payload: ChangeEmailIn):
 
     request.user.email = normalized_email
     request.user.save(update_fields=["email"])
-    return 200, MeOut(
-        id=request.user.id,
-        username=request.user.username,
-        email=request.user.email,
-        is_social_only=is_social_only_user(request.user),
-        is_staff=request.user.is_staff,
-    )
+    return 200, build_me(user=request.user)
 
 
 @auth_router.put("/me/password", response={200: MessageOut, 400: ErrorOut, 403: ErrorOut}, auth=JWTAuth(), summary="Change password")

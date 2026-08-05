@@ -31,6 +31,8 @@ class TestFullApiWorkflow:
                 "username": "integration_user",
                 "email": "integration@example.com",
                 "password": "SecurePass123!",
+                "contributor_agreement_version": "1.0",
+                "contributor_agreement_accepted": True,
             }),
             content_type="application/json",
         )

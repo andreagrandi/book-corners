@@ -101,7 +101,9 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                 user = super().save_user(request, sociallogin, form=form)
             provider_id = sociallogin.account.provider
             via = _PROVIDER_LABELS.get(provider_id, provider_id.title())
-            notify_new_registration(user, via=via)
+            transaction.on_commit(
+                lambda user=user, via=via: notify_new_registration(user, via=via),
+            )
             return user
         except IntegrityError:
             # Another request created the user between our check and insert.
