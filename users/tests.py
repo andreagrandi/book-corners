@@ -375,6 +375,7 @@ class TestI18nLanguageSwitching:
         assert "Ultimo aggiornamento: 2 agosto 2026" in content
         assert "download completo riutilizzabile" in content
         assert "Database License (ODbL) v1.0" in content
+        assert "/contributor-agreement/" in content
         assert "Contribuire a OpenStreetMap" not in content
         assert "I dati del tuo account Book Corners" not in content
 
@@ -388,6 +389,7 @@ class TestI18nLanguageSwitching:
         assert "Last updated: 2nd August 2026" in content
         assert "reusable bulk download" in content
         assert "Open Database License (ODbL) v1.0" in content
+        assert "/contributor-agreement/" in content
         assert "Contributing to OpenStreetMap" not in content
         assert "Your Book Corners account details" not in content
 

@@ -144,11 +144,15 @@ The complete exported database is made available under the [Open Data Commons Op
 
 Consult the license text for the complete conditions.
 
-When attribution is required, credit both [Book Corners](https://bookcorners.org/) and [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), and link to the ODbL 1.0 license. For example:
+When attribution is required for the database, credit both [Book Corners](https://bookcorners.org/) and [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), and link to the ODbL 1.0 license. For example:
 
 > Contains information from the Book Corners approved library export, made available under ODbL 1.0. Attribution: Book Corners and OpenStreetMap contributors.
 
 ODbL covers the exported database, not independent rights in each linked image file. `photo_url` identifies media displayed by Book Corners; it does not grant permission to copy, redistribute, or relicense that image.
+
+The [Contributor Agreement v1.0](https://bookcorners.org/contributor-agreement/1.0/en/) selects [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) for Images contributed by a person who accepted that agreement. That image licence requires appropriate credit, a link to the licence, indication of changes, and share-alike treatment for adaptations where required. It is separate from the ODbL licence for the database.
+
+The export currently contains `photo_url` but does not provide per-image licence or contributor metadata. Do not assume that every linked image is available under CC BY-SA 4.0: imported images, legacy images without a matching agreement acceptance, and third-party images may have different rights or no reuse permission. Verify the applicable image rights before copying or redistributing an image.
 
 ## Report incorrect data
 

@@ -34,6 +34,7 @@ from libraries.sitemaps import LibrarySitemap, StaticViewSitemap
 from users.views import set_language_view
 from libraries.views import (
     about_page,
+    contributor_agreement_page,
     dashboard,
     edit_library,
     home,
@@ -77,6 +78,23 @@ urlpatterns = [
     ),
     path("about/", about_page, name="about_page"),
     path("privacy/", privacy_page, name="privacy_page"),
+    path(
+        "contributor-agreement/",
+        contributor_agreement_page,
+        name="contributor_agreement_page",
+    ),
+    path(
+        "contributor-agreement/1.0/en/",
+        contributor_agreement_page,
+        {"language": "en"},
+        name="contributor_agreement_1_0_en",
+    ),
+    path(
+        "contributor-agreement/1.0/it/",
+        contributor_agreement_page,
+        {"language": "it"},
+        name="contributor_agreement_1_0_it",
+    ),
     path("stats/", stats_page, name="stats_page"),
     path("map/", map_page, name="map_page"),
     path("map/libraries.geojson", map_libraries_geojson, name="map_libraries_geojson"),

@@ -2085,7 +2085,11 @@ msgstr "Legale"
 msgid "Privacy"
 msgstr "Privacy"
 
-#: templates/base.html:176
+#: templates/base.html:170
+msgid "Contributor agreement"
+msgstr "Accordo per i contributori"
+
+#: templates/base.html:177
 msgid "App"
 msgstr "App"
 

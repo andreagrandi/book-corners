@@ -18,7 +18,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext as _, override
 
 from libraries.clustering import CLUSTER_ZOOM_THRESHOLD, build_clustered_features, get_grid_size_for_zoom
 from libraries.forms import LibraryPhotoSubmissionForm, LibrarySearchForm, LibrarySubmissionForm, ReportSubmissionForm
@@ -943,6 +943,20 @@ def stats_page(request: HttpRequest) -> HttpResponse:
             "growth_chart_series": growth_chart_series,
         },
     )
+
+
+def contributor_agreement_page(
+    request: HttpRequest,
+    language: str | None = None,
+) -> HttpResponse:
+    """Render the immutable contributor agreement in a selected language.
+    Keeps the current alias and version-specific URLs stable for future acceptance records."""
+    selected_language = language or getattr(request, "LANGUAGE_CODE", "en")
+    if selected_language == "it":
+        with override("it"):
+            return render(request, "contributor_agreement/1.0/it.html")
+    with override("en"):
+        return render(request, "contributor_agreement/1.0/en.html")
 
 
 def privacy_page(request: HttpRequest) -> HttpResponse:
