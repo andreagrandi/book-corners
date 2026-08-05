@@ -13,7 +13,9 @@ Access tokens are short-lived (5 minutes). Refresh tokens last 365 days, so clie
 
 ## Endpoints
 
-The Contributor Agreement fields below are additive during the compatibility rollout. API credential registration and native social-account creation continue accepting legacy requests that omit them while `CONTRIBUTOR_AGREEMENT_REGISTRATION_REQUIRED=false` (the default). Valid explicit acceptance is recorded immediately. Enforcement must be enabled only after supported web and app clients have shipped the new flows. Browser registration and browser OAuth remain unchanged by this API-scoped feature.
+The Contributor Agreement fields below are additive during the compatibility rollout. API credential registration and native social-account creation continue accepting legacy requests that omit them while `CONTRIBUTOR_AGREEMENT_REGISTRATION_REQUIRED=false` (the default). Valid explicit acceptance is recorded immediately. Enforcement must be enabled only after supported web and app clients have shipped the new flows.
+
+Web password registration now requires explicit acceptance of the current agreement. Google and Apple buttons on the registration page preserve that signup intent through OAuth and record acceptance only when a new account is created. Social OAuth started from the login page continues to log in existing users without prompting or recording acceptance; a new identity is directed to the registration page instead. This web behavior does not enable API or native-app registration enforcement.
 
 ### Social Login
 

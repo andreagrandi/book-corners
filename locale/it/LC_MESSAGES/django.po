@@ -2726,6 +2726,31 @@ msgstr "Formato: GeoJSON"
 msgid "The library export is temporarily unavailable. Please try again later."
 msgstr "L'esportazione delle librerie non è temporaneamente disponibile. Riprova più tardi."
 
+#: users/adapters.py
+msgid "To create a new account with social login, start from registration and accept the contributor agreement."
+msgstr "Per creare un nuovo account con accesso social, inizia dalla registrazione e accetta l'accordo per i contributori."
+
+#: users/forms.py
+msgid "The contributor agreement has changed. Review and accept the current version."
+msgstr "L'accordo per i contributori è cambiato. Consulta e accetta la versione corrente."
+
+#: users/forms.py
+msgid "You must accept the contributor agreement to create an account."
+msgstr "Devi accettare l'accordo per i contributori per creare un account."
+
+#: users/templates/users/register.html
+msgid "The agreement lets Book Corners use and share the data and images you contribute. It applies to your contributions, not your account details."
+msgstr "L'accordo consente a Book Corners di utilizzare e condividere i dati e le immagini che fornisci. Si applica ai tuoi contributi, non ai dati del tuo account."
+
+#: users/templates/users/register.html
+msgid "I have read and accept the"
+msgstr "Ho letto e accetto"
+
+#: users/templates/users/register.html
+#, python-format
+msgid "Contributor Agreement v%(agreement_version)s"
+msgstr "Accordo per i contributori v%(agreement_version)s"
+
 #~ msgid "Your submissions"
 #~ msgstr "Le tue librerie"
 
