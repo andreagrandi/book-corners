@@ -1,6 +1,6 @@
 # Book Corners API
 
-Welcome to the **Book Corners API** — a REST API for discovering, submitting, and reporting little free libraries around the world.
+Welcome to the **Book Corners API** — a REST API for discovering, submitting, and reporting public bookcases around the world.
 
 ## Base URL
 

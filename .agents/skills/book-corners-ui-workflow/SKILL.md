@@ -29,6 +29,10 @@ Every user-facing string must be translatable.
 6. Run `python manage.py compilemessages`.
 7. Avoid `%(name)s` placeholders for JavaScript-only variables. Use `{name}` placeholders and JavaScript `.replace("{name}", value)` instead.
 
+## Terminology
+
+Follow the repository-wide trademark rule in `AGENTS.md`. In user-facing copy, use neutral terms such as “public bookcase”, “community bookcase”, “book exchange”, or “Book Corner”; never use “Little Free Library” generically.
+
 ## E2E Tests
 
 After changes that touch templates, views, JavaScript, HTMX interactions, URL routing, or static assets, run:

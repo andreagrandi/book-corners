@@ -14,7 +14,7 @@ api = NinjaAPI(
     title="Book Corners API",
     version="1.0.0",
     description=(
-        "REST API for discovering, submitting, and reporting little free libraries. "
+        "REST API for discovering, submitting, and reporting public bookcases. "
         "Provides geospatial search, user authentication, and community moderation workflows."
     ),
     servers=[

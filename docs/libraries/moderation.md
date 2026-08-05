@@ -63,7 +63,7 @@ Each item uses the standard library response fields plus `status`, `rejection_re
       "id": 42,
       "slug": "florence-via-rosina-15-corner-books",
       "name": "Corner Books",
-      "description": "A cozy little free library near the park entrance.",
+      "description": "A cozy community bookcase near the park entrance.",
       "photo_url": "/media/libraries/photos/corner-books.jpg",
       "thumbnail_url": "/media/libraries/thumbnails/corner-books.jpg",
       "lat": 43.7696,

@@ -28,7 +28,7 @@ class LibraryOut(Schema):
     id: int = Field(description="Unique library identifier.", examples=[42])
     slug: str = Field(description="URL-friendly unique slug.", examples=["berlin-friedrichstr-12-corner-books"])
     name: str = Field(description="Display name of the library.", examples=["Corner Books"])
-    description: str = Field(description="Free-text description of the library.", examples=["A cozy little free library near the park entrance."])
+    description: str = Field(description="Free-text description of the library.", examples=["A cozy community bookcase near the park entrance."])
     photo_url: str = Field(description="Full-size photo URL, or empty string if unavailable.", examples=["/media/libraries/photos/corner-books.jpg"])
     thumbnail_url: str = Field(description="Thumbnail photo URL, or empty string if unavailable.", examples=["/media/libraries/thumbnails/corner-books.jpg"])
     lat: float = Field(description="Latitude of the library location (WGS 84).", examples=[52.5200])
@@ -41,11 +41,11 @@ class LibraryOut(Schema):
     capacity: int | None = Field(description="Approximate book capacity.", examples=[50])
     is_indoor: bool | None = Field(description="Whether the library is inside a building.", examples=[False])
     is_lit: bool | None = Field(description="Whether the library is illuminated at night.", examples=[True])
-    website: str = Field(description="External website link.", examples=["https://littlefreelibrary.org/charter/12345"])
+    website: str = Field(description="External website link.", examples=["https://example.org/bookcases/12345"])
     contact: str = Field(description="Contact information (email, phone, etc.).", examples=["info@example.org"])
     source: str = Field(description="Data origin, e.g. OpenStreetMap.", examples=["OpenStreetMap"])
     operator: str = Field(description="Organisation that maintains the library.", examples=["City Library Association"])
-    brand: str = Field(description="Network or brand name.", examples=["Little Free Library"])
+    brand: str = Field(description="Network or brand name.", examples=["Local Book Exchange Network"])
     created_at: datetime = Field(description="Timestamp when the library was created (UTC).", examples=["2025-06-15T14:30:00Z"])
     is_favourited: bool = Field(default=False, description="Whether the current authenticated user has favourited this library. Always false for unauthenticated requests.", examples=[False])
 
@@ -516,7 +516,7 @@ class LibrarySubmitIn(Schema):
     Captures location and descriptive fields from authenticated users."""
 
     name: str = Field(default="", max_length=255, description="Display name of the library.", examples=["Corner Books"])
-    description: str = Field(default="", max_length=2000, description="Free-text description of the library.", examples=["A cozy little free library near the park entrance."])
+    description: str = Field(default="", max_length=2000, description="Free-text description of the library.", examples=["A cozy community bookcase near the park entrance."])
     address: str = Field(default="", max_length=255, description="Street address of the library. May be empty only when coordinates (latitude and longitude) are provided — e.g. libraries inside a park with no street address.", examples=["Friedrichstr. 12"])
     city: str = Field(max_length=100, description="City where the library is located.", examples=["Berlin"])
     country: str = Field(max_length=2, description="ISO 3166-1 alpha-2 country code.", examples=["DE"])
@@ -525,10 +525,10 @@ class LibrarySubmitIn(Schema):
     capacity: int | None = Field(default=None, ge=0, description="Approximate book capacity.", examples=[50])
     is_indoor: bool | None = Field(default=None, description="Whether the library is inside a building.", examples=[False])
     is_lit: bool | None = Field(default=None, description="Whether the library is illuminated at night.", examples=[True])
-    website: str = Field(default="", max_length=500, description="External website link.", examples=["https://littlefreelibrary.org/charter/12345"])
+    website: str = Field(default="", max_length=500, description="External website link.", examples=["https://example.org/bookcases/12345"])
     contact: str = Field(default="", max_length=255, description="Contact information (email, phone, etc.).", examples=["info@example.org"])
     operator: str = Field(default="", max_length=255, description="Organisation that maintains the library.", examples=["City Library Association"])
-    brand: str = Field(default="", max_length=255, description="Network or brand name.", examples=["Little Free Library"])
+    brand: str = Field(default="", max_length=255, description="Network or brand name.", examples=["Local Book Exchange Network"])
     latitude: float = Field(ge=-90, le=90, description="Latitude of the library (WGS 84).", examples=[52.5200])
     longitude: float = Field(ge=-180, le=180, description="Longitude of the library (WGS 84).", examples=[13.4050])
     osm_submission_allowed: bool = Field(
@@ -547,7 +547,7 @@ class LibraryUpdateIn(Schema):
     All fields are optional so omitted values keep their current value."""
 
     name: str | None = Field(default=None, max_length=255, description="Display name of the library.", examples=["Corner Books"])
-    description: str | None = Field(default=None, max_length=2000, description="Free-text description of the library.", examples=["A cozy little free library near the park entrance."])
+    description: str | None = Field(default=None, max_length=2000, description="Free-text description of the library.", examples=["A cozy community bookcase near the park entrance."])
     address: str | None = Field(default=None, max_length=255, description="Street address of the library. May be empty when coordinates identify the location.", examples=["Friedrichstr. 12"])
     city: str | None = Field(default=None, min_length=1, max_length=100, description="City where the library is located.", examples=["Berlin"])
     country: str | None = Field(default=None, min_length=2, max_length=2, description="ISO 3166-1 alpha-2 country code.", examples=["DE"])
@@ -556,10 +556,10 @@ class LibraryUpdateIn(Schema):
     capacity: int | None = Field(default=None, ge=0, description="Approximate book capacity.", examples=[50])
     is_indoor: bool | None = Field(default=None, description="Whether the library is inside a building.", examples=[False])
     is_lit: bool | None = Field(default=None, description="Whether the library is illuminated at night.", examples=[True])
-    website: str | None = Field(default=None, max_length=500, description="External website link.", examples=["https://littlefreelibrary.org/charter/12345"])
+    website: str | None = Field(default=None, max_length=500, description="External website link.", examples=["https://example.org/bookcases/12345"])
     contact: str | None = Field(default=None, max_length=255, description="Contact information (email, phone, etc.).", examples=["info@example.org"])
     operator: str | None = Field(default=None, max_length=255, description="Organisation that maintains the library.", examples=["City Library Association"])
-    brand: str | None = Field(default=None, max_length=255, description="Network or brand name.", examples=["Little Free Library"])
+    brand: str | None = Field(default=None, max_length=255, description="Network or brand name.", examples=["Local Book Exchange Network"])
     latitude: float | None = Field(default=None, ge=-90, le=90, description="Latitude of the library (WGS 84). Must be provided with longitude.", examples=[52.5200])
     longitude: float | None = Field(default=None, ge=-180, le=180, description="Longitude of the library (WGS 84). Must be provided with latitude.", examples=[13.4050])
 

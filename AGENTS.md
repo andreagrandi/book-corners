@@ -36,6 +36,11 @@ Do not start work from an old feature branch unless the user explicitly asks to 
 - Keep docstrings to exactly two lines: a concise summary sentence and one intent sentence.
 - Do not include args/kwargs/returns sections in docstrings.
 
+## Terminology
+
+- Never use “Little Free Library” as a generic term in project-authored copy, code, documentation, tests, fixtures, seed data, examples, placeholders, or metadata. Use neutral terms such as “public bookcase”, “community bookcase”, “book exchange”, or “Book Corner” instead.
+- Preserve the trademarked name only when it is genuine user-supplied or imported source data for an official branded location, or when code and tests must identify and filter that trademark explicitly. Do not rewrite stored source data automatically.
+
 ## Working tree hygiene (required)
 
 - Do not tell the user to run cleanup commands that the agent can run directly.

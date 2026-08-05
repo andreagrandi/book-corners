@@ -82,8 +82,8 @@ msgid "Organisation managing this library"
 msgstr "Organizzazione che gestisce questa libreria"
 
 #: libraries/forms.py:194
-msgid "e.g. Little Free Library"
-msgstr "es. Little Free Library"
+msgid "e.g. Local book exchange network"
+msgstr "es. Rete locale per lo scambio di libri"
 
 #: libraries/forms.py:202 manage/forms.py:122
 msgid "Latitude must be between -90 and 90."
@@ -536,6 +536,16 @@ msgstr "Tocca l'icona del cuore su qualsiasi libreria per salvarla qui."
 msgid "Explore libraries"
 msgstr "Esplora le librerie"
 
+#: libraries/templates/libraries/library_detail.html:53
+msgid "A community bookcase."
+msgstr "Una casetta dei libri della comunità."
+
+#: libraries/templates/libraries/library_detail.html:5
+#: libraries/templates/libraries/library_detail.html:8
+#, python-format
+msgid "Visit this public bookcase at %(address)s, %(city)s on Book Corners."
+msgstr "Visita questa casetta dei libri in %(address)s, %(city)s su Book Corners."
+
 #: libraries/templates/libraries/library_detail.html:56
 msgid "Address:"
 msgstr "Indirizzo:"
@@ -625,7 +635,7 @@ msgid "Map"
 msgstr "Mappa"
 
 #: libraries/templates/libraries/map.html:5
-msgid "Explore the Book Corners map to find little free libraries near you and across nearby cities."
+msgid "Explore the Book Corners map to find public bookcases near you and across nearby cities."
 msgstr "Esplora la mappa di Book Corners per trovare casette dei libri vicino a te e nelle città limitrofe."
 
 #: libraries/templates/libraries/map.html:55
@@ -731,7 +741,7 @@ msgid "Search"
 msgstr "Cerca"
 
 #: libraries/templates/libraries/search.html:5
-msgid "Search little free libraries by keywords, city, country, postcode, and proximity filters."
+msgid "Search public bookcases by keywords, city, country, postcode, and proximity filters."
 msgstr "Cerca casette dei libri per parole chiave, città, paese, CAP e filtri di prossimità."
 
 #: libraries/templates/libraries/search.html:11
@@ -967,11 +977,11 @@ msgid "Saved marker loaded. Drag it or click the map to adjust the location."
 msgstr "Marker salvato caricato. Trascinalo o fai clic sulla mappa per regolare la posizione."
 
 #: libraries/views.py:829
-msgid "Share a little free library with the community. Set the exact point on the map before submitting."
+msgid "Share a public bookcase with the community. Set the exact point on the map before submitting."
 msgstr "Condividi una casetta dei libri con la community. Imposta il punto esatto sulla mappa prima di inviare."
 
 #: libraries/views.py:830
-msgid "Submit a little free library to Book Corners with a photo, location, and address details."
+msgid "Submit a public bookcase to Book Corners with a photo, location, and address details."
 msgstr "Invia una casetta dei libri a Book Corners con foto, posizione e dettagli dell'indirizzo."
 
 #: libraries/views.py:831
@@ -1790,7 +1800,7 @@ msgid "About Book Corners"
 msgstr "Chi siamo"
 
 #: templates/about.html:18
-msgid "Book Corners is a community map for little free libraries and neighborhood book exchange spots. The goal is simple: help people discover nearby places where they can leave a book or pick one up."
+msgid "Book Corners is a community map for public bookcases and neighborhood book exchange spots. The goal is simple: help people discover nearby places where they can leave a book or pick one up."
 msgstr "Book Corners è una mappa comunitaria per casette dei libri e punti di scambio libri di quartiere. L'obiettivo è semplice: aiutare le persone a scoprire luoghi vicini dove lasciare o prendere un libro."
 
 #: templates/about.html:21
@@ -2084,7 +2094,7 @@ msgid "Download on the App Store"
 msgstr "Scarica dall'App Store"
 
 #: templates/home.html:5
-msgid "Discover and share little free libraries in your neighborhood with Book Corners."
+msgid "Discover and share public bookcases in your neighborhood with Book Corners."
 msgstr "Scopri e condividi casette dei libri nel tuo quartiere con Book Corners."
 
 #: templates/home.html:11
@@ -2732,6 +2742,3 @@ msgstr "L'esportazione delle librerie non è temporaneamente disponibile. Riprov
 
 #~ msgid "Track the moderation status of the libraries you submitted."
 #~ msgstr "Segui lo stato di moderazione delle librerie che hai inviato."
-
-#~ msgid "Share your first little free library to start your dashboard history."
-#~ msgstr "Condividi la tua prima casetta dei libri per iniziare la cronologia della bacheca."

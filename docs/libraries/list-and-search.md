@@ -114,7 +114,7 @@ Find libraries within 5 km of a point:
       "id": 42,
       "slug": "berlin-friedrichstr-12-corner-books",
       "name": "Corner Books",
-      "description": "A cozy little free library near the park entrance.",
+      "description": "A cozy community bookcase near the park entrance.",
       "photo_url": "/media/libraries/photos/corner-books.jpg",
       "thumbnail_url": "/media/libraries/thumbnails/corner-books.jpg",
       "lat": 52.52,
@@ -131,7 +131,7 @@ Find libraries within 5 km of a point:
       "contact": "",
       "source": "",
       "operator": "",
-      "brand": "Little Free Library",
+      "brand": "Local Book Exchange Network",
       "created_at": "2025-06-15T14:30:00Z",
       "is_favourited": false
     }
@@ -192,7 +192,7 @@ Return the most recently approved libraries as a flat list (no pagination).
       "id": 42,
       "slug": "berlin-friedrichstr-12-corner-books",
       "name": "Corner Books",
-      "description": "A cozy little free library near the park entrance.",
+      "description": "A cozy community bookcase near the park entrance.",
       "photo_url": "/media/libraries/photos/corner-books.jpg",
       "thumbnail_url": "/media/libraries/thumbnails/corner-books.jpg",
       "lat": 52.52,
@@ -209,7 +209,7 @@ Return the most recently approved libraries as a flat list (no pagination).
       "contact": "",
       "source": "",
       "operator": "",
-      "brand": "Little Free Library",
+      "brand": "Local Book Exchange Network",
       "created_at": "2025-06-15T14:30:00Z",
       "is_favourited": false
     }

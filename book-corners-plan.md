@@ -1,6 +1,6 @@
 # Book Corners — Project Plan
 
-> A community-driven directory of little free libraries: those small book exchange spots
+> A community-driven directory of public bookcases: those small book exchange spots
 > found in public spaces where you can leave or take a book for free.
 
 **Status:** Draft — iterate and refine as needed.

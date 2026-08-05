@@ -866,8 +866,8 @@ def submit_library(request: HttpRequest) -> HttpResponse:
             "form": form,
             "is_edit_mode": False,
             "form_heading": _("Submit a library"),
-            "form_intro": _("Share a little free library with the community. Set the exact point on the map before submitting."),
-            "form_meta_description": _("Submit a little free library to Book Corners with a photo, location, and address details."),
+            "form_intro": _("Share a public bookcase with the community. Set the exact point on the map before submitting."),
+            "form_meta_description": _("Submit a public bookcase to Book Corners with a photo, location, and address details."),
             "form_button_label": _("Submit library"),
             "photo_label": _("Photo (required)"),
             "photo_help": _(

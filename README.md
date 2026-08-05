@@ -1,8 +1,8 @@
 # Book Corners
 
-A community-driven directory of little free libraries — those small book exchange spots found in public spaces where you can leave or take a book for free.
+A community-driven directory of public bookcases — those small book exchange spots found in public spaces where you can leave or take a book for free.
 
-Book Corners lets anyone discover nearby little free libraries on an interactive map, submit new ones with photo and location, and report issues to keep the directory accurate.
+Book Corners lets anyone discover nearby public bookcases on an interactive map, submit new ones with photo and location, and report issues to keep the directory accurate.
 
 **Live site:** [bookcorners.org](https://bookcorners.org)
 **API docs:** [developers.bookcorners.org](https://developers.bookcorners.org)
