@@ -10,6 +10,8 @@ from ninja_jwt.tokens import RefreshToken
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount, SocialLogin
 
+from users.models import ContributorAgreementAcceptance
+
 User = get_user_model()
 
 
@@ -49,6 +51,8 @@ class TestAuthAPI:
                 "username": "newuser",
                 "password": "newpass123",
                 "email": "newuser@example.com",
+                "contributor_agreement_version": "1.0",
+                "contributor_agreement_accepted": True,
             },
             content_type="application/json",
         )
@@ -165,6 +169,8 @@ class TestAuthAPI:
                 "username": "weakuser",
                 "password": "12345678",
                 "email": "weakuser@example.com",
+                "contributor_agreement_version": "1.0",
+                "contributor_agreement_accepted": True,
             },
             content_type="application/json",
         )
@@ -183,6 +189,8 @@ class TestAuthAPI:
                 "username": "invalidemailuser",
                 "password": "StrongPass123!",
                 "email": "not-an-email",
+                "contributor_agreement_version": "1.0",
+                "contributor_agreement_accepted": True,
             },
             content_type="application/json",
         )
@@ -260,6 +268,8 @@ class TestAuthAPI:
         assert body["email"] == user.email
         assert body["is_social_only"] is False
         assert body["is_staff"] is False
+        assert body["contributor_agreement"]["current_version"] == "1.0"
+        assert body["contributor_agreement"]["is_current"] is False
 
     def test_me_returns_staff_status_for_admin(self, client, admin_user):
         """Verify me returns staff status for staff users.
@@ -309,12 +319,18 @@ class TestSocialLoginAPI:
 
         response = client.post(
             "/api/v1/auth/social",
-            data={"provider": "apple", "id_token": "a]" * 20},
+            data={
+                "provider": "apple",
+                "id_token": "a]" * 20,
+                "contributor_agreement_version": "1.0",
+                "contributor_agreement_accepted": True,
+            },
             content_type="application/json",
         )
 
         body = response.json()
         assert response.status_code == 200
+        assert body["account_created"] is True
         assert "access" in body
         assert "refresh" in body
         assert User.objects.filter(email="apple@example.com").exists()
@@ -329,12 +345,18 @@ class TestSocialLoginAPI:
 
         response = client.post(
             "/api/v1/auth/social",
-            data={"provider": "google", "id_token": "g" * 40},
+            data={
+                "provider": "google",
+                "id_token": "g" * 40,
+                "contributor_agreement_version": "1.0",
+                "contributor_agreement_accepted": True,
+            },
             content_type="application/json",
         )
 
         body = response.json()
         assert response.status_code == 200
+        assert body["account_created"] is True
         assert "access" in body
         assert "refresh" in body
         assert User.objects.filter(email="google@example.com").exists()
@@ -388,8 +410,12 @@ class TestSocialLoginAPI:
 
         body = response.json()
         assert response.status_code == 200
+        assert body["account_created"] is False
         assert "access" in body
         assert User.objects.filter(email="apple@example.com").count() == 1
+        assert not ContributorAgreementAcceptance.objects.filter(
+            user=existing_user,
+        ).exists()
 
     @patch("allauth.socialaccount.providers.apple.provider.AppleProvider.verify_token")
     def test_social_login_links_to_existing_email_user(self, mock_verify, client):
@@ -410,8 +436,12 @@ class TestSocialLoginAPI:
 
         body = response.json()
         assert response.status_code == 200
+        assert body["account_created"] is False
         assert "access" in body
         assert User.objects.filter(email="shared@example.com").count() == 1
+        assert not ContributorAgreementAcceptance.objects.filter(
+            user=existing_user,
+        ).exists()
         assert SocialAccount.objects.filter(
             provider="apple", uid="apple-uid-link", user=existing_user,
         ).exists()
@@ -439,12 +469,22 @@ class TestSocialLoginAPI:
 
         first_response = client.post(
             "/api/v1/auth/social",
-            data={"provider": "apple", "id_token": "a" * 40},
+            data={
+                "provider": "apple",
+                "id_token": "a" * 40,
+                "contributor_agreement_version": "1.0",
+                "contributor_agreement_accepted": True,
+            },
             content_type="application/json",
         )
         second_response = client.post(
             "/api/v1/auth/social",
-            data={"provider": "apple", "id_token": "a" * 40},
+            data={
+                "provider": "apple",
+                "id_token": "a" * 40,
+                "contributor_agreement_version": "1.0",
+                "contributor_agreement_accepted": True,
+            },
             content_type="application/json",
         )
 
@@ -467,6 +507,8 @@ class TestSocialLoginAPI:
                 "id_token": "a" * 40,
                 "first_name": "Jane",
                 "last_name": "Doe",
+                "contributor_agreement_version": "1.0",
+                "contributor_agreement_accepted": True,
             },
             content_type="application/json",
         )

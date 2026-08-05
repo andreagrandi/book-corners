@@ -31,6 +31,67 @@ class User(AbstractUser):
         super().save(*args, **kwargs)
 
 
+class ContributorAgreementAcceptance(models.Model):
+    """Immutable record of one contributor agreement acceptance.
+    Retains version, timestamp, and channel evidence independently of the user profile."""
+
+    class Channel(models.TextChoices):
+        """Server-controlled channels that can create acceptance records.
+        Keeps audit provenance explicit without trusting request input."""
+
+        API_CREDENTIAL_REGISTRATION = (
+            "api_credential_registration",
+            "API credential registration",
+        )
+        API_SOCIAL_APPLE = "api_social_apple", "API Apple registration"
+        API_SOCIAL_GOOGLE = "api_social_google", "API Google registration"
+        API_EXISTING_USER = "api_existing_user", "API existing-user acceptance"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="contributor_agreement_acceptances",
+    )
+    agreement_version = models.CharField(max_length=32)
+    accepted_at = models.DateTimeField(auto_now_add=True)
+    channel = models.CharField(max_length=40, choices=Channel.choices)
+
+    class Meta:
+        db_table = "contributor_agreement_acceptances"
+        ordering = ["-accepted_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "agreement_version"],
+                name="unique_user_agreement_version",
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["agreement_version", "-accepted_at"],
+                name="idx_agreement_version_time",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        """Return a readable acceptance audit label.
+        Includes the agreement version and channel without exposing unnecessary data."""
+        return f"{self.agreement_version} ({self.channel})"
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        """Prevent updates to an existing acceptance record.
+        Preserves the original audit fields after the initial write."""
+        if not self._state.adding:
+            raise ValueError("Contributor agreement acceptances are immutable.")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
+        """Prevent direct deletion of an acceptance record.
+        Preserves audit evidence through normal application code paths."""
+        raise ValueError("Contributor agreement acceptances cannot be deleted.")
+
+
 class DeviceToken(models.Model):
     """APNs device token registered by an authenticated user.
     Tracks environment and lifecycle data for server-side push delivery."""

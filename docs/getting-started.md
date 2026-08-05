@@ -12,7 +12,9 @@ This guide walks you through registering an account, obtaining a JWT token, and 
       -d '{
         "username": "janedoe",
         "email": "jane@example.com",
-        "password": "s3cure!Pass"
+        "password": "s3cure!Pass",
+        "contributor_agreement_version": "1.0",
+        "contributor_agreement_accepted": true
       }'
     ```
 
@@ -27,6 +29,8 @@ This guide walks you through registering an account, obtaining a JWT token, and 
             "username": "janedoe",
             "email": "jane@example.com",
             "password": "s3cure!Pass",
+            "contributor_agreement_version": "1.0",
+            "contributor_agreement_accepted": True,
         },
     )
     tokens = resp.json()
@@ -70,7 +74,12 @@ Use the `access` token in the `Authorization` header:
 {
   "id": 1,
   "username": "janedoe",
-  "email": "jane@example.com"
+  "email": "jane@example.com",
+  "contributor_agreement": {
+    "current_version": "1.0",
+    "agreement_url": "https://bookcorners.org/contributor-agreement/1.0/en/",
+    "is_current": true
+  }
 }
 ```
 

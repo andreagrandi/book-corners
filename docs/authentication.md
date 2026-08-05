@@ -13,13 +13,15 @@ Access tokens are short-lived (5 minutes). Refresh tokens last 365 days, so clie
 
 ## Endpoints
 
+The Contributor Agreement fields below are additive during the compatibility rollout. API credential registration and native social-account creation continue accepting legacy requests that omit them while `CONTRIBUTOR_AGREEMENT_REGISTRATION_REQUIRED=false` (the default). Valid explicit acceptance is recorded immediately. Enforcement must be enabled only after supported web and app clients have shipped the new flows. Browser registration and browser OAuth remain unchanged by this API-scoped feature.
+
 ### Social Login
 
 `POST /api/v1/auth/social`
 
 Exchange a native Apple or Google identity token for a JWT token pair. Designed for iOS/Android apps that authenticate via native SDKs (Sign in with Apple, Google Sign-In).
 
-On first sign-in, a new user account is created automatically. If the email matches an existing account, the social identity is linked to it. Subsequent logins return tokens for the existing user.
+On first sign-in, a new user account records Contributor Agreement acceptance when the request explicitly sends the current version and `true`. During the default compatibility rollout, legacy requests without acceptance still create an unaccepted account; after enforcement is deliberately enabled, missing, false, or stale acceptance is rejected. If the email matches an existing account, the social identity is linked without requiring or recording acceptance. Subsequent logins return tokens for the existing user. The response includes `account_created` so clients can distinguish these paths.
 
 **Auth required:** No
 
@@ -29,6 +31,8 @@ On first sign-in, a new user account is created automatically. If the email matc
 | `id_token` | string | Yes | Identity token JWT from the native SDK (min 20 characters) |
 | `first_name` | string | No | First name (Apple only provides on first sign-in, max 150 characters) |
 | `last_name` | string | No | Last name (Apple only provides on first sign-in, max 150 characters) |
+| `contributor_agreement_version` | string | No during rollout; required after activation | Exact current version, currently `"1.0"` |
+| `contributor_agreement_accepted` | boolean | No during rollout; required after activation | JSON boolean `true`; strings and numbers are not accepted |
 
 === "curl"
 
@@ -39,7 +43,9 @@ On first sign-in, a new user account is created automatically. If the email matc
         "provider": "apple",
         "id_token": "eyJraWQiOiJBSURPUEsxIi...",
         "first_name": "Jane",
-        "last_name": "Doe"
+        "last_name": "Doe",
+        "contributor_agreement_version": "1.0",
+        "contributor_agreement_accepted": true
       }'
     ```
 
@@ -50,7 +56,9 @@ On first sign-in, a new user account is created automatically. If the email matc
         "provider": "apple",
         "id_token": identityToken,
         "first_name": fullName?.givenName ?? "",
-        "last_name": fullName?.familyName ?? ""
+        "last_name": fullName?.familyName ?? "",
+        "contributor_agreement_version": "1.0",
+        "contributor_agreement_accepted": true
     ]
     var request = URLRequest(url: URL(string: "https://bookcorners.org/api/v1/auth/social")!)
     request.httpMethod = "POST"
@@ -63,9 +71,12 @@ On first sign-in, a new user account is created automatically. If the email matc
 ```json
 {
   "access": "eyJhbGciOiJIUzI1NiIs...",
-  "refresh": "eyJhbGciOiJIUzI1NiIs..."
+  "refresh": "eyJhbGciOiJIUzI1NiIs...",
+  "account_created": true
 }
 ```
+
+`account_created` is `false` when an existing linked identity is logged in or a verified social email is linked to an existing account.
 
 **Errors:**
 
@@ -73,6 +84,9 @@ On first sign-in, a new user account is created automatically. If the email matc
 |--------|---------|
 | `400` | `"Unsupported provider. Use 'apple' or 'google'."` |
 | `400` | `"Invalid identity token."` |
+| `400` | `"Contributor agreement acceptance is required."` when enforcement is enabled |
+| `400` | `"Contributor agreement acceptance must be true."` when enforcement is enabled |
+| `400` | `"Contributor agreement version is not current."` when enforcement is enabled |
 | `429` | `"Too many social login attempts. Please try again later."` |
 
 ---
@@ -81,7 +95,7 @@ On first sign-in, a new user account is created automatically. If the email matc
 
 `POST /api/v1/auth/register`
 
-Create a new user account and receive a token pair.
+Create a new user account and receive a token pair. The agreement fields are optional while backward-compatible rollout mode is active. A valid current acceptance is recorded when supplied; an omitted, false, or stale value creates an unaccepted account until enforcement is explicitly enabled.
 
 **Auth required:** No
 
@@ -90,6 +104,8 @@ Create a new user account and receive a token pair.
 | `username` | string | Yes | Unique username (3–150 characters) |
 | `email` | string | Yes | Valid email address |
 | `password` | string | Yes | Password (8–128 characters, validated against Django password policies) |
+| `contributor_agreement_version` | string | No during rollout; required after activation | Exact current version, currently `"1.0"` |
+| `contributor_agreement_accepted` | boolean | No during rollout; required after activation | JSON boolean `true`; strings and numbers are not accepted |
 
 === "curl"
 
@@ -99,7 +115,9 @@ Create a new user account and receive a token pair.
       -d '{
         "username": "janedoe",
         "email": "jane@example.com",
-        "password": "s3cure!Pass"
+        "password": "s3cure!Pass",
+        "contributor_agreement_version": "1.0",
+        "contributor_agreement_accepted": true
       }'
     ```
 
@@ -114,6 +132,8 @@ Create a new user account and receive a token pair.
             "username": "janedoe",
             "email": "jane@example.com",
             "password": "s3cure!Pass",
+            "contributor_agreement_version": "1.0",
+            "contributor_agreement_accepted": True,
         },
     )
     print(resp.json())
@@ -136,6 +156,10 @@ Create a new user account and receive a token pair.
 | `400` | `"Email already exists."` |
 | `400` | `"Provide a valid email address."` |
 | `400` | Password policy violation message |
+| `400` | `"Contributor agreement acceptance is required."` when enforcement is enabled |
+| `400` | `"Contributor agreement acceptance must be true."` when enforcement is enabled |
+| `400` | `"Contributor agreement version is not current."` when enforcement is enabled |
+| `422` | Agreement value is present but not a JSON boolean |
 | `429` | `"Too many registration attempts. Please try again later."` |
 
 ---
@@ -295,7 +319,12 @@ Return the profile of the currently authenticated user.
   "username": "janedoe",
   "email": "jane@example.com",
   "is_social_only": false,
-  "is_staff": false
+  "is_staff": false,
+  "contributor_agreement": {
+    "current_version": "1.0",
+    "agreement_url": "https://bookcorners.org/contributor-agreement/1.0/en/",
+    "is_current": true
+  }
 }
 ```
 
@@ -306,12 +335,64 @@ Return the profile of the currently authenticated user.
 | `email` | string | Email address |
 | `is_social_only` | boolean | `true` when the account uses social login only (Apple/Google) and has no local password. Email and password change endpoints are unavailable for these accounts. |
 | `is_staff` | boolean | `true` when the account can access staff-only moderation endpoints. |
+| `contributor_agreement.current_version` | string | Current deployed agreement version. |
+| `contributor_agreement.agreement_url` | string | Absolute URL for the immutable current agreement copy. |
+| `contributor_agreement.is_current` | boolean | Whether this user accepted the current version. Missing or older acceptance returns `false`. |
 
 **Errors:**
 
 | Status | Message |
 |--------|---------|
 | `401` | Unauthorized (missing or invalid token) |
+
+---
+
+### Accept Contributor Agreement
+
+`POST /api/v1/auth/me/contributor-agreement`
+
+Record explicit acceptance of the current Contributor Agreement for the authenticated user. Existing users and users created through an older flow can use this endpoint. Repeating the same request is idempotent and does not change the original timestamp or channel.
+
+The endpoint accepts only the exact current version and the JSON boolean `true`. The server derives the user, timestamp, and audit channel; fields such as `user_id`, `accepted_at`, and `channel` are never accepted from the client.
+
+**Auth required:** Yes (`Bearer` token)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `contributor_agreement_version` | string | Yes | Exact current version, currently `"1.0"` |
+| `contributor_agreement_accepted` | boolean | Yes | Must be the JSON boolean `true` |
+
+=== "curl"
+
+    ```bash
+    curl -X POST https://bookcorners.org/api/v1/auth/me/contributor-agreement \
+      -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
+      -H "Content-Type: application/json" \
+      -d '{
+        "contributor_agreement_version": "1.0",
+        "contributor_agreement_accepted": true
+      }'
+    ```
+
+**Success** (`200 OK`):
+
+```json
+{
+  "current_version": "1.0",
+  "agreement_url": "https://bookcorners.org/contributor-agreement/1.0/en/",
+  "is_current": true
+}
+```
+
+**Errors:**
+
+| Status | Message |
+|--------|---------|
+| `400` | `"Contributor agreement acceptance must be true."` |
+| `400` | `"Contributor agreement version is not current."` |
+| `401` | Unauthorized (missing or invalid token) |
+| `422` | Missing or non-boolean agreement fields |
+| `429` | `"Too many requests. Please try again later."` |
 
 ---
 
@@ -444,7 +525,14 @@ Update the authenticated user's email address. The new email must be a valid, un
 {
   "id": 1,
   "username": "janedoe",
-  "email": "new@example.com"
+  "email": "new@example.com",
+  "is_social_only": false,
+  "is_staff": false,
+  "contributor_agreement": {
+    "current_version": "1.0",
+    "agreement_url": "https://bookcorners.org/contributor-agreement/1.0/en/",
+    "is_current": true
+  }
 }
 ```
 

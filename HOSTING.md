@@ -174,6 +174,7 @@ sudo dokku config:set --no-restart book-corners \
   DJANGO_SESSION_COOKIE_SECURE="true" \
   DJANGO_CSRF_COOKIE_SECURE="true" \
   DJANGO_SECURE_HSTS_SECONDS="31536000" \
+  CONTRIBUTOR_AGREEMENT_REGISTRATION_REQUIRED="false" \
   LIBRARY_EXPORT_DELIVERY_ENABLED="false" \
   NOMINATIM_USER_AGENT="bookcorners.org/1.0"
 ```
@@ -181,6 +182,8 @@ sudo dokku config:set --no-restart book-corners \
 Use `--no-restart` before the first deploy to avoid restart errors when no container exists yet.
 
 Keep `LIBRARY_EXPORT_DELIVERY_ENABLED` set to `false` until the initial artifact and privacy review described in [DEPLOYMENT.md](DEPLOYMENT.md#library-bulk-export-operations) are complete. The setting controls authenticated website and API delivery only; the scheduled generator continues to run while delivery is disabled.
+
+Keep `CONTRIBUTOR_AGREEMENT_REGISTRATION_REQUIRED` set to `false` throughout the additive backend, web, and app rollout. Enable it only through the reviewed [contributor agreement rollout procedure](DEPLOYMENT.md#contributor-agreement-rollout); setting it back to `false` immediately restores legacy registration compatibility.
 
 ### OpenStreetMap duplicate checks (optional)
 

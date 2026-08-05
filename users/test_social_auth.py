@@ -767,26 +767,41 @@ class TestRegistrationNotificationProviderLabel:
         )
         return SocialAccountAdapter().save_user(request, sociallogin)
 
-    def test_google_signup_labels_notification_as_google_oauth(self, rf, settings):
+    def test_google_signup_labels_notification_as_google_oauth(
+        self,
+        rf,
+        settings,
+        django_capture_on_commit_callbacks,
+    ):
         """A Google sociallogin produces a 'Google OAuth' registration method.
         Ensures backwards-compatible label for Google signups."""
         from django.core import mail
 
         settings.ADMIN_NOTIFICATION_EMAIL = "admin@example.com"
-        self._run_save_user(
-            rf, provider="google", email="g@example.com", uid="g-uid-1",
-        )
+        with django_capture_on_commit_callbacks(execute=True):
+            self._run_save_user(
+                rf, provider="google", email="g@example.com", uid="g-uid-1",
+            )
         assert len(mail.outbox) == 1
         assert "Registration method: Google OAuth" in mail.outbox[0].body
 
-    def test_apple_signup_labels_notification_as_apple_sign_in(self, rf, settings):
+    def test_apple_signup_labels_notification_as_apple_sign_in(
+        self,
+        rf,
+        settings,
+        django_capture_on_commit_callbacks,
+    ):
         """An Apple sociallogin produces an 'Apple Sign In' registration method.
         Prevents Apple signups from being misreported as Google OAuth."""
         from django.core import mail
 
         settings.ADMIN_NOTIFICATION_EMAIL = "admin@example.com"
-        self._run_save_user(
-            rf, provider="apple", email="a@privaterelay.appleid.com", uid="a-uid-1",
-        )
+        with django_capture_on_commit_callbacks(execute=True):
+            self._run_save_user(
+                rf,
+                provider="apple",
+                email="a@privaterelay.appleid.com",
+                uid="a-uid-1",
+            )
         assert len(mail.outbox) == 1
         assert "Registration method: Apple Sign In" in mail.outbox[0].body

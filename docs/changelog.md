@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- API account registration and native social-account creation now accept optional versioned Contributor Agreement fields and record valid explicit acceptance. Legacy clients remain compatible by default; rejecting missing, false, or stale acceptance is protected by the default-off `CONTRIBUTOR_AGREEMENT_REGISTRATION_REQUIRED` rollout switch. Acceptance records retain the exact version, server timestamp, user linkage, and server-selected channel; existing users receive no inferred acceptance and can accept through `POST /api/v1/auth/me/contributor-agreement`.
+- Authenticated `GET /api/v1/auth/me` responses expose the current agreement version, immutable public URL, and whether the user is current. Native social responses include `account_created` to distinguish new registration from existing login.
 - The public Contributor Agreement v1.0 documents the ODbL-compatible data grant, CC BY-SA 4.0 image licence, attribution and reuse requirements, agreement-version changes, account deletion effects, and possible OpenStreetMap reuse without promising any write-back.
 - Authenticated users can download the complete approved-library GeoJSON export and its metadata through `GET /api/v1/libraries/export/latest.geojson` and `GET /api/v1/libraries/export/metadata.json` with a JWT Bearer token. Current immutable artifact URLs are also available through the API.
 - `GET /api/v1/libraries/export/latest.geojson.gz` provides the recommended precompressed download while the raw GeoJSON endpoint remains available.

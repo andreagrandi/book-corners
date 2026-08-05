@@ -157,6 +157,30 @@ Candidate files are validated before publication and `latest.json` is swapped at
 
 Do not copy a retained historical file over the active filenames. Delivery trusts only the validated files named by `latest.json`, and a fresh successful run is the normal recovery path.
 
+## Contributor agreement rollout
+
+Contributor agreement registration enforcement is deliberately separate from deploying the storage and API contract. The safe production default is:
+
+```bash
+sudo dokku config:set book-corners CONTRIBUTOR_AGREEMENT_REGISTRATION_REQUIRED=false
+```
+
+With the setting disabled, legacy credential and native social registration requests continue working. Valid current acceptance sent by updated clients is recorded, while missing, false, or stale acceptance creates an unaccepted account instead of rejecting registration.
+
+Do not enable enforcement until the epic readiness checklist is complete: the web flow is deployed, the supported iOS release is available, old and new client payloads have been tested, monitoring is ready, and the minimum supported app-version policy is agreed. Enabling enforcement is a separate scheduled operational action:
+
+```bash
+sudo dokku config:set book-corners CONTRIBUTOR_AGREEMENT_REGISTRATION_REQUIRED=true
+```
+
+Immediately monitor credential registration, Apple/Google account creation, and validation errors. If existing clients fail or the readiness assumptions are wrong, restore compatibility without rolling back the database migration:
+
+```bash
+sudo dokku config:set book-corners CONTRIBUTOR_AGREEMENT_REGISTRATION_REQUIRED=false
+```
+
+Disabling enforcement does not delete or alter acceptance records already collected. Contribution enforcement, legacy holds, and outreach require their own independent default-off controls and must never be activated implicitly with registration enforcement.
+
 ## Rollback
 
 ### Revert to the previous release
