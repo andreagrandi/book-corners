@@ -64,7 +64,7 @@ If you're the owner of a pending library, include your `Authorization: Bearer` h
   "id": 42,
   "slug": "berlin-friedrichstr-12-corner-books",
   "name": "Corner Books",
-  "description": "A cozy little free library near the park entrance.",
+  "description": "A cozy community bookcase near the park entrance.",
   "photo_url": "/media/libraries/photos/corner-books.jpg",
   "thumbnail_url": "/media/libraries/thumbnails/corner-books.jpg",
   "lat": 52.52,
@@ -77,11 +77,11 @@ If you're the owner of a pending library, include your `Authorization: Bearer` h
   "capacity": 50,
   "is_indoor": false,
   "is_lit": true,
-  "website": "https://littlefreelibrary.org/charter/12345",
+  "website": "https://example.org/bookcases/12345",
   "contact": "info@example.org",
   "source": "OpenStreetMap",
   "operator": "City Library Association",
-  "brand": "Little Free Library",
+  "brand": "Local Book Exchange Network",
   "created_at": "2025-06-15T14:30:00Z",
   "is_favourited": false
 }

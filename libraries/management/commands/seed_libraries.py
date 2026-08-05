@@ -255,7 +255,7 @@ class Command(BaseCommand):
 
             name = f"{rng.choice(LIBRARY_NAME_PREFIXES)} {rng.choice(LIBRARY_NAME_SUFFIXES)}"
             description = (
-                f"A community little free library in {city_spec.city}, maintained by local "
+                f"A community bookcase in {city_spec.city}, maintained by local "
                 f"volunteers near {street}."
             )
 
@@ -329,7 +329,7 @@ class Command(BaseCommand):
         draw = ImageDraw.Draw(image)
 
         draw.rectangle((60, 60, 1140, 840), outline=(245, 245, 245), width=5)
-        draw.text((100, 120), "Little Free Library", fill=(250, 250, 250))
+        draw.text((100, 120), "Community Bookcase", fill=(250, 250, 250))
         draw.text((100, 170), f"{city}, {country}", fill=(250, 250, 250))
         draw.text((100, 220), f"Seed image #{index}", fill=(250, 250, 250))
 

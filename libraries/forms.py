@@ -191,7 +191,7 @@ class LibrarySubmissionForm(forms.ModelForm):
         })
         self.fields["brand"].widget.attrs.update({
             "class": "input w-full",
-            "placeholder": _("e.g. Little Free Library"),
+            "placeholder": _("e.g. Local book exchange network"),
         })
 
     def clean_latitude(self) -> float:

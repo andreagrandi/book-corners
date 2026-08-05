@@ -1,6 +1,6 @@
 site_name: Book Corners API
 site_url: https://developers.bookcorners.org/
-site_description: REST API documentation for the Book Corners little free library platform.
+site_description: REST API documentation for the Book Corners public bookcase platform.
 
 theme:
   name: material

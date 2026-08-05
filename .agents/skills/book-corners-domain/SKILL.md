@@ -14,9 +14,9 @@ Book Corners is a Django 6 project with PostGIS geospatial data.
 Apps:
 
 - `users`: custom `AbstractUser` model configured as `AUTH_USER_MODEL = "users.User"`.
-- `libraries`: core little free library domain.
+- `libraries`: core public bookcase domain.
 
-The `Library` model stores little free library locations with a PostGIS `PointField` using SRID 4326. The `Report` model tracks user-submitted issues about libraries.
+The `Library` model stores public bookcase locations with a PostGIS `PointField` using SRID 4326. The `Report` model tracks user-submitted issues about libraries.
 
 Library and report moderation use status workflows managed through Django admin actions, including approving or rejecting libraries and resolving or dismissing reports.
 

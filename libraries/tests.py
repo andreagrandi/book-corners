@@ -247,7 +247,7 @@ class TestLibraryModel:
             contact="info@example.org",
             source="OpenStreetMap",
             operator="City Library Association",
-            brand="Little Free Library",
+            brand="Local Book Exchange Network",
             created_by=user,
         )
 
@@ -265,7 +265,7 @@ class TestLibraryModel:
         assert library.contact == "info@example.org"
         assert library.source == "OpenStreetMap"
         assert library.operator == "City Library Association"
-        assert library.brand == "Little Free Library"
+        assert library.brand == "Local Book Exchange Network"
 
     def test_wheelchair_accessible_choices_validation(self, user):
         """Verify wheelchair_accessible accepts only valid choices.
@@ -1449,9 +1449,9 @@ class TestSeoMetadata:
         """Verify public pages expose custom meta descriptions for SEO.
         Ensures each page-level template override is visible in HTML output."""
         expected_descriptions = {
-            reverse("home"): "Discover and share little free libraries in your neighborhood with Book Corners.",
+            reverse("home"): "Discover and share public bookcases in your neighborhood with Book Corners.",
             reverse("about_page"): "Learn the mission behind Book Corners and how to contribute new neighborhood library entries.",
-            reverse("map_page"): "Explore the Book Corners map to find little free libraries near you and across nearby cities.",
+            reverse("map_page"): "Explore the Book Corners map to find public bookcases near you and across nearby cities.",
             reverse("login"): "Log in to Book Corners to submit libraries, report issues, and manage your contributions.",
             reverse("register"): "Create a Book Corners account to add new libraries and keep local entries up to date.",
             reverse("submit_library_confirmation"): "Your library submission was received and is now waiting for moderation approval on Book Corners.",
@@ -1469,7 +1469,7 @@ class TestSeoMetadata:
         client.force_login(user)
         expected_descriptions = {
             reverse("dashboard"): "Review your submitted libraries, reports, community photos, and moderation statuses from your dashboard.",
-            reverse("submit_library"): "Submit a little free library to Book Corners with a photo, location, and address details.",
+            reverse("submit_library"): "Submit a public bookcase to Book Corners with a photo, location, and address details.",
         }
 
         for url, description in expected_descriptions.items():
@@ -1483,7 +1483,7 @@ class TestSeoMetadata:
         Ensures social sharing cards can render title, description, and image."""
         library = Library.objects.create(
             name="Canal Shelf",
-            description="Waterproof little free library with family picks.",
+            description="Waterproof community bookcase with family picks.",
             photo="libraries/photos/2026/02/detail-og.jpg",
             location=Point(x=4.9041, y=52.3676, srid=4326),
             address="Prinsengracht 140",
@@ -1500,7 +1500,7 @@ class TestSeoMetadata:
         assert '<meta property="og:type" content="article">' in content
         assert '<meta property="og:title" content="Canal Shelf - Book Corners">' in content
         assert (
-            '<meta property="og:description" content="Waterproof little free library with family picks.">'
+            '<meta property="og:description" content="Waterproof community bookcase with family picks.">'
             in content
         )
         assert '<meta property="og:image" content="http://testserver/' in content
@@ -2342,7 +2342,7 @@ class TestLibraryDetailView:
         Confirms the expected behavior stays stable."""
         library = Library.objects.create(
             name="Canal Book Corner",
-            description="Waterproof little free library with kid-friendly picks.",
+            description="Waterproof community bookcase with kid-friendly picks.",
             photo="libraries/photos/2026/02/detail.jpg",
             location=Point(x=4.9041, y=52.3676, srid=4326),
             address="Prinsengracht 140",
@@ -2358,7 +2358,7 @@ class TestLibraryDetailView:
         content = response.content.decode()
         assert response.status_code == 200
         assert "Canal Book Corner" in content
-        assert "Waterproof little free library with kid-friendly picks." in content
+        assert "Waterproof community bookcase with kid-friendly picks." in content
         assert "Prinsengracht 140" in content
         assert "City:</span> Amsterdam" in content
         assert "Country:</span> NL" in content
@@ -2448,7 +2448,7 @@ class TestLibraryDetailView:
         Confirms the expected behavior stays stable."""
         library = Library.objects.create(
             name="Reportable Library",
-            description="A popular little free library.",
+            description="A popular community bookcase.",
             photo="libraries/photos/2026/02/reportable.jpg",
             location=Point(x=2.3522, y=48.8566, srid=4326),
             address="Rue de Rivoli 20",
@@ -3255,10 +3255,15 @@ class TestSubmitLibraryView:
         assert "Postal code (optional)" in content
         assert "Photo (required)" in content
         assert "Upload a clear photo showing the library" in content
+        assert "Little Free Library" not in content
         assert "id=\"photo-preview-container\"" in content
         assert "id=\"osm-contribution-notice\"" not in content
         assert "factual location data from approved submissions" not in content
         assert response.context["form"].fields["photo"].required is True
+        assert (
+            response.context["form"].fields["brand"].widget.attrs["placeholder"]
+            == "e.g. Local book exchange network"
+        )
 
         country_position = content.find(">Country<")
         city_position = content.find(">City<")

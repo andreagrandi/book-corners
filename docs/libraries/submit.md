@@ -39,7 +39,7 @@ Submit a new library location with a photo. The library starts in **pending** st
     curl -X POST https://bookcorners.org/api/v1/libraries/ \
       -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
       -F "name=Corner Books" \
-      -F "description=A cozy little free library near the park entrance." \
+      -F "description=A cozy community bookcase near the park entrance." \
       -F "address=Friedrichstr. 12" \
       -F "city=Berlin" \
       -F "country=DE" \
@@ -60,7 +60,7 @@ Submit a new library location with a photo. The library starts in **pending** st
         headers={"Authorization": f"Bearer {access_token}"},
         data={
             "name": "Corner Books",
-            "description": "A cozy little free library near the park entrance.",
+            "description": "A cozy community bookcase near the park entrance.",
             "address": "Friedrichstr. 12",
             "city": "Berlin",
             "country": "DE",
@@ -81,7 +81,7 @@ Submit a new library location with a photo. The library starts in **pending** st
   "id": 42,
   "slug": "berlin-friedrichstr-12-corner-books",
   "name": "Corner Books",
-  "description": "A cozy little free library near the park entrance.",
+  "description": "A cozy community bookcase near the park entrance.",
   "photo_url": "/media/libraries/photos/2025/06/corner-books.jpg",
   "thumbnail_url": "/media/libraries/thumbnails/2025/06/corner-books.jpg",
   "lat": 52.52,

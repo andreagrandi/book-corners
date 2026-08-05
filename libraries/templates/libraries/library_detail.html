@@ -2,10 +2,10 @@
 {% load static i18n l10n %}
 
 {% block title %}{{ library.name|default:library.address }} - Book Corners{% endblock %}
-{% block meta_description %}{% if library.description %}{{ library.description|truncatechars:150 }}{% else %}Visit this little free library at {{ library.address }}, {{ library.city }} on Book Corners.{% endif %}{% endblock %}
+{% block meta_description %}{% if library.description %}{{ library.description|truncatechars:150 }}{% else %}{% blocktrans with address=library.address city=library.city %}Visit this public bookcase at {{ address }}, {{ city }} on Book Corners.{% endblocktrans %}{% endif %}{% endblock %}
 {% block og_type %}article{% endblock %}
 {% block og_title %}{{ library.name|default:library.address }} - Book Corners{% endblock %}
-{% block og_description %}{% if library.description %}{{ library.description|truncatechars:150 }}{% else %}Visit this little free library at {{ library.address }}, {{ library.city }} on Book Corners.{% endif %}{% endblock %}
+{% block og_description %}{% if library.description %}{{ library.description|truncatechars:150 }}{% else %}{% blocktrans with address=library.address city=library.city %}Visit this public bookcase at {{ address }}, {{ city }} on Book Corners.{% endblocktrans %}{% endif %}{% endblock %}
 {% block og_extra %}
   {% if library.photo %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ library.photo.url }}">{% endif %}
 {% endblock %}
@@ -50,7 +50,7 @@
             {% include "libraries/_favourite_button.html" with library=library is_favourited=is_favourited %}
           {% endif %}
         </div>
-        <p class="mt-2 text-base-content/80">{{ library.description|default:"A community little free library." }}</p>
+        <p class="mt-2 text-base-content/80">{% if library.description %}{{ library.description }}{% else %}{% trans "A community bookcase." %}{% endif %}</p>
 
         <div class="mt-4 space-y-2 text-sm sm:text-base">
           {% if library.address %}<p><span class="font-semibold">{% trans "Address:" %}</span> {{ library.address }}</p>{% endif %}
