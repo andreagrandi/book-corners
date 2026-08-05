@@ -28,6 +28,7 @@ from libraries.image_processing import (
     ensure_instagram_aspect_ratio,
 )
 from libraries.models import Library, LibraryPhoto, MAX_LIBRARY_PHOTOS_PER_USER, Report
+from libraries.sitemaps import StaticViewSitemap
 
 User = get_user_model()
 
@@ -1416,6 +1417,66 @@ class TestAboutPageTemplate:
         assert "href=\"/map/\"" in content
         assert "href=\"/submit/\"" in content
         assert "https://github.com/andreagrandi/book-corners" in content
+
+
+class TestContributorAgreementPage:
+    def test_english_version_is_permanent_and_explicit_about_osm(self, client):
+        """Verify the immutable English agreement URL renders version 1.0.
+        Ensures the page states licensing terms without promising OSM write-back."""
+        response = client.get(reverse("contributor_agreement_1_0_en"))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert 'lang="en"' in content
+        assert "Contributor Agreement" in content
+        assert "Version 1.0" in content
+        assert "Effective date: 5 August 2026" in content
+        assert "CC BY-SA 4.0" in content
+        assert "does not require Book Corners" in content
+        assert "guarantees that an edit will happen" in content
+
+    def test_italian_version_is_permanent_and_localized(self, client):
+        """Verify the immutable Italian agreement URL renders translated content.
+        Confirms version, date, image licence, and explicit OSM wording are present."""
+        response = client.get(reverse("contributor_agreement_1_0_it"))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert 'lang="it"' in content
+        assert "Accordo per i contributori" in content
+        assert "Versione 1.0" in content
+        assert "Data di entrata in vigore: 5 agosto 2026" in content
+        assert "CC BY-SA 4.0" in content
+        assert "Non obbliga Book Corners" in content
+        assert "garantisce che una modifica avvenga" in content
+
+    def test_current_agreement_alias_follows_language_cookie(self, client):
+        """Verify the current agreement alias follows the active language.
+        Keeps one stable URL usable by both English and Italian visitors."""
+        english_response = client.get(reverse("contributor_agreement_page"))
+        assert "Contributor Agreement" in english_response.content.decode()
+
+        client.cookies.load({django_settings.LANGUAGE_COOKIE_NAME: "it"})
+        italian_response = client.get(reverse("contributor_agreement_page"))
+        assert "Accordo per i contributori" in italian_response.content.decode()
+
+    def test_agreement_is_discoverable_in_footer_and_sitemap(self, client):
+        """Verify the current agreement is linked and indexed as a public page.
+        Prevents the permanent legal document from becoming difficult to find."""
+        response = client.get(reverse("contributor_agreement_page"))
+
+        assert response.status_code == 200
+        assert 'href="/contributor-agreement/"' in response.content.decode()
+        assert "contributor_agreement_page" in StaticViewSitemap().items()
+
+    @pytest.mark.django_db
+    def test_sitemap_renders_the_current_agreement_route(self, client):
+        """Verify the sitemap renders with the agreement route included.
+        Confirms the public legal page can be discovered by crawlers."""
+        response = client.get(reverse("sitemap"))
+
+        assert response.status_code == 200
+        assert "/contributor-agreement/" in response.content.decode()
 
 
 class TestPrivacyPage:

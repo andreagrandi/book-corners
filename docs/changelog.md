@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The public Contributor Agreement v1.0 documents the ODbL-compatible data grant, CC BY-SA 4.0 image licence, attribution and reuse requirements, agreement-version changes, account deletion effects, and possible OpenStreetMap reuse without promising any write-back.
 - Authenticated users can download the complete approved-library GeoJSON export and its metadata through `GET /api/v1/libraries/export/latest.geojson` and `GET /api/v1/libraries/export/metadata.json` with a JWT Bearer token. Current immutable artifact URLs are also available through the API.
 - `GET /api/v1/libraries/export/latest.geojson.gz` provides the recommended precompressed download while the raw GeoJSON endpoint remains available.
 - API descriptions, examples, and documentation now use neutral public-bookcase terminology while preserving genuine source-provided brand data.

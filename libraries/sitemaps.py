@@ -21,6 +21,7 @@ class StaticViewSitemap(Sitemap):
             "about_page",
             "map_page",
             "privacy_page",
+            "contributor_agreement_page",
             "stats_page",
         ]
 
