@@ -3,7 +3,7 @@
   "info": {
     "title": "Book Corners API",
     "version": "1.0.0",
-    "description": "REST API for discovering, submitting, and reporting little free libraries. Provides geospatial search, user authentication, and community moderation workflows."
+    "description": "REST API for discovering, submitting, and reporting public bookcases. Provides geospatial search, user authentication, and community moderation workflows."
   },
   "paths": {
     "/api/v1/auth/social": {
@@ -832,7 +832,7 @@
                     "default": "",
                     "description": "Free-text description of the library.",
                     "examples": [
-                      "A cozy little free library near the park entrance."
+                      "A cozy community bookcase near the park entrance."
                     ],
                     "maxLength": 2000,
                     "title": "Description",
@@ -936,7 +936,7 @@
                     "default": "",
                     "description": "External website link.",
                     "examples": [
-                      "https://littlefreelibrary.org/charter/12345"
+                      "https://example.org/bookcases/12345"
                     ],
                     "maxLength": 500,
                     "title": "Website",
@@ -966,7 +966,7 @@
                     "default": "",
                     "description": "Network or brand name.",
                     "examples": [
-                      "Little Free Library"
+                      "Local Book Exchange Network"
                     ],
                     "maxLength": 255,
                     "title": "Brand",
@@ -2571,7 +2571,7 @@
                     ],
                     "description": "Free-text description of the library.",
                     "examples": [
-                      "A cozy little free library near the park entrance."
+                      "A cozy community bookcase near the park entrance."
                     ],
                     "title": "Description"
                   },
@@ -2715,7 +2715,7 @@
                     ],
                     "description": "External website link.",
                     "examples": [
-                      "https://littlefreelibrary.org/charter/12345"
+                      "https://example.org/bookcases/12345"
                     ],
                     "title": "Website"
                   },
@@ -2763,7 +2763,7 @@
                     ],
                     "description": "Network or brand name.",
                     "examples": [
-                      "Little Free Library"
+                      "Local Book Exchange Network"
                     ],
                     "title": "Brand"
                   },
@@ -3845,7 +3845,7 @@
           "description": {
             "description": "Free-text description of the library.",
             "examples": [
-              "A cozy little free library near the park entrance."
+              "A cozy community bookcase near the park entrance."
             ],
             "title": "Description",
             "type": "string"
@@ -3970,7 +3970,7 @@
           "website": {
             "description": "External website link.",
             "examples": [
-              "https://littlefreelibrary.org/charter/12345"
+              "https://example.org/bookcases/12345"
             ],
             "title": "Website",
             "type": "string"
@@ -4002,7 +4002,7 @@
           "brand": {
             "description": "Network or brand name.",
             "examples": [
-              "Little Free Library"
+              "Local Book Exchange Network"
             ],
             "title": "Brand",
             "type": "string"
@@ -4146,7 +4146,7 @@
           "description": {
             "description": "Free-text description of the library.",
             "examples": [
-              "A cozy little free library near the park entrance."
+              "A cozy community bookcase near the park entrance."
             ],
             "title": "Description",
             "type": "string"
@@ -4271,7 +4271,7 @@
           "website": {
             "description": "External website link.",
             "examples": [
-              "https://littlefreelibrary.org/charter/12345"
+              "https://example.org/bookcases/12345"
             ],
             "title": "Website",
             "type": "string"
@@ -4303,7 +4303,7 @@
           "brand": {
             "description": "Network or brand name.",
             "examples": [
-              "Little Free Library"
+              "Local Book Exchange Network"
             ],
             "title": "Brand",
             "type": "string"
@@ -4380,7 +4380,7 @@
             "default": "",
             "description": "Free-text description of the library.",
             "examples": [
-              "A cozy little free library near the park entrance."
+              "A cozy community bookcase near the park entrance."
             ],
             "maxLength": 2000,
             "title": "Description",
@@ -4484,7 +4484,7 @@
             "default": "",
             "description": "External website link.",
             "examples": [
-              "https://littlefreelibrary.org/charter/12345"
+              "https://example.org/bookcases/12345"
             ],
             "maxLength": 500,
             "title": "Website",
@@ -4514,7 +4514,7 @@
             "default": "",
             "description": "Network or brand name.",
             "examples": [
-              "Little Free Library"
+              "Local Book Exchange Network"
             ],
             "maxLength": 255,
             "title": "Brand",
@@ -4766,7 +4766,7 @@
           "description": {
             "description": "Free-text description of the library.",
             "examples": [
-              "A cozy little free library near the park entrance."
+              "A cozy community bookcase near the park entrance."
             ],
             "title": "Description",
             "type": "string"
@@ -4891,7 +4891,7 @@
           "website": {
             "description": "External website link.",
             "examples": [
-              "https://littlefreelibrary.org/charter/12345"
+              "https://example.org/bookcases/12345"
             ],
             "title": "Website",
             "type": "string"
@@ -4923,7 +4923,7 @@
           "brand": {
             "description": "Network or brand name.",
             "examples": [
-              "Little Free Library"
+              "Local Book Exchange Network"
             ],
             "title": "Brand",
             "type": "string"
@@ -5441,7 +5441,7 @@
           "description": {
             "description": "Free-text description of the library.",
             "examples": [
-              "A cozy little free library near the park entrance."
+              "A cozy community bookcase near the park entrance."
             ],
             "title": "Description",
             "type": "string"
@@ -5566,7 +5566,7 @@
           "website": {
             "description": "External website link.",
             "examples": [
-              "https://littlefreelibrary.org/charter/12345"
+              "https://example.org/bookcases/12345"
             ],
             "title": "Website",
             "type": "string"
@@ -5598,7 +5598,7 @@
           "brand": {
             "description": "Network or brand name.",
             "examples": [
-              "Little Free Library"
+              "Local Book Exchange Network"
             ],
             "title": "Brand",
             "type": "string"
@@ -6243,7 +6243,7 @@
             ],
             "description": "Free-text description of the library.",
             "examples": [
-              "A cozy little free library near the park entrance."
+              "A cozy community bookcase near the park entrance."
             ],
             "title": "Description"
           },
@@ -6387,7 +6387,7 @@
             ],
             "description": "External website link.",
             "examples": [
-              "https://littlefreelibrary.org/charter/12345"
+              "https://example.org/bookcases/12345"
             ],
             "title": "Website"
           },
@@ -6435,7 +6435,7 @@
             ],
             "description": "Network or brand name.",
             "examples": [
-              "Little Free Library"
+              "Local Book Exchange Network"
             ],
             "title": "Brand"
           },
