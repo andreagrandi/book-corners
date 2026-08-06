@@ -25,6 +25,8 @@ class TestAuthPages:
                 "email": "newmember@example.com",
                 "password1": "SecretPass123!",
                 "password2": "SecretPass123!",
+                "contributor_agreement_version": "1.0",
+                "contributor_agreement_accepted": True,
             },
             follow=True,
         )
@@ -212,6 +214,8 @@ class TestEmailUniqueness:
                 "email": "Taken@Example.COM",
                 "password1": "SecretPass123!",
                 "password2": "SecretPass123!",
+                "contributor_agreement_version": "1.0",
+                "contributor_agreement_accepted": True,
             },
         )
         assert response.status_code == 200

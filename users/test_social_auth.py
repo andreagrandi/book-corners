@@ -14,6 +14,7 @@ from allauth.socialaccount.helpers import complete_social_login
 from allauth.socialaccount.models import SocialAccount, SocialLogin
 
 from users.adapters import _generate_username
+from users.contributor_agreements import web_social_registration_state_data
 
 User = get_user_model()
 
@@ -54,6 +55,16 @@ def _google_sociallogin(request, email, uid, extra_data=None):
         email_addresses=[email_obj],
         provider=provider,
     )
+
+
+def _mark_web_social_registration(*, sociallogin, provider="google"):
+    """Attach valid per-flow web registration acceptance to a social login.
+    Mirrors the state restored by allauth after the provider callback."""
+    sociallogin.state = {
+        "process": "login",
+        "data": web_social_registration_state_data(provider=provider),
+    }
+    return sociallogin
 
 
 def _stash_callback_state(client):
@@ -158,11 +169,11 @@ class TestGoogleButtonVisibleWhenEnabled:
         assert "Continue with Google" in content
 
     def test_register_page_google_form_posts_to_correct_url(self, client, db):
-        """The Google login form on register posts to the allauth provider URL.
-        Ensures consistent OAuth entry point from both pages."""
+        """The Google signup button posts to the agreement-gated start URL.
+        Ensures registration intent is distinct from the ordinary login path."""
         response = client.get(reverse("register"))
         content = response.content.decode()
-        assert 'action="/accounts/google/login/"' in content
+        assert 'formaction="/register/social/google/"' in content
 
     def test_login_page_shows_divider(self, client, db):
         """The login page shows an 'or' divider between form and Google button.
@@ -261,6 +272,8 @@ class TestExistingAuthFlowsStillWork:
                 "email": "new@example.com",
                 "password1": "Str0ngP@ss!",
                 "password2": "Str0ngP@ss!",
+                "contributor_agreement_version": "1.0",
+                "contributor_agreement_accepted": True,
             },
             follow=True,
         )
@@ -444,8 +457,12 @@ class TestGoogleFirstSignup:
         Confirms the auto-signup flow works end-to-end."""
         request = _sociallogin_request(rf)
         initial_count = User.objects.count()
-        sociallogin = _google_sociallogin(
-            request, email="newgoogle@example.com", uid="google-uid-001"
+        sociallogin = _mark_web_social_registration(
+            sociallogin=_google_sociallogin(
+                request,
+                email="newgoogle@example.com",
+                uid="google-uid-001",
+            ),
         )
         with request_context(request):
             complete_social_login(request, sociallogin)
@@ -460,8 +477,12 @@ class TestGoogleFirstSignup:
         """The request user is authenticated after completing signup.
         Users should be logged in immediately after Google OAuth."""
         request = _sociallogin_request(rf)
-        sociallogin = _google_sociallogin(
-            request, email="authcheck@example.com", uid="google-uid-002"
+        sociallogin = _mark_web_social_registration(
+            sociallogin=_google_sociallogin(
+                request,
+                email="authcheck@example.com",
+                uid="google-uid-002",
+            ),
         )
         with request_context(request):
             complete_social_login(request, sociallogin)
@@ -685,11 +706,11 @@ class TestAppleButtonVisibleWhenEnabled:
         assert "Continue with Apple" in content
 
     def test_register_page_apple_form_posts_to_correct_url(self, client, db):
-        """The Apple login form on register posts to the allauth provider URL.
-        Ensures consistent OAuth entry point from both pages."""
+        """The Apple signup button posts to the agreement-gated start URL.
+        Ensures registration intent is distinct from the ordinary login path."""
         response = client.get(reverse("register"))
         content = response.content.decode()
-        assert 'action="/accounts/apple/login/"' in content
+        assert 'formaction="/register/social/apple/"' in content
 
 
 class TestAppleButtonHiddenWhenDisabled:

@@ -1,12 +1,23 @@
 import re
 import unicodedata
 
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
+from django.shortcuts import redirect
+from django.utils.translation import gettext as _
 
 from allauth.account.adapter import DefaultAccountAdapter
+from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from allauth.socialaccount.providers.base import AuthProcess
 
+from users.contributor_agreements import (
+    WEB_SOCIAL_REGISTRATION_CHANNELS,
+    WEB_SOCIAL_REGISTRATION_FLOW,
+    record_current_acceptance,
+    validate_web_social_registration_state,
+)
 from users.notifications import notify_new_registration
 
 User = get_user_model()
@@ -81,9 +92,39 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
     """Custom social account adapter for Google and Apple sign-in.
     Normalizes emails and allows social signup."""
 
+    def pre_social_login(self, request, sociallogin):
+        """Require valid signup intent only when OAuth would create a web account.
+        Leaves existing login, account connection, and redirect processes unchanged."""
+        super().pre_social_login(request, sociallogin)
+        process = sociallogin.state.get("process", AuthProcess.LOGIN)
+        if process != AuthProcess.LOGIN or sociallogin.is_existing:
+            return
+        agreement_error = validate_web_social_registration_state(
+            state=sociallogin.state,
+            provider=sociallogin.account.provider,
+        )
+        if agreement_error:
+            messages.error(
+                request,
+                _(
+                    "To create a new account with social login, start from registration and accept the contributor agreement."
+                ),
+            )
+            raise ImmediateHttpResponse(redirect("register"))
+
     def is_open_for_signup(self, request, sociallogin):
-        """Allow new users to sign up via any configured social provider."""
-        return True
+        """Allow new web social signups only with valid stashed acceptance.
+        Keeps non-login allauth processes and direct adapter compatibility intact."""
+        if sociallogin is None:
+            return super().is_open_for_signup(request, sociallogin)
+        process = sociallogin.state.get("process", AuthProcess.LOGIN)
+        if process != AuthProcess.LOGIN:
+            return super().is_open_for_signup(request, sociallogin)
+        agreement_error = validate_web_social_registration_state(
+            state=sociallogin.state,
+            provider=sociallogin.account.provider,
+        )
+        return agreement_error is None
 
     def populate_user(self, request, sociallogin, data):
         """Normalize email to lowercase before allauth processes it.
@@ -94,12 +135,30 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         return user
 
     def save_user(self, request, sociallogin, form=None):
-        """Save a new social signup inside a transaction.
-        Recovers from race conditions on email or username collisions."""
+        """Save a new social signup and any explicit web acceptance atomically.
+        Recovers from races while leaving native API acceptance to its own contract."""
+        provider_id = sociallogin.account.provider
+        state_data = sociallogin.state.get("data")
+        is_web_registration = (
+            isinstance(state_data, dict)
+            and state_data.get("flow") == WEB_SOCIAL_REGISTRATION_FLOW
+        )
+        if is_web_registration:
+            agreement_error = validate_web_social_registration_state(
+                state=sociallogin.state,
+                provider=provider_id,
+            )
+            if agreement_error:
+                raise ValueError(agreement_error)
+
         try:
             with transaction.atomic():
                 user = super().save_user(request, sociallogin, form=form)
-            provider_id = sociallogin.account.provider
+                if is_web_registration:
+                    record_current_acceptance(
+                        user=user,
+                        channel=WEB_SOCIAL_REGISTRATION_CHANNELS[provider_id],
+                    )
             via = _PROVIDER_LABELS.get(provider_id, provider_id.title())
             transaction.on_commit(
                 lambda user=user, via=via: notify_new_registration(user, via=via),

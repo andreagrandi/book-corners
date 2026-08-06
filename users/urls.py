@@ -7,10 +7,16 @@ from users.views import (
     login_view,
     logout_view,
     register_view,
+    social_register_view,
 )
 
 urlpatterns = [
     path("register/", register_view, name="register"),
+    path(
+        "register/social/<str:provider_id>/",
+        social_register_view,
+        name="social_register",
+    ),
     path("login/", login_view, name="login"),
     path("logout/", logout_view, name="logout"),
     path("account/email/", change_email_view, name="change_email"),
