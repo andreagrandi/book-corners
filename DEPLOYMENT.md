@@ -157,35 +157,6 @@ Candidate files are validated before publication and `latest.json` is swapped at
 
 Do not copy a retained historical file over the active filenames. Delivery trusts only the validated files named by `latest.json`, and a fresh successful run is the normal recovery path.
 
-## One-time public dataset email
-
-Deploying the command and its delivery-record migration sends no email. The command is intentionally absent from Dokku cron and predeploy configuration and must be run manually from the VPS.
-
-Preview the final recipient counts, sender, reply address, individual-recipient policy, subject, and complete body without sending or recording anything:
-
-```bash
-sudo dokku run book-corners python manage.py send_public_dataset_email
-```
-
-After reviewing that output, start the production run explicitly:
-
-```bash
-sudo dokku run book-corners python manage.py send_public_dataset_email --send
-```
-
-The command prints the same preview again and sends only after the operator types the exact confirmation `SEND`. Each accepted address receives a separate message with one `To` recipient and no CC or BCC. Blank or invalid account addresses are reported but do not prevent delivery to other users.
-
-Successful deliveries are recorded per account. Repeating the command skips those accounts and retries only failed or previously unsent recipients. The command continues after individual provider failures, reports them at the end, and exits non-zero when any delivery fails. A PostgreSQL advisory lock prevents two production runs from overlapping.
-
-The default sender is `Book Corners <info@bookcorners.org>` and replies always route to `info@bookcorners.org`. If the provider rejects that sender, configure a provider-approved address before retrying:
-
-```bash
-sudo dokku config:set book-corners \
-  'PUBLIC_DATASET_EMAIL_FROM=Book Corners <verified-sender@bookcorners.org>'
-```
-
-Review the command preview again after changing the sender. The contact address remains visible in the message body and fixed as Reply-To even when this fallback is required. The `--send` mode refuses Django's console email backend so console output cannot be mistaken for successful delivery.
-
 ## Contributor agreement rollout
 
 Contributor agreement registration enforcement is deliberately separate from deploying the storage and API contract. The safe production default is:
