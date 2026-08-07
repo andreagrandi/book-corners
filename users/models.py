@@ -98,28 +98,6 @@ class ContributorAgreementAcceptance(models.Model):
         raise ValueError("Contributor agreement acceptances cannot be deleted.")
 
 
-class PublicDatasetEmailDelivery(models.Model):
-    """Record one successful public-dataset email delivery.
-    Prevents duplicate sends when the one-time command is retried."""
-
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="public_dataset_email_delivery",
-    )
-    recipient_email = models.EmailField()
-    sent_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = "public_dataset_email_deliveries"
-        ordering = ["sent_at"]
-
-    def __str__(self) -> str:
-        """Return a concise delivery audit label.
-        Identifies the account and successful delivery time."""
-        return f"{self.user} at {self.sent_at}"
-
-
 class DeviceToken(models.Model):
     """APNs device token registered by an authenticated user.
     Tracks environment and lifecycle data for server-side push delivery."""
