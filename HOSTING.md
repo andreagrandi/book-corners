@@ -255,10 +255,11 @@ The command validates the token against the Graph API before storing it. Use `--
 ```bash
 sudo dokku config:set book-corners \
   RESEND_API_KEY="<your-resend-api-key>" \
-  ADMIN_NOTIFICATION_EMAIL="<admin-email-address>"
+  ADMIN_NOTIFICATION_EMAIL="<admin-email-address>" \
+  'PUBLIC_DATASET_EMAIL_FROM=Book Corners <info@bookcorners.org>'
 ```
 
-Admin notifications are sent when new libraries are submitted. Falls back to console output if not configured.
+Admin notifications are sent when new libraries are submitted. Falls back to console output if not configured. `PUBLIC_DATASET_EMAIL_FROM` is dedicated to the reviewed one-time public-dataset email and does not change the sender used by routine notifications.
 
 ### Sentry error tracking (optional)
 

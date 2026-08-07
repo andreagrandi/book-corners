@@ -383,6 +383,10 @@ OSM_DUPLICATE_CHECK_MAX_AGE_SECONDS = _env_int(
 # Email notifications (Resend)
 ADMIN_NOTIFICATION_EMAIL = os.environ.get("ADMIN_NOTIFICATION_EMAIL", "")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Book Corners <noreply@bookcorners.org>")
+PUBLIC_DATASET_EMAIL_FROM = os.environ.get(
+    "PUBLIC_DATASET_EMAIL_FROM",
+    "Book Corners <info@bookcorners.org>",
+)
 SITE_URL = os.environ.get("SITE_URL", "http://localhost:8000")
 
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
