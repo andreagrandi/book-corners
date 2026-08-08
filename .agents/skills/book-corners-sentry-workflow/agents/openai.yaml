@@ -1,0 +1,4 @@
+interface:
+  display_name: "Book Corners Sentry"
+  short_description: "Inspect Sentry issues safely with Sentire"
+  default_prompt: "Use $book-corners-sentry-workflow to inspect this Sentry issue URL and explain the failure."
