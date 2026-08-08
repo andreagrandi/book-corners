@@ -994,6 +994,13 @@ class TestParseResponse:
         Prevents crashes from unexpected model output."""
         assert _parse_response("not json at all") is None
 
+    @patch("libraries.social.image_ai.logger.exception")
+    def test_null_content_returns_none_without_exception_log(self, mock_log_exception):
+        """Verify a null model response returns None without logging an exception.
+        Handles successful provider responses that omit assistant text."""
+        assert _parse_response(None) is None
+        mock_log_exception.assert_not_called()
+
     def test_missing_keys_returns_empty(self):
         """Verify missing keys result in empty defaults.
         Handles partial model responses."""
