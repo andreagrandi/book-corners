@@ -9,6 +9,7 @@ Use these repo skills for detailed workflows:
 - `book-corners-issues` — GitHub issue creation and Book Corners project fields.
 - `book-corners-ui-workflow` — templates, views, forms, JavaScript, HTMX, static assets, CSS, browser checks, and translations.
 - `book-corners-api-workflow` — API endpoints, schemas, search behavior, API docs, and docs changelog.
+- `book-corners-sentry-workflow` — Sentry issue and event inspection with the read-only Sentire CLI.
 - `book-corners-ops-workflow` — deployment, hosting, environment config, Dokku, Grafana Loki, and production debugging.
 - `book-corners-local-dev` — local services, tests, migrations, CSS, seed data, dev server, and docs commands.
 - `book-corners-domain` — Django/PostGIS architecture, models, migrations, indexes, fixtures, seed data, and dependencies.
