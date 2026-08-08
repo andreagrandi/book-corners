@@ -200,9 +200,13 @@ def _encode_image(image_path: Path) -> str | None:
         return None
 
 
-def _parse_response(content: str) -> dict | None:
+def _parse_response(content: str | None) -> dict | None:
     """Parse the AI model response into alt_text, hashtags, and english_caption.
     Returns None if the response is not valid JSON with expected keys."""
+    if not content:
+        logger.warning("AI response did not contain text")
+        return None
+
     try:
         text = _strip_code_fences(content)
         data = json.loads(text)
