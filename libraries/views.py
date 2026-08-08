@@ -13,7 +13,7 @@ from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.measure import D
 from django.core.cache import cache
 from django.core.paginator import Page, Paginator
-from django.db.models import Case, IntegerField, Q, QuerySet, Value, When
+from django.db.models import Case, F, IntegerField, Q, QuerySet, Value, When
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -523,7 +523,7 @@ def _get_detail_visible_library(*, request: HttpRequest, slug: str) -> Library:
         visibility_filter |= Q(created_by=user)
 
     return get_object_or_404(
-        Library.objects.select_related("created_by"),
+        Library.objects.annotate(created_by_username=F("created_by__username")),
         visibility_filter,
         slug=slug,
     )

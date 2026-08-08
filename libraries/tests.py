@@ -12,7 +12,9 @@ from django.contrib.gis.geos import Point
 from django.core import mail
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import connection
 from django.test import Client, RequestFactory, override_settings
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from PIL import ExifTags, Image
 from PIL.TiffImagePlugin import IFDRational
@@ -2427,6 +2429,34 @@ class TestLibraryDetailView:
         assert "leaflet@1.9.4" in content
         assert '"https://tile.openstreetmap.org/{z}/{x}/{y}.png"' in content
         assert 'referrerPolicy: "strict-origin-when-cross-origin"' in content
+
+    def test_library_detail_does_not_select_submitter_password(self, client, user):
+        """Verify the detail page fetches only the submitter username.
+        Prevents password hashes from being loaded for public rendering."""
+        library = Library.objects.create(
+            name="Privacy-Safe Book Corner",
+            location=Point(x=4.9041, y=52.3676, srid=4326),
+            address="Keizersgracht 100",
+            city="Amsterdam",
+            country="NL",
+            status=Library.Status.APPROVED,
+            created_by=user,
+        )
+
+        with CaptureQueriesContext(connection) as queries:
+            response = client.get(
+                reverse("library_detail", kwargs={"slug": library.slug})
+            )
+
+        password_queries = [
+            query["sql"]
+            for query in queries.captured_queries
+            if '"users_user"."password"' in query["sql"]
+        ]
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Submitted by:</span> testuser" in content
+        assert password_queries == []
 
     def test_pending_library_detail_returns_404(self, client, user):
         """Verify pending library detail returns 404.
