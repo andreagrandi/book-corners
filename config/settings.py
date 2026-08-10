@@ -14,9 +14,11 @@ import os
 import sys
 from datetime import timedelta
 from pathlib import Path
+from typing import Any
 
 import dj_database_url
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import DisallowedHost, ImproperlyConfigured
+from django.http.request import split_domain_port, validate_host
 
 # Build paths inside the project like this: BASE_DIR / "subdir".
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -405,25 +407,45 @@ OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "openai/gpt-5.4-mini")
 
 SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
+SENTRY_TRACES_SAMPLE_RATE = 0.1
+
+
+def _sentry_before_send(
+    event: dict[str, Any], hint: dict[str, Any]
+) -> dict[str, Any] | None:
+    """Drop DisallowedHost errors from Sentry error reporting.
+    Keeps known host-scanner noise from consuming the error quota."""
+    if "exc_info" in hint:
+        exc_type = hint["exc_info"][0]
+        if exc_type is DisallowedHost:
+            return None
+    return event
+
+
+def _sentry_traces_sampler(sampling_context: dict[str, Any]) -> bool | float:
+    """Skip traces for hosts Django will reject before routing.
+    Preserves normal sampling for valid requests and background work."""
+    wsgi_environ = sampling_context.get("wsgi_environ")
+    if isinstance(wsgi_environ, dict):
+        raw_host = wsgi_environ.get("HTTP_HOST")
+        if isinstance(raw_host, str):
+            domain, _port = split_domain_port(raw_host)
+            if not domain or not validate_host(domain, ALLOWED_HOSTS):
+                return False
+
+    parent_sampled = sampling_context.get("parent_sampled")
+    if isinstance(parent_sampled, bool):
+        return parent_sampled
+    return SENTRY_TRACES_SAMPLE_RATE
 
 if SENTRY_DSN:
     import sentry_sdk
-
-    from django.core.exceptions import DisallowedHost
-
-    def _sentry_before_send(event, hint):
-        """Drop DisallowedHost errors to avoid wasting Sentry quota on bot noise."""
-        if "exc_info" in hint:
-            exc_type = hint["exc_info"][0]
-            if exc_type is DisallowedHost:
-                return None
-        return event
 
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         release=os.environ.get("GIT_REV", ""),
         environment="production" if not DEBUG else "development",
-        traces_sample_rate=0.1,
+        traces_sampler=_sentry_traces_sampler,
         send_default_pii=False,
         before_send=_sentry_before_send,
     )
