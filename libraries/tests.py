@@ -2025,6 +2025,59 @@ class TestMapPageView:
         assert payload["meta"]["count"] == 1
         assert payload["features"][0]["properties"]["id"] == inside_library.id
 
+    @pytest.mark.parametrize(
+        "query_parameters",
+        [
+            pytest.param({"city": "Florence"}, id="filtered"),
+            pytest.param(
+                {
+                    "min_lat": "43.5",
+                    "min_lng": "11.0",
+                    "max_lat": "44.0",
+                    "max_lng": "11.5",
+                },
+                id="bounds",
+            ),
+        ],
+    )
+    def test_map_geojson_descriptions_do_not_add_queries(
+        self, client, user, query_parameters: dict[str, str]
+    ) -> None:
+        """Verify filtered GeoJSON serialization loads descriptions without extra queries.
+        Keeps database query growth constant for filters and viewport bounds."""
+        expected_descriptions = set()
+        for index in range(3):
+            description = f"Map description {index}"
+            expected_descriptions.add(description)
+            Library.objects.create(
+                name=f"Florence Description Shelf {index}",
+                description=description,
+                location=Point(
+                    x=11.2558 + index * 0.001,
+                    y=43.7696 + index * 0.001,
+                    srid=4326,
+                ),
+                address=f"Via Test {index}",
+                city="Florence",
+                country="IT",
+                status=Library.Status.APPROVED,
+                created_by=user,
+            )
+
+        with CaptureQueriesContext(connection) as queries:
+            response = client.get(
+                reverse("map_libraries_geojson"),
+                query_parameters,
+            )
+
+        payload = response.json()
+        descriptions = {
+            feature["properties"]["description"] for feature in payload["features"]
+        }
+        assert response.status_code == 200
+        assert descriptions == expected_descriptions
+        assert len(queries.captured_queries) == 2
+
 
 @pytest.mark.django_db
 class TestMapGeoJSONClustering:
