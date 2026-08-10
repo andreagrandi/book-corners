@@ -1,16 +1,24 @@
 from __future__ import annotations
 
+import hashlib
 import math
+import time
 from collections.abc import Sequence
+from functools import partial
 from typing import Any
 
 from django.core.cache import cache
 from django.core.files.uploadedfile import UploadedFile
+from geopy.adapters import RequestsAdapter
 from geopy.exc import GeocoderServiceError, GeocoderTimedOut, GeocoderUnavailable
 from geopy.geocoders import Nominatim
 from PIL import ExifTags, Image, UnidentifiedImageError
 
 FORWARD_GEOCODE_CACHE_TIMEOUT_SECONDS = 60 * 60 * 6
+FORWARD_GEOCODE_FAILURE_CACHE_TIMEOUT_SECONDS = 60
+FORWARD_GEOCODE_LOCK_TIMEOUT_PADDING_SECONDS = 1
+FORWARD_GEOCODE_WAIT_INTERVAL_SECONDS = 0.25
+_FORWARD_GEOCODE_FAILURE_CACHE_VALUE = "unresolved"
 
 
 def _normalize_gps_reference(value: Any) -> str:
@@ -28,9 +36,63 @@ def _normalize_gps_reference(value: Any) -> str:
 def _build_forward_geocode_cache_key(*, place_query: str, country_code: str | None) -> str:
     """Build a stable cache key for forward geocoding lookups.
     Keeps repeated place searches fast while respecting rate limits."""
-    normalized_query = place_query.strip().lower()
-    normalized_country = (country_code or "").strip().lower()
-    return f"forward-geocode:{normalized_country}:{normalized_query}"
+    normalized_query = " ".join(place_query.split()).casefold()
+    normalized_country = (country_code or "").strip().casefold()
+    lookup_identity = f"{normalized_country}:{normalized_query}"
+    lookup_digest = hashlib.sha256(lookup_identity.encode("utf-8")).hexdigest()
+    return f"forward-geocode:{lookup_digest}"
+
+
+def _get_cached_forward_geocode_result(
+    *, cache_key: str
+) -> tuple[bool, tuple[float, float] | None]:
+    """Read a successful or failed forward-geocode cache entry.
+    Distinguishes a cached failure from a cache miss for single-flight callers."""
+    cached_value = cache.get(cache_key)
+    if cached_value == _FORWARD_GEOCODE_FAILURE_CACHE_VALUE:
+        return True, None
+    if (
+        isinstance(cached_value, tuple)
+        and len(cached_value) == 2
+        and all(isinstance(value, float) for value in cached_value)
+    ):
+        return True, cached_value
+    return False, None
+
+
+def _cache_forward_geocode_failure(*, cache_key: str) -> None:
+    """Cache an unresolved forward-geocode result for a short period.
+    Prevents immediate retries while preserving the caller's keyword fallback."""
+    cache.set(
+        cache_key,
+        _FORWARD_GEOCODE_FAILURE_CACHE_VALUE,
+        FORWARD_GEOCODE_FAILURE_CACHE_TIMEOUT_SECONDS,
+    )
+
+
+def _wait_for_forward_geocode_result(
+    *, cache_key: str, timeout_seconds: int
+) -> tuple[float, float] | None:
+    """Wait for the active forward-geocode caller to publish its result.
+    Returns None if the single-flight window ends without a cached outcome."""
+    wait_timeout_seconds = max(
+        timeout_seconds + FORWARD_GEOCODE_LOCK_TIMEOUT_PADDING_SECONDS,
+        FORWARD_GEOCODE_LOCK_TIMEOUT_PADDING_SECONDS,
+    )
+    deadline = time.monotonic() + wait_timeout_seconds
+
+    while time.monotonic() < deadline:
+        cache_hit, cached_result = _get_cached_forward_geocode_result(
+            cache_key=cache_key
+        )
+        if cache_hit:
+            return cached_result
+        time.sleep(FORWARD_GEOCODE_WAIT_INTERVAL_SECONDS)
+
+    cache_hit, cached_result = _get_cached_forward_geocode_result(
+        cache_key=cache_key
+    )
+    return cached_result if cache_hit else None
 
 
 def _dms_to_decimal(values: Sequence[Any], reference: str) -> float | None:
@@ -66,7 +128,7 @@ def forward_geocode_place(
 ) -> tuple[float, float] | None:
     """Forward geocode a place string into latitude and longitude.
     Returns None when no usable coordinates are resolved."""
-    normalized_query = place_query.strip()
+    normalized_query = " ".join(place_query.split())
     if not normalized_query:
         return None
 
@@ -74,15 +136,28 @@ def forward_geocode_place(
         place_query=normalized_query,
         country_code=country_code,
     )
-    cached_coordinates = cache.get(cache_key)
-    if (
-        isinstance(cached_coordinates, tuple)
-        and len(cached_coordinates) == 2
-        and all(isinstance(value, float) for value in cached_coordinates)
-    ):
-        return cached_coordinates
+    cache_hit, cached_result = _get_cached_forward_geocode_result(
+        cache_key=cache_key
+    )
+    if cache_hit:
+        return cached_result
 
-    geolocator = Nominatim(user_agent=user_agent, timeout=timeout_seconds)
+    lock_timeout_seconds = max(
+        timeout_seconds + FORWARD_GEOCODE_LOCK_TIMEOUT_PADDING_SECONDS,
+        FORWARD_GEOCODE_LOCK_TIMEOUT_PADDING_SECONDS,
+    )
+    lock_key = f"{cache_key}:lock"
+    if not cache.add(lock_key, True, lock_timeout_seconds):
+        return _wait_for_forward_geocode_result(
+            cache_key=cache_key,
+            timeout_seconds=timeout_seconds,
+        )
+
+    geolocator = Nominatim(
+        user_agent=user_agent,
+        timeout=timeout_seconds,
+        adapter_factory=partial(RequestsAdapter, max_retries=0),
+    )
     geocode_kwargs: dict[str, Any] = {
         "exactly_one": True,
         "language": "en",
@@ -96,14 +171,17 @@ def forward_geocode_place(
     try:
         location = geolocator.geocode(normalized_query, **geocode_kwargs)
     except (GeocoderServiceError, GeocoderTimedOut, GeocoderUnavailable, ValueError):
+        _cache_forward_geocode_failure(cache_key=cache_key)
         return None
 
     if location is None:
+        _cache_forward_geocode_failure(cache_key=cache_key)
         return None
 
     latitude = getattr(location, "latitude", None)
     longitude = getattr(location, "longitude", None)
     if not isinstance(latitude, (float, int)) or not isinstance(longitude, (float, int)):
+        _cache_forward_geocode_failure(cache_key=cache_key)
         return None
 
     coordinates = (float(latitude), float(longitude))
