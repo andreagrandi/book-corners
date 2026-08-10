@@ -442,7 +442,7 @@ def map_libraries_geojson(request: HttpRequest) -> JsonResponse | HttpResponse:
         resolved_center = None
 
     queryset = queryset.only(
-        "id", "slug", "name", "city", "country", "address",
+        "id", "slug", "name", "description", "city", "country", "address",
         "location", "photo", "photo_thumbnail",
     )
     total_count = queryset.count()
