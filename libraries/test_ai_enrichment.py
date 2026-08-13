@@ -145,6 +145,40 @@ class TestEnrichLibraryFromImage:
 
         assert enrich_library_from_image(image_file, pending_library) is None
 
+    @pytest.mark.parametrize("choices", [None, []], ids=["null", "empty"])
+    @override_settings(
+        OPENROUTER_API_KEY="test-key",
+        OPENROUTER_MODEL="test/model",
+    )
+    @patch("libraries.social.image_ai.logger.exception")
+    @patch("libraries.social.image_ai.logger.warning")
+    @patch("openai.OpenAI")
+    def test_missing_choices_returns_none_without_exception_log(
+        self,
+        mock_openai_class,
+        mock_log_warning,
+        mock_log_exception,
+        pending_library,
+        tmp_path,
+        choices,
+    ):
+        """Verify missing completion choices return None without an exception.
+        Handles successful provider responses that contain no usable choice."""
+        image_file = tmp_path / "test.jpg"
+        image_file.write_bytes(b"fake image data")
+
+        mock_response = mock_openai_class.return_value.chat.completions.create.return_value
+        mock_response.choices = choices
+        mock_response.error = {"code": 502, "message": "Provider unavailable"}
+
+        assert enrich_library_from_image(image_file, pending_library) is None
+        mock_log_exception.assert_not_called()
+        mock_log_warning.assert_called_once_with(
+            "AI %s response did not contain choices: %s",
+            "library enrichment",
+            mock_response.error,
+        )
+
 
 class TestParseEnrichmentResponse:
     """Tests for the _parse_enrichment_response parser."""
@@ -169,6 +203,13 @@ class TestParseEnrichmentResponse:
         """Verify malformed JSON returns None.
         Prevents crashes from unexpected AI output."""
         assert _parse_enrichment_response("not json") is None
+
+    @patch("libraries.social.image_ai.logger.exception")
+    def test_null_content_returns_none_without_exception_log(self, mock_log_exception):
+        """Verify null enrichment content returns None without an exception.
+        Handles completion choices that omit assistant text."""
+        assert _parse_enrichment_response(None) is None
+        mock_log_exception.assert_not_called()
 
     def test_truncates_long_name(self):
         """Verify name is truncated to 255 characters.

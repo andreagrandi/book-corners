@@ -1085,6 +1085,51 @@ class TestAnalyzeLibraryImage:
 
         assert analyze_library_image(image_file, approved_library) is None
 
+    @override_settings(
+        OPENROUTER_API_KEY="test-key",
+        OPENROUTER_MODEL="test/model",
+    )
+    @patch("libraries.social.image_ai.logger.exception")
+    @patch("libraries.social.image_ai.logger.warning")
+    @patch("openai.OpenAI")
+    def test_provider_error_returns_none_without_exception_log(
+        self,
+        mock_openai_class,
+        mock_log_warning,
+        mock_log_exception,
+        approved_library,
+        tmp_path,
+    ):
+        """Verify provider-error choices return None without an exception.
+        Rejects partial content when OpenRouter reports generation failure."""
+        image_file = tmp_path / "test.jpg"
+        image_file.write_bytes(b"fake image data")
+
+        mock_response = mock_openai_class.return_value.chat.completions.create.return_value
+        mock_response.choices = [
+            type(
+                "Choice",
+                (),
+                {
+                    "finish_reason": "error",
+                    "error": {"code": 502, "message": "Provider disconnected"},
+                    "message": type(
+                        "Message",
+                        (),
+                        {"content": "partial output"},
+                    )(),
+                },
+            )()
+        ]
+
+        assert analyze_library_image(image_file, approved_library) is None
+        mock_log_exception.assert_not_called()
+        mock_log_warning.assert_called_once_with(
+            "AI %s provider error: %s",
+            "image analysis",
+            mock_response.choices[0].error,
+        )
+
 
 # --- English-only post tests ---
 
