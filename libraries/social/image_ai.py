@@ -15,6 +15,33 @@ OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 REQUEST_TIMEOUT = 15
 
 
+def _get_chat_completion_content(response: object, *, operation: str) -> str | None:
+    """Extract text from an OpenRouter chat completion response.
+    Handles missing choices and provider errors without raising exceptions."""
+    choices = getattr(response, "choices", None)
+    if not choices:
+        logger.warning(
+            "AI %s response did not contain choices: %s",
+            operation,
+            getattr(response, "error", None),
+        )
+        return None
+
+    choice = choices[0]
+    choice_error = getattr(choice, "error", None)
+    if choice_error or getattr(choice, "finish_reason", None) == "error":
+        logger.warning("AI %s provider error: %s", operation, choice_error)
+        return None
+
+    message = getattr(choice, "message", None)
+    content = getattr(message, "content", None)
+    if not isinstance(content, str) or not content:
+        logger.warning("AI %s response did not contain text", operation)
+        return None
+
+    return content
+
+
 def analyze_library_image(image_path: Path, library) -> dict | None:
     """Analyze a library photo with a vision model for posting metadata.
     Returns {"alt_text": str, "hashtags": list[str], "english_caption": str} or None."""
@@ -84,7 +111,13 @@ def analyze_library_image(image_path: Path, library) -> dict | None:
             timeout=REQUEST_TIMEOUT,
         )
 
-        return _parse_response(response.choices[0].message.content)
+        content = _get_chat_completion_content(
+            response=response,
+            operation="image analysis",
+        )
+        if content is None:
+            return None
+        return _parse_response(content=content)
 
     except Exception:
         logger.exception("AI image analysis failed for %s", image_path)
@@ -146,16 +179,26 @@ def enrich_library_from_image(image_path: Path, library) -> dict | None:
             timeout=REQUEST_TIMEOUT,
         )
 
-        return _parse_enrichment_response(response.choices[0].message.content)
+        content = _get_chat_completion_content(
+            response=response,
+            operation="library enrichment",
+        )
+        if content is None:
+            return None
+        return _parse_enrichment_response(content=content)
 
     except Exception:
         logger.exception("AI library enrichment failed for %s", image_path)
         return None
 
 
-def _parse_enrichment_response(content: str) -> dict | None:
+def _parse_enrichment_response(content: str | None) -> dict | None:
     """Parse an AI enrichment response into name and description.
     Validates expected keys and truncates to model field limits."""
+    if not content:
+        logger.warning("AI enrichment response did not contain text")
+        return None
+
     try:
         text = _strip_code_fences(content)
         data = json.loads(text)
