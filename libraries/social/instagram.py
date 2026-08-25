@@ -15,6 +15,10 @@ logger = logging.getLogger(__name__)
 GRAPH_API_URL = "https://graph.instagram.com"
 CONTAINER_POLL_INTERVAL = 5  # seconds between status checks
 CONTAINER_POLL_MAX_ATTEMPTS = 12  # up to 60 seconds total
+MEDIA_PUBLISH_TRANSIENT_STATUS_CODES = frozenset({429, 500, 502, 503, 504})
+MEDIA_PUBLISH_RETRY_MAX_ATTEMPTS = 3
+MEDIA_PUBLISH_RETRY_BASE_DELAY_SECONDS = 30
+MEDIA_PUBLISH_RETRY_MAX_DELAY_SECONDS = 60
 
 
 class InstagramResult(NamedTuple):
@@ -77,6 +81,44 @@ def _wait_for_container(container_id: str, access_token: str) -> None:
     raise RuntimeError(f"Instagram container {container_id} timed out waiting to become FINISHED")
 
 
+def _publish_container(user_id: str, creation_id: str, access_token: str) -> str:
+    """Publish a ready Instagram container and return its media ID.
+    Retries transient HTTP responses without recreating the container."""
+    for attempt in range(1, MEDIA_PUBLISH_RETRY_MAX_ATTEMPTS + 1):
+        response = requests.post(
+            f"{GRAPH_API_URL}/{user_id}/media_publish",
+            data={
+                "creation_id": creation_id,
+                "access_token": access_token,
+            },
+            timeout=60,
+        )
+        if response.ok:
+            return response.json()["id"]
+        if (
+            response.status_code not in MEDIA_PUBLISH_TRANSIENT_STATUS_CODES
+            or attempt == MEDIA_PUBLISH_RETRY_MAX_ATTEMPTS
+        ):
+            _raise_with_detail(response)
+
+        delay = min(
+            MEDIA_PUBLISH_RETRY_BASE_DELAY_SECONDS * (2 ** (attempt - 1)),
+            MEDIA_PUBLISH_RETRY_MAX_DELAY_SECONDS,
+        )
+        logger.warning(
+            "Instagram media_publish temporarily failed for creation_id %s "
+            "with HTTP %s (attempt %d/%d); retrying in %d seconds",
+            creation_id,
+            response.status_code,
+            attempt,
+            MEDIA_PUBLISH_RETRY_MAX_ATTEMPTS,
+            delay,
+        )
+        time.sleep(delay)
+
+    raise RuntimeError("Instagram media_publish retry loop exited unexpectedly")
+
+
 def post_library(library, text: str, image_path: Path) -> InstagramResult:
     """Post a library with photo to Instagram and return the result.
     Uses the two-step container publish flow via the Instagram Graph API."""
@@ -107,16 +149,11 @@ def post_library(library, text: str, image_path: Path) -> InstagramResult:
     _wait_for_container(creation_id, access_token)
 
     # Step 3: Publish the container
-    publish_response = requests.post(
-        f"{GRAPH_API_URL}/{user_id}/media_publish",
-        data={
-            "creation_id": creation_id,
-            "access_token": access_token,
-        },
-        timeout=60,
+    media_id = _publish_container(
+        user_id=user_id,
+        creation_id=creation_id,
+        access_token=access_token,
     )
-    _raise_with_detail(publish_response)
-    media_id = publish_response.json()["id"]
     logger.info("Published Instagram media: %s", media_id)
 
     # Step 4: Get the permalink
