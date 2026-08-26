@@ -16,6 +16,7 @@ from PIL import Image
 from libraries.models import InstagramToken, Library, SocialPost
 from libraries.notifications import notify_social_post, notify_social_post_error
 from libraries.social.image_ai import _parse_response, analyze_library_image
+from libraries.social.instagram import InstagramResult
 from libraries.social.text import (
     build_bluesky_text,
     build_hashtag_comment,
@@ -316,7 +317,10 @@ class TestPostRandomLibraryCommand:
         mock_photo.return_value = Path("/tmp/test.jpg")
         mock_mastodon.return_value = "https://mastodon.test/@user/123"
         mock_bluesky.return_value = "https://bsky.app/profile/test/post/abc"
-        mock_instagram.return_value = "https://www.instagram.com/p/abc123/"
+        mock_instagram.return_value = InstagramResult(
+            permalink="https://www.instagram.com/p/abc123/",
+            media_id="media-456",
+        )
 
         call_command("post_random_library")
 
@@ -459,7 +463,10 @@ class TestOnlyPlatformFlag:
         """Verify --only instagram skips Mastodon and Bluesky.
         Useful for testing and populating a new platform."""
         mock_photo.return_value = Path("/tmp/test.jpg")
-        mock_instagram.return_value = "https://www.instagram.com/p/abc123/"
+        mock_instagram.return_value = InstagramResult(
+            permalink="https://www.instagram.com/p/abc123/",
+            media_id="media-456",
+        )
 
         call_command("post_random_library", only="instagram")
 
@@ -470,6 +477,45 @@ class TestOnlyPlatformFlag:
         assert post.instagram_url == "https://www.instagram.com/p/abc123/"
         assert post.mastodon_url == ""
         assert post.bluesky_url == ""
+
+
+    @override_settings(
+        MASTODON_INSTANCE_URL="https://mastodon.test",
+        MASTODON_ACCESS_TOKEN="test-token",
+        BLUESKY_HANDLE="test.bsky.social",
+        BLUESKY_APP_PASSWORD="test-password",
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.management.commands.post_random_library.Command._post_to_instagram")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
+    def test_permalink_failure_still_records_instagram_post(
+        self, mock_photo, mock_instagram, approved_library
+    ):
+        """Verify publication success is recorded without a permalink.
+        Prevents a later command run from publishing the same library again."""
+        from libraries.social.instagram import InstagramAPIError
+
+        mock_photo.return_value = Path("/tmp/test.jpg")
+        mock_instagram.return_value = InstagramResult(
+            permalink="",
+            media_id="media-456",
+            permalink_error=InstagramAPIError(
+                operation="permalink",
+                status_code=400,
+                message="permalink lookup failed",
+            ),
+        )
+
+        call_command("post_random_library", only="instagram")
+        call_command("post_random_library", only="instagram")
+
+        assert SocialPost.objects.count() == 1
+        post = SocialPost.objects.first()
+        assert post.instagram_url == ""
+        mock_instagram.assert_called_once()
+
 
     @override_settings(
         MASTODON_INSTANCE_URL="https://mastodon.test",
@@ -595,7 +641,10 @@ class TestCredentialGating:
         """Verify only Instagram is called when Mastodon and Bluesky are unconfigured.
         Supports gradual platform rollout."""
         mock_photo.return_value = Path("/tmp/test.jpg")
-        mock_instagram.return_value = "https://www.instagram.com/p/abc123/"
+        mock_instagram.return_value = InstagramResult(
+            permalink="https://www.instagram.com/p/abc123/",
+            media_id="media-456",
+        )
 
         call_command("post_random_library")
 
@@ -625,7 +674,10 @@ class TestCredentialGating:
         Supports the DB-first token strategy after initial refresh."""
         InstagramToken.objects.create(access_token="db-stored-token")
         mock_photo.return_value = Path("/tmp/test.jpg")
-        mock_instagram.return_value = "https://www.instagram.com/p/abc123/"
+        mock_instagram.return_value = InstagramResult(
+            permalink="https://www.instagram.com/p/abc123/",
+            media_id="media-456",
+        )
 
         call_command("post_random_library")
 
@@ -674,11 +726,343 @@ class TestInstagramClient:
         assert mock_post.call_count == 2
         assert mock_get.call_count == 2
 
-        # Verify container creation call
+        # Verify versioned request paths and container creation data
         container_call = mock_post.call_args_list[0]
-        assert "123456/media" in container_call.args[0]
+        assert container_call.args[0] == (
+            "https://graph.instagram.com/v26.0/123456/media"
+        )
         assert container_call.kwargs["data"]["caption"] == "Test caption"
         assert "bookcorners.org" in container_call.kwargs["data"]["image_url"]
+        assert mock_get.call_args_list[0].args[0] == (
+            "https://graph.instagram.com/v26.0/container-123"
+        )
+        assert mock_get.call_args_list[1].args[0] == (
+            "https://graph.instagram.com/v26.0/media-456"
+        )
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.social.instagram.time.sleep")
+    @patch("libraries.social.instagram.requests.get")
+    @patch("libraries.social.instagram.requests.post")
+    def test_permalink_failure_returns_published_media(
+        self, mock_post, mock_get, mock_sleep, approved_library
+    ):
+        """Verify a permalink failure preserves the published media ID.
+        Redacts the media ID echoed by a Meta error response."""
+        from libraries.social.instagram import post_library
+
+        mock_post.side_effect = [
+            _mock_response(json_data={"id": "container-123"}),
+            _mock_response(json_data={"id": "media-456"}),
+        ]
+        mock_get.side_effect = [
+            _mock_response(json_data={"status_code": "FINISHED"}),
+            _mock_response(
+                status_code=400,
+                json_data={
+                    "error": {
+                        "message": "Media media-456 is unavailable",
+                    }
+                },
+            ),
+        ]
+
+        result = post_library(
+            approved_library,
+            text="Test caption",
+            image_path=Path("/tmp/test.jpg"),
+        )
+
+        assert result.media_id == "media-456"
+        assert result.permalink == ""
+        assert result.permalink_error is not None
+        assert result.permalink_error.operation == "permalink"
+        assert "media-456" not in str(result.permalink_error)
+        assert "[redacted]" in str(result.permalink_error)
+        assert mock_post.call_count == 2
+        assert mock_get.call_count == 2
+        mock_sleep.assert_not_called()
+
+    @pytest.mark.parametrize(
+        "response_kwargs",
+        [
+            {"json_data": {}},
+            {"json_data": []},
+            {"json_data": {"id": 42}},
+            {"json_error": True, "text": "<html>private body</html>"},
+        ],
+    )
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.social.instagram.requests.post")
+    def test_container_response_requires_string_id(
+        self, mock_post, approved_library, response_kwargs
+    ):
+        """Verify malformed container responses become safe API errors.
+        Rejects empty, non-object, wrong-type, and non-JSON payloads."""
+        from libraries.social.instagram import InstagramAPIError, post_library
+
+        mock_post.return_value = _mock_response(**response_kwargs)
+
+        with pytest.raises(InstagramAPIError) as exc_info:
+            post_library(
+                approved_library,
+                text="Test caption",
+                image_path=Path("/tmp/test.jpg"),
+            )
+
+        error = exc_info.value
+        assert error.operation == "container_creation"
+        assert error.status_code == 200
+        assert "private body" not in str(error)
+        assert "id" in error.message
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.social.instagram.requests.post")
+    def test_container_error_redacts_account_path_identifier(
+        self, mock_post, approved_library
+    ):
+        """Verify Meta messages cannot expose URL-bound account identifiers.
+        Keeps path secrets redacted alongside payload and query values."""
+        from libraries.social.instagram import InstagramAPIError, post_library
+
+        mock_post.return_value = _mock_response(
+            status_code=400,
+            json_data={
+                "error": {
+                    "message": "Account 123456 rejected this request",
+                }
+            },
+        )
+
+        with pytest.raises(InstagramAPIError) as exc_info:
+            post_library(
+                approved_library,
+                text="Test caption",
+                image_path=Path("/tmp/test.jpg"),
+            )
+
+        assert "123456" not in str(exc_info.value)
+        assert "[redacted]" in str(exc_info.value)
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.social.instagram.requests.get")
+    @patch("libraries.social.instagram.requests.post")
+    def test_status_response_requires_string_status(
+        self, mock_post, mock_get, approved_library
+    ):
+        """Verify malformed container status responses are structured.
+        Stops before publishing when status_code is absent or invalid."""
+        from libraries.social.instagram import InstagramAPIError, post_library
+
+        mock_post.return_value = _mock_response(json_data={"id": "container-123"})
+        mock_get.return_value = _mock_response(json_data=[])
+
+        with pytest.raises(InstagramAPIError) as exc_info:
+            post_library(
+                approved_library,
+                text="Test caption",
+                image_path=Path("/tmp/test.jpg"),
+            )
+
+        assert exc_info.value.operation == "container_status"
+        assert exc_info.value.status_code == 200
+        assert mock_post.call_count == 1
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.social.instagram.requests.get")
+    @patch("libraries.social.instagram.requests.post")
+    def test_publish_response_requires_string_id(
+        self, mock_post, mock_get, approved_library
+    ):
+        """Verify malformed media publish responses are structured.
+        Prevents a missing or invalid media ID from reaching permalink lookup."""
+        from libraries.social.instagram import InstagramAPIError, post_library
+
+        mock_post.side_effect = [
+            _mock_response(json_data={"id": "container-123"}),
+            _mock_response(json_data={"id": 42}),
+        ]
+        mock_get.return_value = _mock_response(json_data={"status_code": "FINISHED"})
+
+        with pytest.raises(InstagramAPIError) as exc_info:
+            post_library(
+                approved_library,
+                text="Test caption",
+                image_path=Path("/tmp/test.jpg"),
+            )
+
+        assert exc_info.value.operation == "media_publish"
+        assert exc_info.value.status_code == 200
+        assert mock_post.call_count == 2
+        assert mock_get.call_count == 1
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.social.instagram.requests.get")
+    @patch("libraries.social.instagram.requests.post")
+    def test_permalink_response_requires_string_permalink(
+        self, mock_post, mock_get, approved_library
+    ):
+        """Verify malformed permalink responses preserve publication state.
+        Returns the media ID while reporting safe permalink diagnostics."""
+        from libraries.social.instagram import post_library
+
+        mock_post.side_effect = [
+            _mock_response(json_data={"id": "container-123"}),
+            _mock_response(json_data={"id": "media-456"}),
+        ]
+        mock_get.side_effect = [
+            _mock_response(json_data={"status_code": "FINISHED"}),
+            _mock_response(json_data={}),
+        ]
+
+        result = post_library(
+            approved_library,
+            text="Test caption",
+            image_path=Path("/tmp/test.jpg"),
+        )
+
+        assert result.media_id == "media-456"
+        assert result.permalink == ""
+        assert result.permalink_error is not None
+        assert result.permalink_error.operation == "permalink"
+        assert result.permalink_error.status_code == 200
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+    )
+    @patch("libraries.social.instagram.requests.post")
+    def test_comment_response_requires_string_id(self, mock_post):
+        """Verify malformed comment responses become safe API errors.
+        Rejects missing or invalid comment identifiers."""
+        from libraries.social.instagram import InstagramAPIError, comment_on_media
+
+        mock_post.return_value = _mock_response(json_data={"id": None})
+
+        with pytest.raises(InstagramAPIError) as exc_info:
+            comment_on_media(media_id="media-456", text="Test comment")
+
+        assert exc_info.value.operation == "comment"
+        assert exc_info.value.status_code == 200
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.social.instagram.time.sleep")
+    @patch("libraries.social.instagram.requests.get")
+    @patch("libraries.social.instagram.requests.post")
+    def test_post_library_retries_transient_container_creation(
+        self, mock_post, mock_get, mock_sleep, approved_library
+    ):
+        """Verify transient container creation errors retry only that step.
+        Continues later steps with the container returned by the recovery."""
+        from libraries.social.instagram import (
+            RETRY_BASE_DELAY_SECONDS,
+            post_library,
+        )
+
+        mock_post.side_effect = [
+            _mock_response(status_code=500),
+            _mock_response(json_data={"id": "container-123"}),
+            _mock_response(json_data={"id": "media-456"}),
+        ]
+        mock_get.side_effect = [
+            _mock_response(json_data={"status_code": "FINISHED"}),
+            _mock_response(json_data={"permalink": "https://www.instagram.com/p/abc123/"}),
+        ]
+
+        result = post_library(
+            approved_library,
+            text="Test caption",
+            image_path=Path("/tmp/test.jpg"),
+        )
+
+        assert result.media_id == "media-456"
+        assert mock_post.call_count == 3
+        assert mock_get.call_count == 2
+        assert mock_sleep.call_count == 1
+        assert mock_sleep.call_args.args == (RETRY_BASE_DELAY_SECONDS,)
+        first_creation_call, second_creation_call, publish_call = mock_post.call_args_list
+        assert first_creation_call.args[0] == second_creation_call.args[0]
+        assert first_creation_call.args[0].endswith("/v26.0/123456/media")
+        assert publish_call.args[0].endswith("/v26.0/123456/media_publish")
+        assert publish_call.kwargs["data"]["creation_id"] == "container-123"
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.social.instagram.time.sleep")
+    @patch("libraries.social.instagram.requests.get")
+    @patch("libraries.social.instagram.requests.post")
+    def test_post_library_raises_exhausted_container_creation_error(
+        self, mock_post, mock_get, mock_sleep, approved_library
+    ):
+        """Verify exhausted container creation retries raise safe diagnostics.
+        Does not poll, publish, or expose request payload details."""
+        from libraries.social.instagram import (
+            InstagramAPIError,
+            RETRY_BASE_DELAY_SECONDS,
+            RETRY_MAX_DELAY_SECONDS,
+            post_library,
+        )
+
+        mock_post.side_effect = [
+            _mock_response(status_code=500),
+            _mock_response(status_code=500),
+            _mock_response(status_code=500),
+        ]
+
+        with pytest.raises(InstagramAPIError) as exc_info:
+            post_library(
+                approved_library,
+                text="Test caption",
+                image_path=Path("/tmp/test.jpg"),
+            )
+
+        error = exc_info.value
+        assert error.operation == "container_creation"
+        assert error.status_code == 500
+        assert error.message == "empty response body"
+        assert str(error) == (
+            "Instagram API 500: empty response body "
+            "(operation=container_creation)"
+        )
+        assert "test-ig-token" not in str(error)
+        assert "Test caption" not in str(error)
+        assert "bookcorners.org" not in str(error)
+        assert mock_post.call_count == 3
+        assert mock_get.call_count == 0
+        assert mock_sleep.call_count == 2
+        assert mock_sleep.call_args_list[0].args == (RETRY_BASE_DELAY_SECONDS,)
+        assert mock_sleep.call_args_list[1].args == (RETRY_MAX_DELAY_SECONDS,)
 
     @override_settings(
         INSTAGRAM_USER_ID="123456",
@@ -694,7 +1078,7 @@ class TestInstagramClient:
         """Verify a transient publish error is retried without new container creation.
         Reuses the same creation ID and continues to permalink retrieval."""
         from libraries.social.instagram import (
-            MEDIA_PUBLISH_RETRY_BASE_DELAY_SECONDS,
+            RETRY_BASE_DELAY_SECONDS,
             post_library,
         )
 
@@ -719,17 +1103,129 @@ class TestInstagramClient:
         assert mock_post.call_count == 3
         assert mock_get.call_count == 2
         assert mock_sleep.call_count == 1
-        assert mock_sleep.call_args.args == (MEDIA_PUBLISH_RETRY_BASE_DELAY_SECONDS,)
+        assert mock_sleep.call_args.args == (RETRY_BASE_DELAY_SECONDS,)
 
         container_call, first_publish_call, second_publish_call = mock_post.call_args_list
-        assert container_call.args[0].endswith("/123456/media")
-        assert first_publish_call.args[0].endswith("/123456/media_publish")
-        assert second_publish_call.args[0].endswith("/123456/media_publish")
+        assert container_call.args[0] == (
+            "https://graph.instagram.com/v26.0/123456/media"
+        )
+        assert first_publish_call.args[0] == (
+            "https://graph.instagram.com/v26.0/123456/media_publish"
+        )
+        assert second_publish_call.args[0] == (
+            "https://graph.instagram.com/v26.0/123456/media_publish"
+        )
         assert first_publish_call.kwargs["data"] == {
             "creation_id": "container-123",
             "access_token": "test-ig-token",
         }
         assert second_publish_call.kwargs["data"] == first_publish_call.kwargs["data"]
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.social.instagram.time.sleep")
+    @patch("libraries.social.instagram.requests.get")
+    @patch("libraries.social.instagram.requests.post")
+    def test_post_library_retries_transport_failures_at_publish(
+        self, mock_post, mock_get, mock_sleep, approved_library
+    ):
+        """Verify connection and timeout failures retry only the publish step.
+        Keeps container creation and later permalink retrieval single-shot."""
+        from requests.exceptions import ConnectionError as RequestsConnectionError
+        from requests.exceptions import Timeout
+
+        from libraries.social.instagram import (
+            RETRY_BASE_DELAY_SECONDS,
+            RETRY_MAX_DELAY_SECONDS,
+            post_library,
+        )
+
+        sensitive_detail = (
+            "https://graph.instagram.com/v26.0/123456/media_publish "
+            "access_token=test-ig-token creation_id=container-123"
+        )
+        mock_post.side_effect = [
+            _mock_response(json_data={"id": "container-123"}),
+            RequestsConnectionError(sensitive_detail),
+            Timeout(sensitive_detail),
+            _mock_response(json_data={"id": "media-456"}),
+        ]
+        mock_get.side_effect = [
+            _mock_response(json_data={"status_code": "FINISHED"}),
+            _mock_response(json_data={"permalink": "https://www.instagram.com/p/abc123/"}),
+        ]
+
+        result = post_library(
+            approved_library,
+            text="Test caption",
+            image_path=Path("/tmp/test.jpg"),
+        )
+
+        assert result.media_id == "media-456"
+        assert mock_post.call_count == 4
+        assert mock_get.call_count == 2
+        assert mock_sleep.call_args_list[0].args == (RETRY_BASE_DELAY_SECONDS,)
+        assert mock_sleep.call_args_list[1].args == (RETRY_MAX_DELAY_SECONDS,)
+        assert mock_post.call_args_list[0].args[0].endswith("/v26.0/123456/media")
+        assert all(
+            call.args[0].endswith("/v26.0/123456/media_publish")
+            for call in mock_post.call_args_list[1:]
+        )
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.social.instagram.time.sleep")
+    @patch("libraries.social.instagram.requests.get")
+    @patch("libraries.social.instagram.requests.post")
+    def test_post_library_raises_exhausted_transport_error(
+        self, mock_post, mock_get, mock_sleep, approved_library
+    ):
+        """Verify exhausted transport failures expose only safe diagnostics.
+        Does not leak request details or retry any later workflow step."""
+        from requests.exceptions import ConnectionError as RequestsConnectionError
+        from requests.exceptions import Timeout
+
+        from libraries.social.instagram import InstagramAPIError, post_library
+
+        sensitive_detail = (
+            "https://graph.instagram.com/v26.0/123456/media "
+            "access_token=test-ig-token caption=Test caption"
+        )
+        mock_post.side_effect = [
+            RequestsConnectionError(sensitive_detail),
+            Timeout(sensitive_detail),
+            RequestsConnectionError(sensitive_detail),
+        ]
+
+        with pytest.raises(InstagramAPIError) as exc_info:
+            post_library(
+                approved_library,
+                text="Test caption",
+                image_path=Path("/tmp/test.jpg"),
+            )
+
+        error = exc_info.value
+        assert error.operation == "container_creation"
+        assert error.status_code == 0
+        assert error.message == "transport failure after 3 attempts"
+        assert str(error) == (
+            "Instagram API 0: transport failure after 3 attempts "
+            "(operation=container_creation)"
+        )
+        assert error.__suppress_context__ is True
+        assert "graph.instagram.com" not in str(error)
+        assert "test-ig-token" not in str(error)
+        assert "Test caption" not in str(error)
+        assert mock_post.call_count == 3
+        assert mock_get.call_count == 0
+        assert mock_sleep.call_count == 2
+
 
     @override_settings(
         INSTAGRAM_USER_ID="123456",
@@ -743,27 +1239,71 @@ class TestInstagramClient:
     ):
         """Verify a non-transient publish error fails immediately.
         Preserves detailed API errors without another publish attempt."""
-        from libraries.social.instagram import post_library
+        from libraries.social.instagram import InstagramAPIError, post_library
 
         mock_post.side_effect = [
             _mock_response(json_data={"id": "container-123"}),
-            _mock_response(status_code=400),
+            _mock_response(
+                status_code=400,
+                json_data={
+                    "error": {
+                        "message": "Invalid creation ID",
+                        "code": 100,
+                        "error_subcode": 33,
+                        "is_transient": False,
+                        "fbtrace_id": "trace-publish-123",
+                    }
+                },
+            ),
         ]
         mock_get.return_value = _mock_response(json_data={"status_code": "FINISHED"})
 
-        with pytest.raises(RuntimeError, match=r"Instagram API 400:") as exc_info:
+        with pytest.raises(InstagramAPIError) as exc_info:
             post_library(
                 approved_library,
                 text="Test caption",
                 image_path=Path("/tmp/test.jpg"),
             )
 
-        assert "URL: https://graph.instagram.com/mock" in str(exc_info.value)
+        error = exc_info.value
+        assert error.operation == "media_publish"
+        assert error.status_code == 400
+        assert error.message == "Invalid creation ID"
+        assert error.code == 100
+        assert error.error_subcode == 33
+        assert error.is_transient is False
+        assert error.fbtrace_id == "trace-publish-123"
+        assert "Instagram API 400: Invalid creation ID" in str(error)
+        assert "test-ig-token" not in str(error)
+        assert "Test caption" not in str(error)
+        assert "graph.instagram.com" not in str(error)
         assert mock_post.call_count == 2
         container_call, publish_call = mock_post.call_args_list
-        assert container_call.args[0].endswith("/123456/media")
-        assert publish_call.args[0].endswith("/123456/media_publish")
+        assert container_call.args[0].endswith("/v26.0/123456/media")
+        assert publish_call.args[0].endswith("/v26.0/123456/media_publish")
         assert publish_call.kwargs["data"]["creation_id"] == "container-123"
+
+    def test_non_json_error_has_safe_diagnostics(self):
+        """Verify non-JSON error bodies produce safe structured diagnostics.
+        Omits the raw body while retaining operation and HTTP status."""
+        from libraries.social.instagram import InstagramAPIError, _raise_with_detail
+
+        response = _mock_response(
+            status_code=500,
+            text="<html>access_token=test-ig-token</html>",
+            json_error=True,
+        )
+
+        with pytest.raises(InstagramAPIError) as exc_info:
+            _raise_with_detail(response, operation="container_creation")
+
+        error = exc_info.value
+        assert error.operation == "container_creation"
+        assert error.status_code == 500
+        assert error.message == "non-JSON response body"
+        assert "access_token" not in str(error)
+        assert "test-ig-token" not in str(error)
+        assert "<html>" not in str(error)
 
     @override_settings(
         INSTAGRAM_USER_ID="123456",
@@ -779,8 +1319,9 @@ class TestInstagramClient:
         """Verify exhausted transient publish errors raise the final API detail.
         Does not create another container or request a permalink."""
         from libraries.social.instagram import (
-            MEDIA_PUBLISH_RETRY_BASE_DELAY_SECONDS,
-            MEDIA_PUBLISH_RETRY_MAX_DELAY_SECONDS,
+            InstagramAPIError,
+            RETRY_BASE_DELAY_SECONDS,
+            RETRY_MAX_DELAY_SECONDS,
             post_library,
         )
 
@@ -792,7 +1333,7 @@ class TestInstagramClient:
         ]
         mock_get.return_value = _mock_response(json_data={"status_code": "FINISHED"})
 
-        with pytest.raises(RuntimeError) as exc_info:
+        with pytest.raises(InstagramAPIError) as exc_info:
             post_library(
                 approved_library,
                 text="Test caption",
@@ -800,20 +1341,21 @@ class TestInstagramClient:
             )
 
         assert str(exc_info.value) == (
-            "Instagram API 504:  (URL: https://graph.instagram.com/mock)"
+            "Instagram API 504: empty response body "
+            "(operation=media_publish)"
         )
         assert mock_post.call_count == 4
         assert mock_get.call_count == 1
         assert mock_sleep.call_count == 2
-        assert mock_sleep.call_args_list[0].args == (MEDIA_PUBLISH_RETRY_BASE_DELAY_SECONDS,)
-        assert mock_sleep.call_args_list[1].args == (MEDIA_PUBLISH_RETRY_MAX_DELAY_SECONDS,)
+        assert mock_sleep.call_args_list[0].args == (RETRY_BASE_DELAY_SECONDS,)
+        assert mock_sleep.call_args_list[1].args == (RETRY_MAX_DELAY_SECONDS,)
         container_call, first_publish_call, second_publish_call, third_publish_call = (
             mock_post.call_args_list
         )
-        assert container_call.args[0].endswith("/123456/media")
-        assert first_publish_call.args[0].endswith("/123456/media_publish")
-        assert second_publish_call.args[0].endswith("/123456/media_publish")
-        assert third_publish_call.args[0].endswith("/123456/media_publish")
+        assert container_call.args[0].endswith("/v26.0/123456/media")
+        assert first_publish_call.args[0].endswith("/v26.0/123456/media_publish")
+        assert second_publish_call.args[0].endswith("/v26.0/123456/media_publish")
+        assert third_publish_call.args[0].endswith("/v26.0/123456/media_publish")
         publish_data = {
             "creation_id": "container-123",
             "access_token": "test-ig-token",
@@ -822,6 +1364,53 @@ class TestInstagramClient:
         assert second_publish_call.kwargs["data"] == publish_data
         assert third_publish_call.kwargs["data"] == publish_data
 
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+        SITE_URL="https://bookcorners.org",
+    )
+    @patch("libraries.social.instagram.time.sleep")
+    @patch("libraries.social.instagram.requests.get")
+    @patch("libraries.social.instagram.requests.post")
+    def test_post_library_retries_transient_get_steps(
+        self, mock_post, mock_get, mock_sleep, approved_library
+    ):
+        """Verify transient GET errors retry only their individual steps.
+        Retries status and permalink requests without repeating POST steps."""
+        from libraries.social.instagram import (
+            RETRY_BASE_DELAY_SECONDS,
+            post_library,
+        )
+
+        mock_post.side_effect = [
+            _mock_response(json_data={"id": "container-123"}),
+            _mock_response(json_data={"id": "media-456"}),
+        ]
+        mock_get.side_effect = [
+            _mock_response(status_code=500),
+            _mock_response(json_data={"status_code": "FINISHED"}),
+            _mock_response(status_code=502),
+            _mock_response(json_data={"permalink": "https://www.instagram.com/p/abc123/"}),
+        ]
+
+        result = post_library(
+            approved_library,
+            text="Test caption",
+            image_path=Path("/tmp/test.jpg"),
+        )
+
+        assert result.media_id == "media-456"
+        assert result.permalink == "https://www.instagram.com/p/abc123/"
+        assert mock_post.call_count == 2
+        assert mock_get.call_count == 4
+        assert mock_sleep.call_args_list[0].args == (RETRY_BASE_DELAY_SECONDS,)
+        assert mock_sleep.call_args_list[1].args == (RETRY_BASE_DELAY_SECONDS,)
+        assert mock_get.call_args_list[0].args[0].endswith(
+            "/v26.0/container-123"
+        )
+        assert mock_get.call_args_list[2].args[0].endswith("/v26.0/media-456")
+
     @override_settings(
         INSTAGRAM_USER_ID="123456",
         INSTAGRAM_ACCESS_TOKEN="test-ig-token",
@@ -829,18 +1418,21 @@ class TestInstagramClient:
     )
     @patch("libraries.social.instagram.requests.post")
     def test_post_library_container_fails(self, mock_post, approved_library):
-        """Verify HTTP errors from the container step propagate correctly.
+        """Verify HTTP errors from container creation are structured.
         Allows the command to catch and handle the failure."""
-        from libraries.social.instagram import post_library
+        from libraries.social.instagram import InstagramAPIError, post_library
 
         mock_post.return_value = _mock_response(status_code=400, raise_on_status=True)
 
-        with pytest.raises(Exception):
+        with pytest.raises(InstagramAPIError) as exc_info:
             post_library(
                 approved_library,
                 text="Test caption",
                 image_path=Path("/tmp/test.jpg"),
             )
+
+        assert exc_info.value.operation == "container_creation"
+        assert exc_info.value.status_code == 400
 
     @override_settings(
         INSTAGRAM_USER_ID="123456",
@@ -1701,7 +2293,10 @@ class TestCommandAIIntegration:
             "hashtags": ["cozy", "reading", "nature", "sunset"],
             "english_caption": "A lovely community library on the corner",
         }
-        mock_instagram.return_value = "https://www.instagram.com/p/abc123/"
+        mock_instagram.return_value = InstagramResult(
+            permalink="https://www.instagram.com/p/abc123/",
+            media_id="media-456",
+        )
 
         call_command("post_random_library")
 
@@ -1842,7 +2437,9 @@ class TestCommentOnMedia:
         assert result == "comment-789"
 
         call_kwargs = mock_post.call_args
-        assert "media-456/comments" in call_kwargs.args[0]
+        assert call_kwargs.args[0] == (
+            "https://graph.instagram.com/v26.0/media-456/comments"
+        )
         assert call_kwargs.kwargs["data"]["message"] == "#BookCorners #FreeBooks"
 
     @override_settings(
@@ -1851,17 +2448,54 @@ class TestCommentOnMedia:
     )
     @patch("libraries.social.instagram.requests.post")
     def test_comment_api_error(self, mock_post):
-        """Verify API errors propagate as RuntimeError.
+        """Verify API errors propagate as structured Instagram errors.
         Allows the caller to catch and handle comment failures separately."""
-        from libraries.social.instagram import comment_on_media
+        from libraries.social.instagram import InstagramAPIError, comment_on_media
 
         mock_post.return_value = _mock_response(
             status_code=400,
             json_data={"error": {"message": "Invalid media ID"}},
         )
 
-        with pytest.raises(RuntimeError, match="Invalid media ID"):
+        with pytest.raises(InstagramAPIError, match="Invalid media ID"):
             comment_on_media(media_id="bad-id", text="test")
+
+    @override_settings(
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="test-ig-token",
+    )
+    @patch("libraries.social.instagram.time.sleep")
+    @patch("libraries.social.instagram.requests.post")
+    def test_comment_transport_failure_is_not_retried(self, mock_post, mock_sleep):
+        """Verify comment transport failures stop after one request.
+        Keeps comment failures separate from retryable publishing steps."""
+        from requests.exceptions import Timeout
+
+        from libraries.social.instagram import InstagramAPIError, comment_on_media
+
+        sensitive_detail = (
+            "https://graph.instagram.com/v26.0/media-456/comments "
+            "access_token=test-ig-token message=secret comment"
+        )
+        mock_post.side_effect = Timeout(sensitive_detail)
+
+        with pytest.raises(InstagramAPIError) as exc_info:
+            comment_on_media(media_id="media-456", text="secret comment")
+
+        error = exc_info.value
+        assert error.operation == "comment"
+        assert error.status_code == 0
+        assert error.message == "transport failure after 1 attempt"
+        assert str(error) == (
+            "Instagram API 0: transport failure after 1 attempt "
+            "(operation=comment)"
+        )
+        assert error.__suppress_context__ is True
+        assert "graph.instagram.com" not in str(error)
+        assert "test-ig-token" not in str(error)
+        assert "secret comment" not in str(error)
+        mock_post.assert_called_once()
+        mock_sleep.assert_not_called()
 
 
 # --- Set Instagram token command tests ---
@@ -1937,18 +2571,30 @@ class TestSetInstagramToken:
 class _MockResponse:
     """Minimal mock for requests.Response objects."""
 
-    def __init__(self, *, json_data=None, status_code=200, should_raise=False):
+    def __init__(
+        self,
+        *,
+        json_data=None,
+        status_code=200,
+        should_raise=False,
+        text=None,
+        json_error=False,
+    ):
         """Initialize with response data and status code.
-        Optionally configured to raise on raise_for_status."""
-        self._json_data = json_data or {}
+        Optionally configure a custom raw response body or JSON failure."""
+        self._json_data = {} if json_data is None else json_data
         self.status_code = status_code
         self.ok = status_code < 400
-        self.text = str(json_data) if json_data else ""
-        self.url = "https://graph.instagram.com/mock"
+        self.text = str(json_data) if text is None and json_data else (text or "")
+        self.url = "https://graph.instagram.com/v26.0/mock"
         self._should_raise = should_raise
+        self._json_error = json_error
 
     def json(self):
-        """Return the mock JSON body."""
+        """Return the mock JSON body.
+        Raises ValueError when simulating a non-JSON response."""
+        if self._json_error:
+            raise ValueError("response body is not JSON")
         return self._json_data
 
     def raise_for_status(self):
@@ -1962,13 +2608,17 @@ class _MockResponse:
             )
 
 
-def _mock_response(*, json_data=None, status_code=200, raise_on_status=False):
+def _mock_response(
+    *, json_data=None, status_code=200, raise_on_status=False, text=None, json_error=False
+):
     """Create a mock requests.Response for testing API calls.
-    Supports both success and error scenarios."""
+    Supports JSON, raw-body, and error scenarios."""
     return _MockResponse(
         json_data=json_data,
         status_code=status_code,
         should_raise=raise_on_status,
+        text=text,
+        json_error=json_error,
     )
 
 
@@ -2190,3 +2840,34 @@ class TestPostWithRetry:
         assert mock_mastodon.call_count == 1
         mock_sleep.assert_not_called()
         assert SocialPost.objects.count() == 1
+
+    @override_settings(
+        MASTODON_INSTANCE_URL="",
+        MASTODON_ACCESS_TOKEN="",
+        BLUESKY_HANDLE="",
+        BLUESKY_APP_PASSWORD="",
+        INSTAGRAM_USER_ID="123456",
+        INSTAGRAM_ACCESS_TOKEN="ig-token",
+        SITE_URL="https://bookcorners.org",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        ADMIN_NOTIFICATION_EMAIL="admin@test.com",
+    )
+    @patch("libraries.management.commands.post_random_library.time.sleep")
+    @patch("libraries.management.commands.post_random_library.Command._post_to_instagram")
+    @patch("libraries.management.commands.post_random_library.get_library_photo_path")
+    def test_does_not_retry_instagram_workflow(
+        self, mock_photo, mock_instagram, mock_sleep, approved_library,
+    ):
+        """Verify Instagram network errors are not retried by the command.
+        Keeps retry boundaries inside the Instagram workflow."""
+        import requests
+
+        mock_photo.return_value = Path("/tmp/test.jpg")
+        mock_instagram.side_effect = requests.ConnectionError("connection refused")
+
+        call_command("post_random_library")
+
+        mock_instagram.assert_called_once()
+        mock_sleep.assert_not_called()
+        assert SocialPost.objects.count() == 0
+
