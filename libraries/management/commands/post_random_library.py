@@ -18,6 +18,7 @@ from django.urls import reverse
 
 from libraries.models import Library, SocialPost
 from libraries.notifications import notify_social_post, notify_social_post_error
+from libraries.social.instagram import InstagramResult
 from libraries.social.text import build_hashtag_comment, build_post_text
 from libraries.storage import get_library_photo_path
 
@@ -177,6 +178,7 @@ class Command(BaseCommand):
         mastodon_url = ""
         bluesky_url = ""
         instagram_url = ""
+        instagram_published = False
         errors = []
 
         try:
@@ -213,14 +215,21 @@ class Command(BaseCommand):
 
         try:
             if instagram_configured:
-                instagram_url = self._post_with_retry(
-                    "Instagram",
-                    lambda: self._post_to_instagram(
-                        library, instagram_text, image_path,
-                        hashtag_comment=hashtag_comment,
-                    ),
+                instagram_result = self._post_to_instagram(
+                    library, instagram_text, image_path,
+                    hashtag_comment=hashtag_comment,
                 )
-                logger.info("Posted to Instagram: %s", instagram_url)
+                instagram_published = True
+                instagram_url = instagram_result.permalink
+                if instagram_result.permalink_error:
+                    errors.append(
+                        "Instagram permalink lookup: "
+                        f"{instagram_result.permalink_error}"
+                    )
+                if instagram_url:
+                    logger.info("Posted to Instagram: %s", instagram_url)
+                else:
+                    logger.info("Posted to Instagram (permalink unavailable)")
             else:
                 logger.info("Instagram not configured, skipping")
         except Exception as exc:
@@ -231,7 +240,7 @@ class Command(BaseCommand):
         if image_path and not library.photo.storage.exists(library.photo.name):
             image_path.unlink(missing_ok=True)
 
-        if mastodon_url or bluesky_url or instagram_url:
+        if mastodon_url or bluesky_url or instagram_url or instagram_published:
             social_post = SocialPost.objects.create(
                 library=library,
                 post_text=post_text,
@@ -319,9 +328,9 @@ class Command(BaseCommand):
     def _post_to_instagram(
         self, library, text: str, image_path: Path,
         *, hashtag_comment: str | None = None,
-    ) -> str:
+    ) -> InstagramResult:
         """Delegate to the Instagram client module.
-        Returns the permalink of the created post."""
+        Returns publication state and the optional permalink."""
         from libraries.social.instagram import comment_on_media, post_library
 
         result = post_library(library, text=text, image_path=image_path)
@@ -329,11 +338,8 @@ class Command(BaseCommand):
         if hashtag_comment:
             try:
                 comment_on_media(media_id=result.media_id, text=hashtag_comment)
-                logger.info("Posted hashtag comment on Instagram media %s", result.media_id)
+                logger.info("Posted hashtag comment on Instagram")
             except Exception:
-                logger.exception(
-                    "Failed to post hashtag comment on Instagram media %s",
-                    result.media_id,
-                )
+                logger.exception("Failed to post hashtag comment on Instagram")
 
-        return result.permalink
+        return result
