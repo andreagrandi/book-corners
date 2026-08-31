@@ -9,8 +9,8 @@
     "@tailwindcss/cli": "^4.3.3",
     "@tailwindcss/postcss": "^4.3.3",
     "autoprefixer": "^10.5.4",
-    "daisyui": "^5.7.9",
-    "postcss": "^8.5.15",
+    "daisyui": "^5.7.22",
+    "postcss": "^8.5.26",
     "tailwindcss": "^4.2.1"
   }
 }
