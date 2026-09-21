@@ -24,6 +24,7 @@ from users.contributor_agreements import (
     validate_acceptance,
 )
 from users.models import ContributorAgreementAcceptance, DeviceToken
+from users.notifications import notify_new_registration
 from users.security import is_auth_rate_limited
 
 MessageOut = ErrorOut
@@ -312,6 +313,7 @@ def register(request, payload: RegisterIn):
                 user=user,
                 channel=ContributorAgreementAcceptance.Channel.API_CREDENTIAL_REGISTRATION,
             )
+    notify_new_registration(user, via="email")
     return 201, build_token_pair(user=user)
 
 
