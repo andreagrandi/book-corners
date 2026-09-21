@@ -63,6 +63,35 @@ class TestAuthAPI:
         assert "refresh" in body
         assert User.objects.filter(username="newuser").exists()
 
+    @override_settings(
+        ADMIN_NOTIFICATION_EMAIL="admin@example.com",
+        SITE_URL="https://example.com",
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    )
+    def test_register_sends_admin_notification(self, client):
+        """Verify API registration sends one admin notification email.
+        Mirrors the web registration flow where admins get notified."""
+        from django.core import mail
+
+        response = client.post(
+            "/api/v1/auth/register",
+            data={
+                "username": "notifyuser",
+                "password": "newpass123",
+                "email": "notifyuser@example.com",
+                "contributor_agreement_version": "1.0",
+                "contributor_agreement_accepted": True,
+            },
+            content_type="application/json",
+        )
+
+        assert response.status_code == 201
+        assert len(mail.outbox) == 1
+        message = mail.outbox[0]
+        assert message.to == ["admin@example.com"]
+        assert "notifyuser" in message.subject
+        assert "notifyuser" in message.body
+
     def test_login_returns_jwt_pair(self, client, user):
         """Verify login returns jwt pair.
         Confirms the expected behavior stays stable."""
