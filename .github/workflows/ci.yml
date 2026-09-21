@@ -46,11 +46,9 @@ jobs:
         uses: astral-sh/setup-uv@v7
 
       - name: Install GIS dependencies
-        uses: awalsh128/cache-apt-pkgs-action@v1
-        with:
-          packages: gdal-bin libgdal-dev libgeos-dev libproj-dev
-          version: 2.2
-          execute_install_scripts: true
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gdal-bin libgdal-dev libgeos-dev libproj-dev
 
       - name: Install BLAS/LAPACK runtime
         run: sudo apt-get install -y --no-install-recommends libblas3 liblapack3
@@ -108,11 +106,9 @@ jobs:
         uses: astral-sh/setup-uv@v7
 
       - name: Install GIS dependencies
-        uses: awalsh128/cache-apt-pkgs-action@v1
-        with:
-          packages: gdal-bin libgdal-dev libgeos-dev libproj-dev
-          version: 2.2
-          execute_install_scripts: true
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gdal-bin libgdal-dev libgeos-dev libproj-dev
 
       - name: Install BLAS/LAPACK runtime
         run: sudo apt-get install -y --no-install-recommends libblas3 liblapack3
