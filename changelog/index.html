@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="zensical-0.0.53">
+      <meta name="generator" content="zensical-0.0.63">
     
     
       
@@ -32,12 +32,12 @@
       
         
       
-      <link rel="stylesheet" href="../assets/stylesheets/modern/main.20815dad.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/modern/main.10763589.min.css">
       
         
           
         
-        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.dfe2e883.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/modern/palette.812a03bb.min.css">
       
       
 
@@ -377,18 +377,19 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
-            <span class="md-nav__icon md-icon"></span>
-            
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_6">
+              <span class="md-nav__icon md-icon"></span>
+              
   
   Libraries
 
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
               
                 
+                  
   
   
   
@@ -412,10 +413,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -439,10 +440,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -466,10 +467,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -493,10 +494,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -520,10 +521,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -547,10 +548,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -574,10 +575,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -601,10 +602,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -628,10 +629,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -655,10 +656,10 @@
     </li>
   
 
-              
-            
+                
               
                 
+                  
   
   
   
@@ -682,10 +683,11 @@
     </li>
   
 
+                
               
-            
-          </ul>
-        </nav>
+            </ul>
+          </nav>
+        
       
     </li>
   
@@ -1368,6 +1370,7 @@
 <ul>
 <li>Web password registration and first-time Google or Apple registration now require explicit acceptance of the current Contributor Agreement. OAuth signup intent is preserved per flow, while existing password and social login remain unchanged and create no acceptance record.</li>
 <li>API account registration and native social-account creation now accept optional versioned Contributor Agreement fields and record valid explicit acceptance. Legacy clients remain compatible by default; rejecting missing, false, or stale acceptance is protected by the default-off <code>CONTRIBUTOR_AGREEMENT_REGISTRATION_REQUIRED</code> rollout switch. Acceptance records retain the exact version, server timestamp, user linkage, and server-selected channel; existing users receive no inferred acceptance and can accept through <code>POST /api/v1/auth/me/contributor-agreement</code>.</li>
+<li>API credential registration (<code>POST /api/v1/auth/register</code>) now sends the same new-user admin notification email as web registration. Native social registration already notified through the shared social signup path.</li>
 <li>Authenticated <code>GET /api/v1/auth/me</code> responses expose the current agreement version, immutable public URL, and whether the user is current. Native social responses include <code>account_created</code> to distinguish new registration from existing login.</li>
 <li>The public Contributor Agreement v1.0 documents the ODbL-compatible data grant, CC BY-SA 4.0 image licence, attribution and reuse requirements, agreement-version changes, account deletion effects, and possible OpenStreetMap reuse without promising any write-back.</li>
 <li>Authenticated users can download the complete approved-library GeoJSON export and its metadata through <code>GET /api/v1/libraries/export/latest.geojson</code> and <code>GET /api/v1/libraries/export/metadata.json</code> with a JWT Bearer token. Current immutable artifact URLs are also available through the API.</li>
@@ -1539,10 +1542,14 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["navigation.sections","navigation.top","search.suggest","content.code.copy","content.tabs.link"],"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
+      
+      
+        
+        
+      <script id="__config" type="application/json">{"annotate":null,"base":"..","features":["navigation.sections","navigation.top","search.suggest","content.code.copy","content.tabs.link"],"redirect":null,"search":"../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":null}</script>
     
     
-      <script src="../assets/javascripts/bundle.69c251d7.min.js"></script>
+      <script src="../assets/javascripts/bundle.8dcc8e9c.min.js"></script>
       
     
   </body>
