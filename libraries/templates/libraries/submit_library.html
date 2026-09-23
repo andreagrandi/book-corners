@@ -250,9 +250,7 @@
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
 
-      const marker = L.marker([defaultLatitude, defaultLongitude], {
-        draggable: true,
-      }).addTo(map);
+      let marker = null;
 
       function setStatus(message, isError = false) {
         statusElement.textContent = message;
@@ -312,17 +310,32 @@
         setCountrySelection(countryCode, true, false);
       }
 
-      function selectMarkerLocation(latitude, longitude) {
-        marker.setLatLng([latitude, longitude]);
-        map.setView([latitude, longitude], 16);
-        updateCoordinates(latitude, longitude);
-      }
-
-      marker.on("dragend", function () {
+      /**
+       * Read the final marker position after a drag.
+       * Keep submitted coordinates aligned with the map.
+       */
+      function handleMarkerDragEnd() {
         const markerPosition = marker.getLatLng();
         updateCoordinates(markerPosition.lat, markerPosition.lng);
         setStatus("{% trans 'Marker moved. Coordinates updated.' %}");
-      });
+      }
+
+      /**
+       * Set and display an explicitly chosen location.
+       * Keep the map, marker, and submitted coordinates in sync.
+       */
+      function selectMarkerLocation(latitude, longitude) {
+        if (marker === null) {
+          marker = L.marker([latitude, longitude], {
+            draggable: true,
+          }).addTo(map);
+          marker.on("dragend", handleMarkerDragEnd);
+        } else {
+          marker.setLatLng([latitude, longitude]);
+        }
+        map.setView([latitude, longitude], 16);
+        updateCoordinates(latitude, longitude);
+      }
 
       map.on("click", function (event) {
         selectMarkerLocation(event.latlng.lat, event.latlng.lng);
@@ -332,11 +345,7 @@
       const existingLatitude = Number.parseFloat(latitudeInput.value || "");
       const existingLongitude = Number.parseFloat(longitudeInput.value || "");
       if (Number.isFinite(existingLatitude) && Number.isFinite(existingLongitude)) {
-        marker.setLatLng([existingLatitude, existingLongitude]);
-        map.setView([existingLatitude, existingLongitude], 16);
-        updateCoordinates(existingLatitude, existingLongitude);
-      } else {
-        updateCoordinates(defaultLatitude, defaultLongitude);
+        selectMarkerLocation(existingLatitude, existingLongitude);
       }
 
       setStatus("{{ map_status_message|escapejs }}");
