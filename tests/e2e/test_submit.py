@@ -74,9 +74,60 @@ def test_submit_autocomplete_shows_suggestions(
     assert items.count() > 0
 
 
+def test_submit_without_location_is_rejected(
+    live_server, authenticated_page, tmp_path
+):
+    """Verify a submission without an explicit location is rejected.
+    Confirms missing coordinates never create a library."""
+    authenticated_page.goto(f"{live_server.url}/submit/")
+
+    authenticated_page.locator(
+        "#submit-library-map.leaflet-container"
+    ).wait_for(state="attached", timeout=10000)
+
+    assert authenticated_page.locator("#id_latitude").input_value() == ""
+    assert authenticated_page.locator("#id_longitude").input_value() == ""
+    assert (
+        authenticated_page.locator(
+            "#submit-library-map .leaflet-marker-icon"
+        ).count()
+        == 0
+    )
+
+    image_path = tmp_path / "test_photo.jpg"
+    _create_minimal_jpeg(image_path)
+    authenticated_page.set_input_files("#id_photo", str(image_path))
+    authenticated_page.fill("#id_name", "No Location Submission")
+    authenticated_page.fill("#id_city", "Firenze")
+    authenticated_page.fill("#id_address", "Via Rosina")
+    authenticated_page.fill("#id_postal_code", "50123")
+
+    country_select = authenticated_page.locator("#id_country")
+    if country_select.evaluate("el => el.tomselect !== undefined"):
+        authenticated_page.evaluate("""() => {
+            const el = document.getElementById('id_country');
+            if (el && el.tomselect) {
+                el.tomselect.setValue('IT', true);
+            }
+        }""")
+    else:
+        authenticated_page.select_option("#id_country", value="IT")
+
+    library_count = Library.objects.count()
+    authenticated_page.locator(
+        ".card-body button[type='submit']"
+    ).click()
+
+    authenticated_page.get_by_text(
+        "This field is required.", exact=True
+    ).first.wait_for(state="visible")
+    assert "/submit/confirmation/" not in authenticated_page.url
+    assert Library.objects.count() == library_count
+
+
 def test_submit_form_happy_path(live_server, authenticated_page, tmp_path):
     """Verify a complete library submission succeeds end-to-end.
-    Fills all fields, sets coordinates via geocode, and submits."""
+    Selects a Photon address suggestion to set coordinates and submits."""
     authenticated_page.goto(f"{live_server.url}/submit/")
 
     authenticated_page.locator(
@@ -96,27 +147,25 @@ def test_submit_form_happy_path(live_server, authenticated_page, tmp_path):
     assert authenticated_page.get_by_text("Choose another photo").is_visible()
 
     authenticated_page.fill("#id_name", "Test Submission Library")
-    authenticated_page.fill("#id_city", "Firenze")
-    authenticated_page.fill("#id_address", "Via Rosina 15")
-    authenticated_page.fill("#id_postal_code", "50123")
+    authenticated_page.fill("#id_address", "Via Rosina")
 
-    authenticated_page.evaluate("""() => {
-        const lat = document.getElementById('id_latitude');
-        const lng = document.getElementById('id_longitude');
-        if (lat) lat.value = '43.7696';
-        if (lng) lng.value = '11.2558';
-    }""")
+    suggestion = authenticated_page.get_by_role(
+        "button", name="Via Rosina 15, Firenze, Italy"
+    )
+    suggestion.wait_for(state="visible", timeout=5000)
+    suggestion.click()
 
-    country_select = authenticated_page.locator("#id_country")
-    if country_select.evaluate("el => el.tomselect !== undefined"):
-        authenticated_page.evaluate("""() => {
-            const el = document.getElementById('id_country');
-            if (el && el.tomselect) {
-                el.tomselect.setValue('IT', true);
-            }
-        }""")
-    else:
-        authenticated_page.select_option("#id_country", value="IT")
+    assert authenticated_page.locator("#id_city").input_value() == "Firenze"
+    assert authenticated_page.locator("#id_country").input_value() == "IT"
+    assert authenticated_page.locator("#id_postal_code").input_value() == "50123"
+    assert authenticated_page.locator("#id_latitude").input_value() == "43.769600"
+    assert authenticated_page.locator("#id_longitude").input_value() == "11.255800"
+    assert (
+        authenticated_page.locator(
+            "#submit-library-map .leaflet-marker-icon"
+        ).count()
+        == 1
+    )
 
     authenticated_page.locator(
         ".card-body button[type='submit']"

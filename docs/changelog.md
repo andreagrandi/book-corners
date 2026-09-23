@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The web submission form no longer pre-fills coordinates from its default map center. New submissions must select an address suggestion or map point before saving.
 - Web password registration and first-time Google or Apple registration now require explicit acceptance of the current Contributor Agreement. OAuth signup intent is preserved per flow, while existing password and social login remain unchanged and create no acceptance record.
 - API account registration and native social-account creation now accept optional versioned Contributor Agreement fields and record valid explicit acceptance. Legacy clients remain compatible by default; rejecting missing, false, or stale acceptance is protected by the default-off `CONTRIBUTOR_AGREEMENT_REGISTRATION_REQUIRED` rollout switch. Acceptance records retain the exact version, server timestamp, user linkage, and server-selected channel; existing users receive no inferred acceptance and can accept through `POST /api/v1/auth/me/contributor-agreement`.
 - API credential registration (`POST /api/v1/auth/register`) now sends the same new-user admin notification email as web registration. Native social registration already notified through the shared social signup path.
