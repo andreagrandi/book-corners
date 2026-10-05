@@ -3,7 +3,7 @@ atproto==0.0.72
 dj-database-url==3.1.2
 django==6.1.1
 django-tasks-db==0.13.0
-django-allauth[socialaccount]==65.19.4
+django-allauth[socialaccount]==65.19.7
 django-anymail[resend]==15.2
 django-ninja==1.7.1
 django-ninja-jwt==5.4.5
@@ -14,14 +14,14 @@ Pillow==12.3.0
 pillow-heif==1.8.0
 psycopg2-binary==2.9.13
 pycountry==26.2.16
-PyJWT[crypto]==2.15.0
+PyJWT[crypto]==2.15.1
 pytest==9.1.1
 pytest-django==4.14.0
 pytest-playwright==0.9.0
 pytest-xdist==3.8.0
 sqlparse==0.6.0
 structlog==26.1.0
-sentry-sdk[django]==2.70.0
-openai==3.19.2
+sentry-sdk[django]==2.71.0
+openai==3.23.0
 openapi-spec-validator==0.9.0
 whitenoise==6.12.0
