@@ -158,15 +158,25 @@ After enabling Let's Encrypt, set Cloudflare SSL/TLS mode to **Full (Strict)**.
 
 Bots request paths such as `/.env`, `/.git/config`, `/master.key` and `/wp-config.php`. nginx answers them with a 404 so they never reach gunicorn. Dokku includes every `*.conf` file in the app's `nginx.conf.d` directory inside the app's server blocks.
 
+The VPS has no checkout of the repo, so copy the file from a local checkout of `master` first:
+
 ```bash
-sudo mkdir -p /home/dokku/book-corners/nginx.conf.d
-sudo cp deploy/nginx/block-probes.conf /home/dokku/book-corners/nginx.conf.d/block-probes.conf
-sudo chown -R dokku:dokku /home/dokku/book-corners/nginx.conf.d
-sudo dokku proxy:build-config book-corners
-curl -s -o /dev/null -w "%{http_code}\n" https://bookcorners.org/.env
+scp deploy/nginx/block-probes.conf deploy@vps.bookcorners.org:/tmp/block-probes.conf
 ```
 
-The last command should print `404`. Re-copy the file and rebuild the config when `deploy/nginx/block-probes.conf` changes. `BlockProbePathsMiddleware` in Django applies the same pattern as a fallback, and the Sentry trace sampler drops these requests, so probes create no Sentry findings even if this nginx file is missing.
+Then move it into place and rebuild the nginx config. The `-t` flag lets `sudo` ask for the password:
+
+```bash
+ssh -t deploy@vps.bookcorners.org 'sudo mkdir -p /home/dokku/book-corners/nginx.conf.d && sudo mv /tmp/block-probes.conf /home/dokku/book-corners/nginx.conf.d/block-probes.conf && sudo chown -R dokku:dokku /home/dokku/book-corners/nginx.conf.d && sudo dokku proxy:build-config book-corners && sudo nginx -t'
+```
+
+The command should end with `syntax is ok` and `test is successful`. To confirm that nginx answers the probe, send it straight to the VPS instead of through Cloudflare:
+
+```bash
+curl -s -D - -o /dev/null --resolve bookcorners.org:443:"$(dig +short vps.bookcorners.org | head -1)" https://bookcorners.org/.env
+```
+
+The response should be `404` with a `server: nginx` header and no `x-frame-options` header. Django adds that header, so its absence shows the request never reached gunicorn. Repeat both steps when `deploy/nginx/block-probes.conf` changes. `BlockProbePathsMiddleware` in Django applies the same pattern as a fallback, and the Sentry trace sampler drops these requests, so probes create no Sentry findings even if this nginx file is missing.
 
 ## Domains
 
