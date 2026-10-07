@@ -3,7 +3,10 @@
 .venv
 node_modules
 .env
+.env.*
 .envrc
+*.key
+*.pem
 .claude
 __pycache__
 *.pyc

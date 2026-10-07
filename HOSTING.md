@@ -154,6 +154,20 @@ sudo dokku letsencrypt:cron-job --add
 
 After enabling Let's Encrypt, set Cloudflare SSL/TLS mode to **Full (Strict)**.
 
+## Scanner probe blocking
+
+Bots request paths such as `/.env`, `/.git/config`, `/master.key` and `/wp-config.php`. nginx answers them with a 404 so they never reach gunicorn. Dokku includes every `*.conf` file in the app's `nginx.conf.d` directory inside the app's server blocks.
+
+```bash
+sudo mkdir -p /home/dokku/book-corners/nginx.conf.d
+sudo cp deploy/nginx/block-probes.conf /home/dokku/book-corners/nginx.conf.d/block-probes.conf
+sudo chown -R dokku:dokku /home/dokku/book-corners/nginx.conf.d
+sudo dokku proxy:build-config book-corners
+curl -s -o /dev/null -w "%{http_code}\n" https://bookcorners.org/.env
+```
+
+The last command should print `404`. Re-copy the file and rebuild the config when `deploy/nginx/block-probes.conf` changes. `BlockProbePathsMiddleware` in Django applies the same pattern as a fallback, and the Sentry trace sampler drops these requests, so probes create no Sentry findings even if this nginx file is missing.
+
 ## Domains
 
 ```bash
