@@ -30,3 +30,24 @@ def test_sentry_traces_sampler_preserves_parent_sampling() -> None:
 
     assert _sentry_traces_sampler(sampling_context) is True
 
+
+def test_sentry_traces_sampler_drops_secret_file_probe_paths() -> None:
+    """Reject tracing for blocked secret-file probe requests.
+    Stops scanner traffic from creating Sentry security findings."""
+    sampling_context = {
+        "parent_sampled": True,
+        "wsgi_environ": {"HTTP_HOST": "bookcorners.org", "PATH_INFO": "/customer/.env"},
+    }
+
+    assert _sentry_traces_sampler(sampling_context) is False
+
+
+def test_sentry_traces_sampler_keeps_real_paths_sampled() -> None:
+    """Keep the configured sampling rate for real application paths.
+    Ensures genuine request failures stay visible in tracing."""
+    sampling_context = {
+        "parent_sampled": None,
+        "wsgi_environ": {"HTTP_HOST": "localhost:8000", "PATH_INFO": "/api/v1/libraries/"},
+    }
+
+    assert _sentry_traces_sampler(sampling_context) == SENTRY_TRACES_SAMPLE_RATE

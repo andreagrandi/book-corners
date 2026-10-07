@@ -20,6 +20,8 @@ import dj_database_url
 from django.core.exceptions import DisallowedHost, ImproperlyConfigured
 from django.http.request import split_domain_port, validate_host
 
+from config.security import is_probe_path
+
 # Build paths inside the project like this: BASE_DIR / "subdir".
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -174,6 +176,7 @@ TASKS = {
 }
 
 MIDDLEWARE = [
+    "config.middleware.BlockProbePathsMiddleware",
     "django.middleware.gzip.GZipMiddleware",
     "libraries.middleware.APICacheControlMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -423,10 +426,14 @@ def _sentry_before_send(
 
 
 def _sentry_traces_sampler(sampling_context: dict[str, Any]) -> bool | float:
-    """Skip traces for hosts Django will reject before routing.
+    """Skip traces for rejected hosts and blocked secret-file probe paths.
     Preserves normal sampling for valid requests and background work."""
     wsgi_environ = sampling_context.get("wsgi_environ")
     if isinstance(wsgi_environ, dict):
+        path_info = wsgi_environ.get("PATH_INFO")
+        if isinstance(path_info, str) and is_probe_path(path=path_info):
+            return False
+
         raw_host = wsgi_environ.get("HTTP_HOST")
         if isinstance(raw_host, str):
             domain, _port = split_domain_port(raw_host)
