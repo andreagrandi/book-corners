@@ -1398,6 +1398,7 @@ class TestHomepageTemplate:
         assert "https://www.andreagrandi.it" in content
         assert "https://github.com/andreagrandi/book-corners" in content
         assert "href=\"/privacy/\"" in content
+        assert "href=\"/terms/\"" in content
         assert "https://developers.bookcorners.org/" in content
         assert "https://stats.uptimerobot.com/y3eynRaqP2" in content
 
@@ -1505,6 +1506,34 @@ class TestPrivacyPage:
         assert response.status_code == 200
         assert "Contribuire a OpenStreetMap" not in content
         assert "potrebbe essere aggiunta anche a OpenStreetMap" not in content
+
+
+class TestTermsPage:
+    def test_english_terms_page_lists_licences_and_contact(self, client):
+        """Verify the English terms page names both licences and the contact.
+        Gives reusers one place to find database and image reuse terms."""
+        response = client.get(reverse("terms_page"))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Terms of Use" in content
+        assert "https://opendatacommons.org/licenses/odbl/1-0/" in content
+        assert "https://creativecommons.org/licenses/by-sa/4.0/" in content
+        assert "href=\"/contributor-agreement/\"" in content
+        assert "mailto:mail@andreagrandi.it" in content
+
+    def test_italian_terms_page_renders_translation(self, client):
+        """Verify Italian visitors get the Italian terms page.
+        Keeps both published languages available from the same URL."""
+        response = client.get(
+            reverse("terms_page"),
+            headers={"accept-language": "it"},
+        )
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "Condizioni d'uso" in content
+        assert "https://opendatacommons.org/licenses/odbl/1-0/" in content
 
 
 @pytest.mark.django_db

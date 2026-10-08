@@ -35,3 +35,7 @@ https://bookcorners.org/api/v1/
 | [Errors](errors.md) | Error response format and status codes |
 | [Rate Limiting](rate-limiting.md) | Request limits and 429 handling |
 | [API Reference](reference/openapi.md) | Interactive OpenAPI / Swagger UI |
+
+## Data and image reuse
+
+The database is available under ODbL 1.0, and images carry their own per-image licence. The [terms of use](https://bookcorners.org/terms/) page explains how to reuse and credit Book Corners data and images.

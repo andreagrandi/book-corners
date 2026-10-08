@@ -109,6 +109,7 @@ The metadata document describes the exact raw and gzip artifacts. Its fields are
 | `license` | ODbL 1.0 name and license URL. |
 | `attribution` | Linked Book Corners and OpenStreetMap contributor credits. |
 | `images` | Statements that images are licensed separately per image, what a `null` `photo_license` means, and how to host downloaded images. |
+| `terms_of_use_url` | URL of the Book Corners [terms of use](https://bookcorners.org/terms/) page for data and image reuse. |
 
 Validate a completed download against the matching metadata:
 
@@ -152,7 +153,7 @@ When attribution is required for the database, credit both [Book Corners](https:
 
 > Contains information from the Book Corners approved library export, made available under ODbL 1.0. Attribution: Book Corners and OpenStreetMap contributors.
 
-ODbL covers the exported database. Images are licensed separately from the database, per image.
+ODbL covers the exported database. Images are licensed separately from the database, per image. The [terms of use](https://bookcorners.org/terms/) page summarises how to reuse and credit both.
 
 The [Contributor Agreement v1.0](https://bookcorners.org/contributor-agreement/1.0/en/) selects [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) for images contributed by a person who accepted that agreement. That image licence requires appropriate credit, a link to the licence, indication of changes, and share-alike treatment for adaptations where required. It is separate from the ODbL licence for the database.
 

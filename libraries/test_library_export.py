@@ -148,6 +148,7 @@ class TestLibraryExport:
             (export_directory / str(metadata["filename"])).read_text(encoding="utf-8")
         )
         assert metadata_payload["license"]["name"].endswith("ODbL) v1.0")
+        assert metadata_payload["terms_of_use_url"] == "https://bookcorners.example/terms/"
         assert metadata_payload["data"]["filename"] == geojson["filename"]
         assert metadata_payload["gzip"]["filename"] == geojson_gzip["filename"]
         assert gzip.decompress(gzip_bytes) == raw_bytes

@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Condizioni d'uso - Book Corners{% endblock %}
+{% block meta_description %}Come riutilizzare i dati e le immagini di Book Corners e come citarli.{% endblock %}
+
+{% block content %}
+  <section class="rounded-box bg-base-100 px-6 py-10 shadow-sm lg:px-12">
+    <h1 class="text-4xl font-bold">Condizioni d'uso</h1>
+    <p class="mt-2 text-base-content/60">Ultimo aggiornamento: 8 ottobre 2026</p>
+
+    <div class="mt-8 max-w-3xl space-y-8 text-base-content/80">
+      <p>
+        I dati di Book Corners e molte delle sue immagini si possono riutilizzare liberamente. Questa pagina
+        spiega cosa puoi riutilizzare, con quale licenza e come citarlo. L'<a href="{% url 'contributor_agreement_page' %}" class="link">Accordo per i contributori</a>
+        spiega cosa i contributori concedono a Book Corners. Questa pagina è per chiunque altro voglia
+        riutilizzare ciò che Book Corners pubblica.
+      </p>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">1. Il database</h2>
+        <div class="mt-3 space-y-2">
+          <p>
+            Il database di Book Corners è pubblicato con la licenza
+            <a href="https://opendatacommons.org/licenses/odbl/1-0/" class="link" target="_blank" rel="noopener noreferrer">Open Data Commons Open Database License (ODbL) 1.0</a>.
+            Puoi copiarlo, condividerlo e modificarlo, anche per uso commerciale, a condizione di citare
+            la fonte e di condividere con la stessa licenza ogni database derivato che rendi pubblico.
+          </p>
+          <p>
+            Puoi ottenere i dati tramite l'<a href="https://developers.bookcorners.org/" class="link" target="_blank" rel="noopener noreferrer">API di Book Corners</a>
+            oppure con il
+            <a href="https://developers.bookcorners.org/libraries/bulk-export/" class="link" target="_blank" rel="noopener noreferrer">download completo</a>.
+            Cita sia Book Corners sia i contributori di OpenStreetMap, ad esempio:
+          </p>
+          <p class="rounded-box bg-base-200 px-4 py-3 text-sm">
+            Contiene informazioni da Book Corners, rese disponibili con licenza ODbL 1.0.
+            Attribuzione: Book Corners e contributori di OpenStreetMap.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">2. Immagini</h2>
+        <div class="mt-3 space-y-4">
+          <p>
+            Le immagini hanno una licenza separata da quella del database. Ogni immagine ha la propria
+            licenza e il proprio credito, mostrati nella pagina della libreria e restituiti dall'API e dal
+            download completo.
+          </p>
+
+          <div>
+            <h3 class="font-semibold text-base-content">Immagini condivise dai contributori di Book Corners</h3>
+            <p class="mt-1">
+              Le immagini che i contributori hanno condiviso secondo l'Accordo per i contributori sono
+              disponibili con licenza
+              <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.it" class="link" target="_blank" rel="noopener noreferrer">Creative Commons Attribuzione-Condividi allo stesso modo 4.0 (CC BY-SA 4.0)</a>.
+              Quando ne riutilizzi una, cita l'autore con il suo nome utente su Book Corners, inserisci un
+              link alla licenza e indica se hai modificato l'immagine. Ad esempio:
+            </p>
+            <p class="mt-2 rounded-box bg-base-200 px-4 py-3 text-sm">
+              Foto di nomeutente, CC BY-SA 4.0, tramite Book Corners.
+            </p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-base-content">Immagini da fonti esterne</h3>
+            <p class="mt-1">
+              Alcune immagini provengono da altri siti o progetti. Appartengono ai loro autori originali e
+              non sono coperte dalla licenza CC BY-SA 4.0 indicata sopra. Quando è disponibile un link alla
+              fonte, indica dove trovare l'immagine originale e le condizioni che si applicano.
+            </p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-base-content">Immagini senza informazioni sulla licenza</h3>
+            <p class="mt-1">
+              Quando un'immagine non mostra alcuna licenza, Book Corners non ha informazioni sulla sua
+              licenza. Controlla il link alla fonte, se presente, oppure contatta l'autore originale.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">3. Ospitare le immagini</h2>
+        <div class="mt-3 space-y-2">
+          <p>
+            Puoi scaricare le immagini dei contributori e pubblicarle dal tuo spazio di hosting.
+            Ti chiediamo di non inserire link diretti ai file delle immagini su bookcorners.org,
+            perché il sito funziona con risorse limitate.
+          </p>
+          <p>
+            Questa è una richiesta sull'uso del servizio. Non aggiunge alcuna condizione alla
+            licenza CC BY-SA 4.0.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">4. Per gli autori delle immagini</h2>
+        <div class="mt-3 space-y-2">
+          <p>
+            Se sei l'autore di un'immagine presente su Book Corners, puoi contattarci, ad esempio per
+            aggiornare il credito o per far rimuovere l'immagine. Scrivi a
+            <a href="mailto:mail@andreagrandi.it" class="link link-hover">mail@andreagrandi.it</a>
+            e includi il link alla pagina della libreria in cui compare l'immagine.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">5. Modifiche a questa pagina</h2>
+        <div class="mt-3 space-y-2">
+          <p>
+            Questa pagina può essere aggiornata periodicamente. Le modifiche saranno pubblicate qui
+            con una nuova data di revisione.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

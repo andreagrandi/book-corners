@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Terms of Use - Book Corners{% endblock %}
+{% block meta_description %}How you can reuse Book Corners data and images, and how to credit them.{% endblock %}
+
+{% block content %}
+  <section class="rounded-box bg-base-100 px-6 py-10 shadow-sm lg:px-12">
+    <h1 class="text-4xl font-bold">Terms of Use</h1>
+    <p class="mt-2 text-base-content/60">Last updated: 8th October 2026</p>
+
+    <div class="mt-8 max-w-3xl space-y-8 text-base-content/80">
+      <p>
+        Book Corners data and many of its images are free to reuse. This page explains what you can
+        reuse, under which licence, and how to credit it. The
+        <a href="{% url 'contributor_agreement_page' %}" class="link">Contributor Agreement</a>
+        explains what contributors grant to Book Corners. This page is for everyone else who wants
+        to reuse what Book Corners publishes.
+      </p>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">1. The database</h2>
+        <div class="mt-3 space-y-2">
+          <p>
+            The Book Corners database is published under the
+            <a href="https://opendatacommons.org/licenses/odbl/1-0/" class="link" target="_blank" rel="noopener noreferrer">Open Data Commons Open Database License (ODbL) 1.0</a>.
+            You can copy, share and adapt it, including for commercial use, as long as you credit
+            the source and share any public derivative database under the same licence.
+          </p>
+          <p>
+            You can get the data through the
+            <a href="https://developers.bookcorners.org/" class="link" target="_blank" rel="noopener noreferrer">Book Corners API</a>
+            or as a complete
+            <a href="https://developers.bookcorners.org/libraries/bulk-export/" class="link" target="_blank" rel="noopener noreferrer">bulk download</a>.
+            Credit both Book Corners and OpenStreetMap contributors, for example:
+          </p>
+          <p class="rounded-box bg-base-200 px-4 py-3 text-sm">
+            Contains information from Book Corners, made available under ODbL 1.0.
+            Attribution: Book Corners and OpenStreetMap contributors.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">2. Images</h2>
+        <div class="mt-3 space-y-4">
+          <p>
+            Images are licensed separately from the database. Each image has its own licence and credit,
+            shown on the library page and returned by the API and the bulk download.
+          </p>
+
+          <div>
+            <h3 class="font-semibold text-base-content">Images shared by Book Corners contributors</h3>
+            <p class="mt-1">
+              Images that contributors shared under the Contributor Agreement are available under
+              <a href="https://creativecommons.org/licenses/by-sa/4.0/" class="link" target="_blank" rel="noopener noreferrer">Creative Commons Attribution-ShareAlike 4.0 (CC BY-SA 4.0)</a>.
+              When you reuse one, credit the author by their Book Corners username, link to the licence
+              and say if you changed the image. For example:
+            </p>
+            <p class="mt-2 rounded-box bg-base-200 px-4 py-3 text-sm">
+              Photo by username, CC BY-SA 4.0, via Book Corners.
+            </p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-base-content">Images from external sources</h3>
+            <p class="mt-1">
+              Some images come from other websites or projects. They belong to their original authors and
+              are not covered by the CC BY-SA 4.0 licence above. When a source link is available, it shows
+              where to find the original image and the terms that apply to it.
+            </p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-base-content">Images without licence information</h3>
+            <p class="mt-1">
+              When an image shows no licence, Book Corners has no licence information for it.
+              Check the source link if there is one, or contact the original author.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">3. Hosting images</h2>
+        <div class="mt-3 space-y-2">
+          <p>
+            You are welcome to download contributor images and serve them from your own hosting.
+            Please do not link directly to image files on bookcorners.org, because the site runs on
+            limited resources.
+          </p>
+          <p>
+            This is a request about how you use the service. It does not add any condition to the
+            CC BY-SA 4.0 licence.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">4. For image authors</h2>
+        <div class="mt-3 space-y-2">
+          <p>
+            If you are the author of an image on Book Corners, you can contact us about it, for example
+            to update the credit or to have the image removed. Write to
+            <a href="mailto:mail@andreagrandi.it" class="link link-hover">mail@andreagrandi.it</a>
+            and include a link to the library page where the image appears.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">5. Changes to this page</h2>
+        <div class="mt-3 space-y-2">
+          <p>
+            This page may be updated from time to time. Any changes will be published here with an
+            updated revision date.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

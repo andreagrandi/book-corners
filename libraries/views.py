@@ -988,6 +988,15 @@ def privacy_page(request: HttpRequest) -> HttpResponse:
     return render(request, "privacy.html")
 
 
+def terms_page(request: HttpRequest) -> HttpResponse:
+    """Render the data and image reuse terms in the active language.
+    Tells reusers which licences apply and how to credit Book Corners content."""
+    language_code = getattr(request, "LANGUAGE_CODE", "en")
+    if language_code == "it":
+        return render(request, "terms_it.html")
+    return render(request, "terms.html")
+
+
 def style_preview(request: HttpRequest) -> HttpResponse:
     """Render a dedicated Tailwind and daisyUI preview page.
     Provides a stable endpoint for CSS smoke and integration checks."""
