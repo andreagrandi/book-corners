@@ -50,6 +50,10 @@ Each item uses the standard library response fields plus `status`, `rejection_re
       "brand": "",
       "created_at": "2025-06-15T14:30:00Z",
       "is_favourited": false,
+      "photo_origin": "user",
+      "photo_license": "CC-BY-SA-4.0",
+      "photo_author": "janedoe",
+      "photo_source_url": null,
       "status": "pending",
       "rejection_reason": "",
       "osm_submission_allowed": false
@@ -146,7 +150,11 @@ Return the authenticated user's community photo submissions, newest first.
       "photo_url": "/media/libraries/user_photos/photo.jpg",
       "thumbnail_url": "/media/libraries/user_photos/thumbnails/photo.jpg",
       "status": "pending",
-      "created_at": "2025-06-15T14:30:00Z"
+      "created_at": "2025-06-15T14:30:00Z",
+      "photo_origin": "user",
+      "photo_license": "CC-BY-SA-4.0",
+      "photo_author": "janedoe",
+      "photo_source_url": null
     }
   ],
   "pagination": {

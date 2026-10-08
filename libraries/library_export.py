@@ -23,16 +23,21 @@ from django.db import connection, transaction
 from django.utils import timezone
 
 from libraries.models import Library
+from libraries.photo_licence import (
+    AUTHOR_ACCEPTED_ANNOTATION,
+    build_photo_licence_fields,
+    photo_author_has_agreement_exists,
+)
 
 logger = structlog.get_logger(__name__)
 
 EXPORT_DIRECTORY_NAME = "library_exports"
-EXPORT_SCHEMA_VERSION = 1
+EXPORT_SCHEMA_VERSION = 2
 EXPORT_MANIFEST_VERSION = 2
 EXPORT_ITERATOR_CHUNK_SIZE = 1000
 EXPORT_RETAIN_PREVIOUS = 7
 EXPORT_ADVISORY_LOCK_ID = 6_824_601_389_155_425_722
-EXPORT_METADATA_VERSION = 2
+EXPORT_METADATA_VERSION = 3
 EXPORT_GZIP_COMPRESSION_LEVEL = 9
 GEOJSON_MEDIA_TYPE = "application/geo+json"
 
@@ -42,6 +47,10 @@ EXPORTED_PROPERTY_NAMES = (
     "name",
     "description",
     "photo_url",
+    "photo_origin",
+    "photo_license",
+    "photo_author",
+    "photo_source_url",
     "address",
     "city",
     "country",
@@ -65,6 +74,9 @@ EXPORTED_LIBRARY_FIELDS = (
     "name",
     "description",
     "photo",
+    "photo_origin",
+    "photo_source_url",
+    "photo_author__username",
     "location",
     "address",
     "city",
@@ -83,7 +95,14 @@ EXPORTED_LIBRARY_FIELDS = (
     "created_at",
     "updated_at",
 )
+NULLABLE_PHOTO_PROPERTY_NAMES = (
+    "photo_origin",
+    "photo_license",
+    "photo_author",
+    "photo_source_url",
+)
 TEXT_PROPERTY_NAMES = frozenset(EXPORTED_PROPERTY_NAMES) - {
+    *NULLABLE_PHOTO_PROPERTY_NAMES,
     "id",
     "capacity",
     "is_indoor",
@@ -108,6 +127,10 @@ EXPORT_SCHEMA: dict[str, object] = {
         "name": {"type": "string"},
         "description": {"type": "string"},
         "photo_url": {"type": "string", "format": "uri"},
+        "photo_origin": {"type": ["string", "null"]},
+        "photo_license": {"type": ["string", "null"]},
+        "photo_author": {"type": ["string", "null"]},
+        "photo_source_url": {"type": ["string", "null"], "format": "uri"},
         "address": {"type": "string"},
         "city": {"type": "string"},
         "country": {"type": "string"},
@@ -127,7 +150,9 @@ EXPORT_SCHEMA: dict[str, object] = {
     },
 }
 GEOJSON_HEADER = (
-    b'{"type":"FeatureCollection","book_corners_schema_version":1,"features":[\n'
+    b'{"type":"FeatureCollection","book_corners_schema_version":'
+    + str(EXPORT_SCHEMA_VERSION).encode("ascii")
+    + b',"features":[\n'
 )
 GEOJSON_TRAILER = b"]}\n"
 
@@ -395,8 +420,15 @@ def _write_geojson_candidate(*, path: Path) -> CandidateGeoJSON:
         _write_bytes(handle=handle, digest=digest, value=GEOJSON_HEADER)
         queryset = (
             Library.objects.filter(status=Library.Status.APPROVED)
+            .annotate(
+                **{
+                    AUTHOR_ACCEPTED_ANNOTATION: photo_author_has_agreement_exists(
+                        author_reference="photo_author",
+                    )
+                }
+            )
             .order_by("id")
-            .values(*EXPORTED_LIBRARY_FIELDS)
+            .values(*EXPORTED_LIBRARY_FIELDS, AUTHOR_ACCEPTED_ANNOTATION)
         )
         for row in queryset.iterator(chunk_size=EXPORT_ITERATOR_CHUNK_SIZE):
             feature = _feature_from_row(row=row)
@@ -448,6 +480,13 @@ def _feature_from_row(*, row: dict[str, Any]) -> dict[str, object]:
     Keeps every property confined to the documented export allowlist.
     """
     location = row["location"]
+    photo_fields = build_photo_licence_fields(
+        has_photo=bool(row["photo"]),
+        origin=row["photo_origin"],
+        author_username=row["photo_author__username"],
+        author_has_agreement=bool(row[AUTHOR_ACCEPTED_ANNOTATION]),
+        source_url=row["photo_source_url"],
+    )
     return {
         "type": "Feature",
         "geometry": {
@@ -460,6 +499,7 @@ def _feature_from_row(*, row: dict[str, Any]) -> dict[str, object]:
             "name": row["name"],
             "description": row["description"],
             "photo_url": _absolute_photo_url(photo_name=row["photo"]),
+            **photo_fields,
             "address": row["address"],
             "city": row["city"],
             "country": row["country"],
@@ -571,7 +611,7 @@ def _validate_feature(*, feature: object, previous_id: int | None) -> int:
             raise LibraryExportValidationError(
                 f"Export property {property_name} must be a string."
             )
-    for property_name in ("source", "external_id"):
+    for property_name in (*NULLABLE_PHOTO_PROPERTY_NAMES, "source", "external_id"):
         if properties[property_name] is not None and not isinstance(
             properties[property_name], str
         ):
@@ -792,10 +832,24 @@ def _write_metadata_candidate(
                 "url": "https://www.openstreetmap.org/copyright",
             },
         ],
-        "photo_notice": (
-            "Photo URLs identify publicly displayed media and do not independently "
-            "grant permission to redistribute or relicense image files."
-        ),
+        "images": {
+            "license": (
+                "Images are licensed separately from the database, per image. "
+                "Each feature's photo_license, photo_author, photo_origin and "
+                "photo_source_url properties describe its main photo."
+            ),
+            "null_license": (
+                "A null photo_license means no licence information is available "
+                "for this image. When present, photo_source_url points to the "
+                "original image."
+            ),
+            "hosting": (
+                "Image URLs are provided so you can download the image files. "
+                "Please serve images from your own hosting instead of linking "
+                "directly to image files on bookcorners.org, because the site "
+                "runs on limited resources."
+            ),
+        },
     }
     _write_json_file(path=path, payload=metadata)
     _validate_metadata_file(

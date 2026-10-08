@@ -82,6 +82,10 @@ from libraries.notifications import (
     notify_new_report,
 )
 from libraries.tasks import enrich_library_with_ai
+from libraries.photo_licence import (
+    annotate_library_photo_licence,
+    annotate_library_photo_licence_for_user_photos,
+)
 from libraries.search import run_library_search
 from libraries.views import GEOJSON_CACHE_KEY, HOMEPAGE_COUNT_CACHE_KEY, invalidate_cluster_cache
 
@@ -108,7 +112,9 @@ def _invalidate_library_caches() -> None:
 def _library_moderation_queryset(*, filters: LibraryModerationParams):
     """Build the staff library moderation queryset from filters.
     Matches the manage UI's common status, country, source, and text filters."""
-    queryset = Library.objects.select_related("created_by").all()
+    queryset = annotate_library_photo_licence(
+        Library.objects.select_related("created_by").all()
+    )
     if filters.status == ModerationStatusFilterEnum.PENDING:
         queryset = queryset.filter(
             Q(status=Library.Status.PENDING)
@@ -251,7 +257,7 @@ def list_libraries(request, filters: Query[LibrarySearchParams]):
         has_photo=filters.has_photo,
     )
     jwt_user = get_optional_jwt_user(request=request)
-    queryset = _annotate_is_favourited(queryset, jwt_user)
+    queryset = _annotate_is_favourited(annotate_library_photo_licence(queryset), jwt_user)
     items, pagination = paginate_queryset(
         queryset=queryset, page=filters.page, page_size=filters.page_size,
     )
@@ -277,7 +283,9 @@ def latest_libraries(
             details={"retry_after": retry_after},
         )
 
-    queryset = Library.objects.filter(status=Library.Status.APPROVED).order_by("-created_at")
+    queryset = annotate_library_photo_licence(
+        Library.objects.filter(status=Library.Status.APPROVED)
+    ).order_by("-created_at")
     if has_photo is True:
         queryset = queryset.exclude(photo="")
     elif has_photo is False:
@@ -409,7 +417,8 @@ def list_favourites(request, filters: Query[FavouritePaginationParams]):
         )
 
     queryset = (
-        Library.objects.filter(
+        annotate_library_photo_licence(Library.objects)
+        .filter(
             status=Library.Status.APPROVED,
             favourites__user=request.user,
         )
@@ -442,7 +451,9 @@ def list_my_libraries(request, filters: Query[ContributionPaginationParams]):
             details={"retry_after": retry_after},
         )
 
-    queryset = Library.objects.filter(created_by=request.user).annotate(
+    queryset = annotate_library_photo_licence(
+        Library.objects.filter(created_by=request.user)
+    ).annotate(
         status_order=Case(
             When(pending_changes__isnull=False, then=Value(0)),
             When(status=Library.Status.PENDING, then=Value(0)),
@@ -519,7 +530,9 @@ def list_my_photos(request, filters: Query[ContributionPaginationParams]):
         )
 
     queryset = (
-        LibraryPhoto.objects.filter(created_by=request.user)
+        annotate_library_photo_licence_for_user_photos(
+            LibraryPhoto.objects.filter(created_by=request.user)
+        )
         .select_related("library")
         .order_by("-created_at")
     )
@@ -628,7 +641,9 @@ def list_pending_libraries(request, filters: Query[LibraryModerationParams]):
             details={"retry_after": retry_after},
         )
 
-    queryset = Library.objects.select_related("created_by").filter(
+    queryset = annotate_library_photo_licence(
+        Library.objects.select_related("created_by")
+    ).filter(
         Q(status=Library.Status.PENDING)
         | Q(pending_changes__isnull=False)
     )
@@ -748,7 +763,9 @@ def list_moderation_photos(request, filters: Query[PhotoModerationParams]):
             details={"retry_after": retry_after},
         )
 
-    queryset = LibraryPhoto.objects.select_related("library", "created_by").all()
+    queryset = annotate_library_photo_licence_for_user_photos(
+        LibraryPhoto.objects.select_related("library").all()
+    )
     if filters.status.value != "all":
         queryset = queryset.filter(status=filters.status.value)
     queryset = queryset.order_by("-created_at")
@@ -782,7 +799,10 @@ def moderate_photo(request, photo_id: int, payload: PhotoModerationUpdateIn):
         )
 
     photo = get_object_or_404(
-        LibraryPhoto.objects.select_related("library", "created_by"), pk=photo_id,
+        annotate_library_photo_licence_for_user_photos(
+            LibraryPhoto.objects.select_related("library")
+        ),
+        pk=photo_id,
     )
     photo.status = payload.status.value
     photo.save(update_fields=["status"])
@@ -814,7 +834,8 @@ def get_moderation_library(request, slug: str):
         )
 
     library = get_object_or_404(
-        Library.objects.select_related("created_by"), slug=slug,
+        annotate_library_photo_licence(Library.objects.select_related("created_by")),
+        slug=slug,
     )
     return 200, library.moderation_preview()
 
@@ -869,7 +890,7 @@ def get_library(request, slug: str):
     if jwt_user is not None:
         visibility_filter |= Q(status=Library.Status.PENDING, created_by=jwt_user)
 
-    qs = Library.objects.filter(visibility_filter, slug=slug)
+    qs = annotate_library_photo_licence(Library.objects).filter(visibility_filter, slug=slug)
     qs = _annotate_is_favourited(qs, jwt_user)
     library = get_object_or_404(qs)
     return 200, library

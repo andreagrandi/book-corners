@@ -355,6 +355,7 @@ class TestLibraryDetailResponseShape:
             "wheelchair_accessible", "capacity", "is_indoor", "is_lit",
             "website", "contact", "source", "operator", "brand",
             "created_at", "is_favourited",
+            "photo_origin", "photo_license", "photo_author", "photo_source_url",
         }
         assert set(body.keys()) == expected_fields
 

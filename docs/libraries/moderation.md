@@ -83,6 +83,10 @@ Each item uses the standard library response fields plus `status`, `rejection_re
       "brand": "",
       "created_at": "2026-06-15T14:30:00Z",
       "is_favourited": false,
+      "photo_origin": "user",
+      "photo_license": "CC-BY-SA-4.0",
+      "photo_author": "janedoe",
+      "photo_source_url": null,
       "status": "pending",
       "rejection_reason": "",
       "created_by": {
@@ -189,7 +193,9 @@ Return a paginated staff list of community photo submissions.
 | `page` | int | `1` | Page number (1–1000) |
 | `page_size` | int | `20` | Items per page (1–50) |
 
-Each photo includes the parent library summary, submitter summary, caption, `photo_url`, `thumbnail_url`, `status`, and `created_at`.
+Each photo includes the parent library summary, submitter summary, caption, `photo_url`, `thumbnail_url`, `status`, and `created_at`. It also includes `photo_origin` (always `user`), `photo_license`, `photo_author`, and `photo_source_url` (always `null`). `photo_license` is `CC-BY-SA-4.0` and `photo_author` is the uploader's username only when the uploader still exists and has accepted the Contributor Agreement. See [Image licences](detail.md#image-licences).
+
+Library items in the moderation responses carry the same four fields for the library's main photo.
 
 ## Update community photo status
 

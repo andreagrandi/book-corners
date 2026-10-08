@@ -99,7 +99,11 @@ The response uses the same library object shape as the [detail endpoint](detail.
   "operator": "",
   "brand": "",
   "created_at": "2025-06-15T14:30:00Z",
-  "is_favourited": false
+  "is_favourited": false,
+  "photo_origin": "user",
+  "photo_license": "CC-BY-SA-4.0",
+  "photo_author": "janedoe",
+  "photo_source_url": null
 }
 ```
 
