@@ -4,28 +4,37 @@
         <loc>https://developers.bookcorners.org/</loc>
       </url>
       <url>
-        <loc>https://developers.bookcorners.org/getting-started/</loc>
-      </url>
-      <url>
         <loc>https://developers.bookcorners.org/authentication/</loc>
       </url>
       <url>
-        <loc>https://developers.bookcorners.org/push-notifications/</loc>
+        <loc>https://developers.bookcorners.org/changelog/</loc>
       </url>
       <url>
-        <loc>https://developers.bookcorners.org/openstreetmap-contribution-design/</loc>
+        <loc>https://developers.bookcorners.org/errors/</loc>
       </url>
       <url>
-        <loc>https://developers.bookcorners.org/libraries/list-and-search/</loc>
+        <loc>https://developers.bookcorners.org/getting-started/</loc>
+      </url>
+      <url>
+        <loc>https://developers.bookcorners.org/libraries/bulk-export/</loc>
+      </url>
+      <url>
+        <loc>https://developers.bookcorners.org/libraries/contributions/</loc>
+      </url>
+      <url>
+        <loc>https://developers.bookcorners.org/libraries/countries/</loc>
       </url>
       <url>
         <loc>https://developers.bookcorners.org/libraries/detail/</loc>
       </url>
       <url>
-        <loc>https://developers.bookcorners.org/libraries/submit/</loc>
+        <loc>https://developers.bookcorners.org/libraries/favourites/</loc>
       </url>
       <url>
-        <loc>https://developers.bookcorners.org/libraries/update/</loc>
+        <loc>https://developers.bookcorners.org/libraries/list-and-search/</loc>
+      </url>
+      <url>
+        <loc>https://developers.bookcorners.org/libraries/moderation/</loc>
       </url>
       <url>
         <loc>https://developers.bookcorners.org/libraries/report/</loc>
@@ -34,25 +43,16 @@
         <loc>https://developers.bookcorners.org/libraries/submit-photo/</loc>
       </url>
       <url>
-        <loc>https://developers.bookcorners.org/libraries/countries/</loc>
+        <loc>https://developers.bookcorners.org/libraries/submit/</loc>
       </url>
       <url>
-        <loc>https://developers.bookcorners.org/libraries/favourites/</loc>
+        <loc>https://developers.bookcorners.org/libraries/update/</loc>
       </url>
       <url>
-        <loc>https://developers.bookcorners.org/libraries/contributions/</loc>
+        <loc>https://developers.bookcorners.org/openstreetmap-contribution-design/</loc>
       </url>
       <url>
-        <loc>https://developers.bookcorners.org/libraries/bulk-export/</loc>
-      </url>
-      <url>
-        <loc>https://developers.bookcorners.org/libraries/moderation/</loc>
-      </url>
-      <url>
-        <loc>https://developers.bookcorners.org/statistics/</loc>
-      </url>
-      <url>
-        <loc>https://developers.bookcorners.org/errors/</loc>
+        <loc>https://developers.bookcorners.org/push-notifications/</loc>
       </url>
       <url>
         <loc>https://developers.bookcorners.org/rate-limiting/</loc>
@@ -61,6 +61,6 @@
         <loc>https://developers.bookcorners.org/reference/openapi/</loc>
       </url>
       <url>
-        <loc>https://developers.bookcorners.org/changelog/</loc>
+        <loc>https://developers.bookcorners.org/statistics/</loc>
       </url>
 </urlset>
