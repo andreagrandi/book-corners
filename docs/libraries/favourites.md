@@ -76,7 +76,11 @@ Return the authenticated user's favourite libraries, ordered by when they were f
       "operator": "",
       "brand": "",
       "created_at": "2025-06-15T14:30:00Z",
-      "is_favourited": true
+      "is_favourited": true,
+      "photo_origin": "user",
+      "photo_license": "CC-BY-SA-4.0",
+      "photo_author": "janedoe",
+      "photo_source_url": null
     }
   ],
   "pagination": {

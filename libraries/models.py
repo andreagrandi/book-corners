@@ -389,6 +389,7 @@ class Library(models.Model):
         if self.pending_photo:
             preview.photo = self.pending_photo.name
             preview.photo_thumbnail = self.pending_photo_thumbnail.name
+            preview.set_photo_origin(origin=self.PhotoOrigin.USER, author=self.created_by)
 
         if self.has_pending_update:
             preview.status = self.Status.PENDING

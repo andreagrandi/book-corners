@@ -7,6 +7,19 @@ from ninja import Schema
 from pydantic import Field
 
 from libraries.models import Library, LibraryPhoto, Report
+from libraries.photo_licence import (
+    get_library_photo_licence_fields,
+    get_user_photo_licence_fields,
+)
+
+PHOTO_ORIGIN_DESCRIPTION = "Who provided the photo: user, external, or unknown. Null when there is no photo."
+PHOTO_LICENSE_DESCRIPTION = (
+    "Licence of the photo: CC-BY-SA-4.0 when a contributor who accepted the contributor agreement "
+    "uploaded it. Null means no licence information is available for this image; "
+    "see photo_source_url when present."
+)
+PHOTO_AUTHOR_DESCRIPTION = "Username of the photo author, set only when photo_license is CC-BY-SA-4.0. Otherwise null."
+PHOTO_SOURCE_URL_DESCRIPTION = "URL of the original image when known. Otherwise null."
 
 
 class PaginationMeta(Schema):
@@ -48,12 +61,40 @@ class LibraryOut(Schema):
     brand: str = Field(description="Network or brand name.", examples=["Local Book Exchange Network"])
     created_at: datetime = Field(description="Timestamp when the library was created (UTC).", examples=["2025-06-15T14:30:00Z"])
     is_favourited: bool = Field(default=False, description="Whether the current authenticated user has favourited this library. Always false for unauthenticated requests.", examples=[False])
+    photo_origin: str | None = Field(default=None, description=PHOTO_ORIGIN_DESCRIPTION, examples=["user"])
+    photo_license: str | None = Field(default=None, description=PHOTO_LICENSE_DESCRIPTION, examples=["CC-BY-SA-4.0"])
+    photo_author: str | None = Field(default=None, description=PHOTO_AUTHOR_DESCRIPTION, examples=["janedoe"])
+    photo_source_url: str | None = Field(default=None, description=PHOTO_SOURCE_URL_DESCRIPTION, examples=["https://example.org/images/corner-books.jpg"])
 
     @staticmethod
     def resolve_is_favourited(obj: Library) -> bool:
         """Return whether the current user has favourited this library.
         Reads from a queryset annotation; defaults to False for anonymous requests."""
         return getattr(obj, "_is_favourited", False)
+
+    @staticmethod
+    def resolve_photo_origin(obj: Library) -> str | None:
+        """Return the main photo origin, or null without a photo.
+        Reports unknown when a photo exists without a recorded origin."""
+        return get_library_photo_licence_fields(library=obj)["photo_origin"]
+
+    @staticmethod
+    def resolve_photo_license(obj: Library) -> str | None:
+        """Return the main photo licence, or null when none applies.
+        Only user photos with an author who accepted the agreement are CC BY-SA."""
+        return get_library_photo_licence_fields(library=obj)["photo_license"]
+
+    @staticmethod
+    def resolve_photo_author(obj: Library) -> str | None:
+        """Return the main photo author username for CC BY-SA photos.
+        Returns null for every other photo."""
+        return get_library_photo_licence_fields(library=obj)["photo_author"]
+
+    @staticmethod
+    def resolve_photo_source_url(obj: Library) -> str | None:
+        """Return the original image URL, or null when unknown.
+        Treats a blank stored value as missing."""
+        return get_library_photo_licence_fields(library=obj)["photo_source_url"]
 
     @staticmethod
     def resolve_photo_url(obj: Library) -> str:
@@ -322,6 +363,34 @@ class PhotoModerationOut(Schema):
     thumbnail_url: str = Field(description="Thumbnail photo URL, or empty string if unavailable.", examples=["/media/libraries/user_photos/thumbnails/photo.jpg"])
     status: str = Field(description="Current photo moderation status.", examples=["pending"])
     created_at: datetime = Field(description="Timestamp when the photo was submitted (UTC).", examples=["2025-06-15T14:30:00Z"])
+    photo_origin: str | None = Field(default=None, description="Always user for community photos.", examples=["user"])
+    photo_license: str | None = Field(default=None, description=PHOTO_LICENSE_DESCRIPTION, examples=["CC-BY-SA-4.0"])
+    photo_author: str | None = Field(default=None, description=PHOTO_AUTHOR_DESCRIPTION, examples=["janedoe"])
+    photo_source_url: str | None = Field(default=None, description="Always null for community photos.", examples=[None])
+
+    @staticmethod
+    def resolve_photo_origin(obj: LibraryPhoto) -> str | None:
+        """Return the community photo origin, which is always user.
+        Reads the shared licence rules."""
+        return get_user_photo_licence_fields(photo=obj)["photo_origin"]
+
+    @staticmethod
+    def resolve_photo_license(obj: LibraryPhoto) -> str | None:
+        """Return CC-BY-SA-4.0 when the uploader accepted the agreement.
+        Returns null when the uploader is gone or never accepted it."""
+        return get_user_photo_licence_fields(photo=obj)["photo_license"]
+
+    @staticmethod
+    def resolve_photo_author(obj: LibraryPhoto) -> str | None:
+        """Return the uploader username for CC BY-SA photos.
+        Returns null for every other photo."""
+        return get_user_photo_licence_fields(photo=obj)["photo_author"]
+
+    @staticmethod
+    def resolve_photo_source_url(obj: LibraryPhoto) -> str | None:
+        """Return null because community photos have no source URL.
+        Keeps the shape aligned with library photos."""
+        return get_user_photo_licence_fields(photo=obj)["photo_source_url"]
 
     @staticmethod
     def resolve_photo_url(obj: LibraryPhoto) -> str:
@@ -462,6 +531,34 @@ class ContributionPhotoOut(Schema):
     thumbnail_url: str = Field(description="Thumbnail photo URL, or empty string if unavailable.", examples=["/media/libraries/user_photos/thumbnails/photo.jpg"])
     status: str = Field(description="Current photo moderation status.", examples=["pending"])
     created_at: datetime = Field(description="Timestamp when the photo was submitted (UTC).", examples=["2025-06-15T14:30:00Z"])
+    photo_origin: str | None = Field(default=None, description="Always user for community photos.", examples=["user"])
+    photo_license: str | None = Field(default=None, description=PHOTO_LICENSE_DESCRIPTION, examples=["CC-BY-SA-4.0"])
+    photo_author: str | None = Field(default=None, description=PHOTO_AUTHOR_DESCRIPTION, examples=["janedoe"])
+    photo_source_url: str | None = Field(default=None, description="Always null for community photos.", examples=[None])
+
+    @staticmethod
+    def resolve_photo_origin(obj: LibraryPhoto) -> str | None:
+        """Return the community photo origin, which is always user.
+        Reads the shared licence rules."""
+        return get_user_photo_licence_fields(photo=obj)["photo_origin"]
+
+    @staticmethod
+    def resolve_photo_license(obj: LibraryPhoto) -> str | None:
+        """Return CC-BY-SA-4.0 when the uploader accepted the agreement.
+        Returns null when the uploader is gone or never accepted it."""
+        return get_user_photo_licence_fields(photo=obj)["photo_license"]
+
+    @staticmethod
+    def resolve_photo_author(obj: LibraryPhoto) -> str | None:
+        """Return the uploader username for CC BY-SA photos.
+        Returns null for every other photo."""
+        return get_user_photo_licence_fields(photo=obj)["photo_author"]
+
+    @staticmethod
+    def resolve_photo_source_url(obj: LibraryPhoto) -> str | None:
+        """Return null because community photos have no source URL.
+        Keeps the shape aligned with library photos."""
+        return get_user_photo_licence_fields(photo=obj)["photo_source_url"]
 
     @staticmethod
     def resolve_photo_url(obj: LibraryPhoto) -> str:

@@ -12,6 +12,8 @@ Return a paginated list of approved libraries with optional search filters.
 
     Use the authenticated [Bulk Download](bulk-export.md) to retrieve every approved library as one reusable GeoJSON artifact. Do not paginate or scrape this endpoint to copy the full catalogue.
 
+Each item includes `photo_origin`, `photo_license`, `photo_author`, and `photo_source_url` for its main photo. A `null` `photo_license` means no licence information is available for this image; see `photo_source_url` when present. See [Image licences](detail.md#image-licences).
+
 ### Query parameters
 
 | Parameter | Type | Default | Description |
@@ -133,7 +135,11 @@ Find libraries within 5 km of a point:
       "operator": "",
       "brand": "Local Book Exchange Network",
       "created_at": "2025-06-15T14:30:00Z",
-      "is_favourited": false
+      "is_favourited": false,
+      "photo_origin": "user",
+      "photo_license": "CC-BY-SA-4.0",
+      "photo_author": "janedoe",
+      "photo_source_url": null
     }
   ],
   "pagination": {
@@ -211,7 +217,11 @@ Return the most recently approved libraries as a flat list (no pagination).
       "operator": "",
       "brand": "Local Book Exchange Network",
       "created_at": "2025-06-15T14:30:00Z",
-      "is_favourited": false
+      "is_favourited": false,
+      "photo_origin": "user",
+      "photo_license": "CC-BY-SA-4.0",
+      "photo_author": "janedoe",
+      "photo_source_url": null
     }
   ]
 }

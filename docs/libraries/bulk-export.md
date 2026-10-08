@@ -42,7 +42,7 @@ The raw artifact is UTF-8 encoded GeoJSON. Its top-level fields are:
 | Field | Value |
 |-------|-------|
 | `type` | Always `FeatureCollection`. |
-| `book_corners_schema_version` | Integer version of the public export schema; currently `1`. |
+| `book_corners_schema_version` | Integer version of the public export schema; currently `2`. |
 | `features` | Approved libraries ordered by ascending Book Corners `id`. |
 
 Each item in `features` is a GeoJSON `Feature` with a WGS 84 `Point` geometry. Coordinates use GeoJSON order: `[longitude, latitude]`.
@@ -56,6 +56,10 @@ All documented properties are present on every feature:
 | `name` | string | Public library name; may be an empty string. |
 | `description` | string | Public description; may be an empty string. |
 | `photo_url` | absolute URI string | Current primary-photo URL, or an empty string when no primary photo is available. |
+| `photo_origin` | string or `null` | `user`, `external`, or `unknown` for the primary photo; `null` when there is no primary photo. |
+| `photo_license` | string or `null` | `CC-BY-SA-4.0` or `null`. `null` means no licence information is available for this image. |
+| `photo_author` | string or `null` | Username of the author, set only when `photo_license` is `CC-BY-SA-4.0`. |
+| `photo_source_url` | URI string or `null` | URL of the original image when known. |
 | `address` | string | Street or place address; may be an empty string. |
 | `city` | string | City or locality. |
 | `country` | string | Two-letter country code. |
@@ -73,7 +77,7 @@ All documented properties are present on every feature:
 | `created_at` | UTC date-time string | Record creation time in RFC 3339 format ending in `Z`. |
 | `updated_at` | UTC date-time string | Last live-record update time in RFC 3339 format ending in `Z`. |
 
-The nullable values are limited to `capacity`, `is_indoor`, `is_lit`, `source`, and `external_id`. Other unknown optional values use an empty string. A schema change increments `book_corners_schema_version` and produces a new immutable artifact.
+The nullable values are limited to `capacity`, `is_indoor`, `is_lit`, `source`, `external_id`, `photo_origin`, `photo_license`, `photo_author`, and `photo_source_url`. Other unknown optional values use an empty string. A schema change increments `book_corners_schema_version` and produces a new immutable artifact.
 
 ### Excluded and transformed data
 
@@ -93,7 +97,7 @@ The metadata document describes the exact raw and gzip artifacts. Its fields are
 
 | Field | Meaning |
 |-------|---------|
-| `metadata_version` | Version of the metadata document format; currently `2`. |
+| `metadata_version` | Version of the metadata document format; currently `3`. |
 | `title`, `scope`, `format`, `media_type` | Human-readable dataset description and the raw GeoJSON MIME type. |
 | `generated_at` | UTC RFC 3339 time when this data version was generated. |
 | `record_count` | Number of GeoJSON features. |
@@ -104,7 +108,7 @@ The metadata document describes the exact raw and gzip artifacts. Its fields are
 | `gzip.filename`, `gzip.byte_size`, `gzip.sha256` | Immutable gzip filename, size, and SHA-256. |
 | `license` | ODbL 1.0 name and license URL. |
 | `attribution` | Linked Book Corners and OpenStreetMap contributor credits. |
-| `photo_notice` | Reminder that photo-file rights are separate from database rights. |
+| `images` | Statements that images are licensed separately per image, what a `null` `photo_license` means, and how to host downloaded images. |
 
 Validate a completed download against the matching metadata:
 
@@ -148,11 +152,17 @@ When attribution is required for the database, credit both [Book Corners](https:
 
 > Contains information from the Book Corners approved library export, made available under ODbL 1.0. Attribution: Book Corners and OpenStreetMap contributors.
 
-ODbL covers the exported database, not independent rights in each linked image file. `photo_url` identifies media displayed by Book Corners; it does not grant permission to copy, redistribute, or relicense that image.
+ODbL covers the exported database. Images are licensed separately from the database, per image.
 
-The [Contributor Agreement v1.0](https://bookcorners.org/contributor-agreement/1.0/en/) selects [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) for Images contributed by a person who accepted that agreement. That image licence requires appropriate credit, a link to the licence, indication of changes, and share-alike treatment for adaptations where required. It is separate from the ODbL licence for the database.
+The [Contributor Agreement v1.0](https://bookcorners.org/contributor-agreement/1.0/en/) selects [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) for images contributed by a person who accepted that agreement. That image licence requires appropriate credit, a link to the licence, indication of changes, and share-alike treatment for adaptations where required. It is separate from the ODbL licence for the database.
 
-The export currently contains `photo_url` but does not provide per-image licence or contributor metadata. Do not assume that every linked image is available under CC BY-SA 4.0: imported images, legacy images without a matching agreement acceptance, and third-party images may have different rights or no reuse permission. Verify the applicable image rights before copying or redistributing an image.
+### Image licences
+
+Each feature's `photo_license`, `photo_author`, `photo_origin`, and `photo_source_url` properties describe its main photo. They follow the same rules as the API; see [Image licences](detail.md#image-licences).
+
+- `photo_license` is `CC-BY-SA-4.0` only when `photo_origin` is `user` and the author still has an account that accepted the Contributor Agreement. In that case `photo_author` holds the author's username.
+- A `null` `photo_license` means no licence information is available for this image. When present, `photo_source_url` points to the original image.
+- Image URLs are provided so you can download the image files. Please serve images from your own hosting instead of linking directly to image files on bookcorners.org, because the site runs on limited resources.
 
 ## Report incorrect data
 
