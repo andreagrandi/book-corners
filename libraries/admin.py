@@ -19,6 +19,7 @@ from libraries.management.commands.find_duplicates import (
     find_duplicate_groups,
 )
 from libraries.models import (
+    PHOTO_ORIGIN_FIELDS,
     Favourite,
     Library,
     LibraryPhoto,
@@ -155,13 +156,16 @@ class LibraryAdmin(admin.GISModelAdmin):
         "created_at",
         "updated_at",
     ]
-    autocomplete_fields = ["created_by"]
+    autocomplete_fields = ["created_by", "photo_author"]
     fields = [
         "name",
         "description",
         "photo",
         "photo_preview",
         "photo_thumbnail",
+        "photo_origin",
+        "photo_author",
+        "photo_source_url",
         "location",
         "address",
         "city",
@@ -897,6 +901,12 @@ class LibraryAdmin(admin.GISModelAdmin):
             obj.osm_submission_allowed = False
             obj.osm_submission_allowed_at = None
             obj.submission_origin = Library.SubmissionOrigin.STAFF
+        if (
+            "photo" in form.changed_data
+            and obj.photo
+            and not set(PHOTO_ORIGIN_FIELDS) & set(form.changed_data)
+        ):
+            obj.set_photo_origin(origin=Library.PhotoOrigin.UNKNOWN)
         super().save_model(request, obj, form, change)
         cache.delete(GEOJSON_CACHE_KEY)
         cache.delete(HOMEPAGE_COUNT_CACHE_KEY)
@@ -1190,9 +1200,7 @@ class LibraryPhotoAdmin(admin.ModelAdmin):
         for photo in photos:
             library = photo.library
             if library.pk not in promoted_libraries:
-                library.photo = photo.photo
-                library.photo_thumbnail = photo.photo_thumbnail
-                library.save(update_fields=["photo", "photo_thumbnail"])
+                photo.promote_to_library_primary()
                 promoted_libraries.add(library.pk)
 
         count = len(photos)

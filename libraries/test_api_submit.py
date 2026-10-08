@@ -73,6 +73,23 @@ class TestSubmitLibraryEndpoint:
         library = Library.objects.get(id=body["id"])
         assert library.status == Library.Status.PENDING
 
+    def test_valid_submission_records_user_photo_origin(self, client, user, user_jwt, tmp_path, settings):
+        """Verify the API submission records the caller as photo author.
+        Sets the photo origin to user with no source URL."""
+        settings.MEDIA_ROOT = tmp_path
+
+        response = client.post(
+            "/api/v1/libraries/",
+            data={**_submit_payload(), "photo": _build_uploaded_photo()},
+            HTTP_AUTHORIZATION=f"Bearer {user_jwt}",
+        )
+
+        assert response.status_code == 201
+        library = Library.objects.get(id=response.json()["id"])
+        assert library.photo_origin == Library.PhotoOrigin.USER
+        assert library.photo_author == user
+        assert library.photo_source_url == ""
+
     def test_heic_submission_is_stored_as_jpeg(self, client, user_jwt, tmp_path, settings):
         """Verify API clients can submit common mobile HEIC photos.
         Normalizes accepted uploads before the library image pipeline stores them."""

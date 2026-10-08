@@ -251,6 +251,11 @@ class LibrarySubmissionForm(forms.ModelForm):
         library.created_by = self.created_by
         if library._state.adding:
             library.submission_origin = Library.SubmissionOrigin.USER
+        if "photo" in self.changed_data and library.photo:
+            library.set_photo_origin(
+                origin=Library.PhotoOrigin.USER,
+                author=self.created_by,
+            )
         library.location = Point(
             x=self.cleaned_data["longitude"],
             y=self.cleaned_data["latitude"],

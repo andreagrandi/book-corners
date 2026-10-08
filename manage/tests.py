@@ -421,3 +421,80 @@ def test_staff_can_choose_main_photo_and_reject_another_from_library_detail(
     assert selected_photo.status == LibraryPhoto.Status.APPROVED
     assert rejected_photo.status == LibraryPhoto.Status.REJECTED
     assert manage_library.photo.name == selected_photo.photo.name
+
+
+@pytest.mark.django_db
+def test_photo_approve_records_photo_creator_as_author(
+    admin_client: Client,
+    manage_library: Library,
+    user: Any,
+) -> None:
+    """Verify approving a community photo records its creator as photo author.
+    Sets the library photo origin to user with no source URL."""
+    community_photo = LibraryPhoto.objects.create(
+        library=manage_library,
+        created_by=user,
+        photo="libraries/user_photos/origin-approve.jpg",
+    )
+
+    response = admin_client.post(
+        reverse("manage:photo_approve", kwargs={"pk": community_photo.pk})
+    )
+
+    manage_library.refresh_from_db()
+    assert response.status_code == 302
+    assert manage_library.photo.name == community_photo.photo.name
+    assert manage_library.photo_origin == Library.PhotoOrigin.USER
+    assert manage_library.photo_author == user
+    assert manage_library.photo_source_url == ""
+
+
+@pytest.mark.django_db
+def test_photo_bulk_approve_records_photo_creator_for_empty_libraries_only(
+    admin_client: Client,
+    manage_library: Library,
+    user: Any,
+    admin_user: Any,
+) -> None:
+    """Verify bulk approval sets the origin only where a photo is promoted.
+    Libraries that already have a photo keep their current origin."""
+    library_with_photo = Library.objects.create(
+        name="Bulk Existing Photo Shelf",
+        photo="libraries/photos/2026/02/existing.jpg",
+        photo_origin=Library.PhotoOrigin.EXTERNAL,
+        photo_source_url="https://example.com/existing.jpg",
+        location=Point(x=11.3, y=43.8, srid=4326),
+        address="Via Esistente 1",
+        city="Florence",
+        country="IT",
+        status=Library.Status.APPROVED,
+        created_by=user,
+    )
+    empty_library_photo = LibraryPhoto.objects.create(
+        library=manage_library,
+        created_by=admin_user,
+        photo="libraries/user_photos/bulk-empty.jpg",
+    )
+    existing_library_photo = LibraryPhoto.objects.create(
+        library=library_with_photo,
+        created_by=user,
+        photo="libraries/user_photos/bulk-existing.jpg",
+    )
+
+    response = admin_client.post(
+        reverse("manage:photo_bulk_action"),
+        data={
+            "action": "approve",
+            "selected": [empty_library_photo.pk, existing_library_photo.pk],
+        },
+    )
+
+    manage_library.refresh_from_db()
+    library_with_photo.refresh_from_db()
+    assert response.status_code == 302
+    assert manage_library.photo.name == empty_library_photo.photo.name
+    assert manage_library.photo_origin == Library.PhotoOrigin.USER
+    assert manage_library.photo_author == admin_user
+    assert library_with_photo.photo.name == "libraries/photos/2026/02/existing.jpg"
+    assert library_with_photo.photo_origin == Library.PhotoOrigin.EXTERNAL
+    assert library_with_photo.photo_author is None

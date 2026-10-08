@@ -930,6 +930,10 @@ def submit_library(request, payload: Form[LibrarySubmitIn], photo: UploadedFile 
         ),
         submission_origin=Library.SubmissionOrigin.USER,
     )
+    library.set_photo_origin(
+        origin=Library.PhotoOrigin.USER,
+        author=request.user,
+    )
     library.save()
     try:
         enrich_library_with_ai.enqueue(library_id=library.pk)
@@ -1034,6 +1038,10 @@ def update_library(
         )
     if photo is not None:
         library.photo = photo
+        library.set_photo_origin(
+            origin=Library.PhotoOrigin.USER,
+            author=request.user,
+        )
     library.status = Library.Status.PENDING
     library.save()
     notify_library_update(library)

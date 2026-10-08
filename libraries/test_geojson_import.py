@@ -434,6 +434,22 @@ class TestGeoJSONImporter:
         assert library.photo_thumbnail
 
     @patch("libraries.tasks.fetch_image_from_url")
+    def test_image_fetch_records_external_photo_origin(self, mock_fetch, import_user):
+        """Verify an imported image is recorded as an external photo.
+        Stores the download URL and no author."""
+        mock_fetch.return_value = _build_test_image_bytes()
+        image_url = "https://example.com/photo.jpg"
+        candidate = self._make_candidate(image_url=image_url)
+        importer = GeoJSONImporter(source="OSM", status="approved", created_by=import_user)
+
+        importer.run([candidate])
+
+        library = Library.objects.get(external_id="node/12345")
+        assert library.photo_origin == Library.PhotoOrigin.EXTERNAL
+        assert library.photo_author is None
+        assert library.photo_source_url == image_url
+
+    @patch("libraries.tasks.fetch_image_from_url")
     def test_image_fetch_failure_creates_library_without_photo(self, mock_fetch, import_user):
         """Verify image fetch failure does not block library creation.
         Libraries are still created when photos cannot be downloaded."""
