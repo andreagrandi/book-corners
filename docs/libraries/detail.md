@@ -113,6 +113,8 @@ The rules behind these values:
 
 The [bulk export](bulk-export.md) provides the same four properties for every approved library.
 
+The [terms of use](https://bookcorners.org/terms/) page explains how to reuse and credit Book Corners data and images.
+
 ## Errors
 
 | Status | Cause |

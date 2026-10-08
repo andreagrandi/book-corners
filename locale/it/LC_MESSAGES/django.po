@@ -2632,6 +2632,10 @@ msgstr "Privacy"
 msgid "Contributor agreement"
 msgstr "Accordo per i contributori"
 
+#: templates/base.html:170
+msgid "Terms of use"
+msgstr "Condizioni d'uso"
+
 #: templates/base.html:177
 msgid "App"
 msgstr "App"

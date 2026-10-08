@@ -20,6 +20,7 @@ from urllib.parse import urlsplit
 import structlog
 from django.conf import settings
 from django.db import connection, transaction
+from django.urls import reverse
 from django.utils import timezone
 
 from libraries.models import Library
@@ -850,6 +851,7 @@ def _write_metadata_candidate(
                 "runs on limited resources."
             ),
         },
+        "terms_of_use_url": f"{settings.SITE_URL.rstrip('/')}{reverse('terms_page')}",
     }
     _write_json_file(path=path, payload=metadata)
     _validate_metadata_file(

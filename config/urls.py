@@ -47,6 +47,7 @@ from libraries.views import (
     stats_page,
     style_preview,
     submit_library,
+    terms_page,
     submit_library_confirmation,
     submit_library_photo,
     submit_library_report,
@@ -78,6 +79,7 @@ urlpatterns = [
     ),
     path("about/", about_page, name="about_page"),
     path("privacy/", privacy_page, name="privacy_page"),
+    path("terms/", terms_page, name="terms_page"),
     path(
         "contributor-agreement/",
         contributor_agreement_page,
