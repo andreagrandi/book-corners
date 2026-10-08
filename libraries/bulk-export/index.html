@@ -1411,6 +1411,10 @@
 <td><code>images</code></td>
 <td>Statements that images are licensed separately per image, what a <code>null</code> <code>photo_license</code> means, and how to host downloaded images.</td>
 </tr>
+<tr>
+<td><code>terms_of_use_url</code></td>
+<td>URL of the Book Corners <a href="https://bookcorners.org/terms/">terms of use</a> page for data and image reuse.</td>
+</tr>
 </tbody>
 </table>
 <p>Validate a completed download against the matching metadata:</p>
@@ -1440,7 +1444,7 @@
 <blockquote>
 <p>Contains information from the Book Corners approved library export, made available under ODbL 1.0. Attribution: Book Corners and OpenStreetMap contributors.</p>
 </blockquote>
-<p>ODbL covers the exported database. Images are licensed separately from the database, per image.</p>
+<p>ODbL covers the exported database. Images are licensed separately from the database, per image. The <a href="https://bookcorners.org/terms/">terms of use</a> page summarises how to reuse and credit both.</p>
 <p>The <a href="https://bookcorners.org/contributor-agreement/1.0/en/">Contributor Agreement v1.0</a> selects <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> for images contributed by a person who accepted that agreement. That image licence requires appropriate credit, a link to the licence, indication of changes, and share-alike treatment for adaptations where required. It is separate from the ODbL licence for the database.</p>
 <h3 id="image-licences">Image licences<a class="headerlink" href="#image-licences" title="Permanent link">&para;</a></h3>
 <p>Each feature's <code>photo_license</code>, <code>photo_author</code>, <code>photo_origin</code>, and <code>photo_source_url</code> properties describe its main photo. They follow the same rules as the API; see <a href="../detail/#image-licences">Image licences</a>.</p>
