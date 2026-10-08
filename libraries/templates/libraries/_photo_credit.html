@@ -1,0 +1,15 @@
+{% load i18n %}
+{% if credit.photo_license == "CC-BY-SA-4.0" %}
+  <p class="px-4 py-2 text-xs text-base-content/70" data-photo-credit="cc-by-sa">
+    {% blocktrans trimmed with author=credit.photo_author %}Photo by {{ author }}{% endblocktrans %},
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/" class="link" target="_blank" rel="noopener noreferrer license">CC BY-SA 4.0</a>
+  </p>
+{% elif credit.photo_origin == "external" %}
+  <p class="px-4 py-2 text-xs text-base-content/70" data-photo-credit="external">
+    {% if credit.photo_source_url %}
+      <a href="{{ credit.photo_source_url }}" class="link" target="_blank" rel="noopener noreferrer nofollow">{% trans "Photo from an external source" %}</a>
+    {% else %}
+      {% trans "Photo from an external source" %}
+    {% endif %}
+  </p>
+{% endif %}

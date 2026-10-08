@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Book Corners 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-30 10:01+0000\n"
+"POT-Creation-Date: 2026-10-08 19:18+0000\n"
 "PO-Revision-Date: 2026-02-28 15:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Italian\n"
@@ -16,31 +16,208 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: libraries/admin.py:150 manage/views/libraries.py:465
+#: libraries/admin.py:43 libraries/admin.py:248
+msgid "OpenStreetMap state"
+msgstr "Stato OpenStreetMap"
+
+#: libraries/admin.py:50 libraries/admin.py:230 libraries/models.py:64
+msgid "Unknown"
+msgstr "Sconosciuto"
+
+#: libraries/admin.py:51
+msgid "Absent"
+msgstr "Assente"
+
+#: libraries/admin.py:52 libraries/models.py:694
+msgid "Possible duplicate"
+msgstr "Possibile duplicato"
+
+#: libraries/admin.py:53
+msgid "Present"
+msgstr "Presente"
+
+#: libraries/admin.py:54 libraries/models.py:698 libraries/models.py:800
+msgid "Failed"
+msgstr "Non riuscito"
+
+#: libraries/admin.py:224
+msgid "OSM state"
+msgstr "Stato OSM"
+
+#: libraries/admin.py:233
+msgid "OSM candidate"
+msgstr "Candidato OSM"
+
+#: libraries/admin.py:239
+msgid "Ineligible"
+msgstr "Non idoneo"
+
+#: libraries/admin.py:245
+msgid "Checked"
+msgstr "Controllato"
+
+#: libraries/admin.py:246
+msgid "Needs check"
+msgstr "Da controllare"
+
+#: libraries/admin.py:254
+msgid "Unknown; no duplicate check has been recorded."
+msgstr "Sconosciuto; non è stato registrato alcun controllo dei duplicati."
+
+#: libraries/admin.py:258
+#, python-format
+msgid "Checked at: %(timestamp)s"
+msgstr "Controllato il: %(timestamp)s"
+
+#: libraries/admin.py:263
+#, python-format
+msgid "OSM feature: %(type)s/%(identifier)s"
+msgstr "Elemento OSM: %(type)s/%(identifier)s"
+
+#: libraries/admin.py:271
+#, python-format
+msgid "Changeset: %(identifier)s"
+msgstr "Changeset: %(identifier)s"
+
+#: libraries/admin.py:276
+#, python-format
+msgid "Latest error: %(message)s"
+msgstr "Ultimo errore: %(message)s"
+
+#: libraries/admin.py:280
+#, python-format
+msgid "Retryable error: %(value)s"
+msgstr "Errore ritentabile: %(value)s"
+
+#: libraries/admin.py:283 libraries/models.py:57
+#: libraries/templates/libraries/library_detail.html:63
+#: libraries/templates/libraries/library_detail.html:64
+#: manage/templates/manage/libraries/detail.html:166
+#: manage/templates/manage/libraries/detail.html:170
+#: manage/views/libraries.py:125
+msgid "Yes"
+msgstr "Sì"
+
+#: libraries/admin.py:285 libraries/models.py:58
+#: libraries/templates/libraries/library_detail.html:63
+#: libraries/templates/libraries/library_detail.html:64
+#: manage/templates/manage/libraries/detail.html:166
+#: manage/templates/manage/libraries/detail.html:170
+#: manage/views/libraries.py:125
+msgid "No"
+msgstr "No"
+
+#: libraries/admin.py:291
+msgid "OpenStreetMap eligibility"
+msgstr "Idoneità OpenStreetMap"
+
+#: libraries/admin.py:305
+msgid "No library or duplicate-state blocker. Future policy and write gates still apply."
+msgstr "Nessun blocco relativo alla libreria o ai duplicati. Restano validi i futuri requisiti delle policy e della scrittura."
+
+#: libraries/admin.py:310
+msgid "OSM duplicate candidates"
+msgstr "Possibili duplicati OSM"
+
+#: libraries/admin.py:316
+msgid "No duplicate candidates recorded."
+msgstr "Nessun possibile duplicato registrato."
+
+#: libraries/admin.py:325
+msgid "secondary warning only"
+msgstr "solo avviso secondario"
+
+#: libraries/admin.py:332
+msgid "no relevant tags"
+msgstr "nessun tag rilevante"
+
+#: libraries/admin.py:343
+msgid "OSM audit history"
+msgstr "Cronologia di audit OSM"
+
+#: libraries/admin.py:349 libraries/admin.py:361
+msgid "No OpenStreetMap audit events recorded."
+msgstr "Nessun evento di audit OpenStreetMap registrato."
+
+#: libraries/admin.py:356
+msgid "System"
+msgstr "Sistema"
+
+#: libraries/admin.py:439 libraries/admin.py:489 libraries/admin.py:523
+msgid "The library no longer exists."
+msgstr "La libreria non esiste più."
+
+#: libraries/admin.py:459 libraries/osm_contributions.py:409
+msgid "The OpenStreetMap duplicate check failed."
+msgstr "Il controllo dei duplicati su OpenStreetMap non è riuscito."
+
+#: libraries/admin.py:467
+msgid "Possible OpenStreetMap duplicates require staff resolution."
+msgstr "I possibili duplicati su OpenStreetMap richiedono una decisione dello staff."
+
+#: libraries/admin.py:472
+msgid "No blocking OpenStreetMap match was found."
+msgstr "Non è stata trovata alcuna corrispondenza OpenStreetMap bloccante."
+
+#: libraries/admin.py:506
+msgid "OpenStreetMap submission permission was withdrawn."
+msgstr "L'autorizzazione all'invio a OpenStreetMap è stata revocata."
+
+#: libraries/admin.py:534
+msgid "This library has no unresolved OpenStreetMap duplicate."
+msgstr "Questa libreria non ha duplicati OpenStreetMap ancora da risolvere."
+
+#: libraries/admin.py:548
+msgid "Select a valid OpenStreetMap duplicate candidate."
+msgstr "Seleziona un possibile duplicato OpenStreetMap valido."
+
+#: libraries/admin.py:571
+msgid "The existing OpenStreetMap feature was linked."
+msgstr "L'elemento OpenStreetMap esistente è stato collegato."
+
+#: libraries/admin.py:577
+msgid "The candidate was recorded as a different feature. Run a fresh duplicate check before continuing."
+msgstr "Il candidato è stato registrato come elemento diverso. Esegui un nuovo controllo dei duplicati prima di continuare."
+
+#: libraries/admin.py:584
+msgid "The candidate remains an unresolved duplicate."
+msgstr "Il candidato rimane un duplicato non risolto."
+
+#: libraries/admin.py:594
+#: templates/admin/libraries/osm_duplicate_resolution.html:4
+#: templates/admin/libraries/osm_duplicate_resolution.html:11
+msgid "Resolve OpenStreetMap duplicate"
+msgstr "Risolvi duplicato OpenStreetMap"
+
+#: libraries/admin.py:619 manage/views/libraries.py:465
 msgid "This library has no photo for AI analysis."
 msgstr "Questa libreria non ha una foto per l'analisi IA."
 
-#: libraries/admin.py:160 manage/views/libraries.py:473
+#: libraries/admin.py:629 manage/views/libraries.py:473
 msgid "Could not access the library photo."
 msgstr "Impossibile accedere alla foto della libreria."
 
-#: libraries/admin.py:167 manage/views/libraries.py:478
+#: libraries/admin.py:636 manage/views/libraries.py:478
 msgid "AI enrichment failed. Check logs for details."
 msgstr "Arricchimento IA fallito. Controlla i log per i dettagli."
 
-#: libraries/admin.py:174
+#: libraries/admin.py:643
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:20
 #: templates/admin/libraries/ai_enrich_confirm.html:4
 msgid "AI Enrich: Confirm"
 msgstr "Arricchisci con IA: Conferma"
 
-#: libraries/admin.py:210 manage/views/libraries.py:507
+#: libraries/admin.py:679 manage/views/libraries.py:507
 msgid "AI-generated name and description applied."
 msgstr "Nome e descrizione generati dall'IA applicati."
 
-#: libraries/admin.py:212 manage/views/libraries.py:509
+#: libraries/admin.py:681 manage/views/libraries.py:509
 msgid "No AI values to apply."
 msgstr "Nessun valore IA da applicare."
+
+#: libraries/export_views.py:157
+msgid "Library export is temporarily unavailable. Please try again later."
+msgstr "L'esportazione delle librerie non è temporaneamente disponibile. Riprova più tardi."
 
 #: libraries/forms.py:25 libraries/templates/libraries/submit_library.html:362
 msgid "Select a country"
@@ -97,32 +274,32 @@ msgstr "La longitudine deve essere compresa tra -180 e 180."
 msgid "Address is required when coordinates are not provided."
 msgstr "L'indirizzo è obbligatorio quando le coordinate non vengono fornite."
 
-#: libraries/forms.py:359
+#: libraries/forms.py:366
 msgid "Keywords in name or description"
 msgstr "Parole chiave nel nome o nella descrizione"
 
-#: libraries/forms.py:365
+#: libraries/forms.py:372
 msgid "City, area, postcode, or address"
 msgstr "Città, zona, CAP o indirizzo"
 
-#: libraries/forms.py:379
+#: libraries/forms.py:386
 msgid "Filter by city"
 msgstr "Filtra per città"
 
-#: libraries/forms.py:390
+#: libraries/forms.py:397
 msgid "Filter by postal code"
 msgstr "Filtra per CAP"
 
-#: libraries/forms.py:436
+#: libraries/forms.py:443
 msgid "Optional caption for your photo"
 msgstr "Didascalia opzionale per la tua foto"
 
-#: libraries/forms.py:462
+#: libraries/forms.py:469
 #, python-format
 msgid "You can submit at most %(max)s photos per library."
 msgstr "Puoi inviare al massimo %(max)s foto per libreria."
 
-#: libraries/models.py:43 libraries/models.py:574
+#: libraries/models.py:46 libraries/models.py:920
 #: manage/templates/manage/libraries/import.html:49
 #: manage/templates/manage/photos/list.html:29
 #: templates/admin/libraries/geojson_import_form.html:37
@@ -130,7 +307,7 @@ msgstr "Puoi inviare al massimo %(max)s foto per libreria."
 msgid "Pending"
 msgstr "In attesa"
 
-#: libraries/models.py:44 libraries/models.py:575
+#: libraries/models.py:47 libraries/models.py:921
 #: manage/templates/manage/libraries/import.html:48
 #: manage/templates/manage/photos/list.html:30
 #: templates/admin/libraries/geojson_import_form.html:36
@@ -138,68 +315,277 @@ msgstr "In attesa"
 msgid "Approved"
 msgstr "Approvato"
 
-#: libraries/models.py:45 libraries/models.py:576
+#: libraries/models.py:48 libraries/models.py:922
 #: manage/templates/manage/photos/list.html:31
 #: templates/admin/libraries/photo_grid.html:147
 msgid "Rejected"
 msgstr "Rifiutato"
 
-#: libraries/models.py:48 libraries/templates/libraries/library_detail.html:62
-#: libraries/templates/libraries/library_detail.html:63
-#: manage/templates/manage/libraries/detail.html:166
-#: manage/templates/manage/libraries/detail.html:170
-#: manage/views/libraries.py:125
-msgid "Yes"
-msgstr "Sì"
+#: libraries/models.py:51
+msgid "Legacy"
+msgstr "Storico"
 
-#: libraries/models.py:49 libraries/templates/libraries/library_detail.html:62
-#: libraries/templates/libraries/library_detail.html:63
-#: manage/templates/manage/libraries/detail.html:166
-#: manage/templates/manage/libraries/detail.html:170
-#: manage/views/libraries.py:125
-msgid "No"
-msgstr "No"
+#: libraries/models.py:52 libraries/models.py:62
+msgid "User"
+msgstr "Utente"
 
-#: libraries/models.py:50
+#: libraries/models.py:53 manage/templates/manage/users/_table.html:9
+#: manage/templates/manage/users/_table.html:24
+#: manage/templates/manage/users/detail.html:23
+#: manage/templates/manage/users/list.html:33
+msgid "Staff"
+msgstr "Staff"
+
+#: libraries/models.py:54 manage/templates/manage/libraries/import.html:55
+#: templates/admin/libraries/geojson_import_form.html:44
+msgid "Import"
+msgstr "Importa"
+
+#: libraries/models.py:59
 msgid "Limited"
 msgstr "Limitato"
 
-#: libraries/models.py:98 manage/templates/manage/libraries/detail.html:145
+#: libraries/models.py:63
+msgid "External"
+msgstr "Esterna"
+
+#: libraries/models.py:126 manage/templates/manage/libraries/detail.html:145
 #: manage/templates/manage/libraries/edit.html:186
 msgid "Rejection reason"
 msgstr "Motivo del rifiuto"
 
-#: libraries/models.py:519
+# OpenStreetMap candidate review
+#: libraries/models.py:205
+msgid "The library is not approved."
+msgstr "La libreria non è approvata."
+
+#: libraries/models.py:207
+msgid "The library was not submitted directly by a user."
+msgstr "La libreria non è stata inviata direttamente da un utente."
+
+#: libraries/models.py:209
+msgid "The original submitter account is no longer linked."
+msgstr "L'account dell'utente che ha effettuato l'invio non è più collegato."
+
+#: libraries/models.py:211
+msgid "The submitter did not allow OpenStreetMap submission."
+msgstr "L'utente non ha autorizzato l'invio a OpenStreetMap."
+
+#: libraries/models.py:213
+msgid "The library originated from OpenStreetMap."
+msgstr "La libreria proviene da OpenStreetMap."
+
+#: libraries/models.py:215
+msgid "The library has an update awaiting moderation."
+msgstr "La libreria ha un aggiornamento in attesa di moderazione."
+
+#: libraries/models.py:221
+msgid "The library was already contributed to OpenStreetMap."
+msgstr "La libreria è già stata aggiunta a OpenStreetMap."
+
+#: libraries/models.py:226
+msgid "An existing OpenStreetMap feature is already linked."
+msgstr "È già collegato un elemento OpenStreetMap esistente."
+
+#: libraries/models.py:228
+msgid "An OpenStreetMap submission is already in progress."
+msgstr "È già in corso un invio a OpenStreetMap."
+
+#: libraries/models.py:247
+msgid "An OpenStreetMap duplicate check has not been completed."
+msgstr "Non è stato completato un controllo dei duplicati su OpenStreetMap."
+
+#: libraries/models.py:249
+msgid "A possible OpenStreetMap duplicate requires resolution."
+msgstr "Un possibile duplicato su OpenStreetMap richiede una decisione."
+
+#: libraries/models.py:251
+msgid "The latest OpenStreetMap duplicate check failed."
+msgstr "L'ultimo controllo dei duplicati su OpenStreetMap non è riuscito."
+
+#: libraries/models.py:253
+msgid "The OpenStreetMap state does not allow contribution."
+msgstr "Lo stato OpenStreetMap non consente l'invio."
+
+#: libraries/models.py:257
+msgid "The latest OpenStreetMap duplicate check is stale."
+msgstr "L'ultimo controllo dei duplicati su OpenStreetMap è scaduto."
+
+#: libraries/models.py:692
+msgid "Unchecked"
+msgstr "Non controllato"
+
+#: libraries/models.py:693
+msgid "No match found"
+msgstr "Nessuna corrispondenza"
+
+#: libraries/models.py:695
+msgid "Already present"
+msgstr "Già presente"
+
+#: libraries/models.py:696
+msgid "Submitting"
+msgstr "Invio in corso"
+
+#: libraries/models.py:697
+msgid "Contributed"
+msgstr "Aggiunta"
+
+#: libraries/models.py:701
+msgid "Node"
+msgstr "Nodo"
+
+#: libraries/models.py:702
+msgid "Way"
+msgstr "Way"
+
+#: libraries/models.py:703
+msgid "Relation"
+msgstr "Relazione"
+
+#: libraries/models.py:787
+msgid "Permission withdrawn"
+msgstr "Autorizzazione revocata"
+
+#: libraries/models.py:788
+msgid "Duplicate check"
+msgstr "Controllo duplicati"
+
+#: libraries/models.py:789
+msgid "Duplicate resolution"
+msgstr "Decisione sul duplicato"
+
+#: libraries/models.py:790
+msgid "Write started"
+msgstr "Scrittura avviata"
+
+#: libraries/models.py:791
+msgid "Write succeeded"
+msgstr "Scrittura riuscita"
+
+#: libraries/models.py:792
+msgid "Write failed"
+msgstr "Scrittura non riuscita"
+
+#: libraries/models.py:795
+msgid "Reconciliation required"
+msgstr "Riconciliazione necessaria"
+
+#: libraries/models.py:799
+msgid "Success"
+msgstr "Riuscito"
+
+#: libraries/models.py:801
+msgid "Blocked"
+msgstr "Bloccato"
+
+#: libraries/models.py:865
 msgid "Damaged"
 msgstr "Danneggiato"
 
-#: libraries/models.py:520
+#: libraries/models.py:866
 msgid "Missing"
 msgstr "Mancante"
 
-#: libraries/models.py:521
+#: libraries/models.py:867
 msgid "Incorrect Info"
 msgstr "Informazioni errate"
 
-#: libraries/models.py:522
+#: libraries/models.py:868
 msgid "Inappropriate"
 msgstr "Inappropriato"
 
-#: libraries/models.py:523
+#: libraries/models.py:869
 msgid "Other"
 msgstr "Altro"
 
-#: libraries/models.py:526
+#: libraries/models.py:872
 msgid "Open"
 msgstr "Aperto"
 
-#: libraries/models.py:527
+#: libraries/models.py:873
 msgid "Resolved"
 msgstr "Risolto"
 
-#: libraries/models.py:528
+#: libraries/models.py:874
 msgid "Dismissed"
 msgstr "Archiviato"
+
+#: libraries/osm_contributions.py:120
+msgid "OpenStreetMap permission is not currently granted."
+msgstr "L'autorizzazione per OpenStreetMap non è attualmente concessa."
+
+#: libraries/osm_contributions.py:133
+msgid "OpenStreetMap permission cannot be withdrawn after linking or submission."
+msgstr "L'autorizzazione per OpenStreetMap non può essere revocata dopo il collegamento o l'invio."
+
+#: libraries/osm_contributions.py:170
+msgid "Select a valid duplicate resolution."
+msgstr "Seleziona una decisione valida per il duplicato."
+
+#: libraries/osm_contributions.py:172
+msgid "Select a valid OpenStreetMap element type."
+msgstr "Seleziona un tipo di elemento OpenStreetMap valido."
+
+#: libraries/osm_contributions.py:186
+msgid "This library has no unresolved possible duplicate."
+msgstr "Questa libreria non ha possibili duplicati ancora da risolvere."
+
+#: libraries/osm_contributions.py:196
+msgid "The selected OpenStreetMap candidate is not current."
+msgstr "Il candidato OpenStreetMap selezionato non è più attuale."
+
+#: libraries/osm_contributions.py:220
+msgid "This OpenStreetMap feature is already linked to another library."
+msgstr "Questo elemento OpenStreetMap è già collegato a un'altra libreria."
+
+#: libraries/osm_contributions.py:272
+msgid "OpenStreetMap duplicate checks require an Overpass endpoint and contactable user agent."
+msgstr "I controlli dei duplicati su OpenStreetMap richiedono un endpoint Overpass e uno user agent con un contatto valido."
+
+#: libraries/osm_contributions.py:299
+msgid "The OpenStreetMap duplicate service returned invalid JSON."
+msgstr "Il servizio di controllo duplicati OpenStreetMap ha restituito JSON non valido."
+
+#: libraries/osm_contributions.py:310
+msgid "The OpenStreetMap duplicate service returned an invalid result."
+msgstr "Il servizio di controllo duplicati OpenStreetMap ha restituito un risultato non valido."
+
+#: libraries/osm_contributions.py:317
+msgid "The OpenStreetMap duplicate service could not complete the query."
+msgstr "Il servizio di controllo duplicati OpenStreetMap non ha potuto completare la richiesta."
+
+#: libraries/osm_contributions.py:325 libraries/osm_contributions.py:585
+msgid "The OpenStreetMap duplicate service returned invalid elements."
+msgstr "Il servizio di controllo duplicati OpenStreetMap ha restituito elementi non validi."
+
+#: libraries/osm_contributions.py:360
+msgid "The OpenStreetMap duplicate check timed out."
+msgstr "Il controllo dei duplicati su OpenStreetMap è scaduto."
+
+#: libraries/osm_contributions.py:367
+msgid "The OpenStreetMap duplicate service could not be reached."
+msgstr "Impossibile raggiungere il servizio di controllo duplicati OpenStreetMap."
+
+#: libraries/osm_contributions.py:378
+msgid "The OpenStreetMap duplicate service is rate limited."
+msgstr "Il servizio di controllo duplicati OpenStreetMap ha raggiunto il limite di richieste."
+
+#: libraries/osm_contributions.py:386
+msgid "The OpenStreetMap duplicate service is unavailable."
+msgstr "Il servizio di controllo duplicati OpenStreetMap non è disponibile."
+
+#: libraries/osm_contributions.py:394
+msgid "The OpenStreetMap duplicate service rejected the request."
+msgstr "Il servizio di controllo duplicati OpenStreetMap ha rifiutato la richiesta."
+
+#: libraries/osm_contributions.py:671
+msgid "Explain the duplicate resolution."
+msgstr "Spiega la decisione sul duplicato."
+
+#: libraries/osm_contributions.py:675
+msgid "Remove private contact details or credentials from the resolution."
+msgstr "Rimuovi dalla spiegazione i contatti privati o le credenziali."
 
 #: libraries/templates/libraries/_favourite_button.html:10
 #: libraries/templates/libraries/_favourite_button.html:11
@@ -233,9 +619,9 @@ msgid "%(km)s km away"
 msgstr "a %(km)s km"
 
 #: libraries/templates/libraries/_library_card.html:35
-#: libraries/templates/libraries/dashboard.html:97
-#: libraries/templates/libraries/dashboard.html:250
-#: libraries/templates/libraries/map.html:299
+#: libraries/templates/libraries/dashboard.html:109
+#: libraries/templates/libraries/dashboard.html:262
+#: libraries/templates/libraries/map.html:300
 msgid "View details"
 msgstr "Dettagli"
 
@@ -283,9 +669,19 @@ msgstr "Nessuna libreria trovata"
 msgid "Try broader keywords, increase the radius, or relax one of the filters."
 msgstr "Prova con parole chiave più ampie, aumenta il raggio o allenta uno dei filtri."
 
+#: libraries/templates/libraries/_photo_credit.html:4
+#, python-format
+msgid "Photo by %(author)s"
+msgstr "Foto di %(author)s"
+
+#: libraries/templates/libraries/_photo_credit.html:10
+#: libraries/templates/libraries/_photo_credit.html:12
+msgid "Photo from an external source"
+msgstr "Foto da una fonte esterna"
+
 #: libraries/templates/libraries/_photo_gallery.html:4
 #: libraries/templates/libraries/dashboard.html:26
-#: libraries/templates/libraries/dashboard.html:185
+#: libraries/templates/libraries/dashboard.html:197
 msgid "Community photos"
 msgstr "Foto della community"
 
@@ -307,7 +703,7 @@ msgid "Please review the highlighted fields and try again."
 msgstr "Controlla i campi evidenziati e riprova."
 
 #: libraries/templates/libraries/_photo_submission_form.html:34
-#: libraries/templates/libraries/dashboard.html:202
+#: libraries/templates/libraries/dashboard.html:214
 #: templates/admin/index.html:135
 msgid "Photo"
 msgstr "Foto"
@@ -329,7 +725,7 @@ msgid "Tell us what is wrong with this library entry so moderators can review an
 msgstr "Dicci cosa non va con questa libreria in modo che i moderatori possano verificare e correggere."
 
 #: libraries/templates/libraries/_report_form.html:34
-#: libraries/templates/libraries/dashboard.html:160
+#: libraries/templates/libraries/dashboard.html:172
 #: manage/templates/manage/reports/_table.html:20
 #: manage/templates/manage/reports/list.html:35
 #: manage/templates/manage/users/detail.html:112
@@ -377,12 +773,12 @@ msgid "Manage your account and track every contribution you have sent to moderat
 msgstr "Gestisci il tuo account e segui ogni contributo inviato alla moderazione."
 
 #: libraries/templates/libraries/dashboard.html:18
-#: libraries/templates/libraries/dashboard.html:65
+#: libraries/templates/libraries/dashboard.html:77
 msgid "Library submissions"
 msgstr "Librerie inviate"
 
 #: libraries/templates/libraries/dashboard.html:22
-#: libraries/templates/libraries/dashboard.html:141
+#: libraries/templates/libraries/dashboard.html:153
 #: manage/templates/manage/base.html:65
 #: manage/templates/manage/libraries/detail.html:233
 #: manage/templates/manage/reports/list.html:4
@@ -392,24 +788,38 @@ msgstr "Librerie inviate"
 msgid "Reports"
 msgstr "Segnalazioni"
 
-#: libraries/templates/libraries/dashboard.html:32
+#: libraries/templates/libraries/dashboard.html:35
+#: libraries/templates/libraries/library_export_download.html:4
+#: libraries/templates/libraries/library_export_download.html:10
+msgid "Download library data"
+msgstr "Scarica i dati delle librerie"
+
+#: libraries/templates/libraries/dashboard.html:36
+msgid "Download the complete approved library catalogue as a GeoJSON file."
+msgstr "Scarica il catalogo completo delle librerie approvate in formato GeoJSON."
+
+#: libraries/templates/libraries/dashboard.html:38
+msgid "View download"
+msgstr "Apri la pagina di download"
+
+#: libraries/templates/libraries/dashboard.html:44
 msgid "Account information"
 msgstr "Informazioni account"
 
-#: libraries/templates/libraries/dashboard.html:35
+#: libraries/templates/libraries/dashboard.html:47
 #: manage/templates/manage/users/_table.html:7
 #: users/templates/users/register.html:22
 msgid "Username"
 msgstr "Nome utente"
 
-#: libraries/templates/libraries/dashboard.html:39
+#: libraries/templates/libraries/dashboard.html:51
 #: manage/templates/manage/users/_table.html:8
 #: manage/templates/manage/users/detail.html:39
 #: users/templates/users/register.html:28
 msgid "Email"
 msgstr "Email"
 
-#: libraries/templates/libraries/dashboard.html:44
+#: libraries/templates/libraries/dashboard.html:56
 #: manage/templates/manage/libraries/_table.html:19
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:40
 #: manage/templates/manage/libraries/duplicates.html:66
@@ -421,124 +831,120 @@ msgstr "Email"
 msgid "Name"
 msgstr "Nome"
 
-#: libraries/templates/libraries/dashboard.html:49
+#: libraries/templates/libraries/dashboard.html:61
 msgid "Member since"
 msgstr "Membro dal"
 
-#: libraries/templates/libraries/dashboard.html:55
+#: libraries/templates/libraries/dashboard.html:67
 #: users/templates/users/change_email.html:4
 #: users/templates/users/change_email.html:11
 msgid "Change email"
 msgstr "Cambia email"
 
-#: libraries/templates/libraries/dashboard.html:56
+#: libraries/templates/libraries/dashboard.html:68
 #: users/templates/users/change_password.html:4
 #: users/templates/users/change_password.html:11
 #: users/templates/users/change_password.html:40
 msgid "Change password"
 msgstr "Cambia password"
 
-#: libraries/templates/libraries/dashboard.html:58
+#: libraries/templates/libraries/dashboard.html:70
 #: users/templates/users/delete_account.html:4
 #: users/templates/users/delete_account.html:11
 msgid "Delete account"
 msgstr "Elimina account"
 
-#: libraries/templates/libraries/dashboard.html:66
+#: libraries/templates/libraries/dashboard.html:78
 msgid "Libraries you added or edited, with their current moderation status."
 msgstr "Librerie che hai aggiunto o modificato, con il loro stato di moderazione attuale."
 
-#: libraries/templates/libraries/dashboard.html:68
-#: libraries/templates/libraries/dashboard.html:134 libraries/views.py:828
+#: libraries/templates/libraries/dashboard.html:80
+#: libraries/templates/libraries/dashboard.html:146 libraries/views.py:888
 #: templates/about.html:76 templates/home.html:36
 msgid "Submit a library"
 msgstr "Invia una libreria"
 
-#: libraries/templates/libraries/dashboard.html:95
-#: libraries/templates/libraries/library_detail.html:75
+#: libraries/templates/libraries/dashboard.html:107
+#: libraries/templates/libraries/library_detail.html:76
 #: manage/templates/manage/libraries/edit.html:23
 msgid "Edit"
 msgstr "Modifica"
 
-#: libraries/templates/libraries/dashboard.html:132
+#: libraries/templates/libraries/dashboard.html:144
 msgid "No library submissions yet"
 msgstr "Nessuna libreria inviata per ora"
 
-#: libraries/templates/libraries/dashboard.html:133
+#: libraries/templates/libraries/dashboard.html:145
 msgid "Share your first book exchange spot to start your contribution history."
 msgstr "Condividi il tuo primo punto di scambio libri per iniziare la cronologia dei contributi."
 
-#: libraries/templates/libraries/dashboard.html:142
+#: libraries/templates/libraries/dashboard.html:154
 msgid "Issues you reported for existing libraries, including open and reviewed reports."
 msgstr "Problemi che hai segnalato per librerie esistenti, incluse segnalazioni aperte e revisionate."
 
-#: libraries/templates/libraries/dashboard.html:150
+#: libraries/templates/libraries/dashboard.html:162
 #: templates/admin/index.html:113
 msgid "Report"
 msgstr "Segnalazione"
 
-#: libraries/templates/libraries/dashboard.html:161
-#: libraries/templates/libraries/dashboard.html:211
+#: libraries/templates/libraries/dashboard.html:173
+#: libraries/templates/libraries/dashboard.html:223
 #: templates/admin/index.html:93 templates/admin/index.html:115
 #: templates/admin/index.html:137
 msgid "Submitted"
 msgstr "Inviato il"
 
-#: libraries/templates/libraries/dashboard.html:165
-#: libraries/templates/libraries/dashboard.html:214
+#: libraries/templates/libraries/dashboard.html:177
+#: libraries/templates/libraries/dashboard.html:226
 msgid "View library"
 msgstr "Vedi libreria"
 
-#: libraries/templates/libraries/dashboard.html:167
-#: libraries/templates/libraries/dashboard.html:216
+#: libraries/templates/libraries/dashboard.html:179
+#: libraries/templates/libraries/dashboard.html:228
 msgid "Related library is not public"
 msgstr "La libreria collegata non è pubblica"
 
-#: libraries/templates/libraries/dashboard.html:176
+#: libraries/templates/libraries/dashboard.html:188
 msgid "No reports yet"
 msgstr "Nessuna segnalazione per ora"
 
-#: libraries/templates/libraries/dashboard.html:177
+#: libraries/templates/libraries/dashboard.html:189
 msgid "When you report an issue from a library page, it will appear here."
 msgstr "Quando segnali un problema dalla pagina di una libreria, apparirà qui."
 
-#: libraries/templates/libraries/dashboard.html:178
-#: libraries/templates/libraries/dashboard.html:227
+#: libraries/templates/libraries/dashboard.html:190
+#: libraries/templates/libraries/dashboard.html:239
 msgid "Find libraries"
 msgstr "Trova librerie"
 
-#: libraries/templates/libraries/dashboard.html:186
+#: libraries/templates/libraries/dashboard.html:198
 msgid "Photos you submitted for existing libraries, with moderation outcomes."
 msgstr "Foto che hai inviato per librerie esistenti, con gli esiti della moderazione."
 
-#: libraries/templates/libraries/dashboard.html:225
+#: libraries/templates/libraries/dashboard.html:237
 msgid "No community photos yet"
 msgstr "Nessuna foto della community per ora"
 
-#: libraries/templates/libraries/dashboard.html:226
+#: libraries/templates/libraries/dashboard.html:238
 msgid "Photo submissions from library pages will appear here while moderators review them."
 msgstr "Le foto inviate dalle pagine delle librerie appariranno qui mentre i moderatori le revisionano."
 
-#: libraries/templates/libraries/dashboard.html:233
+#: libraries/templates/libraries/dashboard.html:245
 msgid "My favourites"
 msgstr "I miei preferiti"
 
-#: libraries/templates/libraries/dashboard.html:258
+#: libraries/templates/libraries/dashboard.html:270
 msgid "No favourites yet"
 msgstr "Nessun preferito"
 
-#: libraries/templates/libraries/dashboard.html:259
+#: libraries/templates/libraries/dashboard.html:271
 msgid "Tap the heart icon on any library to save it here."
 msgstr "Tocca l'icona del cuore su qualsiasi libreria per salvarla qui."
 
-#: libraries/templates/libraries/dashboard.html:260
+#: libraries/templates/libraries/dashboard.html:272
 #: libraries/templates/libraries/map.html:53
 msgid "Explore libraries"
 msgstr "Esplora le librerie"
-
-#: libraries/templates/libraries/library_detail.html:53
-msgid "A community bookcase."
-msgstr "Una casetta dei libri della comunità."
 
 #: libraries/templates/libraries/library_detail.html:5
 #: libraries/templates/libraries/library_detail.html:8
@@ -546,88 +952,180 @@ msgstr "Una casetta dei libri della comunità."
 msgid "Visit this public bookcase at %(address)s, %(city)s on Book Corners."
 msgstr "Visita questa casetta dei libri in %(address)s, %(city)s su Book Corners."
 
-#: libraries/templates/libraries/library_detail.html:56
+#: libraries/templates/libraries/library_detail.html:54
+msgid "A community bookcase."
+msgstr "Una casetta dei libri della comunità."
+
+#: libraries/templates/libraries/library_detail.html:57
 msgid "Address:"
 msgstr "Indirizzo:"
 
-#: libraries/templates/libraries/library_detail.html:57
+#: libraries/templates/libraries/library_detail.html:58
 #: templates/admin/libraries/find_duplicates.html:55
 msgid "City:"
 msgstr "Città:"
 
-#: libraries/templates/libraries/library_detail.html:58
+#: libraries/templates/libraries/library_detail.html:59
 #: templates/admin/libraries/find_duplicates.html:57
 msgid "Country:"
 msgstr "Paese:"
 
-#: libraries/templates/libraries/library_detail.html:59
+#: libraries/templates/libraries/library_detail.html:60
 msgid "Postal code:"
 msgstr "CAP:"
 
-#: libraries/templates/libraries/library_detail.html:60
+#: libraries/templates/libraries/library_detail.html:61
 msgid "Wheelchair accessible:"
 msgstr "Accessibile in sedia a rotelle:"
 
-#: libraries/templates/libraries/library_detail.html:61
+#: libraries/templates/libraries/library_detail.html:62
 msgid "Capacity:"
 msgstr "Capacità:"
 
-#: libraries/templates/libraries/library_detail.html:61
+#: libraries/templates/libraries/library_detail.html:62
 msgid "books"
 msgstr "libri"
 
-#: libraries/templates/libraries/library_detail.html:62
+#: libraries/templates/libraries/library_detail.html:63
 msgid "Indoor:"
 msgstr "Al chiuso:"
 
-#: libraries/templates/libraries/library_detail.html:63
+#: libraries/templates/libraries/library_detail.html:64
 msgid "Lit at night:"
 msgstr "Illuminata di notte:"
 
-#: libraries/templates/libraries/library_detail.html:64
+#: libraries/templates/libraries/library_detail.html:65
 msgid "Website:"
 msgstr "Sito web:"
 
-#: libraries/templates/libraries/library_detail.html:65
+#: libraries/templates/libraries/library_detail.html:66
 msgid "Contact:"
 msgstr "Contatto:"
 
-#: libraries/templates/libraries/library_detail.html:66
+#: libraries/templates/libraries/library_detail.html:67
 msgid "Operator:"
 msgstr "Gestore:"
 
-#: libraries/templates/libraries/library_detail.html:67
+#: libraries/templates/libraries/library_detail.html:68
 msgid "Brand:"
 msgstr "Marchio:"
 
-#: libraries/templates/libraries/library_detail.html:68
+#: libraries/templates/libraries/library_detail.html:69
 #: templates/admin/libraries/geojson_import_form.html:28
 msgid "Source:"
 msgstr "Fonte:"
 
-#: libraries/templates/libraries/library_detail.html:69
+#: libraries/templates/libraries/library_detail.html:70
 msgid "Submitted by:"
 msgstr "Inviata da:"
 
-#: libraries/templates/libraries/library_detail.html:85
+#: libraries/templates/libraries/library_detail.html:86
 msgid "Add a photo"
 msgstr "Aggiungi una foto"
 
-#: libraries/templates/libraries/library_detail.html:95
+#: libraries/templates/libraries/library_detail.html:96
 msgid "Report an issue"
 msgstr "Segnala un problema"
 
-#: libraries/templates/libraries/library_detail.html:102
+#: libraries/templates/libraries/library_detail.html:103
 msgid "Location map"
 msgstr "Mappa della posizione"
 
-#: libraries/templates/libraries/library_detail.html:122
+#: libraries/templates/libraries/library_detail.html:123
 msgid "Add a photo of this library"
 msgstr "Aggiungi una foto di questa libreria"
 
-#: libraries/templates/libraries/library_detail.html:133
+#: libraries/templates/libraries/library_detail.html:134
 msgid "Report an issue with this library"
 msgstr "Segnala un problema con questa libreria"
+
+#: libraries/templates/libraries/library_export_download.html:5
+msgid "Download the complete approved Book Corners library catalogue as GeoJSON."
+msgstr "Scarica il catalogo completo delle librerie approvate di Book Corners in formato GeoJSON."
+
+#: libraries/templates/libraries/library_export_download.html:13
+msgid "Download the complete catalogue of approved Book Corners libraries as a GeoJSON file."
+msgstr "Scarica il catalogo completo delle librerie approvate di Book Corners in formato GeoJSON."
+
+#: libraries/templates/libraries/library_export_download.html:18
+#: manage/templates/manage/base.html:49
+#: manage/templates/manage/libraries/ai_enrich_confirm.html:12
+#: manage/templates/manage/libraries/detail.html:12
+#: manage/templates/manage/libraries/duplicates.html:12
+#: manage/templates/manage/libraries/edit.html:21
+#: manage/templates/manage/libraries/import.html:12
+#: manage/templates/manage/libraries/list.html:4
+#: manage/templates/manage/libraries/list.html:6
+#: manage/templates/manage/libraries/list.html:12
+#: manage/templates/manage/libraries/list.html:19
+#: manage/templates/manage/users/_table.html:11
+msgid "Libraries"
+msgstr "Librerie"
+
+#: libraries/templates/libraries/library_export_download.html:22
+msgid "File size"
+msgstr "Dimensione del file"
+
+#: libraries/templates/libraries/library_export_download.html:26
+msgid "Data updated"
+msgstr "Dati aggiornati"
+
+#: libraries/templates/libraries/library_export_download.html:32
+msgid "Download compressed GeoJSON"
+msgstr "Scarica GeoJSON compresso"
+
+#: libraries/templates/libraries/library_export_download.html:33
+msgid "View metadata"
+msgstr "Visualizza metadati"
+
+#: libraries/templates/libraries/library_export_download.html:37
+msgid "The export contains every currently approved library. Pending, rejected, moderation, account, and report information is excluded."
+msgstr "L'esportazione contiene tutte le librerie attualmente approvate. Sono escluse le informazioni su elementi in attesa, rifiutati, moderazione, account e segnalazioni."
+
+#: libraries/templates/libraries/library_export_download.html:39
+msgid "The complete exported database is available under the"
+msgstr "Il database completo esportato è disponibile secondo la"
+
+#: libraries/templates/libraries/library_export_download.html:40
+msgid "Open Database License (ODbL) v1.0"
+msgstr "Open Database License (ODbL) v1.0"
+
+#: libraries/templates/libraries/library_export_download.html:41
+msgid "Please attribute"
+msgstr "Attribuisci i dati a"
+
+#: libraries/templates/libraries/library_export_download.html:43
+msgid "and"
+msgstr "e"
+
+#: libraries/templates/libraries/library_export_download.html:44
+msgid "OpenStreetMap contributors"
+msgstr "i contributori di OpenStreetMap"
+
+#: libraries/templates/libraries/library_export_download.html:45
+msgid "when required."
+msgstr "quando richiesto."
+
+#: libraries/templates/libraries/library_export_download.html:47
+msgid "Photo URLs identify publicly displayed media; they do not independently grant permission to redistribute or relicense image files."
+msgstr "Gli URL delle foto identificano i media mostrati pubblicamente; non concedono autonomamente il permesso di ridistribuire o rilasciare nuovamente i file delle immagini."
+
+#: libraries/templates/libraries/library_export_download.html:48
+#, python-format
+msgid "Last checked: %(checked_at)s."
+msgstr "Ultimo controllo: %(checked_at)s."
+
+#: libraries/templates/libraries/library_export_download.html:52
+msgid "Technical details"
+msgstr "Dettagli tecnici"
+
+#: libraries/templates/libraries/library_export_download.html:54
+msgid "Format: GeoJSON"
+msgstr "Formato: GeoJSON"
+
+#: libraries/templates/libraries/library_export_download.html:61
+msgid "The library export is temporarily unavailable. Please try again later."
+msgstr "L'esportazione delle librerie non è temporaneamente disponibile. Riprova più tardi."
 
 #: libraries/templates/libraries/map.html:4 templates/base.html:33
 #: templates/base.html:70
@@ -690,7 +1188,7 @@ msgid "Libraries list"
 msgstr "Elenco librerie"
 
 #: libraries/templates/libraries/map.html:131
-#: libraries/templates/libraries/map.html:571
+#: libraries/templates/libraries/map.html:572
 msgid "Loading libraries..."
 msgstr "Caricamento librerie..."
 
@@ -717,19 +1215,19 @@ msgstr "Impossibile risolvere la posizione, è stata usata la ricerca per parole
 msgid "on the map."
 msgstr "sulla mappa."
 
-#: libraries/templates/libraries/map.html:279
+#: libraries/templates/libraries/map.html:280
 msgid "Neighborhood Library"
 msgstr "Casetta dei Libri"
 
-#: libraries/templates/libraries/map.html:568
+#: libraries/templates/libraries/map.html:569
 msgid "Loading libraries on the map..."
 msgstr "Caricamento librerie sulla mappa..."
 
-#: libraries/templates/libraries/map.html:635
+#: libraries/templates/libraries/map.html:636
 msgid "Could not load library list right now."
 msgstr "Impossibile caricare l'elenco delle librerie al momento."
 
-#: libraries/templates/libraries/map.html:639
+#: libraries/templates/libraries/map.html:640
 msgid "Could not load map markers right now. Please try again."
 msgstr "Impossibile caricare i marcatori sulla mappa. Riprova."
 
@@ -841,55 +1339,55 @@ msgstr "CAP (opzionale)"
 msgid "Center from address"
 msgstr "Centra dall'indirizzo"
 
-#: libraries/templates/libraries/submit_library.html:323
+#: libraries/templates/libraries/submit_library.html:320
 msgid "Marker moved. Coordinates updated."
 msgstr "Marcatore spostato. Coordinate aggiornate."
 
-#: libraries/templates/libraries/submit_library.html:328
+#: libraries/templates/libraries/submit_library.html:342
 msgid "Map point selected. Coordinates updated."
 msgstr "Punto sulla mappa selezionato. Coordinate aggiornate."
 
-#: libraries/templates/libraries/submit_library.html:427
+#: libraries/templates/libraries/submit_library.html:437
 msgid "Suggestion selected. Marker centered from autocomplete; drag to refine if needed."
 msgstr "Suggerimento selezionato. Marcatore centrato dall'autocompletamento; trascina per affinare se necessario."
 
-#: libraries/templates/libraries/submit_library.html:535
+#: libraries/templates/libraries/submit_library.html:545
 msgid "Reading GPS metadata from the selected photo..."
 msgstr "Lettura dei metadati GPS dalla foto selezionata..."
 
-#: libraries/templates/libraries/submit_library.html:552
+#: libraries/templates/libraries/submit_library.html:562
 msgid "No GPS metadata found in this photo. Set location manually on the map."
 msgstr "Nessun metadato GPS trovato in questa foto. Imposta la posizione manualmente sulla mappa."
 
-#: libraries/templates/libraries/submit_library.html:567
+#: libraries/templates/libraries/submit_library.html:577
 msgid "GPS metadata found. Map centered and address fields pre-filled from the photo."
 msgstr "Metadati GPS trovati. Mappa centrata e campi indirizzo precompilati dalla foto."
 
-#: libraries/templates/libraries/submit_library.html:571
+#: libraries/templates/libraries/submit_library.html:581
 msgid "GPS metadata found. Map centered from photo location."
 msgstr "Metadati GPS trovati. Mappa centrata dalla posizione della foto."
 
-#: libraries/templates/libraries/submit_library.html:573
+#: libraries/templates/libraries/submit_library.html:583
 msgid "Could not read photo metadata right now. Set the location manually on the map."
 msgstr "Impossibile leggere i metadati della foto al momento. Imposta la posizione manualmente sulla mappa."
 
-#: libraries/templates/libraries/submit_library.html:596
+#: libraries/templates/libraries/submit_library.html:606
 msgid "Finding location from address..."
 msgstr "Ricerca della posizione dall'indirizzo..."
 
-#: libraries/templates/libraries/submit_library.html:613
+#: libraries/templates/libraries/submit_library.html:623
 msgid "Address not found. Move the marker manually on the map."
 msgstr "Indirizzo non trovato. Sposta il marcatore manualmente sulla mappa."
 
-#: libraries/templates/libraries/submit_library.html:620
+#: libraries/templates/libraries/submit_library.html:630
 msgid "Address lookup returned invalid coordinates."
 msgstr "La ricerca dell'indirizzo ha restituito coordinate non valide."
 
-#: libraries/templates/libraries/submit_library.html:625
+#: libraries/templates/libraries/submit_library.html:635
 msgid "Map centered from address. Drag marker if you need to refine the point."
 msgstr "Mappa centrata dall'indirizzo. Trascina il marcatore se devi affinare il punto."
 
-#: libraries/templates/libraries/submit_library.html:627
+#: libraries/templates/libraries/submit_library.html:637
 msgid "Geocoding is unavailable right now. You can still click the map to pick coordinates."
 msgstr "La geocodifica non è disponibile al momento. Puoi comunque cliccare sulla mappa per scegliere le coordinate."
 
@@ -910,101 +1408,101 @@ msgstr "Grazie per il contributo. La tua libreria è stata inviata ai moderatori
 msgid "Continue"
 msgstr "Continua"
 
-#: libraries/views.py:580
+#: libraries/views.py:639
 msgid "Your changes were saved for review. The approved library remains live until moderators approve the update."
 msgstr "Le tue modifiche sono state salvate per la revisione. La libreria approvata rimane visibile finché i moderatori non approvano l'aggiornamento."
 
-#: libraries/views.py:584
+#: libraries/views.py:643
 msgid "No new changes were saved. Your existing changes remain under moderator review."
 msgstr "Non sono state salvate nuove modifiche. Le modifiche esistenti rimangono in attesa di revisione."
 
-#: libraries/views.py:588
+#: libraries/views.py:647
 msgid "No changes were found. The approved library remains live."
 msgstr "Non sono state rilevate modifiche. La libreria approvata rimane visibile."
 
-#: libraries/views.py:594
+#: libraries/views.py:653
 msgid "Your changes were saved and remain under moderator review."
 msgstr "Le tue modifiche sono state salvate e restano in attesa di revisione da parte dei moderatori."
 
-#: libraries/views.py:606 manage/templates/manage/libraries/edit.html:4
+#: libraries/views.py:665 manage/templates/manage/libraries/edit.html:4
 #: manage/templates/manage/libraries/edit.html:15
 #: manage/templates/manage/libraries/edit.html:31
 msgid "Edit library"
 msgstr "Modifica libreria"
 
-#: libraries/views.py:609
+#: libraries/views.py:668
 msgid "Update your library details. The current approved version stays live while your changes are reviewed."
 msgstr "Aggiorna i dettagli della tua libreria. La versione attualmente approvata rimane visibile mentre le modifiche vengono revisionate."
 
-#: libraries/views.py:613
+#: libraries/views.py:672
 msgid "Update your library details. Changes will be sent back to moderators before they appear publicly."
 msgstr "Aggiorna i dettagli della tua libreria. Le modifiche saranno inviate di nuovo ai moderatori prima di apparire pubblicamente."
 
-#: libraries/views.py:618
+#: libraries/views.py:677
 msgid "Only your proposed changes are reviewed. They replace the current details after moderator approval."
 msgstr "Vengono revisionate solo le modifiche proposte. Sostituiranno i dettagli attuali dopo l'approvazione dei moderatori."
 
-#: libraries/views.py:622
+#: libraries/views.py:681
 msgid "Changes are reviewed before they become live. After you save, moderators will approve the update before it appears publicly."
 msgstr "Le modifiche vengono revisionate prima di diventare visibili. Dopo il salvataggio, i moderatori approveranno l'aggiornamento prima che appaia pubblicamente."
 
-#: libraries/views.py:625
+#: libraries/views.py:684
 msgid "Edit a library you submitted on Book Corners."
 msgstr "Modifica una libreria che hai inviato su Book Corners."
 
-#: libraries/views.py:626 manage/templates/manage/libraries/edit.html:194
+#: libraries/views.py:685 manage/templates/manage/libraries/edit.html:194
 msgid "Save changes"
 msgstr "Salva modifiche"
 
-#: libraries/views.py:627
+#: libraries/views.py:686
 msgid "Replace photo (optional)"
 msgstr "Sostituisci foto (opzionale)"
 
-#: libraries/views.py:628
+#: libraries/views.py:687
 msgid "Leave this empty to keep the current photo."
 msgstr "Lascia vuoto questo campo per mantenere la foto attuale."
 
-#: libraries/views.py:629
+#: libraries/views.py:688
 msgid "Update exact location"
 msgstr "Aggiorna posizione esatta"
 
-#: libraries/views.py:630
+#: libraries/views.py:689
 msgid "Use the map to adjust the saved point, or keep the marker where it is."
 msgstr "Usa la mappa per regolare il punto salvato, oppure lascia il marker dov'è."
 
-#: libraries/views.py:631
+#: libraries/views.py:690
 msgid "Saved marker loaded. Drag it or click the map to adjust the location."
 msgstr "Marker salvato caricato. Trascinalo o fai clic sulla mappa per regolare la posizione."
 
-#: libraries/views.py:829
+#: libraries/views.py:889
 msgid "Share a public bookcase with the community. Set the exact point on the map before submitting."
 msgstr "Condividi una casetta dei libri con la community. Imposta il punto esatto sulla mappa prima di inviare."
 
-#: libraries/views.py:830
+#: libraries/views.py:890
 msgid "Submit a public bookcase to Book Corners with a photo, location, and address details."
 msgstr "Invia una casetta dei libri a Book Corners con foto, posizione e dettagli dell'indirizzo."
 
-#: libraries/views.py:831
+#: libraries/views.py:891
 msgid "Submit library"
 msgstr "Invia libreria"
 
-#: libraries/views.py:832
+#: libraries/views.py:892
 msgid "Photo (required)"
 msgstr "Foto (obbligatoria)"
 
-#: libraries/views.py:834
+#: libraries/views.py:894
 msgid "Upload a clear photo showing the library. It helps moderators verify it and helps visitors recognise it."
 msgstr "Carica una foto nitida che mostri la libreria. Aiuta i moderatori a verificarla e i visitatori a riconoscerla."
 
-#: libraries/views.py:836
+#: libraries/views.py:896
 msgid "Set exact location"
 msgstr "Imposta posizione esatta"
 
-#: libraries/views.py:837
+#: libraries/views.py:897
 msgid "Type an address and choose a suggestion to center the map. Drag the marker to refine the exact point."
 msgstr "Digita un indirizzo e scegli un suggerimento per centrare la mappa. Trascina il marcatore per affinare il punto esatto."
 
-#: libraries/views.py:838
+#: libraries/views.py:898
 msgid "Choose the map point by centering from address, dragging marker, or clicking map."
 msgstr "Scegli il punto sulla mappa centrando dall'indirizzo, trascinando il marcatore o cliccando sulla mappa."
 
@@ -1064,20 +1562,6 @@ msgstr "Amministrazione"
 #: manage/templates/manage/users/list.html:11
 msgid "Dashboard"
 msgstr "Bacheca"
-
-#: manage/templates/manage/base.html:49
-#: manage/templates/manage/libraries/ai_enrich_confirm.html:12
-#: manage/templates/manage/libraries/detail.html:12
-#: manage/templates/manage/libraries/duplicates.html:12
-#: manage/templates/manage/libraries/edit.html:21
-#: manage/templates/manage/libraries/import.html:12
-#: manage/templates/manage/libraries/list.html:4
-#: manage/templates/manage/libraries/list.html:6
-#: manage/templates/manage/libraries/list.html:12
-#: manage/templates/manage/libraries/list.html:19
-#: manage/templates/manage/users/_table.html:11
-msgid "Libraries"
-msgstr "Librerie"
 
 #: manage/templates/manage/base.html:57
 #: manage/templates/manage/photos/list.html:4
@@ -1267,7 +1751,7 @@ msgstr "Nessuna libreria trovata."
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:6
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:14
 #: manage/templates/manage/libraries/detail.html:68
-#: templates/admin/libraries/library/change_form.html:10
+#: templates/admin/libraries/library/change_form.html:31
 msgid "AI Enrich"
 msgstr "Arricchisci con IA"
 
@@ -1292,6 +1776,7 @@ msgstr "Descrizione"
 #: manage/templates/manage/libraries/import.html:56
 #: templates/admin/libraries/ai_enrich_confirm.html:46
 #: templates/admin/libraries/geojson_import_form.html:45
+#: templates/admin/libraries/osm_duplicate_resolution.html:80
 #: users/templates/users/change_email.html:34
 #: users/templates/users/change_password.html:41
 #: users/templates/users/delete_account.html:39
@@ -1542,11 +2027,6 @@ msgstr "Applicato a tutte le librerie importate. Lascia vuoto se non necessario.
 msgid "Status applied to all imported libraries."
 msgstr "Stato applicato a tutte le librerie importate."
 
-#: manage/templates/manage/libraries/import.html:55
-#: templates/admin/libraries/geojson_import_form.html:44
-msgid "Import"
-msgstr "Importa"
-
 #: manage/templates/manage/libraries/list.html:21
 #: manage/templates/manage/photos/list.html:20
 #: manage/templates/manage/reports/list.html:20
@@ -1622,13 +2102,6 @@ msgstr "Nessuna segnalazione trovata."
 msgid "All reasons"
 msgstr "Tutti i motivi"
 
-#: manage/templates/manage/users/_table.html:9
-#: manage/templates/manage/users/_table.html:24
-#: manage/templates/manage/users/detail.html:23
-#: manage/templates/manage/users/list.html:33
-msgid "Staff"
-msgstr "Staff"
-
 #: manage/templates/manage/users/_table.html:10
 #: manage/templates/manage/users/_table.html:29
 #: manage/templates/manage/users/detail.html:26
@@ -1659,7 +2132,7 @@ msgstr "Account"
 msgid "Last login"
 msgstr "Ultimo accesso"
 
-#: manage/templates/manage/users/detail.html:55 templates/base.html:188
+#: manage/templates/manage/users/detail.html:55 templates/base.html:189
 msgid "Language"
 msgstr "Lingua"
 
@@ -1675,7 +2148,7 @@ msgstr "Nessuna libreria inviata."
 msgid "Reports Submitted"
 msgstr "Segnalazioni inviate"
 
-#: manage/templates/manage/users/list.html:27 users/forms.py:154
+#: manage/templates/manage/users/list.html:27 users/forms.py:229
 #: users/templates/users/login.html:23
 msgid "Username or email"
 msgstr "Nome utente o email"
@@ -1722,11 +2195,11 @@ msgstr "File GeoJSON non valido: %(error)s"
 msgid "Import of %(count)d features has been queued for background processing."
 msgstr "L'importazione di %(count)d elementi è stata messa in coda per l'elaborazione."
 
-#: manage/views/photos.py:99
+#: manage/views/photos.py:97
 msgid "Photo approved."
 msgstr "Foto approvata."
 
-#: manage/views/photos.py:121
+#: manage/views/photos.py:119
 msgid "Photo rejected."
 msgstr "Foto rifiutata."
 
@@ -1901,6 +2374,7 @@ msgstr "Suggerimento IA"
 #: templates/admin/libraries/find_duplicates.html:4
 #: templates/admin/libraries/geojson_import_form.html:4
 #: templates/admin/libraries/geojson_import_result.html:4
+#: templates/admin/libraries/osm_duplicate_resolution.html:4
 #: templates/admin/libraries/photo_grid.html:4
 msgid "Django site admin"
 msgstr ""
@@ -1908,6 +2382,7 @@ msgstr ""
 #: templates/admin/libraries/find_duplicates.html:45
 #: templates/admin/libraries/geojson_import_form.html:8
 #: templates/admin/libraries/geojson_import_result.html:8
+#: templates/admin/libraries/osm_duplicate_resolution.html:8
 #: templates/admin/libraries/photo_grid.html:123 templates/base.html:31
 #: templates/base.html:68 templates/home.html:4
 msgid "Home"
@@ -2012,11 +2487,79 @@ msgstr "Errore 404"
 msgid "Import another file"
 msgstr ""
 
+#: templates/admin/libraries/library/change_form.html:10
+msgid "Check OSM duplicates"
+msgstr "Controlla duplicati OSM"
+
+#: templates/admin/libraries/library/change_form.html:17
+msgid "Withdraw this submission's OSM permission?"
+msgstr "Revocare l'autorizzazione OSM per questo invio?"
+
+#: templates/admin/libraries/library/change_form.html:17
+msgid "Withdraw OSM permission"
+msgstr "Revoca autorizzazione OSM"
+
+#: templates/admin/libraries/library/change_form.html:22
+msgid "Resolve OSM duplicate"
+msgstr "Risolvi duplicato OSM"
+
 #: templates/admin/libraries/library_changelist.html:6
 #: templates/admin/libraries/photo_grid.html:4
 #: templates/admin/libraries/photo_grid.html:125
 msgid "Photo Grid"
 msgstr "Griglia foto"
+
+#: templates/admin/libraries/osm_duplicate_resolution.html:18
+msgid "Review the public OpenStreetMap candidates below. This decision is recorded in the append-only audit history and does not write to OpenStreetMap."
+msgstr "Controlla i candidati OpenStreetMap pubblici qui sotto. La decisione viene registrata nella cronologia di audit append-only e non scrive su OpenStreetMap."
+
+#: templates/admin/libraries/osm_duplicate_resolution.html:25
+msgid "Candidate"
+msgstr "Candidato"
+
+#: templates/admin/libraries/osm_duplicate_resolution.html:31
+msgid "metres away"
+msgstr "metri di distanza"
+
+#: templates/admin/libraries/osm_duplicate_resolution.html:34
+msgid "Signals:"
+msgstr "Segnali:"
+
+#: templates/admin/libraries/osm_duplicate_resolution.html:37
+msgid "Relevant public tags:"
+msgstr "Tag pubblici rilevanti:"
+
+#: templates/admin/libraries/osm_duplicate_resolution.html:45
+msgid "No blocking candidate is available to resolve."
+msgstr "Non è disponibile alcun candidato bloccante da risolvere."
+
+#: templates/admin/libraries/osm_duplicate_resolution.html:50
+msgid "Resolution"
+msgstr "Decisione"
+
+#: templates/admin/libraries/osm_duplicate_resolution.html:54
+msgid "Same feature — link the existing OSM element and stop."
+msgstr "Stesso elemento — collega l'elemento OSM esistente e interrompi."
+
+#: templates/admin/libraries/osm_duplicate_resolution.html:60
+msgid "Different feature — record the distinction and require a fresh check."
+msgstr "Elemento diverso — registra la distinzione e richiedi un nuovo controllo."
+
+#: templates/admin/libraries/osm_duplicate_resolution.html:66
+msgid "Unclear — keep the duplicate warning unresolved."
+msgstr "Non chiaro — mantieni irrisolto l'avviso di duplicato."
+
+#: templates/admin/libraries/osm_duplicate_resolution.html:70
+msgid "Reason:"
+msgstr "Motivo:"
+
+#: templates/admin/libraries/osm_duplicate_resolution.html:73
+msgid "Explain what staff verified. Do not include private contact details or credentials."
+msgstr "Spiega cosa ha verificato lo staff. Non includere contatti privati o credenziali."
+
+#: templates/admin/libraries/osm_duplicate_resolution.html:79
+msgid "Record resolution"
+msgstr "Registra decisione"
 
 #: templates/admin/libraries/photo_grid.html:132
 msgid "Grid:"
@@ -2093,7 +2636,7 @@ msgstr "Accordo per i contributori"
 msgid "App"
 msgstr "App"
 
-#: templates/base.html:179
+#: templates/base.html:180
 msgid "Download on the App Store"
 msgstr "Scarica dall'App Store"
 
@@ -2154,40 +2697,52 @@ msgstr "Solo un altro passo — scegli un nome utente per completare la registra
 msgid "Complete sign up"
 msgstr "Completa la registrazione"
 
-#: users/forms.py:47 users/forms.py:71
+#: users/adapters.py:110
+msgid "To create a new account with social login, start from registration and accept the contributor agreement."
+msgstr "Per creare un nuovo account con accesso social, inizia dalla registrazione e accetta l'accordo per i contributori."
+
+#: users/forms.py:67
+msgid "The contributor agreement has changed. Review and accept the current version."
+msgstr "L'accordo per i contributori è cambiato. Consulta e accetta la versione corrente."
+
+#: users/forms.py:71
+msgid "You must accept the contributor agreement to create an account."
+msgstr "Devi accettare l'accordo per i contributori per creare un account."
+
+#: users/forms.py:122 users/forms.py:146
 msgid "A user with this email already exists."
 msgstr "Un utente con questa email esiste già."
 
-#: users/forms.py:55 users/templates/users/change_email.html:27
+#: users/forms.py:130 users/templates/users/change_email.html:27
 msgid "New email address"
 msgstr "Nuovo indirizzo email"
 
-#: users/forms.py:69
+#: users/forms.py:144
 msgid "This is already your current email address."
 msgstr "Questo è già il tuo indirizzo email attuale."
 
-#: users/forms.py:80 users/templates/users/change_password.html:22
+#: users/forms.py:155 users/templates/users/change_password.html:22
 msgid "Current password"
 msgstr "Password attuale"
 
-#: users/forms.py:100
+#: users/forms.py:175
 msgid "Your current password is incorrect."
 msgstr "La tua password attuale non è corretta."
 
-#: users/forms.py:109 users/templates/users/login.html:29
+#: users/forms.py:184 users/templates/users/login.html:29
 #: users/templates/users/register.html:34
 msgid "Password"
 msgstr "Password"
 
-#: users/forms.py:125
+#: users/forms.py:200
 msgid "Incorrect password."
 msgstr "Password non corretta."
 
-#: users/forms.py:134 users/templates/users/delete_account.html:25
+#: users/forms.py:209 users/templates/users/delete_account.html:25
 msgid "Type DELETE to confirm"
 msgstr "Digita DELETE per confermare"
 
-#: users/forms.py:149
+#: users/forms.py:224
 msgid "Please type DELETE to confirm."
 msgstr "Per favore digita DELETE per confermare."
 
@@ -2244,7 +2799,7 @@ msgid "Log in to Book Corners to submit libraries, report issues, and manage you
 msgstr "Accedi a Book Corners per inviare librerie, segnalare problemi e gestire i tuoi contributi."
 
 #: users/templates/users/login.html:11 users/templates/users/login.html:34
-#: users/templates/users/register.html:81
+#: users/templates/users/register.html:94
 msgid "Log in"
 msgstr "Accedi"
 
@@ -2252,15 +2807,15 @@ msgstr "Accedi"
 msgid "Use your username or email address to access your account."
 msgstr "Usa il tuo nome utente o indirizzo email per accedere al tuo account."
 
-#: users/templates/users/login.html:38 users/templates/users/register.html:49
+#: users/templates/users/login.html:38 users/templates/users/register.html:67
 msgid "or"
 msgstr "oppure"
 
-#: users/templates/users/login.html:51 users/templates/users/register.html:61
+#: users/templates/users/login.html:51 users/templates/users/register.html:77
 msgid "Continue with Google"
 msgstr "Continua con Google"
 
-#: users/templates/users/login.html:63 users/templates/users/register.html:72
+#: users/templates/users/login.html:63 users/templates/users/register.html:85
 msgid "Continue with Apple"
 msgstr "Continua con Apple"
 
@@ -2284,472 +2839,54 @@ msgstr "Registrati per inviare librerie e aiutare a mantenere le informazioni ag
 msgid "Confirm password"
 msgstr "Conferma password"
 
-#: users/templates/users/register.html:45
-msgid "Create account"
-msgstr "Crea account"
-
-#: users/templates/users/register.html:80
-msgid "Already have an account?"
-msgstr "Hai già un account?"
-
-#: users/views.py:79
-msgid "Too many registration attempts. Please try again in a few minutes."
-msgstr "Troppi tentativi di registrazione. Riprova tra qualche minuto."
-
-#: users/views.py:111
-msgid "Too many login attempts. Please try again in a few minutes."
-msgstr "Troppi tentativi di accesso. Riprova tra qualche minuto."
-
-#: users/views.py:151
-msgid "Social login accounts cannot change their email address."
-msgstr "Gli account con accesso social non possono cambiare il proprio indirizzo email."
-
-#: users/views.py:157
-msgid "Your email address has been updated."
-msgstr "Il tuo indirizzo email è stato aggiornato."
-
-#: users/views.py:167
-msgid "Social login accounts cannot change their password."
-msgstr "Gli account con accesso social non possono cambiare la propria password."
-
-#: users/views.py:173
-msgid "Your password has been changed."
-msgstr "La tua password è stata cambiata."
-
-#: users/views.py:191
-msgid "Your account has been deleted."
-msgstr "Il tuo account è stato eliminato."
-
-# OpenStreetMap candidate review
-msgid "The library is not approved."
-msgstr "La libreria non è approvata."
-
-msgid "The library was not submitted directly by a user."
-msgstr "La libreria non è stata inviata direttamente da un utente."
-
-msgid "The original submitter account is no longer linked."
-msgstr "L'account dell'utente che ha effettuato l'invio non è più collegato."
-
-msgid "The submitter did not allow OpenStreetMap submission."
-msgstr "L'utente non ha autorizzato l'invio a OpenStreetMap."
-
-msgid "The library originated from OpenStreetMap."
-msgstr "La libreria proviene da OpenStreetMap."
-
-msgid "The library has an update awaiting moderation."
-msgstr "La libreria ha un aggiornamento in attesa di moderazione."
-
-msgid "The library was already contributed to OpenStreetMap."
-msgstr "La libreria è già stata aggiunta a OpenStreetMap."
-
-msgid "An existing OpenStreetMap feature is already linked."
-msgstr "È già collegato un elemento OpenStreetMap esistente."
-
-msgid "An OpenStreetMap submission is already in progress."
-msgstr "È già in corso un invio a OpenStreetMap."
-
-msgid "An OpenStreetMap duplicate check has not been completed."
-msgstr "Non è stato completato un controllo dei duplicati su OpenStreetMap."
-
-msgid "A possible OpenStreetMap duplicate requires resolution."
-msgstr "Un possibile duplicato su OpenStreetMap richiede una decisione."
-
-msgid "The latest OpenStreetMap duplicate check failed."
-msgstr "L'ultimo controllo dei duplicati su OpenStreetMap non è riuscito."
-
-msgid "The OpenStreetMap state does not allow contribution."
-msgstr "Lo stato OpenStreetMap non consente l'invio."
-
-msgid "The latest OpenStreetMap duplicate check is stale."
-msgstr "L'ultimo controllo dei duplicati su OpenStreetMap è scaduto."
-
-msgid "Unchecked"
-msgstr "Non controllato"
-
-msgid "No match found"
-msgstr "Nessuna corrispondenza"
-
-msgid "Possible duplicate"
-msgstr "Possibile duplicato"
-
-msgid "Already present"
-msgstr "Già presente"
-
-msgid "Submitting"
-msgstr "Invio in corso"
-
-msgid "Contributed"
-msgstr "Aggiunta"
-
-msgid "Failed"
-msgstr "Non riuscito"
-
-msgid "Node"
-msgstr "Nodo"
-
-msgid "Way"
-msgstr "Way"
-
-msgid "Relation"
-msgstr "Relazione"
-
-msgid "Permission withdrawn"
-msgstr "Autorizzazione revocata"
-
-msgid "Duplicate check"
-msgstr "Controllo duplicati"
-
-msgid "Duplicate resolution"
-msgstr "Decisione sul duplicato"
-
-msgid "Write started"
-msgstr "Scrittura avviata"
-
-msgid "Write succeeded"
-msgstr "Scrittura riuscita"
-
-msgid "Write failed"
-msgstr "Scrittura non riuscita"
-
-msgid "Reconciliation required"
-msgstr "Riconciliazione necessaria"
-
-msgid "Success"
-msgstr "Riuscito"
-
-msgid "Blocked"
-msgstr "Bloccato"
-
-msgid "OpenStreetMap permission is not currently granted."
-msgstr "L'autorizzazione per OpenStreetMap non è attualmente concessa."
-
-msgid "OpenStreetMap permission cannot be withdrawn after linking or submission."
-msgstr "L'autorizzazione per OpenStreetMap non può essere revocata dopo il collegamento o l'invio."
-
-msgid "Select a valid duplicate resolution."
-msgstr "Seleziona una decisione valida per il duplicato."
-
-msgid "Select a valid OpenStreetMap element type."
-msgstr "Seleziona un tipo di elemento OpenStreetMap valido."
-
-msgid "This library has no unresolved possible duplicate."
-msgstr "Questa libreria non ha possibili duplicati ancora da risolvere."
-
-msgid "The selected OpenStreetMap candidate is not current."
-msgstr "Il candidato OpenStreetMap selezionato non è più attuale."
-
-msgid "This OpenStreetMap feature is already linked to another library."
-msgstr "Questo elemento OpenStreetMap è già collegato a un'altra libreria."
-
-msgid "OpenStreetMap duplicate checks require an Overpass endpoint and contactable user agent."
-msgstr "I controlli dei duplicati su OpenStreetMap richiedono un endpoint Overpass e uno user agent con un contatto valido."
-
-msgid "The OpenStreetMap duplicate service returned invalid JSON."
-msgstr "Il servizio di controllo duplicati OpenStreetMap ha restituito JSON non valido."
-
-msgid "The OpenStreetMap duplicate service returned an invalid result."
-msgstr "Il servizio di controllo duplicati OpenStreetMap ha restituito un risultato non valido."
-
-msgid "The OpenStreetMap duplicate service could not complete the query."
-msgstr "Il servizio di controllo duplicati OpenStreetMap non ha potuto completare la richiesta."
-
-msgid "The OpenStreetMap duplicate service returned invalid elements."
-msgstr "Il servizio di controllo duplicati OpenStreetMap ha restituito elementi non validi."
-
-msgid "The OpenStreetMap duplicate check timed out."
-msgstr "Il controllo dei duplicati su OpenStreetMap è scaduto."
-
-msgid "The OpenStreetMap duplicate service could not be reached."
-msgstr "Impossibile raggiungere il servizio di controllo duplicati OpenStreetMap."
-
-msgid "The OpenStreetMap duplicate service is rate limited."
-msgstr "Il servizio di controllo duplicati OpenStreetMap ha raggiunto il limite di richieste."
-
-msgid "The OpenStreetMap duplicate service is unavailable."
-msgstr "Il servizio di controllo duplicati OpenStreetMap non è disponibile."
-
-msgid "The OpenStreetMap duplicate service rejected the request."
-msgstr "Il servizio di controllo duplicati OpenStreetMap ha rifiutato la richiesta."
-
-msgid "The OpenStreetMap duplicate check failed."
-msgstr "Il controllo dei duplicati su OpenStreetMap non è riuscito."
-
-msgid "Explain the duplicate resolution."
-msgstr "Spiega la decisione sul duplicato."
-
-msgid "Remove private contact details or credentials from the resolution."
-msgstr "Rimuovi dalla spiegazione i contatti privati o le credenziali."
-
-msgid "OpenStreetMap state"
-msgstr "Stato OpenStreetMap"
-
-msgid "Unknown"
-msgstr "Sconosciuto"
-
-msgid "Absent"
-msgstr "Assente"
-
-msgid "Present"
-msgstr "Presente"
-
-msgid "OSM state"
-msgstr "Stato OSM"
-
-msgid "OSM candidate"
-msgstr "Candidato OSM"
-
-msgid "Ineligible"
-msgstr "Non idoneo"
-
-msgid "Checked"
-msgstr "Controllato"
-
-msgid "Needs check"
-msgstr "Da controllare"
-
-msgid "Unknown; no duplicate check has been recorded."
-msgstr "Sconosciuto; non è stato registrato alcun controllo dei duplicati."
-
-#, python-format
-msgid "Checked at: %(timestamp)s"
-msgstr "Controllato il: %(timestamp)s"
-
-#, python-format
-msgid "OSM feature: %(type)s/%(identifier)s"
-msgstr "Elemento OSM: %(type)s/%(identifier)s"
-
-#, python-format
-msgid "Changeset: %(identifier)s"
-msgstr "Changeset: %(identifier)s"
-
-#, python-format
-msgid "Latest error: %(message)s"
-msgstr "Ultimo errore: %(message)s"
-
-#, python-format
-msgid "Retryable error: %(value)s"
-msgstr "Errore ritentabile: %(value)s"
-
-msgid "OpenStreetMap eligibility"
-msgstr "Idoneità OpenStreetMap"
-
-msgid "No library or duplicate-state blocker. Future policy and write gates still apply."
-msgstr "Nessun blocco relativo alla libreria o ai duplicati. Restano validi i futuri requisiti delle policy e della scrittura."
-
-msgid "OSM duplicate candidates"
-msgstr "Possibili duplicati OSM"
-
-msgid "No duplicate candidates recorded."
-msgstr "Nessun possibile duplicato registrato."
-
-msgid "secondary warning only"
-msgstr "solo avviso secondario"
-
-msgid "no relevant tags"
-msgstr "nessun tag rilevante"
-
-msgid "OSM audit history"
-msgstr "Cronologia di audit OSM"
-
-msgid "No OpenStreetMap audit events recorded."
-msgstr "Nessun evento di audit OpenStreetMap registrato."
-
-msgid "System"
-msgstr "Sistema"
-
-msgid "The library no longer exists."
-msgstr "La libreria non esiste più."
-
-msgid "Possible OpenStreetMap duplicates require staff resolution."
-msgstr "I possibili duplicati su OpenStreetMap richiedono una decisione dello staff."
-
-msgid "No blocking OpenStreetMap match was found."
-msgstr "Non è stata trovata alcuna corrispondenza OpenStreetMap bloccante."
-
-msgid "OpenStreetMap submission permission was withdrawn."
-msgstr "L'autorizzazione all'invio a OpenStreetMap è stata revocata."
-
-msgid "This library has no unresolved OpenStreetMap duplicate."
-msgstr "Questa libreria non ha duplicati OpenStreetMap ancora da risolvere."
-
-msgid "Select a valid OpenStreetMap duplicate candidate."
-msgstr "Seleziona un possibile duplicato OpenStreetMap valido."
-
-msgid "The existing OpenStreetMap feature was linked."
-msgstr "L'elemento OpenStreetMap esistente è stato collegato."
-
-msgid "The candidate was recorded as a different feature. Run a fresh duplicate check before continuing."
-msgstr "Il candidato è stato registrato come elemento diverso. Esegui un nuovo controllo dei duplicati prima di continuare."
-
-msgid "The candidate remains an unresolved duplicate."
-msgstr "Il candidato rimane un duplicato non risolto."
-
-msgid "Resolve OpenStreetMap duplicate"
-msgstr "Risolvi duplicato OpenStreetMap"
-
-msgid "Review the public OpenStreetMap candidates below. This decision is recorded in the append-only audit history and does not write to OpenStreetMap."
-msgstr "Controlla i candidati OpenStreetMap pubblici qui sotto. La decisione viene registrata nella cronologia di audit append-only e non scrive su OpenStreetMap."
-
-msgid "Candidate"
-msgstr "Candidato"
-
-msgid "metres away"
-msgstr "metri di distanza"
-
-msgid "Signals:"
-msgstr "Segnali:"
-
-msgid "Relevant public tags:"
-msgstr "Tag pubblici rilevanti:"
-
-msgid "No blocking candidate is available to resolve."
-msgstr "Non è disponibile alcun candidato bloccante da risolvere."
-
-msgid "Resolution"
-msgstr "Decisione"
-
-msgid "Same feature — link the existing OSM element and stop."
-msgstr "Stesso elemento — collega l'elemento OSM esistente e interrompi."
-
-msgid "Different feature — record the distinction and require a fresh check."
-msgstr "Elemento diverso — registra la distinzione e richiedi un nuovo controllo."
-
-msgid "Unclear — keep the duplicate warning unresolved."
-msgstr "Non chiaro — mantieni irrisolto l'avviso di duplicato."
-
-msgid "Reason:"
-msgstr "Motivo:"
-
-msgid "Explain what staff verified. Do not include private contact details or credentials."
-msgstr "Spiega cosa ha verificato lo staff. Non includere contatti privati o credenziali."
-
-msgid "Record resolution"
-msgstr "Registra decisione"
-
-msgid "Check OSM duplicates"
-msgstr "Controlla duplicati OSM"
-
-msgid "Withdraw this submission's OSM permission?"
-msgstr "Revocare l'autorizzazione OSM per questo invio?"
-
-msgid "Withdraw OSM permission"
-msgstr "Revoca autorizzazione OSM"
-
-msgid "Resolve OSM duplicate"
-msgstr "Risolvi duplicato OSM"
-
-#: libraries/templates/libraries/dashboard.html:35
-#: libraries/templates/libraries/library_export_download.html:4
-#: libraries/templates/libraries/library_export_download.html:10
-msgid "Download library data"
-msgstr "Scarica i dati delle librerie"
-
-#: libraries/templates/libraries/dashboard.html:36
-msgid "Download the complete approved library catalogue as a GeoJSON file."
-msgstr "Scarica il catalogo completo delle librerie approvate in formato GeoJSON."
-
-#: libraries/templates/libraries/dashboard.html:38
-msgid "View download"
-msgstr "Apri la pagina di download"
-
-#: libraries/templates/libraries/library_export_download.html:5
-msgid "Download the complete approved Book Corners library catalogue as GeoJSON."
-msgstr "Scarica il catalogo completo delle librerie approvate di Book Corners in formato GeoJSON."
-
-#: libraries/templates/libraries/library_export_download.html:13
-msgid "Download the complete catalogue of approved Book Corners libraries as a GeoJSON file."
-msgstr "Scarica il catalogo completo delle librerie approvate di Book Corners in formato GeoJSON."
-
-#: libraries/templates/libraries/library_export_download.html:22
-msgid "File size"
-msgstr "Dimensione del file"
-
-#: libraries/templates/libraries/library_export_download.html:26
-msgid "Data updated"
-msgstr "Dati aggiornati"
-
-#: libraries/templates/libraries/library_export_download.html:32
-msgid "Download compressed GeoJSON"
-msgstr "Scarica GeoJSON compresso"
-
-#: libraries/templates/libraries/library_export_download.html:33
-msgid "View metadata"
-msgstr "Visualizza metadati"
-
-#: libraries/templates/libraries/library_export_download.html:37
-msgid "The export contains every currently approved library. Pending, rejected, moderation, account, and report information is excluded."
-msgstr "L'esportazione contiene tutte le librerie attualmente approvate. Sono escluse le informazioni su elementi in attesa, rifiutati, moderazione, account e segnalazioni."
-
-#: libraries/templates/libraries/library_export_download.html:39
-msgid "The complete exported database is available under the"
-msgstr "Il database completo esportato è disponibile secondo la"
-
-#: libraries/templates/libraries/library_export_download.html:40
-msgid "Open Database License (ODbL) v1.0"
-msgstr "Open Database License (ODbL) v1.0"
-
-#: libraries/templates/libraries/library_export_download.html:41
-msgid "Please attribute"
-msgstr "Attribuisci i dati a"
-
-#: libraries/templates/libraries/library_export_download.html:43
-msgid "and"
-msgstr "e"
-
-#: libraries/templates/libraries/library_export_download.html:45
-msgid "OpenStreetMap contributors"
-msgstr "i contributori di OpenStreetMap"
-
-#: libraries/templates/libraries/library_export_download.html:46
-msgid "when required."
-msgstr "quando richiesto."
-
-#: libraries/templates/libraries/library_export_download.html:48
-msgid "Photo URLs identify publicly displayed media; they do not independently grant permission to redistribute or relicense image files."
-msgstr "Gli URL delle foto identificano i media mostrati pubblicamente; non concedono autonomamente il permesso di ridistribuire o rilasciare nuovamente i file delle immagini."
-
-#: libraries/templates/libraries/library_export_download.html:49
-#, python-format
-msgid "Last checked: %(checked_at)s."
-msgstr "Ultimo controllo: %(checked_at)s."
-
-#: libraries/templates/libraries/library_export_download.html:53
-msgid "Technical details"
-msgstr "Dettagli tecnici"
-
-#: libraries/templates/libraries/library_export_download.html:55
-msgid "Format: GeoJSON"
-msgstr "Formato: GeoJSON"
-
-#: libraries/export_views.py:135
-#: libraries/templates/libraries/library_export_download.html:61
-msgid "The library export is temporarily unavailable. Please try again later."
-msgstr "L'esportazione delle librerie non è temporaneamente disponibile. Riprova più tardi."
-
-#: users/adapters.py
-msgid "To create a new account with social login, start from registration and accept the contributor agreement."
-msgstr "Per creare un nuovo account con accesso social, inizia dalla registrazione e accetta l'accordo per i contributori."
-
-#: users/forms.py
-msgid "The contributor agreement has changed. Review and accept the current version."
-msgstr "L'accordo per i contributori è cambiato. Consulta e accetta la versione corrente."
-
-#: users/forms.py
-msgid "You must accept the contributor agreement to create an account."
-msgstr "Devi accettare l'accordo per i contributori per creare un account."
-
-#: users/templates/users/register.html
+#: users/templates/users/register.html:48
 msgid "The agreement lets Book Corners use and share the data and images you contribute. It applies to your contributions, not your account details."
 msgstr "L'accordo consente a Book Corners di utilizzare e condividere i dati e le immagini che fornisci. Si applica ai tuoi contributi, non ai dati del tuo account."
 
-#: users/templates/users/register.html
+#: users/templates/users/register.html:53
 msgid "I have read and accept the"
 msgstr "Ho letto e accetto"
 
-#: users/templates/users/register.html
+#: users/templates/users/register.html:55
 #, python-format
 msgid "Contributor Agreement v%(agreement_version)s"
 msgstr "Accordo per i contributori v%(agreement_version)s"
+
+#: users/templates/users/register.html:64
+msgid "Create account"
+msgstr "Crea account"
+
+#: users/templates/users/register.html:93
+msgid "Already have an account?"
+msgstr "Hai già un account?"
+
+#: users/views.py:117
+msgid "Too many registration attempts. Please try again in a few minutes."
+msgstr "Troppi tentativi di registrazione. Riprova tra qualche minuto."
+
+#: users/views.py:197
+msgid "Too many login attempts. Please try again in a few minutes."
+msgstr "Troppi tentativi di accesso. Riprova tra qualche minuto."
+
+#: users/views.py:237
+msgid "Social login accounts cannot change their email address."
+msgstr "Gli account con accesso social non possono cambiare il proprio indirizzo email."
+
+#: users/views.py:243
+msgid "Your email address has been updated."
+msgstr "Il tuo indirizzo email è stato aggiornato."
+
+#: users/views.py:253
+msgid "Social login accounts cannot change their password."
+msgstr "Gli account con accesso social non possono cambiare la propria password."
+
+#: users/views.py:259
+msgid "Your password has been changed."
+msgstr "La tua password è stata cambiata."
+
+#: users/views.py:277
+msgid "Your account has been deleted."
+msgstr "Il tuo account è stato eliminato."
 
 #~ msgid "Your submissions"
 #~ msgstr "Le tue librerie"
