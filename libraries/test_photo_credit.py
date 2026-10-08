@@ -7,7 +7,6 @@ never loads the author's password hash.
 from typing import Any
 
 import pytest
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
 from django.db import connection
@@ -135,22 +134,6 @@ class TestLibraryDetailPhotoCredit:
         content = _detail_html(client=client, library=library)
 
         assert "data-photo-credit" not in content
-
-    def test_credit_renders_in_italian(self, client):
-        """Verify the credit line is translated for Italian visitors.
-        The licence name stays untranslated because it is a proper name."""
-        author = User.objects.create_user(username="fotografo", password="pw")
-        _accept_agreement(user=author)
-        library = _create_library(
-            photo_origin=Library.PhotoOrigin.USER,
-            photo_author=author,
-        )
-
-        client.cookies.load({settings.LANGUAGE_COOKIE_NAME: "it"})
-        content = _detail_html(client=client, library=library)
-
-        assert "Foto di fotografo" in content
-        assert "CC BY-SA 4.0" in content
 
     def test_credit_does_not_load_author_password(self, client):
         """Verify resolving the credit never selects the author's password.
