@@ -1520,7 +1520,7 @@ class TestTermsPage:
         assert "https://opendatacommons.org/licenses/odbl/1-0/" in content
         assert "https://creativecommons.org/licenses/by-sa/4.0/" in content
         assert "href=\"/contributor-agreement/\"" in content
-        assert "mailto:mail@andreagrandi.it" in content
+        assert "mailto:info@bookcorners.org" in content
 
     def test_italian_terms_page_renders_translation(self, client):
         """Verify Italian visitors get the Italian terms page.
