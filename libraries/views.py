@@ -31,6 +31,7 @@ from libraries.geolocation import (
 )
 from libraries.library_export_delivery import is_library_export_delivery_available
 from libraries.models import Favourite, Library, LibraryPhoto, Report
+from libraries.photo_licence import build_photo_licence_fields, photo_author_has_agreement_exists
 from libraries.search import DEFAULT_SEARCH_RADIUS_KM, apply_text_search, run_library_search
 from libraries.stats import build_stats_data
 
@@ -523,9 +524,27 @@ def _get_detail_visible_library(*, request: HttpRequest, slug: str) -> Library:
         visibility_filter |= Q(created_by=user)
 
     return get_object_or_404(
-        Library.objects.annotate(created_by_username=F("created_by__username")),
+        Library.objects.annotate(
+            created_by_username=F("created_by__username"),
+            photo_author_username=F("photo_author__username"),
+            photo_author_has_agreement=photo_author_has_agreement_exists(
+                author_reference="photo_author",
+            ),
+        ),
         visibility_filter,
         slug=slug,
+    )
+
+
+def _build_photo_credit(*, library: Library) -> dict[str, str | None]:
+    """Resolve the credit fields for the main photo on the detail page.
+    Uses annotated author values so the author's user row is never loaded."""
+    return build_photo_licence_fields(
+        has_photo=bool(library.photo),
+        origin=library.photo_origin,
+        author_username=library.photo_author_username,
+        author_has_agreement=library.photo_author_has_agreement,
+        source_url=library.photo_source_url,
     )
 
 
@@ -593,6 +612,7 @@ def library_detail(request: HttpRequest, slug: str) -> HttpResponse:
             "photo_form": photo_form,
             "is_favourited": is_favourited,
             "can_edit_library": _can_user_edit_library(user=user, library=library),
+            "photo_credit": _build_photo_credit(library=library),
         },
     )
 
