@@ -606,6 +606,33 @@ class TestLibraryUpdateEndpoint:
         assert "api-replacement" in pending_library.photo.name
         assert pending_library.photo_thumbnail.name
 
+    def test_photo_replacement_records_user_photo_origin(
+        self,
+        client,
+        user,
+        pending_library,
+        user_jwt,
+        tmp_path,
+        settings,
+    ):
+        """Verify replacing a pending library photo records the owner as author.
+        Replaces any earlier origin such as unknown."""
+        settings.MEDIA_ROOT = tmp_path / "media"
+        pending_library.set_photo_origin(origin=Library.PhotoOrigin.UNKNOWN)
+        pending_library.save()
+
+        response = _patch_multipart(
+            client,
+            f"/api/v1/libraries/{pending_library.slug}",
+            {"photo": _build_uploaded_photo(file_name="api-origin.jpg")},
+            user_jwt,
+        )
+
+        pending_library.refresh_from_db()
+        assert response.status_code == 200
+        assert pending_library.photo_origin == Library.PhotoOrigin.USER
+        assert pending_library.photo_author == user
+
     def test_photo_replacement_for_approved_library_is_staged(
         self,
         client,

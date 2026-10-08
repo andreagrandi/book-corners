@@ -89,9 +89,7 @@ def photo_approve(request: HttpRequest, pk: int) -> HttpResponse:
 
     library = photo.library
     if not library.photo:
-        library.photo = photo.photo
-        library.photo_thumbnail = photo.photo_thumbnail
-        library.save(update_fields=["photo", "photo_thumbnail"])
+        photo.promote_to_library_primary()
 
     if request.headers.get("HX-Request"):
         return render_with_toast(
@@ -145,9 +143,7 @@ def photo_bulk_action(request: HttpRequest) -> HttpResponse:
         for photo in photos:
             library = photo.library
             if library.pk not in promoted and not library.photo:
-                library.photo = photo.photo
-                library.photo_thumbnail = photo.photo_thumbnail
-                library.save(update_fields=["photo", "photo_thumbnail"])
+                photo.promote_to_library_primary()
                 promoted.add(library.pk)
     elif action == "reject":
         qs.update(status=LibraryPhoto.Status.REJECTED)

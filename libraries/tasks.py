@@ -13,7 +13,7 @@ from django.tasks import task
 
 from libraries.geojson_import import GeoJSONImporter, fetch_image_from_url, parse_geojson
 from libraries.image_processing import build_library_photo_files
-from libraries.models import Library
+from libraries.models import PHOTO_ORIGIN_FIELDS, Library
 from libraries.notifications import notify_new_library
 from libraries.storage import get_library_photo_path
 
@@ -137,7 +137,13 @@ def fetch_and_attach_library_image(library_id: int, image_url: str) -> None:
         thumbnail_filename, thumbnail_content = thumbnail_image
         library.photo.save(main_filename, main_content, save=False)
         library.photo_thumbnail.save(thumbnail_filename, thumbnail_content, save=False)
-        library.save(update_fields=["photo", "photo_thumbnail"])
+        library.set_photo_origin(
+            origin=Library.PhotoOrigin.EXTERNAL,
+            source_url=image_url,
+        )
+        library.save(
+            update_fields=["photo", "photo_thumbnail", *PHOTO_ORIGIN_FIELDS]
+        )
     except (ValueError, OSError) as exc:
         logger.warning(
             "Image processing failed for library %d (%s): %s",

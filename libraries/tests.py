@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 from unittest.mock import patch
 
@@ -698,7 +699,7 @@ class TestLibraryAdmin:
         model_admin.save_model(
             request=request,
             obj=library,
-            form=None,
+            form=SimpleNamespace(changed_data=[]),
             change=False,
         )
 

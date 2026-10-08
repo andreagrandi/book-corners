@@ -34,6 +34,7 @@ LIBRARY_EDITABLE_FIELDS = (
     "operator",
     "brand",
 )
+PHOTO_ORIGIN_FIELDS = ("photo_origin", "photo_author", "photo_source_url")
 
 
 class Library(models.Model):
@@ -57,6 +58,11 @@ class Library(models.Model):
         NO = "no", _("No")
         LIMITED = "limited", _("Limited")
 
+    class PhotoOrigin(models.TextChoices):
+        USER = "user", _("User")
+        EXTERNAL = "external", _("External")
+        UNKNOWN = "unknown", _("Unknown")
+
     name = models.CharField(max_length=255, blank=True, default="")
     slug = models.SlugField(max_length=280, unique=True, editable=False)
     description = models.TextField(blank=True, default="")
@@ -66,6 +72,20 @@ class Library(models.Model):
         blank=True,
         default="",
     )
+    photo_origin = models.CharField(
+        max_length=10,
+        choices=PhotoOrigin.choices,
+        blank=True,
+        default="",
+    )
+    photo_author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="authored_library_photos",
+    )
+    photo_source_url = models.URLField(max_length=2000, blank=True, default="")
     pending_photo = models.ImageField(
         upload_to="libraries/pending_photos/%Y/%m/",
         blank=True,
@@ -261,9 +281,13 @@ class Library(models.Model):
         if not self.slug:
             self.slug = self._generate_unique_slug()
 
+        if not self.photo:
+            self.set_photo_origin(origin="")
+
         if self._photo_needs_processing():
             self._optimize_uploaded_photo()
             save_kwargs = self._merge_photo_fields_into_update_kwargs(kwargs=kwargs)
+        save_kwargs = self._merge_photo_origin_into_update_kwargs(kwargs=save_kwargs)
 
         super().save(*args, **save_kwargs)
         if not was_adding:
@@ -275,6 +299,19 @@ class Library(models.Model):
         self._original_photo_thumbnail_name = self._loaded_file_name(
             field_name="photo_thumbnail"
         )
+
+    def set_photo_origin(
+        self,
+        *,
+        origin: str,
+        author: Any | None = None,
+        source_url: str = "",
+    ) -> None:
+        """Set where the current main photo came from, without saving.
+        Callers persist the change with PHOTO_ORIGIN_FIELDS in update_fields."""
+        self.photo_origin = origin
+        self.photo_author = author
+        self.photo_source_url = source_url
 
     @property
     def has_pending_update(self) -> bool:
@@ -389,7 +426,8 @@ class Library(models.Model):
         if self.pending_photo:
             self.photo = self.pending_photo.name
             self.photo_thumbnail = self.pending_photo_thumbnail.name
-            update_fields.extend(["photo", "photo_thumbnail"])
+            self.set_photo_origin(origin=self.PhotoOrigin.USER, author=self.created_by)
+            update_fields.extend(["photo", "photo_thumbnail", *PHOTO_ORIGIN_FIELDS])
 
         self.pending_changes = None
         self.pending_photo = ""
@@ -523,6 +561,32 @@ class Library(models.Model):
             except TypeError:
                 return kwargs
         merged_update_fields.update({"photo", "photo_thumbnail"})
+        merged_kwargs["update_fields"] = merged_update_fields
+        return merged_kwargs
+
+    def _merge_photo_origin_into_update_kwargs(
+        self,
+        *,
+        kwargs: dict[str, object],
+    ) -> dict[str, object]:
+        """Ensure origin fields persist whenever the photo is saved on its own.
+        Only changes update-only saves that include the photo field."""
+        update_fields = kwargs.get("update_fields")
+        if update_fields is None:
+            return kwargs
+
+        if isinstance(update_fields, str):
+            merged_update_fields = {update_fields}
+        else:
+            try:
+                merged_update_fields = set(update_fields)
+            except TypeError:
+                return kwargs
+        if "photo" not in merged_update_fields:
+            return kwargs
+
+        merged_update_fields.update(PHOTO_ORIGIN_FIELDS)
+        merged_kwargs = dict(kwargs)
         merged_kwargs["update_fields"] = merged_update_fields
         return merged_kwargs
 
@@ -916,7 +980,7 @@ class LibraryPhoto(models.Model):
         super().save(*args, **save_kwargs)
 
         if self._status_changed_to_approved():
-            self._promote_to_library_primary()
+            self.promote_to_library_primary()
 
     def _status_changed_to_approved(self) -> bool:
         """Check whether the status just transitioned to approved.
@@ -926,13 +990,19 @@ class LibraryPhoto(models.Model):
             and self._original_status != self.Status.APPROVED
         )
 
-    def _promote_to_library_primary(self) -> None:
-        """Copy this photo to the parent library's primary photo fields.
-        Called automatically when the photo is approved."""
+    def promote_to_library_primary(self) -> None:
+        """Copy this photo and its author to the parent library's primary photo.
+        Called on approval by the model, the admin and the moderation views."""
         library = self.library
         library.photo = self.photo
         library.photo_thumbnail = self.photo_thumbnail
-        library.save(update_fields=["photo", "photo_thumbnail"])
+        library.set_photo_origin(
+            origin=Library.PhotoOrigin.USER,
+            author=self.created_by,
+        )
+        library.save(
+            update_fields=["photo", "photo_thumbnail", *PHOTO_ORIGIN_FIELDS]
+        )
 
     @property
     def card_photo_url(self) -> str:
