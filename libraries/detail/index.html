@@ -543,6 +543,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#image-licences" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Image licences
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#errors" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1045,6 +1056,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#image-licences" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Image licences
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#errors" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1159,10 +1181,55 @@
 <a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="w">  </span><span class="nt">"operator"</span><span class="p">:</span><span class="w"> </span><span class="s2">"City Library Association"</span><span class="p">,</span>
 <a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">  </span><span class="nt">"brand"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Local Book Exchange Network"</span><span class="p">,</span>
 <a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="w">  </span><span class="nt">"created_at"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2025-06-15T14:30:00Z"</span><span class="p">,</span>
-<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="w">  </span><span class="nt">"is_favourited"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
-<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="p">}</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="w">  </span><span class="nt">"is_favourited"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="w">  </span><span class="nt">"photo_origin"</span><span class="p">:</span><span class="w"> </span><span class="s2">"user"</span><span class="p">,</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="w">  </span><span class="nt">"photo_license"</span><span class="p">:</span><span class="w"> </span><span class="s2">"CC-BY-SA-4.0"</span><span class="p">,</span>
+<a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="w">  </span><span class="nt">"photo_author"</span><span class="p">:</span><span class="w"> </span><span class="s2">"janedoe"</span><span class="p">,</span>
+<a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a><span class="w">  </span><span class="nt">"photo_source_url"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="p">}</span>
 </code></pre></div>
 <p>The <code>is_favourited</code> field is <code>true</code> when the authenticated user has favourited this library, and <code>false</code> otherwise. For unauthenticated requests it is always <code>false</code>.</p>
+<h2 id="image-licences">Image licences<a class="headerlink" href="#image-licences" title="Permanent link">&para;</a></h2>
+<p>Every library response describes the main photo with four fields. Photos added through community photo submissions use the same rules, and the staff moderation and contribution photo responses carry the same four fields.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>photo_origin</code></td>
+<td>string or <code>null</code></td>
+<td>Who provided the photo: <code>user</code>, <code>external</code>, or <code>unknown</code>. A photo with no recorded origin reports <code>unknown</code>. <code>null</code> when the library has no photo.</td>
+</tr>
+<tr>
+<td><code>photo_license</code></td>
+<td>string or <code>null</code></td>
+<td><code>CC-BY-SA-4.0</code> when a contributor uploaded the photo and has accepted the <a href="https://bookcorners.org/contributor-agreement/1.0/en/">Contributor Agreement</a>. Otherwise <code>null</code>.</td>
+</tr>
+<tr>
+<td><code>photo_author</code></td>
+<td>string or <code>null</code></td>
+<td>Username of the contributor, set only when <code>photo_license</code> is <code>CC-BY-SA-4.0</code>. Otherwise <code>null</code>.</td>
+</tr>
+<tr>
+<td><code>photo_source_url</code></td>
+<td>string or <code>null</code></td>
+<td>URL of the original image when known. Otherwise <code>null</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>The rules behind these values:</p>
+<ul>
+<li>A photo is <code>CC-BY-SA-4.0</code> only when <code>photo_origin</code> is <code>user</code>, the author's account still exists, and the author has accepted the Contributor Agreement. Any version of the agreement counts, and the agreement covers photos uploaded before the acceptance.</li>
+<li>A photo is never <code>CC-BY-SA-4.0</code> without an author. If the author's account was deleted, <code>photo_license</code> and <code>photo_author</code> are <code>null</code> and <code>photo_origin</code> stays <code>user</code>.</li>
+<li>A <code>null</code> <code>photo_license</code> means no licence information is available for this image. See <code>photo_source_url</code> when it is present.</li>
+<li>Image URLs are provided so you can download the image files. Please serve images from your own hosting instead of linking directly to image files on bookcorners.org, because the site runs on limited resources.</li>
+</ul>
+<p>The <a href="../bulk-export/">bulk export</a> provides the same four properties for every approved library.</p>
 <h2 id="errors">Errors<a class="headerlink" href="#errors" title="Permanent link">&para;</a></h2>
 <table>
 <thead>

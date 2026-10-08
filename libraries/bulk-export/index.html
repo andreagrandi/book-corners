@@ -767,6 +767,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="License, attribution, and photos">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#image-licences" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Image licences
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1064,6 +1081,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="License, attribution, and photos">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#image-licences" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Image licences
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1162,7 +1196,7 @@
 </tr>
 <tr>
 <td><code>book_corners_schema_version</code></td>
-<td>Integer version of the public export schema; currently <code>1</code>.</td>
+<td>Integer version of the public export schema; currently <code>2</code>.</td>
 </tr>
 <tr>
 <td><code>features</code></td>
@@ -1205,6 +1239,26 @@
 <td><code>photo_url</code></td>
 <td>absolute URI string</td>
 <td>Current primary-photo URL, or an empty string when no primary photo is available.</td>
+</tr>
+<tr>
+<td><code>photo_origin</code></td>
+<td>string or <code>null</code></td>
+<td><code>user</code>, <code>external</code>, or <code>unknown</code> for the primary photo; <code>null</code> when there is no primary photo.</td>
+</tr>
+<tr>
+<td><code>photo_license</code></td>
+<td>string or <code>null</code></td>
+<td><code>CC-BY-SA-4.0</code> or <code>null</code>. <code>null</code> means no licence information is available for this image.</td>
+</tr>
+<tr>
+<td><code>photo_author</code></td>
+<td>string or <code>null</code></td>
+<td>Username of the author, set only when <code>photo_license</code> is <code>CC-BY-SA-4.0</code>.</td>
+</tr>
+<tr>
+<td><code>photo_source_url</code></td>
+<td>URI string or <code>null</code></td>
+<td>URL of the original image when known.</td>
 </tr>
 <tr>
 <td><code>address</code></td>
@@ -1288,7 +1342,7 @@
 </tr>
 </tbody>
 </table>
-<p>The nullable values are limited to <code>capacity</code>, <code>is_indoor</code>, <code>is_lit</code>, <code>source</code>, and <code>external_id</code>. Other unknown optional values use an empty string. A schema change increments <code>book_corners_schema_version</code> and produces a new immutable artifact.</p>
+<p>The nullable values are limited to <code>capacity</code>, <code>is_indoor</code>, <code>is_lit</code>, <code>source</code>, <code>external_id</code>, <code>photo_origin</code>, <code>photo_license</code>, <code>photo_author</code>, and <code>photo_source_url</code>. Other unknown optional values use an empty string. A schema change increments <code>book_corners_schema_version</code> and produces a new immutable artifact.</p>
 <h3 id="excluded-and-transformed-data">Excluded and transformed data<a class="headerlink" href="#excluded-and-transformed-data" title="Permanent link">&para;</a></h3>
 <p>The export contains the live public values of approved libraries only:</p>
 <ul>
@@ -1311,7 +1365,7 @@
 <tbody>
 <tr>
 <td><code>metadata_version</code></td>
-<td>Version of the metadata document format; currently <code>2</code>.</td>
+<td>Version of the metadata document format; currently <code>3</code>.</td>
 </tr>
 <tr>
 <td><code>title</code>, <code>scope</code>, <code>format</code>, <code>media_type</code></td>
@@ -1354,8 +1408,8 @@
 <td>Linked Book Corners and OpenStreetMap contributor credits.</td>
 </tr>
 <tr>
-<td><code>photo_notice</code></td>
-<td>Reminder that photo-file rights are separate from database rights.</td>
+<td><code>images</code></td>
+<td>Statements that images are licensed separately per image, what a <code>null</code> <code>photo_license</code> means, and how to host downloaded images.</td>
 </tr>
 </tbody>
 </table>
@@ -1386,9 +1440,15 @@
 <blockquote>
 <p>Contains information from the Book Corners approved library export, made available under ODbL 1.0. Attribution: Book Corners and OpenStreetMap contributors.</p>
 </blockquote>
-<p>ODbL covers the exported database, not independent rights in each linked image file. <code>photo_url</code> identifies media displayed by Book Corners; it does not grant permission to copy, redistribute, or relicense that image.</p>
-<p>The <a href="https://bookcorners.org/contributor-agreement/1.0/en/">Contributor Agreement v1.0</a> selects <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> for Images contributed by a person who accepted that agreement. That image licence requires appropriate credit, a link to the licence, indication of changes, and share-alike treatment for adaptations where required. It is separate from the ODbL licence for the database.</p>
-<p>The export currently contains <code>photo_url</code> but does not provide per-image licence or contributor metadata. Do not assume that every linked image is available under CC BY-SA 4.0: imported images, legacy images without a matching agreement acceptance, and third-party images may have different rights or no reuse permission. Verify the applicable image rights before copying or redistributing an image.</p>
+<p>ODbL covers the exported database. Images are licensed separately from the database, per image.</p>
+<p>The <a href="https://bookcorners.org/contributor-agreement/1.0/en/">Contributor Agreement v1.0</a> selects <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> for images contributed by a person who accepted that agreement. That image licence requires appropriate credit, a link to the licence, indication of changes, and share-alike treatment for adaptations where required. It is separate from the ODbL licence for the database.</p>
+<h3 id="image-licences">Image licences<a class="headerlink" href="#image-licences" title="Permanent link">&para;</a></h3>
+<p>Each feature's <code>photo_license</code>, <code>photo_author</code>, <code>photo_origin</code>, and <code>photo_source_url</code> properties describe its main photo. They follow the same rules as the API; see <a href="../detail/#image-licences">Image licences</a>.</p>
+<ul>
+<li><code>photo_license</code> is <code>CC-BY-SA-4.0</code> only when <code>photo_origin</code> is <code>user</code> and the author still has an account that accepted the Contributor Agreement. In that case <code>photo_author</code> holds the author's username.</li>
+<li>A <code>null</code> <code>photo_license</code> means no licence information is available for this image. When present, <code>photo_source_url</code> points to the original image.</li>
+<li>Image URLs are provided so you can download the image files. Please serve images from your own hosting instead of linking directly to image files on bookcorners.org, because the site runs on limited resources.</li>
+</ul>
 <h2 id="report-incorrect-data">Report incorrect data<a class="headerlink" href="#report-incorrect-data" title="Permanent link">&para;</a></h2>
 <p>Use a feature's <code>slug</code> to open <code>https://bookcorners.org/library/{slug}/</code>, sign in, and select <strong>Report an issue</strong> on the library detail page. Reports are sent to Book Corners moderators and are not included in the export.</p>
 

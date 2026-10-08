@@ -4269,6 +4269,66 @@
             ],
             "title": "Is Favourited",
             "type": "boolean"
+          },
+          "photo_origin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Who provided the photo: user, external, or unknown. Null when there is no photo.",
+            "examples": [
+              "user"
+            ],
+            "title": "Photo Origin"
+          },
+          "photo_license": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Licence of the photo: CC-BY-SA-4.0 when a contributor who accepted the contributor agreement uploaded it. Null means no licence information is available for this image; see photo_source_url when present.",
+            "examples": [
+              "CC-BY-SA-4.0"
+            ],
+            "title": "Photo License"
+          },
+          "photo_author": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Username of the photo author, set only when photo_license is CC-BY-SA-4.0. Otherwise null.",
+            "examples": [
+              "janedoe"
+            ],
+            "title": "Photo Author"
+          },
+          "photo_source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "URL of the original image when known. Otherwise null.",
+            "examples": [
+              "https://example.org/images/corner-books.jpg"
+            ],
+            "title": "Photo Source Url"
           }
         },
         "required": [
@@ -4570,6 +4630,66 @@
             ],
             "title": "Is Favourited",
             "type": "boolean"
+          },
+          "photo_origin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Who provided the photo: user, external, or unknown. Null when there is no photo.",
+            "examples": [
+              "user"
+            ],
+            "title": "Photo Origin"
+          },
+          "photo_license": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Licence of the photo: CC-BY-SA-4.0 when a contributor who accepted the contributor agreement uploaded it. Null means no licence information is available for this image; see photo_source_url when present.",
+            "examples": [
+              "CC-BY-SA-4.0"
+            ],
+            "title": "Photo License"
+          },
+          "photo_author": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Username of the photo author, set only when photo_license is CC-BY-SA-4.0. Otherwise null.",
+            "examples": [
+              "janedoe"
+            ],
+            "title": "Photo Author"
+          },
+          "photo_source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "URL of the original image when known. Otherwise null.",
+            "examples": [
+              "https://example.org/images/corner-books.jpg"
+            ],
+            "title": "Photo Source Url"
           },
           "osm_submission_allowed": {
             "description": "Whether the submitter allowed later manual administrator review for a possible OpenStreetMap contribution.",
@@ -5191,6 +5311,66 @@
             "title": "Is Favourited",
             "type": "boolean"
           },
+          "photo_origin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Who provided the photo: user, external, or unknown. Null when there is no photo.",
+            "examples": [
+              "user"
+            ],
+            "title": "Photo Origin"
+          },
+          "photo_license": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Licence of the photo: CC-BY-SA-4.0 when a contributor who accepted the contributor agreement uploaded it. Null means no licence information is available for this image; see photo_source_url when present.",
+            "examples": [
+              "CC-BY-SA-4.0"
+            ],
+            "title": "Photo License"
+          },
+          "photo_author": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Username of the photo author, set only when photo_license is CC-BY-SA-4.0. Otherwise null.",
+            "examples": [
+              "janedoe"
+            ],
+            "title": "Photo Author"
+          },
+          "photo_source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "URL of the original image when known. Otherwise null.",
+            "examples": [
+              "https://example.org/images/corner-books.jpg"
+            ],
+            "title": "Photo Source Url"
+          },
           "status": {
             "description": "Current moderation status of the library.",
             "examples": [
@@ -5461,6 +5641,66 @@
             "format": "date-time",
             "title": "Created At",
             "type": "string"
+          },
+          "photo_origin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Always user for community photos.",
+            "examples": [
+              "user"
+            ],
+            "title": "Photo Origin"
+          },
+          "photo_license": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Licence of the photo: CC-BY-SA-4.0 when a contributor who accepted the contributor agreement uploaded it. Null means no licence information is available for this image; see photo_source_url when present.",
+            "examples": [
+              "CC-BY-SA-4.0"
+            ],
+            "title": "Photo License"
+          },
+          "photo_author": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Username of the photo author, set only when photo_license is CC-BY-SA-4.0. Otherwise null.",
+            "examples": [
+              "janedoe"
+            ],
+            "title": "Photo Author"
+          },
+          "photo_source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Always null for community photos.",
+            "examples": [
+              null
+            ],
+            "title": "Photo Source Url"
           }
         },
         "required": [
@@ -5865,6 +6105,66 @@
             ],
             "title": "Is Favourited",
             "type": "boolean"
+          },
+          "photo_origin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Who provided the photo: user, external, or unknown. Null when there is no photo.",
+            "examples": [
+              "user"
+            ],
+            "title": "Photo Origin"
+          },
+          "photo_license": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Licence of the photo: CC-BY-SA-4.0 when a contributor who accepted the contributor agreement uploaded it. Null means no licence information is available for this image; see photo_source_url when present.",
+            "examples": [
+              "CC-BY-SA-4.0"
+            ],
+            "title": "Photo License"
+          },
+          "photo_author": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Username of the photo author, set only when photo_license is CC-BY-SA-4.0. Otherwise null.",
+            "examples": [
+              "janedoe"
+            ],
+            "title": "Photo Author"
+          },
+          "photo_source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "URL of the original image when known. Otherwise null.",
+            "examples": [
+              "https://example.org/images/corner-books.jpg"
+            ],
+            "title": "Photo Source Url"
           },
           "status": {
             "description": "Current moderation status of the library.",
@@ -6379,6 +6679,66 @@
             "format": "date-time",
             "title": "Created At",
             "type": "string"
+          },
+          "photo_origin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Always user for community photos.",
+            "examples": [
+              "user"
+            ],
+            "title": "Photo Origin"
+          },
+          "photo_license": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Licence of the photo: CC-BY-SA-4.0 when a contributor who accepted the contributor agreement uploaded it. Null means no licence information is available for this image; see photo_source_url when present.",
+            "examples": [
+              "CC-BY-SA-4.0"
+            ],
+            "title": "Photo License"
+          },
+          "photo_author": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Username of the photo author, set only when photo_license is CC-BY-SA-4.0. Otherwise null.",
+            "examples": [
+              "janedoe"
+            ],
+            "title": "Photo Author"
+          },
+          "photo_source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Always null for community photos.",
+            "examples": [
+              null
+            ],
+            "title": "Photo Source Url"
           }
         },
         "required": [
