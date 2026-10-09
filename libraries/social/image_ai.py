@@ -13,6 +13,9 @@ logger = logging.getLogger(__name__)
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 REQUEST_TIMEOUT = 15
+# Reasoning models spend part of this budget before writing the answer,
+# so it must leave room for the JSON after the reasoning tokens.
+MAX_COMPLETION_TOKENS = 1500
 
 
 def _get_chat_completion_content(response: object, *, operation: str) -> str | None:
@@ -31,6 +34,13 @@ def _get_chat_completion_content(response: object, *, operation: str) -> str | N
     choice_error = getattr(choice, "error", None)
     if choice_error or getattr(choice, "finish_reason", None) == "error":
         logger.warning("AI %s provider error: %s", operation, choice_error)
+        return None
+
+    if getattr(choice, "finish_reason", None) == "length":
+        logger.warning(
+            "AI %s response hit the token limit and was truncated",
+            operation,
+        )
         return None
 
     message = getattr(choice, "message", None)
@@ -107,7 +117,7 @@ def analyze_library_image(image_path: Path, library) -> dict | None:
                     ],
                 }
             ],
-            max_tokens=400,
+            max_tokens=MAX_COMPLETION_TOKENS,
             timeout=REQUEST_TIMEOUT,
         )
 
@@ -175,7 +185,7 @@ def enrich_library_from_image(image_path: Path, library) -> dict | None:
                     ],
                 }
             ],
-            max_tokens=400,
+            max_tokens=MAX_COMPLETION_TOKENS,
             timeout=REQUEST_TIMEOUT,
         )
 
