@@ -179,6 +179,50 @@ class TestEnrichLibraryFromImage:
             mock_response.error,
         )
 
+    @override_settings(
+        OPENROUTER_API_KEY="test-key",
+        OPENROUTER_MODEL="test/model",
+    )
+    @patch("libraries.social.image_ai.logger.exception")
+    @patch("libraries.social.image_ai.logger.warning")
+    @patch("openai.OpenAI")
+    def test_truncated_response_returns_none_without_exception_log(
+        self,
+        mock_openai_class,
+        mock_log_warning,
+        mock_log_exception,
+        pending_library,
+        tmp_path,
+    ):
+        """Verify a response cut off by the token limit returns None quietly.
+        Avoids parsing partial JSON and reporting it as a decode error."""
+        image_file = tmp_path / "test.jpg"
+        image_file.write_bytes(b"fake image data")
+
+        mock_response = mock_openai_class.return_value.chat.completions.create.return_value
+        mock_response.choices = [
+            type(
+                "Choice",
+                (),
+                {
+                    "finish_reason": "length",
+                    "error": None,
+                    "message": type(
+                        "Message",
+                        (),
+                        {"content": '{\n  "name": "Green box",\n  "description": "A'},
+                    )(),
+                },
+            )()
+        ]
+
+        assert enrich_library_from_image(image_file, pending_library) is None
+        mock_log_exception.assert_not_called()
+        mock_log_warning.assert_called_once_with(
+            "AI %s response hit the token limit and was truncated",
+            "library enrichment",
+        )
+
 
 class TestParseEnrichmentResponse:
     """Tests for the _parse_enrichment_response parser."""
