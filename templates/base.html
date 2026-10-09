@@ -191,14 +191,15 @@
           {% get_current_language as CURRENT_LANGUAGE %}
           {% get_available_languages as AVAILABLE_LANGUAGES %}
           {% for lang_code, lang_name in AVAILABLE_LANGUAGES %}
+            {% get_language_info for lang_code as lang_info %}
             {% if lang_code == CURRENT_LANGUAGE %}
-              <span class="font-semibold text-base-content">{{ lang_name }}</span>
+              <span class="font-semibold text-base-content">{{ lang_info.name_local|capfirst }}</span>
             {% else %}
               <form method="post" action="{% url 'set_language' %}" class="inline">
                 {% csrf_token %}
                 <input type="hidden" name="language" value="{{ lang_code }}">
                 <input type="hidden" name="next" value="{{ request.path }}">
-                <button type="submit" class="link link-hover">{{ lang_name }}</button>
+                <button type="submit" class="link link-hover" lang="{{ lang_code }}">{{ lang_info.name_local|capfirst }}</button>
               </form>
             {% endif %}
           {% endfor %}

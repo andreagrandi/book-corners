@@ -55,7 +55,7 @@
                     {% if library.has_pending_update %}{% trans "Changes pending" %}{% else %}{% trans "New submission" %}{% endif %}
                   </span>
                 </div>
-                <span class="shrink-0 text-xs text-base-content/50">{{ library.created_at|timesince }} {% trans "ago" %}</span>
+                <span class="shrink-0 text-xs text-base-content/50">{% blocktrans with since=library.created_at|timesince %}{{ since }} ago{% endblocktrans %}</span>
               </a>
             </li>
           {% endfor %}
@@ -85,7 +85,7 @@
                   <p class="truncate font-medium">{{ report.library.name|default:report.library.address }}</p>
                   <p class="text-base-content/60">{{ report.get_reason_display }}</p>
                 </div>
-                <span class="shrink-0 text-xs text-base-content/50">{{ report.created_at|timesince }} {% trans "ago" %}</span>
+                <span class="shrink-0 text-xs text-base-content/50">{% blocktrans with since=report.created_at|timesince %}{{ since }} ago{% endblocktrans %}</span>
               </a>
             </li>
           {% endfor %}
@@ -115,7 +115,7 @@
                   <p class="truncate font-medium">{{ photo.library.name|default:photo.library.address }}</p>
                   <p class="text-base-content/60">{% if photo.caption %}{{ photo.caption }}{% else %}{% trans "No caption" %}{% endif %}</p>
                 </div>
-                <span class="shrink-0 text-xs text-base-content/50">{{ photo.created_at|timesince }} {% trans "ago" %}</span>
+                <span class="shrink-0 text-xs text-base-content/50">{% blocktrans with since=photo.created_at|timesince %}{{ since }} ago{% endblocktrans %}</span>
               </a>
             </li>
           {% endfor %}

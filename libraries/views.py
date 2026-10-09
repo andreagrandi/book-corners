@@ -45,6 +45,13 @@ DEFAULT_MAP_CENTER_LONGITUDE = 8.6821
 DEFAULT_MAP_ZOOM_LEVEL = 5
 MAP_LIST_PAGE_SIZE = 12
 GROWTH_CHART_START_PERIOD = "2026-03-01"
+CONTRIBUTOR_AGREEMENT_TEMPLATES = {
+    "en": "contributor_agreement/1.0/en.html",
+    "it": "contributor_agreement/1.0/it.html",
+    "fr": "contributor_agreement/1.0/fr.html",
+}
+PRIVACY_TEMPLATES = {"en": "privacy.html", "it": "privacy_it.html", "fr": "privacy_fr.html"}
+TERMS_TEMPLATES = {"en": "terms.html", "it": "terms_it.html", "fr": "terms_fr.html"}
 
 
 def _parse_page_number(value: str | None) -> int:
@@ -972,29 +979,30 @@ def contributor_agreement_page(
     """Render the immutable contributor agreement in a selected language.
     Keeps the current alias and version-specific URLs stable for future acceptance records."""
     selected_language = language or getattr(request, "LANGUAGE_CODE", "en")
-    if selected_language == "it":
-        with override("it"):
-            return render(request, "contributor_agreement/1.0/it.html")
-    with override("en"):
-        return render(request, "contributor_agreement/1.0/en.html")
+    if selected_language not in CONTRIBUTOR_AGREEMENT_TEMPLATES:
+        selected_language = "en"
+    with override(selected_language):
+        return render(request, CONTRIBUTOR_AGREEMENT_TEMPLATES[selected_language])
 
 
 def privacy_page(request: HttpRequest) -> HttpResponse:
     """Render the privacy policy page in the active language.
     Provides a dedicated route for legal and data-handling disclosures."""
     language_code = getattr(request, "LANGUAGE_CODE", "en")
-    if language_code == "it":
-        return render(request, "privacy_it.html")
-    return render(request, "privacy.html")
+    return render(
+        request,
+        PRIVACY_TEMPLATES.get(language_code, PRIVACY_TEMPLATES["en"]),
+    )
 
 
 def terms_page(request: HttpRequest) -> HttpResponse:
     """Render the data and image reuse terms in the active language.
     Tells reusers which licences apply and how to credit Book Corners content."""
     language_code = getattr(request, "LANGUAGE_CODE", "en")
-    if language_code == "it":
-        return render(request, "terms_it.html")
-    return render(request, "terms.html")
+    return render(
+        request,
+        TERMS_TEMPLATES.get(language_code, TERMS_TEMPLATES["en"]),
+    )
 
 
 def style_preview(request: HttpRequest) -> HttpResponse:

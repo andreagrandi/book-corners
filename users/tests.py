@@ -347,6 +347,59 @@ class TestI18nLanguageSwitching:
         )
         assert response.status_code in (302, 200)
 
+    def test_french_cookie_switches_rendered_language(self, client):
+        """Verify the French language cookie switches the rendered language.
+        Confirms anonymous users can browse in French via cookie."""
+        client.cookies.load({settings.LANGUAGE_COOKIE_NAME: "fr"})
+        response = client.get(reverse("home"))
+        assert response.status_code == 200
+        assert 'lang="fr"' in response.content.decode()
+
+    def test_logged_in_user_gets_preferred_french_language(self, client, user):
+        """Verify authenticated users see content in French when saved.
+        Confirms the UserLanguageMiddleware activates the French preference."""
+        user.language = "fr"
+        user.save(update_fields=["language"])
+        client.force_login(user)
+
+        response = client.get(reverse("home"))
+        assert response.status_code == 200
+        assert 'lang="fr"' in response.content.decode()
+
+    def test_set_language_view_persists_french_for_user(self, client, user):
+        """Verify the set_language view persists French for logged-in users.
+        Confirms user.language is updated to the new language code."""
+        client.force_login(user)
+
+        response = client.post(
+            reverse("set_language"),
+            data={"language": "fr", "next": "/"},
+            follow=False,
+        )
+        assert response.status_code in (302, 200)
+
+        user.refresh_from_db()
+        assert user.language == "fr"
+
+    def test_admin_stays_english_for_french_user(self, client, admin_user):
+        """Verify admin pages render in English for a French-language user.
+        Confirms the middleware forces English for /admin/ paths."""
+        admin_user.language = "fr"
+        admin_user.save(update_fields=["language"])
+        client.force_login(admin_user)
+
+        response = client.get("/admin/", follow=True)
+        assert response.status_code == 200
+        assert 'lang="en"' in response.content.decode()
+
+    def test_privacy_page_renders_french_template(self, client):
+        """Verify the privacy page uses the French template when language is French.
+        Confirms the view selects the correct language-specific template."""
+        client.cookies.load({settings.LANGUAGE_COOKIE_NAME: "fr"})
+        response = client.get(reverse("privacy_page"))
+        assert response.status_code == 200
+        assert "privacy_fr.html" in [t.name for t in response.templates]
+
     def test_admin_always_stays_english(self, client, admin_user):
         """Verify admin pages render in English regardless of user preference.
         Confirms the middleware forces English for /admin/ paths."""

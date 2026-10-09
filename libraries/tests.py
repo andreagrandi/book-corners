@@ -1464,6 +1464,49 @@ class TestContributorAgreementPage:
         italian_response = client.get(reverse("contributor_agreement_page"))
         assert "Accordo per i contributori" in italian_response.content.decode()
 
+    def test_french_version_is_permanent_and_localized(self, client):
+        """Verify the immutable French agreement URL renders the French template.
+        Confirms the page chrome is switched to French as well."""
+        response = client.get(reverse("contributor_agreement_1_0_fr"))
+
+        assert response.status_code == 200
+        assert reverse("contributor_agreement_1_0_fr") == "/contributor-agreement/1.0/fr/"
+        assert "contributor_agreement/1.0/fr.html" in [t.name for t in response.templates]
+        assert 'lang="fr"' in response.content.decode()
+
+    def test_current_agreement_alias_follows_french_cookie(self, client):
+        """Verify the current agreement alias renders French for a French cookie.
+        Keeps one stable URL usable by French visitors."""
+        client.cookies.load({django_settings.LANGUAGE_COOKIE_NAME: "fr"})
+        response = client.get(reverse("contributor_agreement_page"))
+
+        assert response.status_code == 200
+        assert "contributor_agreement/1.0/fr.html" in [t.name for t in response.templates]
+        assert 'lang="fr"' in response.content.decode()
+
+    def test_unsupported_language_falls_back_to_english_agreement(self, client):
+        """Verify an unsupported language renders the English agreement.
+        Confirms both the template and the page language fall back to English."""
+        response = client.get(
+            reverse("contributor_agreement_page"),
+            headers={"accept-language": "de"},
+        )
+
+        template_names = [t.name for t in response.templates]
+        assert response.status_code == 200
+        assert "contributor_agreement/1.0/en.html" in template_names
+        assert 'lang="en"' in response.content.decode()
+
+    def test_agreement_view_with_unknown_language_argument_uses_english(self, rf):
+        """Verify the agreement view falls back to English for an unknown code.
+        Covers the explicit language argument used by the versioned URLs."""
+        from libraries.views import contributor_agreement_page
+
+        response = contributor_agreement_page(rf.get("/"), language="de")
+
+        assert response.status_code == 200
+        assert 'lang="en"' in response.content.decode()
+
     def test_agreement_is_discoverable_in_footer_and_sitemap(self, client):
         """Verify the current agreement is linked and indexed as a public page.
         Prevents the permanent legal document from becoming difficult to find."""
@@ -1507,6 +1550,32 @@ class TestPrivacyPage:
         assert "Contribuire a OpenStreetMap" not in content
         assert "potrebbe essere aggiunta anche a OpenStreetMap" not in content
 
+    def test_french_privacy_page_uses_french_template(self, client):
+        """Verify French visitors get the French privacy template.
+        Keeps the privacy policy available in every supported language."""
+        response = client.get(
+            reverse("privacy_page"),
+            headers={"accept-language": "fr"},
+        )
+
+        assert response.status_code == 200
+        assert "privacy_fr.html" in [t.name for t in response.templates]
+        assert 'lang="fr"' in response.content.decode()
+
+    def test_unsupported_language_falls_back_to_english_privacy(self, client):
+        """Verify an unsupported language renders the English privacy page.
+        Prevents a missing translation from breaking the legal page."""
+        response = client.get(
+            reverse("privacy_page"),
+            headers={"accept-language": "de"},
+        )
+
+        template_names = [t.name for t in response.templates]
+        assert response.status_code == 200
+        assert "privacy.html" in template_names
+        assert "privacy_fr.html" not in template_names
+        assert "privacy_it.html" not in template_names
+
 
 class TestTermsPage:
     def test_english_terms_page_lists_licences_and_contact(self, client):
@@ -1534,6 +1603,32 @@ class TestTermsPage:
         assert response.status_code == 200
         assert "Condizioni d'uso" in content
         assert "https://opendatacommons.org/licenses/odbl/1-0/" in content
+
+    def test_french_terms_page_uses_french_template(self, client):
+        """Verify French visitors get the French terms template.
+        Keeps all published languages available from the same URL."""
+        response = client.get(
+            reverse("terms_page"),
+            headers={"accept-language": "fr"},
+        )
+
+        assert response.status_code == 200
+        assert "terms_fr.html" in [t.name for t in response.templates]
+        assert 'lang="fr"' in response.content.decode()
+
+    def test_unsupported_language_falls_back_to_english_terms(self, client):
+        """Verify an unsupported language renders the English terms page.
+        Prevents a missing translation from breaking the legal page."""
+        response = client.get(
+            reverse("terms_page"),
+            headers={"accept-language": "de"},
+        )
+
+        template_names = [t.name for t in response.templates]
+        assert response.status_code == 200
+        assert "terms.html" in template_names
+        assert "terms_fr.html" not in template_names
+        assert "terms_it.html" not in template_names
 
 
 @pytest.mark.django_db
