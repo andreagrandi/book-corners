@@ -97,6 +97,12 @@ urlpatterns = [
         {"language": "it"},
         name="contributor_agreement_1_0_it",
     ),
+    path(
+        "contributor-agreement/1.0/fr/",
+        contributor_agreement_page,
+        {"language": "fr"},
+        name="contributor_agreement_1_0_fr",
+    ),
     path("stats/", stats_page, name="stats_page"),
     path("map/", map_page, name="map_page"),
     path("map/libraries.geojson", map_libraries_geojson, name="map_libraries_geojson"),

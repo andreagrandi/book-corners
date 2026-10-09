@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Politique de confidentialité - Book Corners{% endblock %}
+{% block meta_description %}Politique de confidentialité de Book Corners, la carte communautaire des boîtes à livres de quartier.{% endblock %}
+
+{% block content %}
+  <section class="rounded-box bg-base-100 px-6 py-10 shadow-sm lg:px-12">
+    <h1 class="text-4xl font-bold">Politique de confidentialité</h1>
+    <p class="mt-2 text-base-content/60">Dernière mise à jour : 2 août 2026</p>
+
+    <div class="mt-8 max-w-3xl space-y-8 text-base-content/80">
+      <p>
+        La présente Politique de confidentialité explique comment Book Corners collecte, utilise et protège
+        les données à caractère personnel conformément au Règlement (UE) 2016/679 (RGPD) et à la législation
+        italienne applicable en matière de protection des données.
+      </p>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">1. Responsable du traitement</h2>
+        <div class="mt-3 space-y-2">
+          <p>Le responsable du traitement est l'exploitant de Book Corners, établi en Italie.</p>
+          <p>Pour toute demande relative à la vie privée, vous pouvez contacter :</p>
+          <p>
+            Andrea Grandi<br>
+            E-mail : <a href="mailto:mail@andreagrandi.it" class="link link-hover">mail@andreagrandi.it</a>
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">2. Données à caractère personnel que nous collectons</h2>
+        <div class="mt-3 space-y-4">
+          <p>Nous collectons uniquement les données à caractère personnel nécessaires pour fournir et exploiter le service.</p>
+
+          <div>
+            <h3 class="font-semibold text-base-content">Données du compte</h3>
+            <p class="mt-1">Si vous créez un compte, nous pouvons collecter :</p>
+            <ul class="mt-1 list-inside list-disc space-y-1">
+              <li>Nom d'utilisateur</li>
+              <li>Adresse e-mail</li>
+              <li>Mot de passe (stocké de manière sécurisée sous forme de hachage)</li>
+            </ul>
+            <p class="mt-2">
+              Si vous vous connectez avec Google, nous recevons des informations de base sur votre compte Google,
+              telles que votre adresse e-mail et un identifiant unique nécessaire pour authentifier votre compte.
+            </p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-base-content">Contenus générés par les utilisateurs</h3>
+            <p class="mt-1">
+              Lorsque vous soumettez une boîte à livres ou signalez un problème, nous traitons les informations
+              que vous fournissez volontairement, qui peuvent comprendre :
+            </p>
+            <ul class="mt-1 list-inside list-disc space-y-1">
+              <li>Le nom et la description du lieu</li>
+              <li>L'adresse ou les coordonnées sur la carte</li>
+              <li>Des photos</li>
+              <li>Des signalements ou des commentaires</li>
+            </ul>
+            <p class="mt-2">
+              Une fois la fiche d'une boîte à livres approuvée, ses données publiques de catalogue peuvent également
+              être incluses dans un téléchargement en masse réutilisable et redistribuées sous la licence Open Database
+              License (ODbL) v1.0. Les données du compte, les données de modération, les signalements et les
+              commentaires ne sont pas inclus dans ce téléchargement.
+              Les droits et les conditions de réutilisation des données et des images soumises par les contributeurs
+              sont définis dans l'
+              <a href="{% url 'contributor_agreement_page' %}" class="link">Accord de contribution v1.0</a>.
+            </p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-base-content">Données techniques</h3>
+            <p class="mt-1">Pour exploiter et sécuriser le site web, nous pouvons traiter des données techniques limitées, telles que :</p>
+            <ul class="mt-1 list-inside list-disc space-y-1">
+              <li>L'adresse IP</li>
+              <li>La date et l'heure d'accès</li>
+              <li>Des informations sur le navigateur et l'appareil</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">3. Finalités et base légale du traitement</h2>
+        <div class="mt-3 space-y-4">
+          <p>Les données à caractère personnel sont traitées pour les finalités suivantes :</p>
+
+          <div>
+            <h3 class="font-semibold text-base-content">Fourniture du service</h3>
+            <p class="mt-1">
+              Pour créer et gérer les comptes utilisateurs, publier et modérer les contributions,
+              et exploiter la carte et le répertoire.
+            </p>
+            <p class="mt-1 text-base-content/60">Base légale : exécution d'un contrat (article 6, paragraphe 1, point b), du RGPD).</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-base-content">Sécurité et prévention des abus</h3>
+            <p class="mt-1">Pour protéger le site web et prévenir la fraude, le spam ou les usages abusifs.</p>
+            <p class="mt-1 text-base-content/60">Base légale : intérêt légitime (article 6, paragraphe 1, point f), du RGPD).</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-base-content">Réponse aux communications</h3>
+            <p class="mt-1">Pour répondre aux messages ou aux demandes d'assistance.</p>
+            <p class="mt-1 text-base-content/60">Base légale : exécution d'un contrat ou intérêt légitime.</p>
+          </div>
+
+          <p>Nous ne réutilisons pas les données à caractère personnel à des fins étrangères à la fourniture de Book Corners.</p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">4. Vente de données et prospection commerciale</h2>
+        <div class="mt-3 space-y-2">
+          <p>Nous ne vendons pas de données à caractère personnel.</p>
+          <p>Nous ne partageons pas de données à caractère personnel à des fins publicitaires.</p>
+          <p>Nous n'envisageons pas de vendre des données à caractère personnel à l'avenir.</p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">5. Hébergement et transferts de données</h2>
+        <div class="mt-3 space-y-2">
+          <p>
+            Book Corners est hébergé sur un serveur privé virtuel fourni par Hetzner,
+            dont l'infrastructure est située dans l'Union européenne.
+          </p>
+          <p>
+            Les données à caractère personnel sont stockées et traitées au sein de l'UE. Aucun transfert en dehors
+            de l'Espace économique européen n'est effectué, sauf si des fournisseurs d'authentification tiers
+            tels que Google l'exigent, auquel cas ces fournisseurs agissent conformément à leurs propres
+            politiques de confidentialité et aux garanties applicables.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">6. Durée de conservation des données</h2>
+        <div class="mt-3 space-y-2">
+          <p>Les données à caractère personnel sont conservées uniquement pendant la durée nécessaire à la fourniture du service.</p>
+          <ul class="list-inside list-disc space-y-1">
+            <li>Les données du compte sont conservées tant que le compte est actif.</li>
+            <li>Vous pouvez demander la suppression de votre compte et des données à caractère personnel associées.</li>
+            <li>Les journaux techniques sont conservés pendant une durée limitée à des fins de sécurité.</li>
+          </ul>
+          <p>Les contributions publiques peuvent rester visibles tant que leur suppression n'est pas demandée.</p>
+          <p>
+            Pour les contributions couvertes par un Accord de contribution accepté, la suppression de votre compte
+            ne révoque pas la licence déjà accordée. Les données et images publiques approuvées peuvent rester
+            disponibles et réutilisables sous la licence applicable, tandis que les identifiants du compte sont
+            dissociés le cas échéant.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">7. Destinataires des données</h2>
+        <div class="mt-3 space-y-2">
+          <p>
+            Les données à caractère personnel peuvent être traitées par des prestataires de services strictement
+            nécessaires à l'exploitation du site web, tels que les hébergeurs. Ces prestataires agissent en qualité
+            de sous-traitants au sens de l'article 28 du RGPD.
+          </p>
+          <p>Les données à caractère personnel peuvent également être communiquées lorsque la loi ou une autorité compétente l'exige.</p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">8. Vos droits au titre du RGPD</h2>
+        <div class="mt-3 space-y-2">
+          <p>En tant que personne concernée, vous avez le droit de :</p>
+          <ul class="list-inside list-disc space-y-1">
+            <li>Accéder à vos données à caractère personnel</li>
+            <li>Demander la rectification des données inexactes</li>
+            <li>Demander l'effacement de vos données</li>
+            <li>Demander la limitation du traitement</li>
+            <li>Vous opposer au traitement fondé sur l'intérêt légitime</li>
+            <li>Demander la portabilité de vos données</li>
+          </ul>
+          <p>
+            Vous avez également le droit d'introduire une réclamation auprès de l'autorité de contrôle italienne
+            (Garante per la Protezione dei Dati Personali).
+          </p>
+          <p>
+            Pour exercer vos droits, contactez :
+            <a href="mailto:mail@andreagrandi.it" class="link link-hover">mail@andreagrandi.it</a>
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">9. Mesures de sécurité</h2>
+        <div class="mt-3 space-y-2">
+          <p>
+            Des mesures techniques et organisationnelles appropriées sont mises en œuvre pour protéger les données
+            à caractère personnel contre l'accès non autorisé, la modification, la divulgation ou la destruction.
+            Toutefois, aucun système ne peut garantir une sécurité absolue.
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">10. Cookies</h2>
+        <div class="mt-3 space-y-4">
+          <p>
+            Book Corners utilise un petit nombre de cookies strictement nécessaires au fonctionnement du site web.
+            Aucun cookie de suivi, d'analyse ou de publicité n'est utilisé.
+          </p>
+
+          <div>
+            <h3 class="font-semibold text-base-content">Cookies que nous déposons</h3>
+            <ul class="mt-1 list-inside list-disc space-y-1">
+              <li>
+                <strong>Cookie de session</strong> (<code>sessionid</code>) — vous maintient connecté pendant
+                que vous utilisez le site. Expire après 2 semaines ou à la déconnexion.
+              </li>
+              <li>
+                <strong>Cookie CSRF</strong> (<code>csrftoken</code>) — protège l'envoi des formulaires
+                contre la falsification de requêtes intersites (CSRF). Expire après 1 an.
+              </li>
+              <li>
+                <strong>Cookie de langue</strong> (<code>django_language</code>) — mémorise votre
+                langue préférée. Expire à la fin de la session du navigateur.
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-base-content">Pourquoi aucune bannière de consentement n'est affichée</h3>
+            <p class="mt-1">
+              En vertu de la directive ePrivacy (article 5, paragraphe 3) et des lignes directrices italiennes
+              en matière de protection des données, les cookies strictement nécessaires à la fourniture du service
+              ne requièrent pas le consentement de l'utilisateur.
+              Tous les cookies énumérés ci-dessus relèvent de cette exemption.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-base-content">11. Modifications de cette politique</h2>
+        <div class="mt-3 space-y-2">
+          <p>
+            La présente Politique de confidentialité peut être mise à jour de temps à autre. Toute modification
+            sera publiée sur cette page avec une date de révision actualisée.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

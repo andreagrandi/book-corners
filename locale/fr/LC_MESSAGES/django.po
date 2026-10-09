@@ -1,93 +1,92 @@
-# Italian translations for Book Corners.
-# Copyright (C) 2026 Book Corners
+# French translation for Book Corners.
 # This file is distributed under the same license as the Book Corners package.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Book Corners 1.0\n"
+"Project-Id-Version: Book Corners\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-10-09 06:45+0000\n"
-"PO-Revision-Date: 2026-02-28 15:00+0000\n"
+"PO-Revision-Date: 2026-10-09 07:00+0000\n"
 "Last-Translator: \n"
-"Language-Team: Italian\n"
-"Language: it\n"
+"Language-Team: French\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: libraries/admin.py:43 libraries/admin.py:248
 msgid "OpenStreetMap state"
-msgstr "Stato OpenStreetMap"
+msgstr "État OpenStreetMap"
 
 #: libraries/admin.py:50 libraries/admin.py:230 libraries/models.py:64
 msgid "Unknown"
-msgstr "Sconosciuto"
+msgstr "Inconnu"
 
 #: libraries/admin.py:51
 msgid "Absent"
-msgstr "Assente"
+msgstr "Absent"
 
 #: libraries/admin.py:52 libraries/models.py:694
 msgid "Possible duplicate"
-msgstr "Possibile duplicato"
+msgstr "Doublon possible"
 
 #: libraries/admin.py:53
 msgid "Present"
-msgstr "Presente"
+msgstr "Présent"
 
 #: libraries/admin.py:54 libraries/models.py:698 libraries/models.py:800
 msgid "Failed"
-msgstr "Non riuscito"
+msgstr "Échec"
 
 #: libraries/admin.py:224
 msgid "OSM state"
-msgstr "Stato OSM"
+msgstr "État OSM"
 
 #: libraries/admin.py:233
 msgid "OSM candidate"
-msgstr "Candidato OSM"
+msgstr "Candidat OSM"
 
 #: libraries/admin.py:239
 msgid "Ineligible"
-msgstr "Non idoneo"
+msgstr "Non éligible"
 
 #: libraries/admin.py:245
 msgid "Checked"
-msgstr "Controllato"
+msgstr "Vérifié"
 
 #: libraries/admin.py:246
 msgid "Needs check"
-msgstr "Da controllare"
+msgstr "À vérifier"
 
 #: libraries/admin.py:254
 msgid "Unknown; no duplicate check has been recorded."
-msgstr "Sconosciuto; non è stato registrato alcun controllo dei duplicati."
+msgstr "Inconnu ; aucune vérification des doublons n'a été enregistrée."
 
 #: libraries/admin.py:258
 #, python-format
 msgid "Checked at: %(timestamp)s"
-msgstr "Controllato il: %(timestamp)s"
+msgstr "Vérifié le : %(timestamp)s"
 
 #: libraries/admin.py:263
 #, python-format
 msgid "OSM feature: %(type)s/%(identifier)s"
-msgstr "Elemento OSM: %(type)s/%(identifier)s"
+msgstr "Élément OSM : %(type)s/%(identifier)s"
 
 #: libraries/admin.py:271
 #, python-format
 msgid "Changeset: %(identifier)s"
-msgstr "Changeset: %(identifier)s"
+msgstr "Ensemble de modifications : %(identifier)s"
 
 #: libraries/admin.py:276
 #, python-format
 msgid "Latest error: %(message)s"
-msgstr "Ultimo errore: %(message)s"
+msgstr "Dernière erreur : %(message)s"
 
 #: libraries/admin.py:280
 #, python-format
 msgid "Retryable error: %(value)s"
-msgstr "Errore ritentabile: %(value)s"
+msgstr "Erreur temporaire, nouvel essai possible : %(value)s"
 
 #: libraries/admin.py:283 libraries/models.py:57
 #: libraries/templates/libraries/library_detail.html:63
@@ -96,7 +95,7 @@ msgstr "Errore ritentabile: %(value)s"
 #: manage/templates/manage/libraries/detail.html:170
 #: manage/views/libraries.py:125
 msgid "Yes"
-msgstr "Sì"
+msgstr "Oui"
 
 #: libraries/admin.py:285 libraries/models.py:58
 #: libraries/templates/libraries/library_detail.html:63
@@ -105,199 +104,199 @@ msgstr "Sì"
 #: manage/templates/manage/libraries/detail.html:170
 #: manage/views/libraries.py:125
 msgid "No"
-msgstr "No"
+msgstr "Non"
 
 #: libraries/admin.py:291
 msgid "OpenStreetMap eligibility"
-msgstr "Idoneità OpenStreetMap"
+msgstr "Éligibilité OpenStreetMap"
 
 #: libraries/admin.py:305
 msgid "No library or duplicate-state blocker. Future policy and write gates still apply."
-msgstr "Nessun blocco relativo alla libreria o ai duplicati. Restano validi i futuri requisiti delle policy e della scrittura."
+msgstr "Aucun blocage lié à la boîte à livres ou à l'état des doublons. Les règles et les contrôles d'écriture à venir s'appliquent toujours."
 
 #: libraries/admin.py:310
 msgid "OSM duplicate candidates"
-msgstr "Possibili duplicati OSM"
+msgstr "Doublons candidats OSM"
 
 #: libraries/admin.py:316
 msgid "No duplicate candidates recorded."
-msgstr "Nessun possibile duplicato registrato."
+msgstr "Aucun doublon candidat enregistré."
 
 #: libraries/admin.py:325
 msgid "secondary warning only"
-msgstr "solo avviso secondario"
+msgstr "avertissement secondaire uniquement"
 
 #: libraries/admin.py:332
 msgid "no relevant tags"
-msgstr "nessun tag rilevante"
+msgstr "aucune étiquette pertinente"
 
 #: libraries/admin.py:343
 msgid "OSM audit history"
-msgstr "Cronologia di audit OSM"
+msgstr "Historique d'audit OSM"
 
 #: libraries/admin.py:349 libraries/admin.py:361
 msgid "No OpenStreetMap audit events recorded."
-msgstr "Nessun evento di audit OpenStreetMap registrato."
+msgstr "Aucun événement d'audit OpenStreetMap enregistré."
 
 #: libraries/admin.py:356
 msgid "System"
-msgstr "Sistema"
+msgstr "Système"
 
 #: libraries/admin.py:439 libraries/admin.py:489 libraries/admin.py:523
 msgid "The library no longer exists."
-msgstr "La libreria non esiste più."
+msgstr "Cette boîte à livres n'existe plus."
 
 #: libraries/admin.py:459 libraries/osm_contributions.py:409
 msgid "The OpenStreetMap duplicate check failed."
-msgstr "Il controllo dei duplicati su OpenStreetMap non è riuscito."
+msgstr "La vérification des doublons OpenStreetMap a échoué."
 
 #: libraries/admin.py:467
 msgid "Possible OpenStreetMap duplicates require staff resolution."
-msgstr "I possibili duplicati su OpenStreetMap richiedono una decisione dello staff."
+msgstr "Les doublons OpenStreetMap possibles doivent être résolus par l'équipe."
 
 #: libraries/admin.py:472
 msgid "No blocking OpenStreetMap match was found."
-msgstr "Non è stata trovata alcuna corrispondenza OpenStreetMap bloccante."
+msgstr "Aucune correspondance bloquante n'a été trouvée sur OpenStreetMap."
 
 #: libraries/admin.py:506
 msgid "OpenStreetMap submission permission was withdrawn."
-msgstr "L'autorizzazione all'invio a OpenStreetMap è stata revocata."
+msgstr "L'autorisation d'envoi vers OpenStreetMap a été retirée."
 
 #: libraries/admin.py:534
 msgid "This library has no unresolved OpenStreetMap duplicate."
-msgstr "Questa libreria non ha duplicati OpenStreetMap ancora da risolvere."
+msgstr "Cette boîte à livres n'a aucun doublon OpenStreetMap non résolu."
 
 #: libraries/admin.py:548
 msgid "Select a valid OpenStreetMap duplicate candidate."
-msgstr "Seleziona un possibile duplicato OpenStreetMap valido."
+msgstr "Sélectionnez un doublon candidat OpenStreetMap valide."
 
 #: libraries/admin.py:571
 msgid "The existing OpenStreetMap feature was linked."
-msgstr "L'elemento OpenStreetMap esistente è stato collegato."
+msgstr "L'élément OpenStreetMap existant a été lié."
 
 #: libraries/admin.py:577
 msgid "The candidate was recorded as a different feature. Run a fresh duplicate check before continuing."
-msgstr "Il candidato è stato registrato come elemento diverso. Esegui un nuovo controllo dei duplicati prima di continuare."
+msgstr "Le candidat a été enregistré comme un élément différent. Lancez une nouvelle vérification des doublons avant de continuer."
 
 #: libraries/admin.py:584
 msgid "The candidate remains an unresolved duplicate."
-msgstr "Il candidato rimane un duplicato non risolto."
+msgstr "Le candidat reste un doublon non résolu."
 
 #: libraries/admin.py:594
 #: templates/admin/libraries/osm_duplicate_resolution.html:4
 #: templates/admin/libraries/osm_duplicate_resolution.html:11
 msgid "Resolve OpenStreetMap duplicate"
-msgstr "Risolvi duplicato OpenStreetMap"
+msgstr "Résoudre le doublon OpenStreetMap"
 
 #: libraries/admin.py:619 manage/views/libraries.py:465
 msgid "This library has no photo for AI analysis."
-msgstr "Questa libreria non ha una foto per l'analisi IA."
+msgstr "Cette boîte à livres n'a pas de photo à analyser par l'IA."
 
 #: libraries/admin.py:629 manage/views/libraries.py:473
 msgid "Could not access the library photo."
-msgstr "Impossibile accedere alla foto della libreria."
+msgstr "Impossible d'accéder à la photo de la boîte à livres."
 
 #: libraries/admin.py:636 manage/views/libraries.py:478
 msgid "AI enrichment failed. Check logs for details."
-msgstr "Arricchimento IA fallito. Controlla i log per i dettagli."
+msgstr "L'enrichissement par IA a échoué. Consultez les journaux pour plus de détails."
 
 #: libraries/admin.py:643
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:20
 #: templates/admin/libraries/ai_enrich_confirm.html:4
 msgid "AI Enrich: Confirm"
-msgstr "Arricchisci con IA: Conferma"
+msgstr "Enrichissement par IA : confirmation"
 
 #: libraries/admin.py:679 manage/views/libraries.py:507
 msgid "AI-generated name and description applied."
-msgstr "Nome e descrizione generati dall'IA applicati."
+msgstr "Le nom et la description générés par l'IA ont été appliqués."
 
 #: libraries/admin.py:681 manage/views/libraries.py:509
 msgid "No AI values to apply."
-msgstr "Nessun valore IA da applicare."
+msgstr "Aucune valeur de l'IA à appliquer."
 
 #: libraries/export_views.py:157
 msgid "Library export is temporarily unavailable. Please try again later."
-msgstr "L'esportazione delle librerie non è temporaneamente disponibile. Riprova più tardi."
+msgstr "L'export des boîtes à livres est temporairement indisponible. Veuillez réessayer plus tard."
 
 #: libraries/forms.py:25 libraries/templates/libraries/submit_library.html:362
 msgid "Select a country"
-msgstr "Seleziona un paese"
+msgstr "Sélectionnez un pays"
 
 #: libraries/forms.py:33
 msgid "Any country"
-msgstr "Qualsiasi paese"
+msgstr "Tous les pays"
 
 #: libraries/forms.py:46
 #, python-format
 msgid "JPEG, PNG, WebP, HEIC, or HEIF. Maximum file size: %(size).0f MB."
-msgstr "JPEG, PNG, WebP, HEIC o HEIF. Dimensione massima del file: %(size).0f MB."
+msgstr "JPEG, PNG, WebP, HEIC ou HEIF. Taille maximale du fichier : %(size).0f Mo."
 
 #: libraries/forms.py:65
 #, python-format
 msgid "Photo must be %(size).0fMB or smaller."
-msgstr "La foto deve essere di %(size).0fMB o meno."
+msgstr "La photo ne doit pas dépasser %(size).0f Mo."
 
 #: libraries/forms.py:68
 #, python-format
 msgid "Photo must be at most %(size)s bytes."
-msgstr "La foto deve essere di massimo %(size)s byte."
+msgstr "La photo ne doit pas dépasser %(size)s octets."
 
 #: libraries/forms.py:86 libraries/forms.py:90 libraries/forms.py:108
 msgid "Upload a valid image in JPEG, PNG, WEBP, HEIC, or HEIF format."
-msgstr "Carica un'immagine valida in formato JPEG, PNG, WEBP, HEIC o HEIF."
+msgstr "Téléversez une image valide au format JPEG, PNG, WEBP, HEIC ou HEIF."
 
 #: libraries/forms.py:178
 msgid "Approximate book capacity"
-msgstr "Capacità approssimativa di libri"
+msgstr "Capacité approximative en livres"
 
 #: libraries/forms.py:186
 msgid "Email, phone, etc."
-msgstr "Email, telefono, ecc."
+msgstr "E-mail, téléphone, etc."
 
 #: libraries/forms.py:190
 msgid "Organisation managing this library"
-msgstr "Organizzazione che gestisce questa libreria"
+msgstr "Organisation qui gère cette boîte à livres"
 
 #: libraries/forms.py:194
 msgid "e.g. Local book exchange network"
-msgstr "es. Rete locale per lo scambio di libri"
+msgstr "p. ex. réseau local d'échange de livres"
 
 #: libraries/forms.py:202 manage/forms.py:122
 msgid "Latitude must be between -90 and 90."
-msgstr "La latitudine deve essere compresa tra -90 e 90."
+msgstr "La latitude doit être comprise entre -90 et 90."
 
 #: libraries/forms.py:210 manage/forms.py:130
 msgid "Longitude must be between -180 and 180."
-msgstr "La longitudine deve essere compresa tra -180 e 180."
+msgstr "La longitude doit être comprise entre -180 et 180."
 
 #: libraries/forms.py:238
 msgid "Address is required when coordinates are not provided."
-msgstr "L'indirizzo è obbligatorio quando le coordinate non vengono fornite."
+msgstr "L'adresse est obligatoire si les coordonnées ne sont pas fournies."
 
 #: libraries/forms.py:366
 msgid "Keywords in name or description"
-msgstr "Parole chiave nel nome o nella descrizione"
+msgstr "Mots-clés dans le nom ou la description"
 
 #: libraries/forms.py:372
 msgid "City, area, postcode, or address"
-msgstr "Città, zona, CAP o indirizzo"
+msgstr "Ville, quartier, code postal ou adresse"
 
 #: libraries/forms.py:386
 msgid "Filter by city"
-msgstr "Filtra per città"
+msgstr "Filtrer par ville"
 
 #: libraries/forms.py:397
 msgid "Filter by postal code"
-msgstr "Filtra per CAP"
+msgstr "Filtrer par code postal"
 
 #: libraries/forms.py:443
 msgid "Optional caption for your photo"
-msgstr "Didascalia opzionale per la tua foto"
+msgstr "Légende facultative pour votre photo"
 
 #: libraries/forms.py:469
 #, python-format
 msgid "You can submit at most %(max)s photos per library."
-msgstr "Puoi inviare al massimo %(max)s foto per libreria."
+msgstr "Vous pouvez envoyer au maximum %(max)s photos par boîte à livres."
 
 #: libraries/models.py:46 libraries/models.py:920
 #: manage/templates/manage/libraries/import.html:49
@@ -305,7 +304,7 @@ msgstr "Puoi inviare al massimo %(max)s foto per libreria."
 #: templates/admin/libraries/geojson_import_form.html:37
 #: templates/admin/libraries/photo_grid.html:145
 msgid "Pending"
-msgstr "In attesa"
+msgstr "En attente"
 
 #: libraries/models.py:47 libraries/models.py:921
 #: manage/templates/manage/libraries/import.html:48
@@ -313,416 +312,415 @@ msgstr "In attesa"
 #: templates/admin/libraries/geojson_import_form.html:36
 #: templates/admin/libraries/photo_grid.html:146
 msgid "Approved"
-msgstr "Approvato"
+msgstr "Approuvé"
 
 #: libraries/models.py:48 libraries/models.py:922
 #: manage/templates/manage/photos/list.html:31
 #: templates/admin/libraries/photo_grid.html:147
 msgid "Rejected"
-msgstr "Rifiutato"
+msgstr "Refusé"
 
 #: libraries/models.py:51
 msgid "Legacy"
-msgstr "Storico"
+msgstr "Historique"
 
 #: libraries/models.py:52 libraries/models.py:62
 msgid "User"
-msgstr "Utente"
+msgstr "Utilisateur"
 
 #: libraries/models.py:53 manage/templates/manage/users/_table.html:9
 #: manage/templates/manage/users/_table.html:24
 #: manage/templates/manage/users/detail.html:23
 #: manage/templates/manage/users/list.html:33
 msgid "Staff"
-msgstr "Staff"
+msgstr "Équipe"
 
 #: libraries/models.py:54 manage/templates/manage/libraries/import.html:55
 #: templates/admin/libraries/geojson_import_form.html:44
 msgid "Import"
-msgstr "Importa"
+msgstr "Import"
 
 #: libraries/models.py:59
 msgid "Limited"
-msgstr "Limitato"
+msgstr "Limité"
 
 #: libraries/models.py:63
 msgid "External"
-msgstr "Esterna"
+msgstr "Externe"
 
 #: libraries/models.py:126 manage/templates/manage/libraries/detail.html:145
 #: manage/templates/manage/libraries/edit.html:186
 msgid "Rejection reason"
-msgstr "Motivo del rifiuto"
+msgstr "Motif du refus"
 
-# OpenStreetMap candidate review
 #: libraries/models.py:205
 msgid "The library is not approved."
-msgstr "La libreria non è approvata."
+msgstr "La boîte à livres n'est pas approuvée."
 
 #: libraries/models.py:207
 msgid "The library was not submitted directly by a user."
-msgstr "La libreria non è stata inviata direttamente da un utente."
+msgstr "La boîte à livres n'a pas été soumise directement par un utilisateur."
 
 #: libraries/models.py:209
 msgid "The original submitter account is no longer linked."
-msgstr "L'account dell'utente che ha effettuato l'invio non è più collegato."
+msgstr "Le compte de l'auteur initial n'est plus lié."
 
 #: libraries/models.py:211
 msgid "The submitter did not allow OpenStreetMap submission."
-msgstr "L'utente non ha autorizzato l'invio a OpenStreetMap."
+msgstr "L'auteur n'a pas autorisé l'envoi vers OpenStreetMap."
 
 #: libraries/models.py:213
 msgid "The library originated from OpenStreetMap."
-msgstr "La libreria proviene da OpenStreetMap."
+msgstr "La boîte à livres provient d'OpenStreetMap."
 
 #: libraries/models.py:215
 msgid "The library has an update awaiting moderation."
-msgstr "La libreria ha un aggiornamento in attesa di moderazione."
+msgstr "Une mise à jour de la boîte à livres est en attente de modération."
 
 #: libraries/models.py:221
 msgid "The library was already contributed to OpenStreetMap."
-msgstr "La libreria è già stata aggiunta a OpenStreetMap."
+msgstr "La boîte à livres a déjà été ajoutée à OpenStreetMap."
 
 #: libraries/models.py:226
 msgid "An existing OpenStreetMap feature is already linked."
-msgstr "È già collegato un elemento OpenStreetMap esistente."
+msgstr "Un élément OpenStreetMap existant est déjà lié."
 
 #: libraries/models.py:228
 msgid "An OpenStreetMap submission is already in progress."
-msgstr "È già in corso un invio a OpenStreetMap."
+msgstr "Un envoi vers OpenStreetMap est déjà en cours."
 
 #: libraries/models.py:247
 msgid "An OpenStreetMap duplicate check has not been completed."
-msgstr "Non è stato completato un controllo dei duplicati su OpenStreetMap."
+msgstr "Une vérification des doublons OpenStreetMap n'a pas été terminée."
 
 #: libraries/models.py:249
 msgid "A possible OpenStreetMap duplicate requires resolution."
-msgstr "Un possibile duplicato su OpenStreetMap richiede una decisione."
+msgstr "Un doublon OpenStreetMap possible doit être résolu."
 
 #: libraries/models.py:251
 msgid "The latest OpenStreetMap duplicate check failed."
-msgstr "L'ultimo controllo dei duplicati su OpenStreetMap non è riuscito."
+msgstr "La dernière vérification des doublons OpenStreetMap a échoué."
 
 #: libraries/models.py:253
 msgid "The OpenStreetMap state does not allow contribution."
-msgstr "Lo stato OpenStreetMap non consente l'invio."
+msgstr "L'état OpenStreetMap ne permet pas la contribution."
 
 #: libraries/models.py:257
 msgid "The latest OpenStreetMap duplicate check is stale."
-msgstr "L'ultimo controllo dei duplicati su OpenStreetMap è scaduto."
+msgstr "La dernière vérification des doublons OpenStreetMap est périmée."
 
 #: libraries/models.py:692
 msgid "Unchecked"
-msgstr "Non controllato"
+msgstr "Non vérifié"
 
 #: libraries/models.py:693
 msgid "No match found"
-msgstr "Nessuna corrispondenza"
+msgstr "Aucune correspondance"
 
 #: libraries/models.py:695
 msgid "Already present"
-msgstr "Già presente"
+msgstr "Déjà présent"
 
 #: libraries/models.py:696
 msgid "Submitting"
-msgstr "Invio in corso"
+msgstr "Envoi en cours"
 
 #: libraries/models.py:697
 msgid "Contributed"
-msgstr "Aggiunta"
+msgstr "Contribué"
 
 #: libraries/models.py:701
 msgid "Node"
-msgstr "Nodo"
+msgstr "Nœud"
 
 #: libraries/models.py:702
 msgid "Way"
-msgstr "Way"
+msgstr "Chemin"
 
 #: libraries/models.py:703
 msgid "Relation"
-msgstr "Relazione"
+msgstr "Relation"
 
 #: libraries/models.py:787
 msgid "Permission withdrawn"
-msgstr "Autorizzazione revocata"
+msgstr "Autorisation retirée"
 
 #: libraries/models.py:788
 msgid "Duplicate check"
-msgstr "Controllo duplicati"
+msgstr "Vérification des doublons"
 
 #: libraries/models.py:789
 msgid "Duplicate resolution"
-msgstr "Decisione sul duplicato"
+msgstr "Résolution des doublons"
 
 #: libraries/models.py:790
 msgid "Write started"
-msgstr "Scrittura avviata"
+msgstr "Écriture démarrée"
 
 #: libraries/models.py:791
 msgid "Write succeeded"
-msgstr "Scrittura riuscita"
+msgstr "Écriture réussie"
 
 #: libraries/models.py:792
 msgid "Write failed"
-msgstr "Scrittura non riuscita"
+msgstr "Échec de l'écriture"
 
 #: libraries/models.py:795
 msgid "Reconciliation required"
-msgstr "Riconciliazione necessaria"
+msgstr "Rapprochement nécessaire"
 
 #: libraries/models.py:799
 msgid "Success"
-msgstr "Riuscito"
+msgstr "Succès"
 
 #: libraries/models.py:801
 msgid "Blocked"
-msgstr "Bloccato"
+msgstr "Bloqué"
 
 #: libraries/models.py:865
 msgid "Damaged"
-msgstr "Danneggiato"
+msgstr "Endommagée"
 
 #: libraries/models.py:866
 msgid "Missing"
-msgstr "Mancante"
+msgstr "Disparue"
 
 #: libraries/models.py:867
 msgid "Incorrect Info"
-msgstr "Informazioni errate"
+msgstr "Informations incorrectes"
 
 #: libraries/models.py:868
 msgid "Inappropriate"
-msgstr "Inappropriato"
+msgstr "Inapproprié"
 
 #: libraries/models.py:869
 msgid "Other"
-msgstr "Altro"
+msgstr "Autre"
 
 #: libraries/models.py:872
 msgid "Open"
-msgstr "Aperto"
+msgstr "Ouvert"
 
 #: libraries/models.py:873
 msgid "Resolved"
-msgstr "Risolto"
+msgstr "Résolu"
 
 #: libraries/models.py:874
 msgid "Dismissed"
-msgstr "Archiviato"
+msgstr "Classé sans suite"
 
 #: libraries/osm_contributions.py:120
 msgid "OpenStreetMap permission is not currently granted."
-msgstr "L'autorizzazione per OpenStreetMap non è attualmente concessa."
+msgstr "L'autorisation OpenStreetMap n'est pas accordée actuellement."
 
 #: libraries/osm_contributions.py:133
 msgid "OpenStreetMap permission cannot be withdrawn after linking or submission."
-msgstr "L'autorizzazione per OpenStreetMap non può essere revocata dopo il collegamento o l'invio."
+msgstr "L'autorisation OpenStreetMap ne peut pas être retirée après la liaison ou l'envoi."
 
 #: libraries/osm_contributions.py:170
 msgid "Select a valid duplicate resolution."
-msgstr "Seleziona una decisione valida per il duplicato."
+msgstr "Sélectionnez une résolution de doublon valide."
 
 #: libraries/osm_contributions.py:172
 msgid "Select a valid OpenStreetMap element type."
-msgstr "Seleziona un tipo di elemento OpenStreetMap valido."
+msgstr "Sélectionnez un type d'élément OpenStreetMap valide."
 
 #: libraries/osm_contributions.py:186
 msgid "This library has no unresolved possible duplicate."
-msgstr "Questa libreria non ha possibili duplicati ancora da risolvere."
+msgstr "Cette boîte à livres n'a aucun doublon possible non résolu."
 
 #: libraries/osm_contributions.py:196
 msgid "The selected OpenStreetMap candidate is not current."
-msgstr "Il candidato OpenStreetMap selezionato non è più attuale."
+msgstr "Le candidat OpenStreetMap sélectionné n'est pas à jour."
 
 #: libraries/osm_contributions.py:220
 msgid "This OpenStreetMap feature is already linked to another library."
-msgstr "Questo elemento OpenStreetMap è già collegato a un'altra libreria."
+msgstr "Cet élément OpenStreetMap est déjà lié à une autre boîte à livres."
 
 #: libraries/osm_contributions.py:272
 msgid "OpenStreetMap duplicate checks require an Overpass endpoint and contactable user agent."
-msgstr "I controlli dei duplicati su OpenStreetMap richiedono un endpoint Overpass e uno user agent con un contatto valido."
+msgstr "La vérification des doublons OpenStreetMap nécessite un point d'accès Overpass et un agent utilisateur avec coordonnées de contact."
 
 #: libraries/osm_contributions.py:299
 msgid "The OpenStreetMap duplicate service returned invalid JSON."
-msgstr "Il servizio di controllo duplicati OpenStreetMap ha restituito JSON non valido."
+msgstr "Le service de doublons OpenStreetMap a renvoyé un JSON invalide."
 
 #: libraries/osm_contributions.py:310
 msgid "The OpenStreetMap duplicate service returned an invalid result."
-msgstr "Il servizio di controllo duplicati OpenStreetMap ha restituito un risultato non valido."
+msgstr "Le service de doublons OpenStreetMap a renvoyé un résultat invalide."
 
 #: libraries/osm_contributions.py:317
 msgid "The OpenStreetMap duplicate service could not complete the query."
-msgstr "Il servizio di controllo duplicati OpenStreetMap non ha potuto completare la richiesta."
+msgstr "Le service de doublons OpenStreetMap n'a pas pu terminer la requête."
 
 #: libraries/osm_contributions.py:325 libraries/osm_contributions.py:585
 msgid "The OpenStreetMap duplicate service returned invalid elements."
-msgstr "Il servizio di controllo duplicati OpenStreetMap ha restituito elementi non validi."
+msgstr "Le service de doublons OpenStreetMap a renvoyé des éléments invalides."
 
 #: libraries/osm_contributions.py:360
 msgid "The OpenStreetMap duplicate check timed out."
-msgstr "Il controllo dei duplicati su OpenStreetMap è scaduto."
+msgstr "La vérification des doublons OpenStreetMap a expiré."
 
 #: libraries/osm_contributions.py:367
 msgid "The OpenStreetMap duplicate service could not be reached."
-msgstr "Impossibile raggiungere il servizio di controllo duplicati OpenStreetMap."
+msgstr "Le service de doublons OpenStreetMap est injoignable."
 
 #: libraries/osm_contributions.py:378
 msgid "The OpenStreetMap duplicate service is rate limited."
-msgstr "Il servizio di controllo duplicati OpenStreetMap ha raggiunto il limite di richieste."
+msgstr "Le service de doublons OpenStreetMap limite le nombre de requêtes."
 
 #: libraries/osm_contributions.py:386
 msgid "The OpenStreetMap duplicate service is unavailable."
-msgstr "Il servizio di controllo duplicati OpenStreetMap non è disponibile."
+msgstr "Le service de doublons OpenStreetMap est indisponible."
 
 #: libraries/osm_contributions.py:394
 msgid "The OpenStreetMap duplicate service rejected the request."
-msgstr "Il servizio di controllo duplicati OpenStreetMap ha rifiutato la richiesta."
+msgstr "Le service de doublons OpenStreetMap a rejeté la requête."
 
 #: libraries/osm_contributions.py:671
 msgid "Explain the duplicate resolution."
-msgstr "Spiega la decisione sul duplicato."
+msgstr "Expliquez la résolution du doublon."
 
 #: libraries/osm_contributions.py:675
 msgid "Remove private contact details or credentials from the resolution."
-msgstr "Rimuovi dalla spiegazione i contatti privati o le credenziali."
+msgstr "Retirez de la résolution les coordonnées privées ou les identifiants."
 
 #: libraries/templates/libraries/_favourite_button.html:10
 #: libraries/templates/libraries/_favourite_button.html:11
 msgid "Remove from favourites"
-msgstr "Rimuovi dai preferiti"
+msgstr "Retirer des favoris"
 
 #: libraries/templates/libraries/_favourite_button.html:10
 #: libraries/templates/libraries/_favourite_button.html:11
 msgid "Add to favourites"
-msgstr "Aggiungi ai preferiti"
+msgstr "Ajouter aux favoris"
 
 #: libraries/templates/libraries/_latest_entries.html:11
 msgid "No approved libraries yet"
-msgstr "Nessuna libreria approvata"
+msgstr "Aucune boîte à livres approuvée pour le moment"
 
 #: libraries/templates/libraries/_latest_entries.html:12
 msgid "Use the seed command to generate sample records or submit your first library."
-msgstr "Usa il comando seed per generare dati di esempio o invia la tua prima libreria."
+msgstr "Utilisez la commande seed pour générer des exemples ou ajoutez votre première boîte à livres."
 
 #: libraries/templates/libraries/_latest_entries_pagination.html:11
 msgid "Load more"
-msgstr "Carica altre"
+msgstr "Afficher plus"
 
 #: libraries/templates/libraries/_latest_entries_pagination.html:14
 msgid "You have reached the latest approved entries."
-msgstr "Hai raggiunto le ultime librerie approvate."
+msgstr "Vous avez atteint les dernières entrées approuvées."
 
 #: libraries/templates/libraries/_library_card.html:31
 #, python-format
 msgid "%(km)s km away"
-msgstr "a %(km)s km"
+msgstr "à %(km)s km"
 
 #: libraries/templates/libraries/_library_card.html:35
 #: libraries/templates/libraries/dashboard.html:109
 #: libraries/templates/libraries/dashboard.html:262
 #: libraries/templates/libraries/map.html:300
 msgid "View details"
-msgstr "Dettagli"
+msgstr "Voir les détails"
 
 #: libraries/templates/libraries/_map_results_list.html:6
 msgid "Please review the filter fields and try again."
-msgstr "Controlla i campi del filtro e riprova."
+msgstr "Veuillez vérifier les champs de filtre et réessayer."
 
 #: libraries/templates/libraries/_map_results_list.html:12
 #: libraries/templates/libraries/_search_results.html:11
 #, python-format
 msgid "Could not resolve \"%(near_query)s\" to a place, so keyword matching was used instead."
-msgstr "Impossibile risolvere \"%(near_query)s\" come luogo, è stata usata la ricerca per parole chiave."
+msgstr "Impossible de trouver le lieu « %(near_query)s », la recherche par mots-clés a donc été utilisée à la place."
 
 #: libraries/templates/libraries/_map_results_list.html:18
 #: libraries/templates/libraries/_search_results.html:16
 #, python-format
 msgid "%(count)s library found."
 msgid_plural "%(count)s libraries found."
-msgstr[0] "%(count)s libreria trovata."
-msgstr[1] "%(count)s librerie trovate."
+msgstr[0] "%(count)s boîte à livres trouvée."
+msgstr[1] "%(count)s boîtes à livres trouvées."
 
 #: libraries/templates/libraries/_map_results_list.html:20
 #: libraries/templates/libraries/_map_results_list.html:46
 #, python-format
 msgid "Page %(current)s of %(total)s"
-msgstr "Pagina %(current)s di %(total)s"
+msgstr "Page %(current)s sur %(total)s"
 
 #: libraries/templates/libraries/_map_results_list.html:38
 #: libraries/templates/libraries/_map_results_list.html:42
 msgid "Previous"
-msgstr "Precedente"
+msgstr "Précédent"
 
 #: libraries/templates/libraries/_map_results_list.html:54
 #: libraries/templates/libraries/_map_results_list.html:58
 msgid "Next"
-msgstr "Successiva"
+msgstr "Suivant"
 
 #: libraries/templates/libraries/_map_results_list.html:65
 #: libraries/templates/libraries/_search_results.html:24
 msgid "No libraries found"
-msgstr "Nessuna libreria trovata"
+msgstr "Aucune boîte à livres trouvée"
 
 #: libraries/templates/libraries/_map_results_list.html:66
 #: libraries/templates/libraries/_search_results.html:25
 msgid "Try broader keywords, increase the radius, or relax one of the filters."
-msgstr "Prova con parole chiave più ampie, aumenta il raggio o allenta uno dei filtri."
+msgstr "Essayez des mots-clés plus larges, augmentez le rayon ou assouplissez l'un des filtres."
 
 #: libraries/templates/libraries/_photo_credit.html:4
 #, python-format
 msgid "Photo by %(author)s"
-msgstr "Foto di %(author)s"
+msgstr "Photo de %(author)s"
 
 #: libraries/templates/libraries/_photo_credit.html:10
 #: libraries/templates/libraries/_photo_credit.html:12
 msgid "Photo from an external source"
-msgstr "Foto da una fonte esterna"
+msgstr "Photo issue d'une source externe"
 
 #: libraries/templates/libraries/_photo_gallery.html:4
 #: libraries/templates/libraries/dashboard.html:26
 #: libraries/templates/libraries/dashboard.html:197
 msgid "Community photos"
-msgstr "Foto della community"
+msgstr "Photos de la communauté"
 
 #: libraries/templates/libraries/_photo_gallery.html:11
 msgid "Community photo"
-msgstr "Foto della community"
+msgstr "Photo de la communauté"
 
 #: libraries/templates/libraries/_photo_submission_form.html:5
 msgid "Thank you, your photo was submitted and is now pending moderation review."
-msgstr "Grazie, la tua foto è stata inviata ed è in attesa di revisione."
+msgstr "Merci, votre photo a été envoyée et attend maintenant la modération."
 
 #: libraries/templates/libraries/_photo_submission_form.html:9
 msgid "Share a photo of this library with the community. Photos are reviewed by moderators before appearing."
-msgstr "Condividi una foto di questa libreria con la community. Le foto vengono revisionate dai moderatori prima della pubblicazione."
+msgstr "Partagez une photo de cette boîte à livres avec la communauté. Les photos sont examinées par les modérateurs avant d'être publiées."
 
 #: libraries/templates/libraries/_photo_submission_form.html:14
 #: libraries/templates/libraries/_report_form.html:14
 msgid "Please review the highlighted fields and try again."
-msgstr "Controlla i campi evidenziati e riprova."
+msgstr "Veuillez vérifier les champs en surbrillance et réessayer."
 
 #: libraries/templates/libraries/_photo_submission_form.html:34
 #: libraries/templates/libraries/dashboard.html:214
 #: templates/admin/index.html:135
 msgid "Photo"
-msgstr "Foto"
+msgstr "Photo"
 
 #: libraries/templates/libraries/_photo_submission_form.html:41
 msgid "Caption (optional)"
-msgstr "Didascalia (opzionale)"
+msgstr "Légende (facultatif)"
 
 #: libraries/templates/libraries/_photo_submission_form.html:46
 msgid "Submit photo"
-msgstr "Invia foto"
+msgstr "Envoyer la photo"
 
 #: libraries/templates/libraries/_report_form.html:5
 msgid "Thank you, your report was submitted and is now pending moderation review."
-msgstr "Grazie, la tua segnalazione è stata inviata ed è in attesa di revisione."
+msgstr "Merci, votre signalement a été envoyé et attend maintenant la modération."
 
 #: libraries/templates/libraries/_report_form.html:9
 msgid "Tell us what is wrong with this library entry so moderators can review and fix it."
-msgstr "Dicci cosa non va con questa libreria in modo che i moderatori possano verificare e correggere."
+msgstr "Dites-nous ce qui ne va pas dans cette fiche afin que les modérateurs puissent l'examiner et la corriger."
 
 #: libraries/templates/libraries/_report_form.html:34
 #: libraries/templates/libraries/dashboard.html:172
@@ -731,51 +729,51 @@ msgstr "Dicci cosa non va con questa libreria in modo che i moderatori possano v
 #: manage/templates/manage/users/detail.html:112
 #: templates/admin/libraries/geojson_import_result.html:58
 msgid "Reason"
-msgstr "Motivo"
+msgstr "Motif"
 
 #: libraries/templates/libraries/_report_form.html:40
 #: manage/templates/manage/libraries/detail.html:119
 #: manage/templates/manage/libraries/edit.html:46
 msgid "Details"
-msgstr "Dettagli"
+msgstr "Détails"
 
 #: libraries/templates/libraries/_report_form.html:46
 msgid "Photo (optional)"
-msgstr "Foto (opzionale)"
+msgstr "Photo (facultatif)"
 
 #: libraries/templates/libraries/_report_form.html:52
 msgid "Send report"
-msgstr "Invia segnalazione"
+msgstr "Envoyer le signalement"
 
 #: libraries/templates/libraries/_search_results.html:4
 msgid "Please review the search fields and try again."
-msgstr "Controlla i campi di ricerca e riprova."
+msgstr "Veuillez vérifier les champs de recherche et réessayer."
 
 #: libraries/templates/libraries/_search_results.html:30
 msgid "Start a search"
-msgstr "Inizia una ricerca"
+msgstr "Lancer une recherche"
 
 #: libraries/templates/libraries/_search_results.html:31
 msgid "Use a place like London for nearby results, or add keywords and filters."
-msgstr "Usa un luogo come Roma per risultati nelle vicinanze, oppure aggiungi parole chiave e filtri."
+msgstr "Saisissez un lieu comme Paris pour obtenir des résultats proches, ou ajoutez des mots-clés et des filtres."
 
 #: libraries/templates/libraries/dashboard.html:4
 #: libraries/templates/libraries/dashboard.html:10
 msgid "Contribution center"
-msgstr "Centro contributi"
+msgstr "Espace contributions"
 
 #: libraries/templates/libraries/dashboard.html:5
 msgid "Review your submitted libraries, reports, community photos, and moderation statuses from your dashboard."
-msgstr "Controlla le librerie inviate, le segnalazioni, le foto della community e gli stati di moderazione dalla tua bacheca."
+msgstr "Consultez depuis votre tableau de bord les boîtes à livres, signalements et photos que vous avez envoyés, ainsi que leur statut de modération."
 
 #: libraries/templates/libraries/dashboard.html:12
 msgid "Manage your account and track every contribution you have sent to moderation."
-msgstr "Gestisci il tuo account e segui ogni contributo inviato alla moderazione."
+msgstr "Gérez votre compte et suivez chacune de vos contributions envoyées à la modération."
 
 #: libraries/templates/libraries/dashboard.html:18
 #: libraries/templates/libraries/dashboard.html:77
 msgid "Library submissions"
-msgstr "Librerie inviate"
+msgstr "Boîtes à livres soumises"
 
 #: libraries/templates/libraries/dashboard.html:22
 #: libraries/templates/libraries/dashboard.html:153
@@ -786,38 +784,38 @@ msgstr "Librerie inviate"
 #: manage/templates/manage/reports/list.html:12
 #: manage/templates/manage/reports/list.html:19
 msgid "Reports"
-msgstr "Segnalazioni"
+msgstr "Signalements"
 
 #: libraries/templates/libraries/dashboard.html:35
 #: libraries/templates/libraries/library_export_download.html:4
 #: libraries/templates/libraries/library_export_download.html:10
 msgid "Download library data"
-msgstr "Scarica i dati delle librerie"
+msgstr "Télécharger les données des boîtes à livres"
 
 #: libraries/templates/libraries/dashboard.html:36
 msgid "Download the complete approved library catalogue as a GeoJSON file."
-msgstr "Scarica il catalogo completo delle librerie approvate in formato GeoJSON."
+msgstr "Téléchargez le catalogue complet des boîtes à livres approuvées au format GeoJSON."
 
 #: libraries/templates/libraries/dashboard.html:38
 msgid "View download"
-msgstr "Apri la pagina di download"
+msgstr "Voir le téléchargement"
 
 #: libraries/templates/libraries/dashboard.html:44
 msgid "Account information"
-msgstr "Informazioni account"
+msgstr "Informations du compte"
 
 #: libraries/templates/libraries/dashboard.html:47
 #: manage/templates/manage/users/_table.html:7
 #: users/templates/users/register.html:22
 msgid "Username"
-msgstr "Nome utente"
+msgstr "Nom d'utilisateur"
 
 #: libraries/templates/libraries/dashboard.html:51
 #: manage/templates/manage/users/_table.html:8
 #: manage/templates/manage/users/detail.html:39
 #: users/templates/users/register.html:28
 msgid "Email"
-msgstr "Email"
+msgstr "E-mail"
 
 #: libraries/templates/libraries/dashboard.html:56
 #: manage/templates/manage/libraries/_table.html:19
@@ -829,223 +827,223 @@ msgstr "Email"
 #: templates/admin/libraries/ai_enrich_confirm.html:27
 #: templates/admin/libraries/find_duplicates.html:88
 msgid "Name"
-msgstr "Nome"
+msgstr "Nom"
 
 #: libraries/templates/libraries/dashboard.html:61
 msgid "Member since"
-msgstr "Membro dal"
+msgstr "Membre depuis"
 
 #: libraries/templates/libraries/dashboard.html:67
 #: users/templates/users/change_email.html:4
 #: users/templates/users/change_email.html:11
 msgid "Change email"
-msgstr "Cambia email"
+msgstr "Changer d'adresse e-mail"
 
 #: libraries/templates/libraries/dashboard.html:68
 #: users/templates/users/change_password.html:4
 #: users/templates/users/change_password.html:11
 #: users/templates/users/change_password.html:40
 msgid "Change password"
-msgstr "Cambia password"
+msgstr "Changer de mot de passe"
 
 #: libraries/templates/libraries/dashboard.html:70
 #: users/templates/users/delete_account.html:4
 #: users/templates/users/delete_account.html:11
 msgid "Delete account"
-msgstr "Elimina account"
+msgstr "Supprimer le compte"
 
 #: libraries/templates/libraries/dashboard.html:78
 msgid "Libraries you added or edited, with their current moderation status."
-msgstr "Librerie che hai aggiunto o modificato, con il loro stato di moderazione attuale."
+msgstr "Les boîtes à livres que vous avez ajoutées ou modifiées, avec leur statut de modération actuel."
 
 #: libraries/templates/libraries/dashboard.html:80
 #: libraries/templates/libraries/dashboard.html:146 libraries/views.py:895
 #: templates/about.html:76 templates/home.html:36
 msgid "Submit a library"
-msgstr "Invia una libreria"
+msgstr "Ajouter une boîte à livres"
 
 #: libraries/templates/libraries/dashboard.html:107
 #: libraries/templates/libraries/library_detail.html:76
 #: manage/templates/manage/libraries/edit.html:23
 msgid "Edit"
-msgstr "Modifica"
+msgstr "Modifier"
 
 #: libraries/templates/libraries/dashboard.html:144
 msgid "No library submissions yet"
-msgstr "Nessuna libreria inviata per ora"
+msgstr "Aucune boîte à livres soumise pour le moment"
 
 #: libraries/templates/libraries/dashboard.html:145
 msgid "Share your first book exchange spot to start your contribution history."
-msgstr "Condividi il tuo primo punto di scambio libri per iniziare la cronologia dei contributi."
+msgstr "Partagez votre première boîte à livres pour commencer votre historique de contributions."
 
 #: libraries/templates/libraries/dashboard.html:154
 msgid "Issues you reported for existing libraries, including open and reviewed reports."
-msgstr "Problemi che hai segnalato per librerie esistenti, incluse segnalazioni aperte e revisionate."
+msgstr "Les problèmes que vous avez signalés sur des boîtes à livres existantes, qu'ils soient en cours ou déjà examinés."
 
 #: libraries/templates/libraries/dashboard.html:162
 #: templates/admin/index.html:113
 msgid "Report"
-msgstr "Segnalazione"
+msgstr "Signalement"
 
 #: libraries/templates/libraries/dashboard.html:173
 #: libraries/templates/libraries/dashboard.html:223
 #: templates/admin/index.html:93 templates/admin/index.html:115
 #: templates/admin/index.html:137
 msgid "Submitted"
-msgstr "Inviato il"
+msgstr "Envoyé"
 
 #: libraries/templates/libraries/dashboard.html:177
 #: libraries/templates/libraries/dashboard.html:226
 msgid "View library"
-msgstr "Vedi libreria"
+msgstr "Voir la boîte à livres"
 
 #: libraries/templates/libraries/dashboard.html:179
 #: libraries/templates/libraries/dashboard.html:228
 msgid "Related library is not public"
-msgstr "La libreria collegata non è pubblica"
+msgstr "La boîte à livres concernée n'est pas publique"
 
 #: libraries/templates/libraries/dashboard.html:188
 msgid "No reports yet"
-msgstr "Nessuna segnalazione per ora"
+msgstr "Aucun signalement pour le moment"
 
 #: libraries/templates/libraries/dashboard.html:189
 msgid "When you report an issue from a library page, it will appear here."
-msgstr "Quando segnali un problema dalla pagina di una libreria, apparirà qui."
+msgstr "Lorsque vous signalez un problème depuis la page d'une boîte à livres, il apparaît ici."
 
 #: libraries/templates/libraries/dashboard.html:190
 #: libraries/templates/libraries/dashboard.html:239
 msgid "Find libraries"
-msgstr "Trova librerie"
+msgstr "Trouver des boîtes à livres"
 
 #: libraries/templates/libraries/dashboard.html:198
 msgid "Photos you submitted for existing libraries, with moderation outcomes."
-msgstr "Foto che hai inviato per librerie esistenti, con gli esiti della moderazione."
+msgstr "Les photos que vous avez envoyées pour des boîtes à livres existantes, avec le résultat de la modération."
 
 #: libraries/templates/libraries/dashboard.html:237
 msgid "No community photos yet"
-msgstr "Nessuna foto della community per ora"
+msgstr "Aucune photo de la communauté pour le moment"
 
 #: libraries/templates/libraries/dashboard.html:238
 msgid "Photo submissions from library pages will appear here while moderators review them."
-msgstr "Le foto inviate dalle pagine delle librerie appariranno qui mentre i moderatori le revisionano."
+msgstr "Les photos envoyées depuis les pages des boîtes à livres apparaissent ici pendant leur examen par les modérateurs."
 
 #: libraries/templates/libraries/dashboard.html:245
 msgid "My favourites"
-msgstr "I miei preferiti"
+msgstr "Mes favoris"
 
 #: libraries/templates/libraries/dashboard.html:270
 msgid "No favourites yet"
-msgstr "Nessun preferito"
+msgstr "Aucun favori pour le moment"
 
 #: libraries/templates/libraries/dashboard.html:271
 msgid "Tap the heart icon on any library to save it here."
-msgstr "Tocca l'icona del cuore su qualsiasi libreria per salvarla qui."
+msgstr "Touchez l'icône en forme de cœur sur une boîte à livres pour l'enregistrer ici."
 
 #: libraries/templates/libraries/dashboard.html:272
 #: libraries/templates/libraries/map.html:53
 msgid "Explore libraries"
-msgstr "Esplora le librerie"
+msgstr "Explorer les boîtes à livres"
 
 #: libraries/templates/libraries/library_detail.html:5
 #: libraries/templates/libraries/library_detail.html:8
 #, python-format
 msgid "Visit this public bookcase at %(address)s, %(city)s on Book Corners."
-msgstr "Visita questa casetta dei libri in %(address)s, %(city)s su Book Corners."
+msgstr "Découvrez cette boîte à livres au %(address)s, %(city)s, sur Book Corners."
 
 #: libraries/templates/libraries/library_detail.html:54
 msgid "A community bookcase."
-msgstr "Una casetta dei libri della comunità."
+msgstr "Une boîte à livres communautaire."
 
 #: libraries/templates/libraries/library_detail.html:57
 msgid "Address:"
-msgstr "Indirizzo:"
+msgstr "Adresse :"
 
 #: libraries/templates/libraries/library_detail.html:58
 #: templates/admin/libraries/find_duplicates.html:55
 msgid "City:"
-msgstr "Città:"
+msgstr "Ville :"
 
 #: libraries/templates/libraries/library_detail.html:59
 #: templates/admin/libraries/find_duplicates.html:57
 msgid "Country:"
-msgstr "Paese:"
+msgstr "Pays :"
 
 #: libraries/templates/libraries/library_detail.html:60
 msgid "Postal code:"
-msgstr "CAP:"
+msgstr "Code postal :"
 
 #: libraries/templates/libraries/library_detail.html:61
 msgid "Wheelchair accessible:"
-msgstr "Accessibile in sedia a rotelle:"
+msgstr "Accessible en fauteuil roulant :"
 
 #: libraries/templates/libraries/library_detail.html:62
 msgid "Capacity:"
-msgstr "Capacità:"
+msgstr "Capacité :"
 
 #: libraries/templates/libraries/library_detail.html:62
 msgid "books"
-msgstr "libri"
+msgstr "livres"
 
 #: libraries/templates/libraries/library_detail.html:63
 msgid "Indoor:"
-msgstr "Al chiuso:"
+msgstr "En intérieur :"
 
 #: libraries/templates/libraries/library_detail.html:64
 msgid "Lit at night:"
-msgstr "Illuminata di notte:"
+msgstr "Éclairée la nuit :"
 
 #: libraries/templates/libraries/library_detail.html:65
 msgid "Website:"
-msgstr "Sito web:"
+msgstr "Site web :"
 
 #: libraries/templates/libraries/library_detail.html:66
 msgid "Contact:"
-msgstr "Contatto:"
+msgstr "Contact :"
 
 #: libraries/templates/libraries/library_detail.html:67
 msgid "Operator:"
-msgstr "Gestore:"
+msgstr "Exploitant :"
 
 #: libraries/templates/libraries/library_detail.html:68
 msgid "Brand:"
-msgstr "Marchio:"
+msgstr "Marque :"
 
 #: libraries/templates/libraries/library_detail.html:69
 #: templates/admin/libraries/geojson_import_form.html:28
 msgid "Source:"
-msgstr "Fonte:"
+msgstr "Source :"
 
 #: libraries/templates/libraries/library_detail.html:70
 msgid "Submitted by:"
-msgstr "Inviata da:"
+msgstr "Soumise par :"
 
 #: libraries/templates/libraries/library_detail.html:86
 msgid "Add a photo"
-msgstr "Aggiungi una foto"
+msgstr "Ajouter une photo"
 
 #: libraries/templates/libraries/library_detail.html:96
 msgid "Report an issue"
-msgstr "Segnala un problema"
+msgstr "Signaler un problème"
 
 #: libraries/templates/libraries/library_detail.html:103
 msgid "Location map"
-msgstr "Mappa della posizione"
+msgstr "Carte de localisation"
 
 #: libraries/templates/libraries/library_detail.html:123
 msgid "Add a photo of this library"
-msgstr "Aggiungi una foto di questa libreria"
+msgstr "Ajouter une photo de cette boîte à livres"
 
 #: libraries/templates/libraries/library_detail.html:134
 msgid "Report an issue with this library"
-msgstr "Segnala un problema con questa libreria"
+msgstr "Signaler un problème avec cette boîte à livres"
 
 #: libraries/templates/libraries/library_export_download.html:5
 msgid "Download the complete approved Book Corners library catalogue as GeoJSON."
-msgstr "Scarica il catalogo completo delle librerie approvate di Book Corners in formato GeoJSON."
+msgstr "Téléchargez le catalogue complet des boîtes à livres Book Corners approuvées au format GeoJSON."
 
 #: libraries/templates/libraries/library_export_download.html:13
 msgid "Download the complete catalogue of approved Book Corners libraries as a GeoJSON file."
-msgstr "Scarica il catalogo completo delle librerie approvate di Book Corners in formato GeoJSON."
+msgstr "Téléchargez le catalogue complet des boîtes à livres Book Corners approuvées sous forme de fichier GeoJSON."
 
 #: libraries/templates/libraries/library_export_download.html:18
 #: manage/templates/manage/base.html:49
@@ -1060,119 +1058,119 @@ msgstr "Scarica il catalogo completo delle librerie approvate di Book Corners in
 #: manage/templates/manage/libraries/list.html:19
 #: manage/templates/manage/users/_table.html:11
 msgid "Libraries"
-msgstr "Librerie"
+msgstr "Boîtes à livres"
 
 #: libraries/templates/libraries/library_export_download.html:22
 msgid "File size"
-msgstr "Dimensione del file"
+msgstr "Taille du fichier"
 
 #: libraries/templates/libraries/library_export_download.html:26
 msgid "Data updated"
-msgstr "Dati aggiornati"
+msgstr "Données mises à jour"
 
 #: libraries/templates/libraries/library_export_download.html:32
 msgid "Download compressed GeoJSON"
-msgstr "Scarica GeoJSON compresso"
+msgstr "Télécharger le GeoJSON compressé"
 
 #: libraries/templates/libraries/library_export_download.html:33
 msgid "View metadata"
-msgstr "Visualizza metadati"
+msgstr "Voir les métadonnées"
 
 #: libraries/templates/libraries/library_export_download.html:37
 msgid "The export contains every currently approved library. Pending, rejected, moderation, account, and report information is excluded."
-msgstr "L'esportazione contiene tutte le librerie attualmente approvate. Sono escluse le informazioni su elementi in attesa, rifiutati, moderazione, account e segnalazioni."
+msgstr "L'export contient toutes les boîtes à livres actuellement approuvées. Les informations en attente, refusées, de modération, de compte et de signalement sont exclues."
 
 #: libraries/templates/libraries/library_export_download.html:39
 msgid "The complete exported database is available under the"
-msgstr "Il database completo esportato è disponibile secondo la"
+msgstr "La base de données exportée complète est disponible sous la"
 
 #: libraries/templates/libraries/library_export_download.html:40
 msgid "Open Database License (ODbL) v1.0"
-msgstr "Open Database License (ODbL) v1.0"
+msgstr "licence Open Database License (ODbL) v1.0"
 
 #: libraries/templates/libraries/library_export_download.html:41
 msgid "Please attribute"
-msgstr "Attribuisci i dati a"
+msgstr "Merci de citer"
 
 #: libraries/templates/libraries/library_export_download.html:43
 msgid "and"
-msgstr "e"
+msgstr "et"
 
 #: libraries/templates/libraries/library_export_download.html:44
 msgid "OpenStreetMap contributors"
-msgstr "i contributori di OpenStreetMap"
+msgstr "les contributeurs d'OpenStreetMap"
 
 #: libraries/templates/libraries/library_export_download.html:45
 msgid "when required."
-msgstr "quando richiesto."
+msgstr "lorsque c'est nécessaire."
 
 #: libraries/templates/libraries/library_export_download.html:47
 msgid "Photo URLs identify publicly displayed media; they do not independently grant permission to redistribute or relicense image files."
-msgstr "Gli URL delle foto identificano i media mostrati pubblicamente; non concedono autonomamente il permesso di ridistribuire o rilasciare nuovamente i file delle immagini."
+msgstr "Les URL des photos identifient des médias affichés publiquement ; elles n'accordent pas à elles seules le droit de redistribuer ou de relicencier les fichiers image."
 
 #: libraries/templates/libraries/library_export_download.html:48
 #, python-format
 msgid "Last checked: %(checked_at)s."
-msgstr "Ultimo controllo: %(checked_at)s."
+msgstr "Dernière vérification : %(checked_at)s."
 
 #: libraries/templates/libraries/library_export_download.html:52
 msgid "Technical details"
-msgstr "Dettagli tecnici"
+msgstr "Détails techniques"
 
 #: libraries/templates/libraries/library_export_download.html:54
 msgid "Format: GeoJSON"
-msgstr "Formato: GeoJSON"
+msgstr "Format : GeoJSON"
 
 #: libraries/templates/libraries/library_export_download.html:61
 msgid "The library export is temporarily unavailable. Please try again later."
-msgstr "L'esportazione delle librerie non è temporaneamente disponibile. Riprova più tardi."
+msgstr "L'export des boîtes à livres est temporairement indisponible. Veuillez réessayer plus tard."
 
 #: libraries/templates/libraries/map.html:4 templates/base.html:33
 #: templates/base.html:70
 msgid "Map"
-msgstr "Mappa"
+msgstr "Carte"
 
 #: libraries/templates/libraries/map.html:5
 msgid "Explore the Book Corners map to find public bookcases near you and across nearby cities."
-msgstr "Esplora la mappa di Book Corners per trovare casette dei libri vicino a te e nelle città limitrofe."
+msgstr "Explorez la carte Book Corners pour trouver des boîtes à livres près de chez vous et dans les villes voisines."
 
 #: libraries/templates/libraries/map.html:55
 msgid "Use one filter set and switch between map, list, or split view without reloading the page."
-msgstr "Usa un set di filtri e passa tra vista mappa, lista o divisa senza ricaricare la pagina."
+msgstr "Utilisez un seul ensemble de filtres et passez de la carte à la liste, ou à la vue partagée, sans recharger la page."
 
 #: libraries/templates/libraries/map.html:61
 #: libraries/templates/libraries/search.html:27
 msgid "Keywords"
-msgstr "Parole chiave"
+msgstr "Mots-clés"
 
 #: libraries/templates/libraries/map.html:66
 #: libraries/templates/libraries/search.html:32
 msgid "Near (place-like query)"
-msgstr "Vicino a (luogo)"
+msgstr "Près de (nom de lieu)"
 
 #: libraries/templates/libraries/map.html:73
 #: libraries/templates/libraries/search.html:39
 msgid "Radius (km)"
-msgstr "Raggio (km)"
+msgstr "Rayon (km)"
 
 #: libraries/templates/libraries/map.html:78
 #: libraries/templates/libraries/search.html:44
 msgid "City filter"
-msgstr "Filtra per città"
+msgstr "Filtre par ville"
 
 #: libraries/templates/libraries/map.html:83
 #: libraries/templates/libraries/search.html:49
 msgid "Country filter"
-msgstr "Filtra per paese"
+msgstr "Filtre par pays"
 
 #: libraries/templates/libraries/map.html:88
 #: libraries/templates/libraries/search.html:54
 msgid "Postal code filter"
-msgstr "Filtra per CAP"
+msgstr "Filtre par code postal"
 
 #: libraries/templates/libraries/map.html:94
 msgid "Apply filters"
-msgstr "Applica filtri"
+msgstr "Appliquer les filtres"
 
 #: libraries/templates/libraries/map.html:95
 #: libraries/templates/libraries/search.html:61
@@ -1181,131 +1179,131 @@ msgstr "Applica filtri"
 #: manage/templates/manage/reports/list.html:44
 #: manage/templates/manage/users/list.html:39
 msgid "Clear"
-msgstr "Pulisci"
+msgstr "Effacer"
 
 #: libraries/templates/libraries/map.html:126
 msgid "Libraries list"
-msgstr "Elenco librerie"
+msgstr "Liste des boîtes à livres"
 
 #: libraries/templates/libraries/map.html:131
 #: libraries/templates/libraries/map.html:572
 msgid "Loading libraries..."
-msgstr "Caricamento librerie..."
+msgstr "Chargement des boîtes à livres..."
 
 #: libraries/templates/libraries/map.html:147
 #, python-brace-format
 msgid "{count} results"
-msgstr "{count} risultati"
+msgstr "{count} résultats"
 
 #: libraries/templates/libraries/map.html:148
 #, python-brace-format
 msgid "Showing {total} libraries"
-msgstr "{total} librerie visualizzate"
+msgstr "Affichage de {total} boîtes à livres"
 
 #: libraries/templates/libraries/map.html:149
 #, python-brace-format
 msgid "Showing {count} of {total} libraries"
-msgstr "{count} di {total} librerie visualizzate"
+msgstr "Affichage de {count} boîtes à livres sur {total}"
 
 #: libraries/templates/libraries/map.html:150
 msgid "Could not resolve the location, so keyword matching was used instead."
-msgstr "Impossibile risolvere la posizione, è stata usata la ricerca per parole chiave."
+msgstr "Impossible de trouver le lieu, la recherche par mots-clés a donc été utilisée à la place."
 
 #: libraries/templates/libraries/map.html:151
 msgid "on the map."
-msgstr "sulla mappa."
+msgstr "sur la carte."
 
 #: libraries/templates/libraries/map.html:280
 msgid "Neighborhood Library"
-msgstr "Casetta dei Libri"
+msgstr "Boîte à livres de quartier"
 
 #: libraries/templates/libraries/map.html:569
 msgid "Loading libraries on the map..."
-msgstr "Caricamento librerie sulla mappa..."
+msgstr "Chargement des boîtes à livres sur la carte..."
 
 #: libraries/templates/libraries/map.html:636
 msgid "Could not load library list right now."
-msgstr "Impossibile caricare l'elenco delle librerie al momento."
+msgstr "Impossible de charger la liste des boîtes à livres pour le moment."
 
 #: libraries/templates/libraries/map.html:640
 msgid "Could not load map markers right now. Please try again."
-msgstr "Impossibile caricare i marcatori sulla mappa. Riprova."
+msgstr "Impossible de charger les repères de la carte pour le moment. Veuillez réessayer."
 
 #: libraries/templates/libraries/search.html:4
 #: libraries/templates/libraries/search.html:60 manage/forms.py:22
 #: manage/templates/manage/libraries/list.html:42
 #: manage/templates/manage/users/list.html:26 templates/home.html:29
 msgid "Search"
-msgstr "Cerca"
+msgstr "Rechercher"
 
 #: libraries/templates/libraries/search.html:5
 msgid "Search public bookcases by keywords, city, country, postcode, and proximity filters."
-msgstr "Cerca casette dei libri per parole chiave, città, paese, CAP e filtri di prossimità."
+msgstr "Recherchez des boîtes à livres par mots-clés, ville, pays, code postal et filtres de proximité."
 
 #: libraries/templates/libraries/search.html:11
 msgid "Search libraries"
-msgstr "Cerca librerie"
+msgstr "Rechercher des boîtes à livres"
 
 #: libraries/templates/libraries/search.html:13
 msgid "Search by keywords, by place with a radius, or narrow results with structured filters."
-msgstr "Cerca per parole chiave, per luogo con un raggio, o restringi i risultati con filtri strutturati."
+msgstr "Recherchez par mots-clés, par lieu avec un rayon, ou affinez les résultats avec des filtres structurés."
 
 #: libraries/templates/libraries/stats.html:4
 #: libraries/templates/libraries/stats.html:6
 #: libraries/templates/libraries/stats.html:11 templates/base.html:35
 #: templates/base.html:72
 msgid "Statistics"
-msgstr "Statistiche"
+msgstr "Statistiques"
 
 #: libraries/templates/libraries/stats.html:5
 #: libraries/templates/libraries/stats.html:7
 #: libraries/templates/libraries/stats.html:12
 msgid "Public statistics about Book Corners libraries worldwide."
-msgstr "Statistiche pubbliche sulle librerie Book Corners nel mondo."
+msgstr "Statistiques publiques sur les boîtes à livres Book Corners dans le monde."
 
 #: libraries/templates/libraries/stats.html:17
 msgid "Total libraries"
-msgstr "Librerie totali"
+msgstr "Total des boîtes à livres"
 
 #: libraries/templates/libraries/stats.html:19
 msgid "Approved and published"
-msgstr "Approvate e pubblicate"
+msgstr "Approuvées et publiées"
 
 #: libraries/templates/libraries/stats.html:22
 msgid "Libraries with photos"
-msgstr "Librerie con foto"
+msgstr "Boîtes à livres avec photos"
 
 #: libraries/templates/libraries/stats.html:24
 msgid "With at least one image"
-msgstr "Con almeno un'immagine"
+msgstr "Avec au moins une image"
 
 #: libraries/templates/libraries/stats.html:30
 msgid "Top countries"
-msgstr "Paesi principali"
+msgstr "Principaux pays"
 
 #: libraries/templates/libraries/stats.html:39
 msgid "Growth since March 1, 2026"
-msgstr "Crescita dal 1° marzo 2026"
+msgstr "Croissance depuis le 1er mars 2026"
 
 #: libraries/templates/libraries/submit_library.html:64
 msgid "Fields marked with <span class=\"font-medium\">(optional)</span> can be left blank."
-msgstr "I campi contrassegnati con <span class=\"font-medium\">(opzionale)</span> possono essere lasciati vuoti."
+msgstr "Les champs marqués <span class=\"font-medium\">(facultatif)</span> peuvent rester vides."
 
 #: libraries/templates/libraries/submit_library.html:86
 msgid "Selected photo preview"
-msgstr "Anteprima della foto selezionata"
+msgstr "Aperçu de la photo sélectionnée"
 
 #: libraries/templates/libraries/submit_library.html:91
 msgid "Choose another photo"
-msgstr "Scegli un'altra foto"
+msgstr "Choisir une autre photo"
 
 #: libraries/templates/libraries/submit_library.html:97
 msgid "Name (optional)"
-msgstr "Nome (opzionale)"
+msgstr "Nom (facultatif)"
 
 #: libraries/templates/libraries/submit_library.html:103
 msgid "Description (optional)"
-msgstr "Descrizione (opzionale)"
+msgstr "Description (facultatif)"
 
 #: libraries/templates/libraries/submit_library.html:109
 #: manage/templates/manage/libraries/_table.html:21
@@ -1314,7 +1312,7 @@ msgstr "Descrizione (opzionale)"
 #: manage/templates/manage/libraries/edit.html:73
 #: manage/templates/manage/libraries/list.html:34
 msgid "Country"
-msgstr "Paese"
+msgstr "Pays"
 
 #: libraries/templates/libraries/submit_library.html:115
 #: manage/templates/manage/libraries/_table.html:20
@@ -1325,203 +1323,203 @@ msgstr "Paese"
 #: manage/templates/manage/users/detail.html:74 templates/admin/index.html:92
 #: templates/admin/libraries/find_duplicates.html:90
 msgid "City"
-msgstr "Città"
+msgstr "Ville"
 
 #: libraries/templates/libraries/submit_library.html:121
 msgid "Address (optional)"
-msgstr "Indirizzo (opzionale)"
+msgstr "Adresse (facultatif)"
 
 #: libraries/templates/libraries/submit_library.html:131
 msgid "Postal code (optional)"
-msgstr "CAP (opzionale)"
+msgstr "Code postal (facultatif)"
 
 #: libraries/templates/libraries/submit_library.html:147
 msgid "Center from address"
-msgstr "Centra dall'indirizzo"
+msgstr "Centrer à partir de l'adresse"
 
 #: libraries/templates/libraries/submit_library.html:320
 msgid "Marker moved. Coordinates updated."
-msgstr "Marcatore spostato. Coordinate aggiornate."
+msgstr "Repère déplacé. Coordonnées mises à jour."
 
 #: libraries/templates/libraries/submit_library.html:342
 msgid "Map point selected. Coordinates updated."
-msgstr "Punto sulla mappa selezionato. Coordinate aggiornate."
+msgstr "Point de la carte sélectionné. Coordonnées mises à jour."
 
 #: libraries/templates/libraries/submit_library.html:437
 msgid "Suggestion selected. Marker centered from autocomplete; drag to refine if needed."
-msgstr "Suggerimento selezionato. Marcatore centrato dall'autocompletamento; trascina per affinare se necessario."
+msgstr "Suggestion sélectionnée. Repère centré grâce à la saisie automatique ; faites-le glisser pour affiner si besoin."
 
 #: libraries/templates/libraries/submit_library.html:545
 msgid "Reading GPS metadata from the selected photo..."
-msgstr "Lettura dei metadati GPS dalla foto selezionata..."
+msgstr "Lecture des métadonnées GPS de la photo sélectionnée..."
 
 #: libraries/templates/libraries/submit_library.html:562
 msgid "No GPS metadata found in this photo. Set location manually on the map."
-msgstr "Nessun metadato GPS trovato in questa foto. Imposta la posizione manualmente sulla mappa."
+msgstr "Aucune métadonnée GPS trouvée dans cette photo. Indiquez l'emplacement manuellement sur la carte."
 
 #: libraries/templates/libraries/submit_library.html:577
 msgid "GPS metadata found. Map centered and address fields pre-filled from the photo."
-msgstr "Metadati GPS trovati. Mappa centrata e campi indirizzo precompilati dalla foto."
+msgstr "Métadonnées GPS trouvées. Carte centrée et champs d'adresse préremplis à partir de la photo."
 
 #: libraries/templates/libraries/submit_library.html:581
 msgid "GPS metadata found. Map centered from photo location."
-msgstr "Metadati GPS trovati. Mappa centrata dalla posizione della foto."
+msgstr "Métadonnées GPS trouvées. Carte centrée sur l'emplacement de la photo."
 
 #: libraries/templates/libraries/submit_library.html:583
 msgid "Could not read photo metadata right now. Set the location manually on the map."
-msgstr "Impossibile leggere i metadati della foto al momento. Imposta la posizione manualmente sulla mappa."
+msgstr "Impossible de lire les métadonnées de la photo pour le moment. Indiquez l'emplacement manuellement sur la carte."
 
 #: libraries/templates/libraries/submit_library.html:606
 msgid "Finding location from address..."
-msgstr "Ricerca della posizione dall'indirizzo..."
+msgstr "Recherche de l'emplacement à partir de l'adresse..."
 
 #: libraries/templates/libraries/submit_library.html:623
 msgid "Address not found. Move the marker manually on the map."
-msgstr "Indirizzo non trovato. Sposta il marcatore manualmente sulla mappa."
+msgstr "Adresse introuvable. Déplacez le repère manuellement sur la carte."
 
 #: libraries/templates/libraries/submit_library.html:630
 msgid "Address lookup returned invalid coordinates."
-msgstr "La ricerca dell'indirizzo ha restituito coordinate non valide."
+msgstr "La recherche d'adresse a renvoyé des coordonnées invalides."
 
 #: libraries/templates/libraries/submit_library.html:635
 msgid "Map centered from address. Drag marker if you need to refine the point."
-msgstr "Mappa centrata dall'indirizzo. Trascina il marcatore se devi affinare il punto."
+msgstr "Carte centrée à partir de l'adresse. Faites glisser le repère pour affiner le point si besoin."
 
 #: libraries/templates/libraries/submit_library.html:637
 msgid "Geocoding is unavailable right now. You can still click the map to pick coordinates."
-msgstr "La geocodifica non è disponibile al momento. Puoi comunque cliccare sulla mappa per scegliere le coordinate."
+msgstr "Le géocodage est indisponible pour le moment. Vous pouvez toujours cliquer sur la carte pour choisir les coordonnées."
 
 #: libraries/templates/libraries/submit_library_confirmation.html:4
 #: libraries/templates/libraries/submit_library_confirmation.html:11
 msgid "Submission received"
-msgstr "Invio ricevuto"
+msgstr "Envoi reçu"
 
 #: libraries/templates/libraries/submit_library_confirmation.html:5
 msgid "Your library submission was received and is now waiting for moderation approval on Book Corners."
-msgstr "La tua libreria è stata ricevuta ed è in attesa di approvazione da parte dei moderatori su Book Corners."
+msgstr "Votre boîte à livres a bien été reçue et attend maintenant l'approbation des modérateurs de Book Corners."
 
 #: libraries/templates/libraries/submit_library_confirmation.html:13
 msgid "Thanks for contributing. Your library submission has been sent to moderators. It will be reviewed and approved as soon as possible."
-msgstr "Grazie per il contributo. La tua libreria è stata inviata ai moderatori. Verrà revisionata e approvata il prima possibile."
+msgstr "Merci pour votre contribution. Votre boîte à livres a été transmise aux modérateurs. Elle sera examinée et approuvée dès que possible."
 
 #: libraries/templates/libraries/submit_library_confirmation.html:16
 msgid "Continue"
-msgstr "Continua"
+msgstr "Continuer"
 
 #: libraries/views.py:646
 msgid "Your changes were saved for review. The approved library remains live until moderators approve the update."
-msgstr "Le tue modifiche sono state salvate per la revisione. La libreria approvata rimane visibile finché i moderatori non approvano l'aggiornamento."
+msgstr "Vos modifications ont été enregistrées pour examen. La boîte à livres approuvée reste en ligne jusqu'à ce que les modérateurs approuvent la mise à jour."
 
 #: libraries/views.py:650
 msgid "No new changes were saved. Your existing changes remain under moderator review."
-msgstr "Non sono state salvate nuove modifiche. Le modifiche esistenti rimangono in attesa di revisione."
+msgstr "Aucune nouvelle modification n'a été enregistrée. Vos modifications existantes restent en cours d'examen par les modérateurs."
 
 #: libraries/views.py:654
 msgid "No changes were found. The approved library remains live."
-msgstr "Non sono state rilevate modifiche. La libreria approvata rimane visibile."
+msgstr "Aucune modification détectée. La boîte à livres approuvée reste en ligne."
 
 #: libraries/views.py:660
 msgid "Your changes were saved and remain under moderator review."
-msgstr "Le tue modifiche sono state salvate e restano in attesa di revisione da parte dei moderatori."
+msgstr "Vos modifications ont été enregistrées et restent en cours d'examen par les modérateurs."
 
 #: libraries/views.py:672 manage/templates/manage/libraries/edit.html:4
 #: manage/templates/manage/libraries/edit.html:15
 #: manage/templates/manage/libraries/edit.html:31
 msgid "Edit library"
-msgstr "Modifica libreria"
+msgstr "Modifier la boîte à livres"
 
 #: libraries/views.py:675
 msgid "Update your library details. The current approved version stays live while your changes are reviewed."
-msgstr "Aggiorna i dettagli della tua libreria. La versione attualmente approvata rimane visibile mentre le modifiche vengono revisionate."
+msgstr "Mettez à jour les informations de votre boîte à livres. La version approuvée actuelle reste en ligne pendant l'examen de vos modifications."
 
 #: libraries/views.py:679
 msgid "Update your library details. Changes will be sent back to moderators before they appear publicly."
-msgstr "Aggiorna i dettagli della tua libreria. Le modifiche saranno inviate di nuovo ai moderatori prima di apparire pubblicamente."
+msgstr "Mettez à jour les informations de votre boîte à livres. Les modifications seront renvoyées aux modérateurs avant d'apparaître publiquement."
 
 #: libraries/views.py:684
 msgid "Only your proposed changes are reviewed. They replace the current details after moderator approval."
-msgstr "Vengono revisionate solo le modifiche proposte. Sostituiranno i dettagli attuali dopo l'approvazione dei moderatori."
+msgstr "Seules vos modifications proposées sont examinées. Elles remplacent les informations actuelles après approbation par un modérateur."
 
 #: libraries/views.py:688
 msgid "Changes are reviewed before they become live. After you save, moderators will approve the update before it appears publicly."
-msgstr "Le modifiche vengono revisionate prima di diventare visibili. Dopo il salvataggio, i moderatori approveranno l'aggiornamento prima che appaia pubblicamente."
+msgstr "Les modifications sont examinées avant d'être mises en ligne. Après l'enregistrement, les modérateurs approuveront la mise à jour avant qu'elle n'apparaisse publiquement."
 
 #: libraries/views.py:691
 msgid "Edit a library you submitted on Book Corners."
-msgstr "Modifica una libreria che hai inviato su Book Corners."
+msgstr "Modifiez une boîte à livres que vous avez ajoutée sur Book Corners."
 
 #: libraries/views.py:692 manage/templates/manage/libraries/edit.html:194
 msgid "Save changes"
-msgstr "Salva modifiche"
+msgstr "Enregistrer les modifications"
 
 #: libraries/views.py:693
 msgid "Replace photo (optional)"
-msgstr "Sostituisci foto (opzionale)"
+msgstr "Remplacer la photo (facultatif)"
 
 #: libraries/views.py:694
 msgid "Leave this empty to keep the current photo."
-msgstr "Lascia vuoto questo campo per mantenere la foto attuale."
+msgstr "Laissez ce champ vide pour conserver la photo actuelle."
 
 #: libraries/views.py:695
 msgid "Update exact location"
-msgstr "Aggiorna posizione esatta"
+msgstr "Mettre à jour l'emplacement exact"
 
 #: libraries/views.py:696
 msgid "Use the map to adjust the saved point, or keep the marker where it is."
-msgstr "Usa la mappa per regolare il punto salvato, oppure lascia il marker dov'è."
+msgstr "Utilisez la carte pour ajuster le point enregistré, ou laissez le repère où il se trouve."
 
 #: libraries/views.py:697
 msgid "Saved marker loaded. Drag it or click the map to adjust the location."
-msgstr "Marker salvato caricato. Trascinalo o fai clic sulla mappa per regolare la posizione."
+msgstr "Repère enregistré chargé. Faites-le glisser ou cliquez sur la carte pour ajuster l'emplacement."
 
 #: libraries/views.py:896
 msgid "Share a public bookcase with the community. Set the exact point on the map before submitting."
-msgstr "Condividi una casetta dei libri con la community. Imposta il punto esatto sulla mappa prima di inviare."
+msgstr "Partagez une boîte à livres avec la communauté. Placez le point exact sur la carte avant de l'envoyer."
 
 #: libraries/views.py:897
 msgid "Submit a public bookcase to Book Corners with a photo, location, and address details."
-msgstr "Invia una casetta dei libri a Book Corners con foto, posizione e dettagli dell'indirizzo."
+msgstr "Ajoutez une boîte à livres sur Book Corners avec une photo, son emplacement et son adresse."
 
 #: libraries/views.py:898
 msgid "Submit library"
-msgstr "Invia libreria"
+msgstr "Envoyer la boîte à livres"
 
 #: libraries/views.py:899
 msgid "Photo (required)"
-msgstr "Foto (obbligatoria)"
+msgstr "Photo (obligatoire)"
 
 #: libraries/views.py:901
 msgid "Upload a clear photo showing the library. It helps moderators verify it and helps visitors recognise it."
-msgstr "Carica una foto nitida che mostri la libreria. Aiuta i moderatori a verificarla e i visitatori a riconoscerla."
+msgstr "Téléversez une photo nette de la boîte à livres. Elle aide les modérateurs à la vérifier et les visiteurs à la reconnaître."
 
 #: libraries/views.py:903
 msgid "Set exact location"
-msgstr "Imposta posizione esatta"
+msgstr "Définir l'emplacement exact"
 
 #: libraries/views.py:904
 msgid "Type an address and choose a suggestion to center the map. Drag the marker to refine the exact point."
-msgstr "Digita un indirizzo e scegli un suggerimento per centrare la mappa. Trascina il marcatore per affinare il punto esatto."
+msgstr "Saisissez une adresse et choisissez une suggestion pour centrer la carte. Faites glisser le repère pour affiner le point exact."
 
 #: libraries/views.py:905
 msgid "Choose the map point by centering from address, dragging marker, or clicking map."
-msgstr "Scegli il punto sulla mappa centrando dall'indirizzo, trascinando il marcatore o cliccando sulla mappa."
+msgstr "Choisissez le point sur la carte en centrant à partir de l'adresse, en faisant glisser le repère ou en cliquant sur la carte."
 
 #: manage/forms.py:17 manage/templates/manage/photos/list.html:28
 #: manage/templates/manage/reports/list.html:28
 msgid "All statuses"
-msgstr "Tutti gli stati"
+msgstr "Tous les statuts"
 
 #: manage/forms.py:37 manage/templates/manage/libraries/edit.html:157
 msgid "Latitude"
-msgstr "Latitudine"
+msgstr "Latitude"
 
 #: manage/forms.py:38 manage/templates/manage/libraries/edit.html:163
 msgid "Longitude"
-msgstr "Longitudine"
+msgstr "Longitude"
 
 #: manage/templates/manage/base.html:12
 msgid "Open admin menu"
-msgstr "Apri menu amministrazione"
+msgstr "Ouvrir le menu d'administration"
 
 #: manage/templates/manage/base.html:17 manage/templates/manage/base.html:31
 #: manage/templates/manage/dashboard.html:4
@@ -1537,15 +1535,15 @@ msgstr "Apri menu amministrazione"
 #: manage/templates/manage/users/list.html:4 templates/base.html:38
 #: templates/base.html:75
 msgid "Manage"
-msgstr "Gestione"
+msgstr "Gérer"
 
 #: manage/templates/manage/base.html:28
 msgid "Close admin menu"
-msgstr "Chiudi menu amministrazione"
+msgstr "Fermer le menu d'administration"
 
 #: manage/templates/manage/base.html:32
 msgid "Administration"
-msgstr "Amministrazione"
+msgstr "Administration"
 
 #: manage/templates/manage/base.html:41
 #: manage/templates/manage/dashboard.html:7
@@ -1561,7 +1559,7 @@ msgstr "Amministrazione"
 #: manage/templates/manage/users/detail.html:11
 #: manage/templates/manage/users/list.html:11
 msgid "Dashboard"
-msgstr "Bacheca"
+msgstr "Tableau de bord"
 
 #: manage/templates/manage/base.html:57
 #: manage/templates/manage/photos/list.html:4
@@ -1569,7 +1567,7 @@ msgstr "Bacheca"
 #: manage/templates/manage/photos/list.html:12
 #: manage/templates/manage/photos/list.html:19
 msgid "Photos"
-msgstr "Foto"
+msgstr "Photos"
 
 #: manage/templates/manage/base.html:73
 #: manage/templates/manage/users/detail.html:12
@@ -1578,135 +1576,135 @@ msgstr "Foto"
 #: manage/templates/manage/users/list.html:12
 #: manage/templates/manage/users/list.html:19
 msgid "Users"
-msgstr "Utenti"
+msgstr "Utilisateurs"
 
 #: manage/templates/manage/base.html:87
 msgid "Django Admin"
-msgstr "Django Admin"
+msgstr "Administration Django"
 
 #: manage/templates/manage/base.html:95
 msgid "View Site"
-msgstr "Visualizza sito"
+msgstr "Voir le site"
 
 #: manage/templates/manage/dashboard.html:5
 msgid "Book Corners administration dashboard."
-msgstr "Pannello di amministrazione di Book Corners."
+msgstr "Tableau de bord d'administration de Book Corners."
 
 #: manage/templates/manage/dashboard.html:15
 msgid "Total Approved"
-msgstr "Totale approvate"
+msgstr "Total approuvé"
 
 #: manage/templates/manage/dashboard.html:17
 msgid "libraries"
-msgstr "librerie"
+msgstr "boîtes à livres"
 
 #: manage/templates/manage/dashboard.html:21
 msgid "Total Users"
-msgstr "Utenti totali"
+msgstr "Total des utilisateurs"
 
 #: manage/templates/manage/dashboard.html:26
 msgid "Pending Moderation"
-msgstr "In attesa di moderazione"
+msgstr "En attente de modération"
 
 #: manage/templates/manage/dashboard.html:28
 msgid "items awaiting review"
-msgstr "elementi in attesa di revisione"
+msgstr "éléments en attente d'examen"
 
 #: manage/templates/manage/dashboard.html:32
 #: manage/templates/manage/dashboard.html:76 templates/admin/index.html:76
 msgid "Open Reports"
-msgstr "Segnalazioni aperte"
+msgstr "Signalements ouverts"
 
 #: manage/templates/manage/dashboard.html:43 templates/admin/index.html:71
 msgid "Pending Libraries"
-msgstr "Librerie in attesa"
+msgstr "Boîtes à livres en attente"
 
 #: manage/templates/manage/dashboard.html:55
 #: manage/templates/manage/libraries/_row.html:14
 #: manage/templates/manage/libraries/detail.html:29
 msgid "Changes pending"
-msgstr "Modifiche in attesa"
+msgstr "Modifications en attente"
 
 #: manage/templates/manage/dashboard.html:55
 #: manage/templates/manage/libraries/_row.html:16
 msgid "New submission"
-msgstr "Nuovo invio"
+msgstr "Nouvel envoi"
 
 #: manage/templates/manage/dashboard.html:58
 #: manage/templates/manage/dashboard.html:88
 #: manage/templates/manage/dashboard.html:118
 #, python-format
 msgid "%(since)s ago"
-msgstr "%(since)s fa"
+msgstr "il y a %(since)s"
 
 #: manage/templates/manage/dashboard.html:65
 #: manage/templates/manage/dashboard.html:95
 #: manage/templates/manage/dashboard.html:125
 msgid "View all"
-msgstr "Vedi tutte"
+msgstr "Tout voir"
 
 #: manage/templates/manage/dashboard.html:69
 msgid "No pending libraries."
-msgstr "Nessuna libreria in attesa."
+msgstr "Aucune boîte à livres en attente."
 
 #: manage/templates/manage/dashboard.html:99
 msgid "No open reports."
-msgstr "Nessuna segnalazione aperta."
+msgstr "Aucun signalement ouvert."
 
 #: manage/templates/manage/dashboard.html:106 templates/admin/index.html:81
 msgid "Pending Photos"
-msgstr "Foto in attesa"
+msgstr "Photos en attente"
 
 #: manage/templates/manage/dashboard.html:116
 msgid "No caption"
-msgstr "Senza didascalia"
+msgstr "Sans légende"
 
 #: manage/templates/manage/dashboard.html:129
 msgid "No pending photos."
-msgstr "Nessuna foto in attesa."
+msgstr "Aucune photo en attente."
 
 #: manage/templates/manage/libraries/_report_card.html:20
 #: manage/templates/manage/reports/_row.html:21
 msgid "Resolve"
-msgstr "Risolvi"
+msgstr "Résoudre"
 
 #: manage/templates/manage/libraries/_report_card.html:24
 #: manage/templates/manage/reports/_row.html:24
 msgid "Dismiss"
-msgstr "Archivia"
+msgstr "Classer sans suite"
 
 #: manage/templates/manage/libraries/_report_card.html:32
 msgid "Report photo"
-msgstr "Foto della segnalazione"
+msgstr "Photo du signalement"
 
 #: manage/templates/manage/libraries/_row.html:27
 #: manage/templates/manage/libraries/detail.html:53
 #: manage/templates/manage/photos/_card.html:30
 msgid "Approve"
-msgstr "Approva"
+msgstr "Approuver"
 
 #: manage/templates/manage/libraries/_row.html:32
 #: manage/templates/manage/libraries/detail.html:61
 #: manage/templates/manage/libraries/detail.html:220
 #: manage/templates/manage/photos/_card.html:33
 msgid "Reject"
-msgstr "Rifiuta"
+msgstr "Refuser"
 
 #: manage/templates/manage/libraries/_table.html:7
 #: manage/templates/manage/photos/_grid.html:7
 #: manage/templates/manage/reports/_table.html:7
 msgid "Bulk actions..."
-msgstr "Azioni di massa..."
+msgstr "Actions groupées..."
 
 #: manage/templates/manage/libraries/_table.html:8
 #: manage/templates/manage/photos/_grid.html:8
 msgid "Approve selected"
-msgstr "Approva selezionate"
+msgstr "Approuver la sélection"
 
 #: manage/templates/manage/libraries/_table.html:9
 #: manage/templates/manage/photos/_grid.html:9
 msgid "Reject selected"
-msgstr "Rifiuta selezionate"
+msgstr "Refuser la sélection"
 
 #: manage/templates/manage/libraries/_table.html:11
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:58
@@ -1714,7 +1712,7 @@ msgstr "Rifiuta selezionate"
 #: manage/templates/manage/reports/_table.html:11
 #: templates/admin/libraries/ai_enrich_confirm.html:44
 msgid "Apply"
-msgstr "Applica"
+msgstr "Appliquer"
 
 #: manage/templates/manage/libraries/_table.html:22
 #: manage/templates/manage/libraries/duplicates.html:70
@@ -1728,7 +1726,7 @@ msgstr "Applica"
 #: manage/templates/manage/users/detail.html:113
 #: templates/admin/libraries/find_duplicates.html:92 templates/base.html:159
 msgid "Status"
-msgstr "Stato"
+msgstr "Statut"
 
 #: manage/templates/manage/libraries/_table.html:23
 #: manage/templates/manage/libraries/detail.html:22
@@ -1737,16 +1735,16 @@ msgstr "Stato"
 #: templates/admin/libraries/find_duplicates.html:93
 #: templates/admin/libraries/geojson_import_result.html:24
 msgid "Created"
-msgstr "Creata"
+msgstr "Créé le"
 
 #: manage/templates/manage/libraries/_table.html:24
 #: manage/templates/manage/reports/_table.html:24
 msgid "Actions"
-msgstr "Azioni"
+msgstr "Actions"
 
 #: manage/templates/manage/libraries/_table.html:32
 msgid "No libraries found."
-msgstr "Nessuna libreria trovata."
+msgstr "Aucune boîte à livres trouvée."
 
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:4
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:6
@@ -1754,23 +1752,23 @@ msgstr "Nessuna libreria trovata."
 #: manage/templates/manage/libraries/detail.html:68
 #: templates/admin/libraries/library/change_form.html:31
 msgid "AI Enrich"
-msgstr "Arricchisci con IA"
+msgstr "Enrichir par IA"
 
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:34
 #: manage/templates/manage/libraries/detail.html:98
 msgid "Current"
-msgstr "Attuale"
+msgstr "Actuel"
 
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:35
 msgid "AI Suggestion"
-msgstr "Suggerimento IA"
+msgstr "Suggestion de l'IA"
 
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:45
 #: manage/templates/manage/libraries/detail.html:139
 #: manage/templates/manage/libraries/edit.html:55
 #: templates/admin/libraries/ai_enrich_confirm.html:32
 msgid "Description"
-msgstr "Descrizione"
+msgstr "Description"
 
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:60
 #: manage/templates/manage/libraries/edit.html:195
@@ -1782,112 +1780,112 @@ msgstr "Descrizione"
 #: users/templates/users/change_password.html:41
 #: users/templates/users/delete_account.html:39
 msgid "Cancel"
-msgstr "Annulla"
+msgstr "Annuler"
 
 #: manage/templates/manage/libraries/detail.html:31
 msgid "View on site"
-msgstr "Visualizza sul sito"
+msgstr "Voir sur le site"
 
 #: manage/templates/manage/libraries/detail.html:44
 msgid "No photo"
-msgstr "Nessuna foto"
+msgstr "Aucune photo"
 
 #: manage/templates/manage/libraries/detail.html:53
 msgid "Approve changes"
-msgstr "Approva modifiche"
+msgstr "Approuver les modifications"
 
 #: manage/templates/manage/libraries/detail.html:61
 msgid "Reject changes"
-msgstr "Rifiuta modifiche"
+msgstr "Refuser les modifications"
 
 #: manage/templates/manage/libraries/detail.html:71
 msgid "Edit details"
-msgstr "Modifica dettagli"
+msgstr "Modifier les détails"
 
 #: manage/templates/manage/libraries/detail.html:72
 #: manage/templates/manage/libraries/edit.html:34
 #: manage/templates/manage/users/detail.html:60
 msgid "Edit in Django Admin"
-msgstr "Modifica in Django Admin"
+msgstr "Modifier dans l'administration Django"
 
 #: manage/templates/manage/libraries/detail.html:80
 msgid "Pending changes"
-msgstr "Modifiche in attesa"
+msgstr "Modifications en attente"
 
 #: manage/templates/manage/libraries/detail.html:82
 msgid "Only the proposed changes below are under review. The approved library remains live until these changes are accepted."
-msgstr "Solo le modifiche proposte qui sotto sono in revisione. La libreria approvata rimane visibile finché queste modifiche non vengono accettate."
+msgstr "Seules les modifications proposées ci-dessous sont en cours d'examen. La boîte à livres approuvée reste en ligne jusqu'à l'acceptation de ces modifications."
 
 #: manage/templates/manage/libraries/detail.html:87
 msgid "Replacement photo"
-msgstr "Foto sostitutiva"
+msgstr "Photo de remplacement"
 
 #: manage/templates/manage/libraries/detail.html:88
 msgid "Proposed replacement photo"
-msgstr "Foto sostitutiva proposta"
+msgstr "Photo de remplacement proposée"
 
 #: manage/templates/manage/libraries/detail.html:97
 #: templates/admin/libraries/ai_enrich_confirm.html:20
 msgid "Field"
-msgstr "Campo"
+msgstr "Champ"
 
 #: manage/templates/manage/libraries/detail.html:99
 msgid "Proposed"
-msgstr "Proposto"
+msgstr "Proposé"
 
 #: manage/templates/manage/libraries/detail.html:122
 #: manage/templates/manage/libraries/duplicates.html:67
 #: manage/templates/manage/libraries/edit.html:61
 #: templates/admin/libraries/find_duplicates.html:89
 msgid "Address"
-msgstr "Indirizzo"
+msgstr "Adresse"
 
 #: manage/templates/manage/libraries/detail.html:134
 #: manage/templates/manage/libraries/edit.html:79
 msgid "Postal code"
-msgstr "CAP"
+msgstr "Code postal"
 
 #: manage/templates/manage/libraries/detail.html:154
 #: manage/templates/manage/libraries/edit.html:87
 msgid "Additional info"
-msgstr "Informazioni aggiuntive"
+msgstr "Informations complémentaires"
 
 #: manage/templates/manage/libraries/detail.html:157
 #: manage/templates/manage/libraries/edit.html:90
 msgid "Wheelchair accessible"
-msgstr "Accessibile in sedia a rotelle"
+msgstr "Accessible en fauteuil roulant"
 
 #: manage/templates/manage/libraries/detail.html:161
 #: manage/templates/manage/libraries/edit.html:96
 msgid "Capacity"
-msgstr "Capacità"
+msgstr "Capacité"
 
 #: manage/templates/manage/libraries/detail.html:165
 #: manage/templates/manage/libraries/edit.html:102
 msgid "Indoor"
-msgstr "Al chiuso"
+msgstr "En intérieur"
 
 #: manage/templates/manage/libraries/detail.html:169
 #: manage/templates/manage/libraries/edit.html:108
 msgid "Lit"
-msgstr "Illuminata"
+msgstr "Éclairée"
 
 #: manage/templates/manage/libraries/detail.html:173
 #: manage/templates/manage/libraries/edit.html:126
 #: manage/templates/manage/libraries/import.html:40
 #: manage/templates/manage/libraries/list.html:38
 msgid "Source"
-msgstr "Fonte"
+msgstr "Source"
 
 #: manage/templates/manage/libraries/detail.html:177
 #: manage/templates/manage/libraries/edit.html:132
 msgid "Operator"
-msgstr "Gestore"
+msgstr "Exploitant"
 
 #: manage/templates/manage/libraries/detail.html:181
 #: manage/templates/manage/libraries/edit.html:138
 msgid "Brand"
-msgstr "Marchio"
+msgstr "Marque"
 
 #: manage/templates/manage/libraries/detail.html:185
 #: manage/templates/manage/libraries/duplicates.html:69
@@ -1895,19 +1893,19 @@ msgstr "Marchio"
 #: templates/admin/libraries/find_duplicates.html:91
 #: templates/admin/libraries/geojson_import_result.html:57
 msgid "External ID"
-msgstr "ID esterno"
+msgstr "ID externe"
 
 #: manage/templates/manage/libraries/detail.html:189
 msgid "Submitted by"
-msgstr "Inviata da"
+msgstr "Soumise par"
 
 #: manage/templates/manage/libraries/detail.html:198
 msgid "Community Photos"
-msgstr "Foto della community"
+msgstr "Photos de la communauté"
 
 #: manage/templates/manage/libraries/detail.html:213
 msgid "Approve as main photo"
-msgstr "Approva come foto principale"
+msgstr "Approuver comme photo principale"
 
 #: manage/templates/manage/libraries/duplicates.html:4
 #: manage/templates/manage/libraries/duplicates.html:6
@@ -1918,45 +1916,45 @@ msgstr "Approva come foto principale"
 #: templates/admin/libraries/find_duplicates.html:47
 #: templates/admin/libraries/library_changelist.html:12
 msgid "Find Duplicates"
-msgstr "Trova duplicati"
+msgstr "Rechercher les doublons"
 
 #: manage/templates/manage/libraries/duplicates.html:23
 #, python-format
 msgid "%(count)s library deleted."
 msgid_plural "%(count)s libraries deleted."
-msgstr[0] "%(count)s libreria eliminata."
-msgstr[1] "%(count)s librerie eliminate."
+msgstr[0] "%(count)s boîte à livres supprimée."
+msgstr[1] "%(count)s boîtes à livres supprimées."
 
 #: manage/templates/manage/libraries/duplicates.html:30
 msgid "Radius (meters)"
-msgstr "Raggio (metri)"
+msgstr "Rayon (mètres)"
 
 #: manage/templates/manage/libraries/duplicates.html:43
 #: templates/admin/libraries/find_duplicates.html:62
 msgid "Include proximity matches"
-msgstr "Includi corrispondenze per prossimità"
+msgstr "Inclure les correspondances de proximité"
 
 #: manage/templates/manage/libraries/duplicates.html:45
 #: templates/admin/libraries/find_duplicates.html:64
 msgid "Scan"
-msgstr "Scansiona"
+msgstr "Analyser"
 
 #: manage/templates/manage/libraries/duplicates.html:53
 msgid "groups"
-msgstr "gruppi"
+msgstr "groupes"
 
 #: manage/templates/manage/libraries/duplicates.html:53
 msgid "duplicates found"
-msgstr "duplicati trovati"
+msgstr "doublons trouvés"
 
 #: manage/templates/manage/libraries/duplicates.html:54
 msgid "The oldest entry in each group (highlighted) is kept by default."
-msgstr "La voce più vecchia in ogni gruppo (evidenziata) viene mantenuta per impostazione predefinita."
+msgstr "L'entrée la plus ancienne de chaque groupe (en surbrillance) est conservée par défaut."
 
 #: manage/templates/manage/libraries/duplicates.html:64
 #: templates/admin/libraries/find_duplicates.html:86
 msgid "Delete"
-msgstr "Elimina"
+msgstr "Supprimer"
 
 #: manage/templates/manage/libraries/duplicates.html:65
 #: templates/admin/libraries/find_duplicates.html:87
@@ -1966,34 +1964,34 @@ msgstr "ID"
 #: manage/templates/manage/libraries/duplicates.html:102
 #: templates/admin/libraries/find_duplicates.html:118
 msgid "Are you sure you want to delete the selected libraries?"
-msgstr "Sei sicuro di voler eliminare le librerie selezionate?"
+msgstr "Voulez-vous vraiment supprimer les boîtes à livres sélectionnées ?"
 
 #: manage/templates/manage/libraries/duplicates.html:103
 #: templates/admin/libraries/find_duplicates.html:117
 msgid "Delete selected duplicates"
-msgstr "Elimina duplicati selezionati"
+msgstr "Supprimer les doublons sélectionnés"
 
 #: manage/templates/manage/libraries/duplicates.html:107
 #: templates/admin/libraries/find_duplicates.html:123
 msgid "No duplicates found."
-msgstr "Nessun duplicato trovato."
+msgstr "Aucun doublon trouvé."
 
 #: manage/templates/manage/libraries/edit.html:114
 msgid "Website"
-msgstr "Sito web"
+msgstr "Site web"
 
 #: manage/templates/manage/libraries/edit.html:120
 msgid "Contact"
-msgstr "Contatto"
+msgstr "Contact"
 
 #: manage/templates/manage/libraries/edit.html:154
 #: manage/views/libraries.py:158
 msgid "Location"
-msgstr "Posizione"
+msgstr "Emplacement"
 
 #: manage/templates/manage/libraries/edit.html:177
 msgid "Moderation"
-msgstr "Moderazione"
+msgstr "Modération"
 
 #: manage/templates/manage/libraries/import.html:4
 #: manage/templates/manage/libraries/import.html:6
@@ -2004,43 +2002,43 @@ msgstr "Moderazione"
 #: templates/admin/libraries/geojson_import_form.html:10
 #: templates/admin/libraries/library_changelist.html:9
 msgid "Import GeoJSON"
-msgstr "Importa GeoJSON"
+msgstr "Importer un GeoJSON"
 
 #: manage/templates/manage/libraries/import.html:34
 msgid "GeoJSON file"
-msgstr "File GeoJSON"
+msgstr "Fichier GeoJSON"
 
 #: manage/templates/manage/libraries/import.html:36
 msgid "Upload a GeoJSON file with addr:street, addr:city, and addr:country properties."
-msgstr "Carica un file GeoJSON con le proprietà addr:street, addr:city e addr:country."
+msgstr "Téléversez un fichier GeoJSON contenant les propriétés addr:street, addr:city et addr:country."
 
 #: manage/templates/manage/libraries/import.html:41
 msgid "e.g. OpenStreetMap / MapComplete"
-msgstr "es. OpenStreetMap / MapComplete"
+msgstr "p. ex. OpenStreetMap / MapComplete"
 
 #: manage/templates/manage/libraries/import.html:42
 #: templates/admin/libraries/geojson_import_form.html:30
 msgid "Applied to all imported libraries. Leave blank if not needed."
-msgstr "Applicato a tutte le librerie importate. Lascia vuoto se non necessario."
+msgstr "Appliquée à toutes les boîtes à livres importées. Laissez vide si inutile."
 
 #: manage/templates/manage/libraries/import.html:51
 #: templates/admin/libraries/geojson_import_form.html:39
 msgid "Status applied to all imported libraries."
-msgstr "Stato applicato a tutte le librerie importate."
+msgstr "Statut appliqué à toutes les boîtes à livres importées."
 
 #: manage/templates/manage/libraries/list.html:21
 #: manage/templates/manage/photos/list.html:20
 #: manage/templates/manage/reports/list.html:20
 #: manage/templates/manage/users/list.html:20
 msgid "results"
-msgstr "risultati"
+msgstr "résultats"
 
 #: manage/templates/manage/libraries/list.html:45
 #: manage/templates/manage/photos/list.html:42
 #: manage/templates/manage/reports/list.html:43
 #: manage/templates/manage/users/list.html:38
 msgid "Filter"
-msgstr "Filtra"
+msgstr "Filtrer"
 
 #: manage/templates/manage/photos/_card.html:15
 #: manage/templates/manage/photos/list.html:38
@@ -2054,321 +2052,321 @@ msgstr "Principale"
 #: templates/admin/libraries/photo_grid.html:155
 #: templates/admin/libraries/photo_grid.html:174
 msgid "Community"
-msgstr "Comunità"
+msgstr "Communauté"
 
 #: manage/templates/manage/photos/_grid.html:12
 msgid "Bulk actions apply to community photos only."
-msgstr "Le azioni di massa si applicano solo alle foto della community."
+msgstr "Les actions groupées s'appliquent uniquement aux photos de la communauté."
 
 #: manage/templates/manage/photos/_grid.html:20
 msgid "No photos found."
-msgstr "Nessuna foto trovata."
+msgstr "Aucune photo trouvée."
 
 #: manage/templates/manage/photos/list.html:35
 msgid "Type"
-msgstr "Tipo"
+msgstr "Type"
 
 #: manage/templates/manage/photos/list.html:37
 msgid "All types"
-msgstr "Tutti i tipi"
+msgstr "Tous les types"
 
 #: manage/templates/manage/reports/_table.html:8
 msgid "Resolve selected"
-msgstr "Risolvi selezionate"
+msgstr "Résoudre la sélection"
 
 #: manage/templates/manage/reports/_table.html:9
 msgid "Dismiss selected"
-msgstr "Archivia selezionate"
+msgstr "Classer la sélection sans suite"
 
 #: manage/templates/manage/reports/_table.html:19
 #: manage/templates/manage/users/detail.html:111 templates/admin/index.html:114
 #: templates/admin/index.html:136
 msgid "Library"
-msgstr "Libreria"
+msgstr "Boîte à livres"
 
 #: manage/templates/manage/reports/_table.html:22
 msgid "Reporter"
-msgstr "Segnalatore"
+msgstr "Auteur du signalement"
 
 #: manage/templates/manage/reports/_table.html:23
 #: manage/templates/manage/users/detail.html:114
 msgid "Date"
-msgstr "Data"
+msgstr "Date"
 
 #: manage/templates/manage/reports/_table.html:32
 msgid "No reports found."
-msgstr "Nessuna segnalazione trovata."
+msgstr "Aucun signalement trouvé."
 
 #: manage/templates/manage/reports/list.html:37
 msgid "All reasons"
-msgstr "Tutti i motivi"
+msgstr "Tous les motifs"
 
 #: manage/templates/manage/users/_table.html:10
 #: manage/templates/manage/users/_table.html:29
 #: manage/templates/manage/users/detail.html:26
 #: manage/templates/manage/users/list.html:34
 msgid "Active"
-msgstr "Attivo"
+msgstr "Actif"
 
 #: manage/templates/manage/users/_table.html:12
 #: manage/templates/manage/users/detail.html:47
 msgid "Joined"
-msgstr "Iscritto"
+msgstr "Inscrit le"
 
 #: manage/templates/manage/users/_table.html:31
 #: manage/templates/manage/users/detail.html:28
 #: manage/templates/manage/users/list.html:35
 msgid "Inactive"
-msgstr "Inattivo"
+msgstr "Inactif"
 
 #: manage/templates/manage/users/_table.html:39
 msgid "No users found."
-msgstr "Nessun utente trovato."
+msgstr "Aucun utilisateur trouvé."
 
 #: manage/templates/manage/users/detail.html:36
 msgid "Account"
-msgstr "Account"
+msgstr "Compte"
 
 #: manage/templates/manage/users/detail.html:51
 msgid "Last login"
-msgstr "Ultimo accesso"
+msgstr "Dernière connexion"
 
 #: manage/templates/manage/users/detail.html:55 templates/base.html:190
 msgid "Language"
-msgstr "Lingua"
+msgstr "Langue"
 
 #: manage/templates/manage/users/detail.html:67
 msgid "Library Submissions"
-msgstr "Librerie inviate"
+msgstr "Boîtes à livres soumises"
 
 #: manage/templates/manage/users/detail.html:100
 msgid "No library submissions."
-msgstr "Nessuna libreria inviata."
+msgstr "Aucune boîte à livres soumise."
 
 #: manage/templates/manage/users/detail.html:106
 msgid "Reports Submitted"
-msgstr "Segnalazioni inviate"
+msgstr "Signalements envoyés"
 
 #: manage/templates/manage/users/list.html:27 users/forms.py:229
 #: users/templates/users/login.html:23
 msgid "Username or email"
-msgstr "Nome utente o email"
+msgstr "Nom d'utilisateur ou e-mail"
 
 #: manage/templates/manage/users/list.html:30
 msgid "Role"
-msgstr "Ruolo"
+msgstr "Rôle"
 
 #: manage/templates/manage/users/list.html:32
 msgid "All users"
-msgstr "Tutti gli utenti"
+msgstr "Tous les utilisateurs"
 
 #: manage/views/libraries.py:201
 msgid "Library changes approved."
-msgstr "Modifiche alla libreria approvate."
+msgstr "Modifications de la boîte à livres approuvées."
 
 #: manage/views/libraries.py:225
 msgid "Library approved."
-msgstr "Libreria approvata."
+msgstr "Boîte à livres approuvée."
 
 #: manage/views/libraries.py:249
 msgid "Library changes rejected."
-msgstr "Modifiche alla libreria rifiutate."
+msgstr "Modifications de la boîte à livres refusées."
 
 #: manage/views/libraries.py:269
 msgid "Library rejected."
-msgstr "Libreria rifiutata."
+msgstr "Boîte à livres refusée."
 
 #: manage/views/libraries.py:349
 msgid "Library details saved."
-msgstr "Dettagli della libreria salvati."
+msgstr "Informations de la boîte à livres enregistrées."
 
 #: manage/views/libraries.py:369
 msgid "Please select a GeoJSON file to upload."
-msgstr "Seleziona un file GeoJSON da caricare."
+msgstr "Veuillez sélectionner un fichier GeoJSON à téléverser."
 
 #: manage/views/libraries.py:376
 #, python-format
 msgid "Invalid GeoJSON file: %(error)s"
-msgstr "File GeoJSON non valido: %(error)s"
+msgstr "Fichier GeoJSON invalide : %(error)s"
 
 #: manage/views/libraries.py:405
 #, python-format
 msgid "Import of %(count)d features has been queued for background processing."
-msgstr "L'importazione di %(count)d elementi è stata messa in coda per l'elaborazione."
+msgstr "L'import de %(count)d éléments a été mis en file d'attente pour un traitement en arrière-plan."
 
 #: manage/views/photos.py:97
 msgid "Photo approved."
-msgstr "Foto approvata."
+msgstr "Photo approuvée."
 
 #: manage/views/photos.py:119
 msgid "Photo rejected."
-msgstr "Foto rifiutata."
+msgstr "Photo refusée."
 
 #: manage/views/reports.py:67
 msgid "Report resolved."
-msgstr "Segnalazione risolta."
+msgstr "Signalement résolu."
 
 #: manage/views/reports.py:82
 msgid "Report dismissed."
-msgstr "Segnalazione archiviata."
+msgstr "Signalement classé sans suite."
 
 #: templates/404.html:4 templates/404.html:12
 msgid "Page not found"
-msgstr "Pagina non trovata"
+msgstr "Page introuvable"
 
 #: templates/404.html:5
 msgid "The page you requested could not be found. Explore the map or return to the homepage."
-msgstr "La pagina richiesta non è stata trovata. Esplora la mappa o torna alla homepage."
+msgstr "La page demandée est introuvable. Explorez la carte ou retournez à l'accueil."
 
 #: templates/404.html:11
 msgid "Error 404"
-msgstr "Errore 404"
+msgstr "Erreur 404"
 
 #: templates/404.html:14
 msgid "We could not find the page you requested. It may have moved or the URL may be incorrect."
-msgstr "Non siamo riusciti a trovare la pagina richiesta. Potrebbe essere stata spostata o l'URL potrebbe non essere corretto."
+msgstr "Nous n'avons pas trouvé la page demandée. Elle a peut-être été déplacée ou l'URL est incorrecte."
 
 #: templates/404.html:17 templates/500.html:17
 msgid "Back to homepage"
-msgstr "Torna alla homepage"
+msgstr "Retour à l'accueil"
 
 #: templates/404.html:18 templates/500.html:18 templates/about.html:75
 #: templates/home.html:35
 msgid "Explore map"
-msgstr "Esplora la mappa"
+msgstr "Explorer la carte"
 
 #: templates/500.html:4
 msgid "Server error"
-msgstr "Errore del server"
+msgstr "Erreur du serveur"
 
 #: templates/500.html:5
 msgid "Book Corners encountered an unexpected error. Please try again shortly."
-msgstr "Book Corners ha riscontrato un errore imprevisto. Riprova tra poco."
+msgstr "Book Corners a rencontré une erreur inattendue. Veuillez réessayer dans un instant."
 
 #: templates/500.html:11
 msgid "Error 500"
-msgstr "Errore 500"
+msgstr "Erreur 500"
 
 #: templates/500.html:12
 msgid "Something went wrong"
-msgstr "Qualcosa è andato storto"
+msgstr "Une erreur s'est produite"
 
 #: templates/500.html:14
 msgid "Sorry, an unexpected error occurred on our side. Please try again in a moment."
-msgstr "Ci scusiamo, si è verificato un errore imprevisto. Riprova tra un momento."
+msgstr "Désolé, une erreur inattendue s'est produite de notre côté. Veuillez réessayer dans un instant."
 
 #: templates/about.html:4 templates/base.html:32 templates/base.html:69
 msgid "About"
-msgstr "Chi siamo"
+msgstr "À propos"
 
 #: templates/about.html:5
 msgid "Learn the mission behind Book Corners and how to contribute new neighborhood library entries."
-msgstr "Scopri la missione di Book Corners e come contribuire con nuove casette dei libri."
+msgstr "Découvrez la mission de Book Corners et comment ajouter de nouvelles boîtes à livres de quartier."
 
 #: templates/about.html:12
 msgid "Book Corners logo"
-msgstr "Logo di Book Corners"
+msgstr "Logo de Book Corners"
 
 #: templates/about.html:16
 msgid "About Book Corners"
-msgstr "Chi siamo"
+msgstr "À propos de Book Corners"
 
 #: templates/about.html:18
 msgid "Book Corners is a community map for public bookcases and neighborhood book exchange spots. The goal is simple: help people discover nearby places where they can leave a book or pick one up."
-msgstr "Book Corners è una mappa comunitaria per casette dei libri e punti di scambio libri di quartiere. L'obiettivo è semplice: aiutare le persone a scoprire luoghi vicini dove lasciare o prendere un libro."
+msgstr "Book Corners est une carte communautaire des boîtes à livres et des lieux d'échange de livres de quartier. L'objectif est simple : aider chacun à découvrir près de chez lui des endroits où déposer un livre ou en prendre un."
 
 #: templates/about.html:21
 msgid "Every library submitted by users is reviewed before publication, so the map stays useful, trustworthy, and welcoming to everyone."
-msgstr "Ogni libreria inviata dagli utenti viene revisionata prima della pubblicazione, così la mappa resta utile, affidabile e accogliente per tutti."
+msgstr "Chaque boîte à livres proposée par les utilisateurs est examinée avant publication, pour que la carte reste utile, fiable et accueillante pour tous."
 
 #: templates/about.html:36
 msgid "How to contribute"
-msgstr "Come contribuire"
+msgstr "Comment contribuer"
 
 #: templates/about.html:39
 msgid "You can contribute by submitting new libraries, improving location details, and reporting outdated entries so the map keeps improving over time."
-msgstr "Puoi contribuire inviando nuove librerie, migliorando i dettagli della posizione e segnalando voci obsolete per migliorare la mappa nel tempo."
+msgstr "Vous pouvez contribuer en ajoutant de nouvelles boîtes à livres, en améliorant les informations d'emplacement et en signalant les fiches obsolètes, pour que la carte s'améliore avec le temps."
 
 #: templates/about.html:42
 msgid "Add a new library in your neighborhood"
-msgstr "Aggiungi una nuova libreria nel tuo quartiere"
+msgstr "Ajoutez une nouvelle boîte à livres dans votre quartier"
 
 #: templates/about.html:43
 msgid "Improve address details and marker position"
-msgstr "Migliora i dettagli dell'indirizzo e la posizione del marcatore"
+msgstr "Améliorez les détails de l'adresse et la position du repère"
 
 #: templates/about.html:44
 msgid "Report places that are missing or no longer active"
-msgstr "Segnala luoghi mancanti o non più attivi"
+msgstr "Signalez les lieux manquants ou qui n'existent plus"
 
 #: templates/about.html:51
 msgid "About the creator"
-msgstr "Il creatore"
+msgstr "À propos du créateur"
 
 #: templates/about.html:55
 msgid "Andrea speaking at PyCon Italy"
-msgstr "Andrea parla al PyCon Italia"
+msgstr "Andrea lors d'une conférence à PyCon Italia"
 
 #: templates/about.html:59
 msgid "Hi, I am Andrea Grandi and I've been writing software for over 30 years. I built Book Corners as a practical side project to combine community tools, geospatial data, and a love for books into something useful."
-msgstr "Ciao, sono Andrea Grandi e scrivo software da oltre 30 anni. Ho creato Book Corners come progetto pratico per combinare strumenti comunitari, dati geospaziali e l'amore per i libri in qualcosa di utile."
+msgstr "Bonjour, je suis Andrea Grandi et j'écris des logiciels depuis plus de 30 ans. J'ai créé Book Corners comme projet personnel concret, pour réunir outils communautaires, données géospatiales et amour des livres dans quelque chose d'utile."
 
 #: templates/about.html:62
 msgid "I enjoy creating practical products that start simple and improve with real feedback from people using them. This project follows that spirit: small iterations, clear priorities, and community value."
-msgstr "Mi piace creare prodotti pratici che partono semplici e migliorano con il feedback reale delle persone che li usano. Questo progetto segue quello spirito: piccole iterazioni, priorità chiare e valore per la community."
+msgstr "J'aime créer des produits pratiques qui démarrent simplement et s'améliorent grâce aux retours de ceux qui les utilisent. Ce projet suit cet esprit : de petites itérations, des priorités claires et une valeur pour la communauté."
 
 #: templates/about.html:70
 msgid "Get involved"
-msgstr "Partecipa"
+msgstr "Participez"
 
 #: templates/about.html:72
 msgid "Explore the map, submit a library in your area, or follow the code on GitHub if you want to track updates and future improvements."
-msgstr "Esplora la mappa, invia una libreria nella tua zona, o segui il codice su GitHub se vuoi seguire aggiornamenti e miglioramenti futuri."
+msgstr "Explorez la carte, ajoutez une boîte à livres dans votre région, ou suivez le code sur GitHub pour suivre les mises à jour et les améliorations à venir."
 
 #: templates/about.html:77
 msgid "View source"
-msgstr "Codice sorgente"
+msgstr "Voir le code source"
 
 #: templates/admin/index.html:66
 msgid "Moderation Queue"
-msgstr "Coda di moderazione"
+msgstr "File de modération"
 
 #: templates/admin/index.html:72 templates/admin/index.html:77
 #: templates/admin/index.html:82
 msgid "View all &rarr;"
-msgstr "Vedi tutto &rarr;"
+msgstr "Tout voir &rarr;"
 
 #: templates/admin/index.html:88
 msgid "Recent Pending Libraries"
-msgstr "Librerie in attesa recenti"
+msgstr "Boîtes à livres récemment mises en attente"
 
 #: templates/admin/index.html:91
 msgid "Name / Address"
-msgstr "Nome / Indirizzo"
+msgstr "Nom / adresse"
 
 #: templates/admin/index.html:110
 msgid "Recent Open Reports"
-msgstr "Segnalazioni aperte recenti"
+msgstr "Signalements ouverts récents"
 
 #: templates/admin/index.html:132
 msgid "Recent Pending Photos"
-msgstr "Foto in attesa recenti"
+msgstr "Photos récemment mises en attente"
 
 #: templates/admin/libraries/ai_enrich_confirm.html:7
 msgid "AI Enrich: Review Suggestions"
-msgstr "Arricchisci con IA: Rivedi suggerimenti"
+msgstr "Enrichissement par IA : examen des suggestions"
 
 #: templates/admin/libraries/ai_enrich_confirm.html:9
 msgid "Review the AI-generated values below. Click Apply to update the library, or Cancel to discard."
-msgstr "Rivedi i valori generati dall'IA. Clicca Applica per aggiornare la libreria, o Annulla per scartare."
+msgstr "Examinez les valeurs générées par l'IA ci-dessous. Cliquez sur Appliquer pour mettre à jour la boîte à livres, ou sur Annuler pour les abandonner."
 
 #: templates/admin/libraries/ai_enrich_confirm.html:21
 msgid "Current value"
-msgstr "Valore attuale"
+msgstr "Valeur actuelle"
 
 #: templates/admin/libraries/ai_enrich_confirm.html:22
 msgid "AI suggestion"
-msgstr "Suggerimento IA"
+msgstr "Suggestion de l'IA"
 
 #: templates/admin/libraries/find_duplicates.html:4
 #: templates/admin/libraries/geojson_import_form.html:4
@@ -2376,7 +2374,7 @@ msgstr "Suggerimento IA"
 #: templates/admin/libraries/osm_duplicate_resolution.html:4
 #: templates/admin/libraries/photo_grid.html:4
 msgid "Django site admin"
-msgstr "Amministrazione sito Django"
+msgstr "Administration du site Django"
 
 #: templates/admin/libraries/find_duplicates.html:45
 #: templates/admin/libraries/geojson_import_form.html:8
@@ -2385,11 +2383,11 @@ msgstr "Amministrazione sito Django"
 #: templates/admin/libraries/photo_grid.html:123 templates/base.html:31
 #: templates/base.html:68 templates/home.html:4
 msgid "Home"
-msgstr "Home"
+msgstr "Accueil"
 
 #: templates/admin/libraries/find_duplicates.html:53
 msgid "Radius (m):"
-msgstr "Raggio (m):"
+msgstr "Rayon (m) :"
 
 #: templates/admin/libraries/find_duplicates.html:71
 #, python-format
@@ -2399,16 +2397,16 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Trovati %(group_count)s gruppi di duplicati con %(dup_count)s voci in più.\n"
+"            %(group_count)s groupe(s) de doublons trouvé(s), avec %(dup_count)s entrée(s) en trop.\n"
 "            "
 
 #: templates/admin/libraries/find_duplicates.html:74
 msgid "The oldest entry in each group (highlighted in green) is kept by default."
-msgstr "La voce più vecchia in ogni gruppo (evidenziata in verde) viene mantenuta per impostazione predefinita."
+msgstr "L'entrée la plus ancienne de chaque groupe (en surbrillance verte) est conservée par défaut."
 
 #: templates/admin/libraries/find_duplicates.html:82
 msgid "Group"
-msgstr "Gruppo"
+msgstr "Groupe"
 
 #: templates/admin/libraries/find_duplicates.html:130
 #, python-format
@@ -2418,495 +2416,474 @@ msgid ""
 "        "
 msgstr ""
 "\n"
-"        Eliminati %(count)s duplicati.\n"
+"        %(count)s doublon(s) supprimé(s) avec succès.\n"
 "        "
 
 #: templates/admin/libraries/find_duplicates.html:138
 #: templates/admin/libraries/geojson_import_result.html:74
 #: templates/admin/libraries/photo_grid.html:213
 msgid "Back to library list"
-msgstr "Torna all'elenco delle librerie"
+msgstr "Retour à la liste des boîtes à livres"
 
 #: templates/admin/libraries/geojson_import_form.html:19
 msgid "Upload GeoJSON File"
-msgstr "Carica file GeoJSON"
+msgstr "Téléverser un fichier GeoJSON"
 
 #: templates/admin/libraries/geojson_import_form.html:22
 msgid "GeoJSON file:"
-msgstr "File GeoJSON:"
+msgstr "Fichier GeoJSON :"
 
 #: templates/admin/libraries/geojson_import_form.html:24
 msgid "Upload an enriched GeoJSON file with addr:street, addr:city, and addr:country properties."
-msgstr "Carica un file GeoJSON arricchito con le proprietà addr:street, addr:city e addr:country."
+msgstr "Téléversez un fichier GeoJSON enrichi contenant les propriétés addr:street, addr:city et addr:country."
 
 #: templates/admin/libraries/geojson_import_form.html:34
 #: templates/admin/libraries/photo_grid.html:142
 msgid "Status:"
-msgstr "Stato:"
+msgstr "Statut :"
 
 #: templates/admin/libraries/geojson_import_result.html:4
 #: templates/admin/libraries/geojson_import_result.html:10
 msgid "Import Results"
-msgstr "Risultati dell'importazione"
+msgstr "Résultats de l'import"
 
 #: templates/admin/libraries/geojson_import_result.html:16
 msgid "Import Summary"
-msgstr "Riepilogo dell'importazione"
+msgstr "Récapitulatif de l'import"
 
 #: templates/admin/libraries/geojson_import_result.html:20
 msgid "Total features in file"
-msgstr "Elementi totali nel file"
+msgstr "Total des éléments dans le fichier"
 
 #: templates/admin/libraries/geojson_import_result.html:28
 msgid "Skipped (duplicate external ID)"
-msgstr "Saltati (ID esterno duplicato)"
+msgstr "Ignorés (ID externe en double)"
 
 #: templates/admin/libraries/geojson_import_result.html:32
 msgid "Skipped (duplicate address)"
-msgstr "Saltati (indirizzo duplicato)"
+msgstr "Ignorés (adresse en double)"
 
 #: templates/admin/libraries/geojson_import_result.html:36
 msgid "Skipped (nearby location)"
-msgstr "Saltati (posizione vicina)"
+msgstr "Ignorés (emplacement proche)"
 
 #: templates/admin/libraries/geojson_import_result.html:40
 msgid "Skipped (missing address)"
-msgstr "Saltati (indirizzo mancante)"
+msgstr "Ignorés (adresse manquante)"
 
 #: templates/admin/libraries/geojson_import_result.html:44
 #: templates/admin/libraries/geojson_import_result.html:53
 msgid "Errors"
-msgstr "Errori"
+msgstr "Erreurs"
 
 #: templates/admin/libraries/geojson_import_result.html:76
 msgid "Import another file"
-msgstr "Importa un altro file"
+msgstr "Importer un autre fichier"
 
 #: templates/admin/libraries/library/change_form.html:10
 msgid "Check OSM duplicates"
-msgstr "Controlla duplicati OSM"
+msgstr "Vérifier les doublons OSM"
 
 #: templates/admin/libraries/library/change_form.html:17
 msgid "Withdraw this submission's OSM permission?"
-msgstr "Revocare l'autorizzazione OSM per questo invio?"
+msgstr "Retirer l'autorisation OSM de cet envoi ?"
 
 #: templates/admin/libraries/library/change_form.html:17
 msgid "Withdraw OSM permission"
-msgstr "Revoca autorizzazione OSM"
+msgstr "Retirer l'autorisation OSM"
 
 #: templates/admin/libraries/library/change_form.html:22
 msgid "Resolve OSM duplicate"
-msgstr "Risolvi duplicato OSM"
+msgstr "Résoudre le doublon OSM"
 
 #: templates/admin/libraries/library_changelist.html:6
 #: templates/admin/libraries/photo_grid.html:4
 #: templates/admin/libraries/photo_grid.html:125
 msgid "Photo Grid"
-msgstr "Griglia foto"
+msgstr "Grille de photos"
 
 #: templates/admin/libraries/osm_duplicate_resolution.html:18
 msgid "Review the public OpenStreetMap candidates below. This decision is recorded in the append-only audit history and does not write to OpenStreetMap."
-msgstr "Controlla i candidati OpenStreetMap pubblici qui sotto. La decisione viene registrata nella cronologia di audit append-only e non scrive su OpenStreetMap."
+msgstr "Examinez ci-dessous les candidats publics d'OpenStreetMap. Cette décision est enregistrée dans l'historique d'audit en ajout seul et n'écrit rien dans OpenStreetMap."
 
 #: templates/admin/libraries/osm_duplicate_resolution.html:25
 msgid "Candidate"
-msgstr "Candidato"
+msgstr "Candidat"
 
 #: templates/admin/libraries/osm_duplicate_resolution.html:31
 msgid "metres away"
-msgstr "metri di distanza"
+msgstr "mètres de distance"
 
 #: templates/admin/libraries/osm_duplicate_resolution.html:34
 msgid "Signals:"
-msgstr "Segnali:"
+msgstr "Signaux :"
 
 #: templates/admin/libraries/osm_duplicate_resolution.html:37
 msgid "Relevant public tags:"
-msgstr "Tag pubblici rilevanti:"
+msgstr "Étiquettes publiques pertinentes :"
 
 #: templates/admin/libraries/osm_duplicate_resolution.html:45
 msgid "No blocking candidate is available to resolve."
-msgstr "Non è disponibile alcun candidato bloccante da risolvere."
+msgstr "Aucun candidat bloquant à résoudre."
 
 #: templates/admin/libraries/osm_duplicate_resolution.html:50
 msgid "Resolution"
-msgstr "Decisione"
+msgstr "Résolution"
 
 #: templates/admin/libraries/osm_duplicate_resolution.html:54
 msgid "Same feature — link the existing OSM element and stop."
-msgstr "Stesso elemento — collega l'elemento OSM esistente e interrompi."
+msgstr "Même élément : lier l'élément OSM existant et s'arrêter."
 
 #: templates/admin/libraries/osm_duplicate_resolution.html:60
 msgid "Different feature — record the distinction and require a fresh check."
-msgstr "Elemento diverso — registra la distinzione e richiedi un nuovo controllo."
+msgstr "Élément différent : enregistrer la distinction et exiger une nouvelle vérification."
 
 #: templates/admin/libraries/osm_duplicate_resolution.html:66
 msgid "Unclear — keep the duplicate warning unresolved."
-msgstr "Non chiaro — mantieni irrisolto l'avviso di duplicato."
+msgstr "Incertain : laisser l'avertissement de doublon non résolu."
 
 #: templates/admin/libraries/osm_duplicate_resolution.html:70
 msgid "Reason:"
-msgstr "Motivo:"
+msgstr "Motif :"
 
 #: templates/admin/libraries/osm_duplicate_resolution.html:73
 msgid "Explain what staff verified. Do not include private contact details or credentials."
-msgstr "Spiega cosa ha verificato lo staff. Non includere contatti privati o credenziali."
+msgstr "Expliquez ce que l'équipe a vérifié. N'incluez pas de coordonnées privées ni d'identifiants."
 
 #: templates/admin/libraries/osm_duplicate_resolution.html:79
 msgid "Record resolution"
-msgstr "Registra decisione"
+msgstr "Enregistrer la résolution"
 
 #: templates/admin/libraries/photo_grid.html:132
 msgid "Grid:"
-msgstr "Griglia:"
+msgstr "Grille :"
 
 #: templates/admin/libraries/photo_grid.html:144
 #: templates/admin/libraries/photo_grid.html:153
 msgid "All"
-msgstr "Tutti"
+msgstr "Tous"
 
 #: templates/admin/libraries/photo_grid.html:151
 msgid "Type:"
-msgstr "Tipo:"
+msgstr "Type :"
 
 #: templates/admin/libraries/photo_grid.html:208
 msgid "No photos found matching the selected filters."
-msgstr "Nessuna foto trovata con i filtri selezionati."
+msgstr "Aucune photo ne correspond aux filtres sélectionnés."
 
 #: templates/base.html:7 templates/base.html:11 templates/base.html:122
 msgid "Community map of neighborhood book exchange spots."
-msgstr "Mappa comunitaria dei punti di scambio libri di quartiere."
+msgstr "Carte communautaire des lieux d'échange de livres de quartier."
 
 #: templates/base.html:25
 msgid "Open navigation menu"
-msgstr "Apri menu di navigazione"
+msgstr "Ouvrir le menu de navigation"
 
 #: templates/base.html:34 templates/base.html:71
 msgid "Submit"
-msgstr "Invia"
+msgstr "Ajouter"
 
 #: templates/base.html:44 templates/base.html:81
 msgid "Logout"
-msgstr "Esci"
+msgstr "Se déconnecter"
 
 #: templates/base.html:48 templates/base.html:85
 #: users/templates/users/login.html:4
 msgid "Login"
-msgstr "Accedi"
+msgstr "Se connecter"
 
 #: templates/base.html:49 templates/base.html:86
 #: users/templates/users/register.html:4
 msgid "Register"
-msgstr "Registrati"
+msgstr "S'inscrire"
 
 #: templates/base.html:123
 msgid "Made with ❤️ by <a href=\"https://www.andreagrandi.it\" class=\"link link-hover\" target=\"_blank\" rel=\"noopener noreferrer\">Andrea Grandi</a>"
-msgstr "Fatto con ❤️ da <a href=\"https://www.andreagrandi.it\" class=\"link link-hover\" target=\"_blank\" rel=\"noopener noreferrer\">Andrea Grandi</a>"
+msgstr "Fait avec ❤️ par <a href=\"https://www.andreagrandi.it\" class=\"link link-hover\" target=\"_blank\" rel=\"noopener noreferrer\">Andrea Grandi</a>"
 
 #: templates/base.html:130
 msgid "Socials"
-msgstr "Social"
+msgstr "Réseaux sociaux"
 
 #: templates/base.html:156
 msgid "Resources"
-msgstr "Risorse"
+msgstr "Ressources"
 
 #: templates/base.html:158
 msgid "Developers API"
-msgstr "API per sviluppatori"
+msgstr "API pour développeurs"
 
 #: templates/base.html:167
 msgid "Legal"
-msgstr "Legale"
+msgstr "Mentions légales"
 
 #: templates/base.html:169
 msgid "Privacy"
-msgstr "Privacy"
+msgstr "Confidentialité"
 
 #: templates/base.html:170
 msgid "Terms of use"
-msgstr "Condizioni d'uso"
+msgstr "Conditions d'utilisation"
 
 #: templates/base.html:171
 msgid "Contributor agreement"
-msgstr "Accordo per i contributori"
+msgstr "Accord de contribution"
 
 #: templates/base.html:178
 msgid "App"
-msgstr "App"
+msgstr "Application"
 
 #: templates/base.html:181
 msgid "Download on the App Store"
-msgstr "Scarica dall'App Store"
+msgstr "Télécharger sur l'App Store"
 
 #: templates/home.html:5
 msgid "Discover and share public bookcases in your neighborhood with Book Corners."
-msgstr "Scopri e condividi casette dei libri nel tuo quartiere con Book Corners."
+msgstr "Découvrez et partagez les boîtes à livres de votre quartier avec Book Corners."
 
 #: templates/home.html:11
 msgid "Share books, discover neighborhood libraries"
-msgstr "Condividi libri, scopri librerie di quartiere"
+msgstr "Partagez des livres, découvrez les boîtes à livres de votre quartier"
 
 #: templates/home.html:13
 #, python-format
 msgid "Join a community of <strong class=\"text-base-content\">%(total)s</strong> neighborhood libraries."
-msgstr "Unisciti a una community di <strong class=\"text-base-content\">%(total)s</strong> librerie di quartiere."
+msgstr "Rejoignez une communauté de <strong class=\"text-base-content\">%(total)s</strong> boîtes à livres de quartier."
 
 #: templates/home.html:14
 msgid "Leave a book, take a book, and discover reading spots nearby."
-msgstr "Lascia un libro, prendi un libro e scopri punti di lettura nelle vicinanze."
+msgstr "Déposez un livre, prenez-en un et découvrez des lieux de lecture près de chez vous."
 
 #: templates/home.html:25
 msgid "Search by city, area, postcode, or address"
-msgstr "Cerca per città, zona, CAP o indirizzo"
+msgstr "Recherchez par ville, quartier, code postal ou adresse"
 
 #: templates/home.html:26
 msgid "Search libraries by place"
-msgstr "Cerca librerie per luogo"
+msgstr "Rechercher des boîtes à livres par lieu"
 
 #: templates/home.html:31
 msgid "Advanced search"
-msgstr "Ricerca avanzata"
+msgstr "Recherche avancée"
 
 #: templates/home.html:45
 msgid "Latest entries"
-msgstr "Ultime librerie"
+msgstr "Dernières entrées"
 
 #: templates/home.html:46
 msgid "Recently approved libraries from the community."
-msgstr "Librerie approvate di recente dalla community."
+msgstr "Boîtes à livres récemment approuvées de la communauté."
 
 #: templates/socialaccount/signup.html:4
 msgid "Complete Sign Up"
-msgstr "Completa la registrazione"
+msgstr "Terminer l'inscription"
 
 #: templates/socialaccount/signup.html:5
 msgid "Complete your Book Corners account setup after signing in with Google."
-msgstr "Completa la configurazione del tuo account Book Corners dopo l'accesso con Google."
+msgstr "Terminez la configuration de votre compte Book Corners après votre connexion avec Google."
 
 #: templates/socialaccount/signup.html:11
 msgid "Complete your account"
-msgstr "Completa il tuo account"
+msgstr "Terminez votre compte"
 
 #: templates/socialaccount/signup.html:12
 msgid "Just one more step — pick a username to finish signing up."
-msgstr "Solo un altro passo — scegli un nome utente per completare la registrazione."
+msgstr "Plus qu'une étape : choisissez un nom d'utilisateur pour terminer votre inscription."
 
 #: templates/socialaccount/signup.html:29
 msgid "Complete sign up"
-msgstr "Completa la registrazione"
+msgstr "Terminer l'inscription"
 
 #: users/adapters.py:110
 msgid "To create a new account with social login, start from registration and accept the contributor agreement."
-msgstr "Per creare un nuovo account con accesso social, inizia dalla registrazione e accetta l'accordo per i contributori."
+msgstr "Pour créer un compte avec une connexion sociale, commencez par l'inscription et acceptez l'accord de contribution."
 
 #: users/forms.py:67
 msgid "The contributor agreement has changed. Review and accept the current version."
-msgstr "L'accordo per i contributori è cambiato. Consulta e accetta la versione corrente."
+msgstr "L'accord de contribution a changé. Relisez-le et acceptez la version actuelle."
 
 #: users/forms.py:71
 msgid "You must accept the contributor agreement to create an account."
-msgstr "Devi accettare l'accordo per i contributori per creare un account."
+msgstr "Vous devez accepter l'accord de contribution pour créer un compte."
 
 #: users/forms.py:122 users/forms.py:146
 msgid "A user with this email already exists."
-msgstr "Un utente con questa email esiste già."
+msgstr "Un utilisateur avec cet e-mail existe déjà."
 
 #: users/forms.py:130 users/templates/users/change_email.html:27
 msgid "New email address"
-msgstr "Nuovo indirizzo email"
+msgstr "Nouvelle adresse e-mail"
 
 #: users/forms.py:144
 msgid "This is already your current email address."
-msgstr "Questo è già il tuo indirizzo email attuale."
+msgstr "Il s'agit déjà de votre adresse e-mail actuelle."
 
 #: users/forms.py:155 users/templates/users/change_password.html:22
 msgid "Current password"
-msgstr "Password attuale"
+msgstr "Mot de passe actuel"
 
 #: users/forms.py:175
 msgid "Your current password is incorrect."
-msgstr "La tua password attuale non è corretta."
+msgstr "Votre mot de passe actuel est incorrect."
 
 #: users/forms.py:184 users/templates/users/login.html:29
 #: users/templates/users/register.html:34
 msgid "Password"
-msgstr "Password"
+msgstr "Mot de passe"
 
 #: users/forms.py:200
 msgid "Incorrect password."
-msgstr "Password non corretta."
+msgstr "Mot de passe incorrect."
 
 #: users/forms.py:209 users/templates/users/delete_account.html:25
 msgid "Type DELETE to confirm"
-msgstr "Digita DELETE per confermare"
+msgstr "Saisissez DELETE pour confirmer"
 
 #: users/forms.py:224
 msgid "Please type DELETE to confirm."
-msgstr "Per favore digita DELETE per confermare."
+msgstr "Veuillez saisir DELETE pour confirmer."
 
 #: users/templates/users/change_email.html:5
 msgid "Update the email address associated with your Book Corners account."
-msgstr "Aggiorna l'indirizzo email associato al tuo account Book Corners."
+msgstr "Mettez à jour l'adresse e-mail associée à votre compte Book Corners."
 
 #: users/templates/users/change_email.html:12
 msgid "Enter your new email address below."
-msgstr "Inserisci il tuo nuovo indirizzo email qui sotto."
+msgstr "Saisissez votre nouvelle adresse e-mail ci-dessous."
 
 #: users/templates/users/change_email.html:22
 msgid "Current email"
-msgstr "Email attuale"
+msgstr "E-mail actuel"
 
 #: users/templates/users/change_email.html:33
 msgid "Update email"
-msgstr "Aggiorna email"
+msgstr "Mettre à jour l'e-mail"
 
 #: users/templates/users/change_password.html:5
 msgid "Change the password for your Book Corners account."
-msgstr "Cambia la password del tuo account Book Corners."
+msgstr "Changez le mot de passe de votre compte Book Corners."
 
 #: users/templates/users/change_password.html:12
 msgid "Enter your current password and choose a new one."
-msgstr "Inserisci la tua password attuale e scegline una nuova."
+msgstr "Saisissez votre mot de passe actuel et choisissez-en un nouveau."
 
 #: users/templates/users/change_password.html:28
 msgid "New password"
-msgstr "Nuova password"
+msgstr "Nouveau mot de passe"
 
 #: users/templates/users/change_password.html:34
 msgid "Confirm new password"
-msgstr "Conferma nuova password"
+msgstr "Confirmez le nouveau mot de passe"
 
 #: users/templates/users/delete_account.html:5
 msgid "Permanently delete your Book Corners account and all associated data."
-msgstr "Elimina definitivamente il tuo account Book Corners e tutti i dati associati."
+msgstr "Supprimez définitivement votre compte Book Corners et toutes les données associées."
 
 #: users/templates/users/delete_account.html:13
 msgid "This action is permanent and cannot be undone. Your submitted libraries will remain visible but will no longer be linked to your profile."
-msgstr "Questa azione è permanente e non può essere annullata. Le librerie che hai inviato resteranno visibili ma non saranno più collegate al tuo profilo."
+msgstr "Cette action est définitive et ne peut pas être annulée. Les boîtes à livres que vous avez ajoutées resteront visibles, mais ne seront plus liées à votre profil."
 
 #: users/templates/users/delete_account.html:31
 msgid "Enter your password to confirm"
-msgstr "Inserisci la tua password per confermare"
+msgstr "Saisissez votre mot de passe pour confirmer"
 
 #: users/templates/users/delete_account.html:38
 msgid "Delete my account"
-msgstr "Elimina il mio account"
+msgstr "Supprimer mon compte"
 
 #: users/templates/users/login.html:5
 msgid "Log in to Book Corners to submit libraries, report issues, and manage your contributions."
-msgstr "Accedi a Book Corners per inviare librerie, segnalare problemi e gestire i tuoi contributi."
+msgstr "Connectez-vous à Book Corners pour ajouter des boîtes à livres, signaler des problèmes et gérer vos contributions."
 
 #: users/templates/users/login.html:11 users/templates/users/login.html:34
 #: users/templates/users/register.html:94
 msgid "Log in"
-msgstr "Accedi"
+msgstr "Se connecter"
 
 #: users/templates/users/login.html:12
 msgid "Use your username or email address to access your account."
-msgstr "Usa il tuo nome utente o indirizzo email per accedere al tuo account."
+msgstr "Utilisez votre nom d'utilisateur ou votre adresse e-mail pour accéder à votre compte."
 
 #: users/templates/users/login.html:38 users/templates/users/register.html:67
 msgid "or"
-msgstr "oppure"
+msgstr "ou"
 
 #: users/templates/users/login.html:51 users/templates/users/register.html:77
 msgid "Continue with Google"
-msgstr "Continua con Google"
+msgstr "Continuer avec Google"
 
 #: users/templates/users/login.html:63 users/templates/users/register.html:85
 msgid "Continue with Apple"
-msgstr "Continua con Apple"
+msgstr "Continuer avec Apple"
 
 #: users/templates/users/login.html:71
 msgid "New here?"
-msgstr "Sei nuovo?"
+msgstr "Nouveau ici ?"
 
 #: users/templates/users/login.html:72 users/templates/users/register.html:11
 msgid "Create an account"
-msgstr "Crea un account"
+msgstr "Créer un compte"
 
 #: users/templates/users/register.html:5
 msgid "Create a Book Corners account to add new libraries and keep local entries up to date."
-msgstr "Crea un account Book Corners per aggiungere nuove librerie e mantenere aggiornate le voci locali."
+msgstr "Créez un compte Book Corners pour ajouter de nouvelles boîtes à livres et tenir les fiches locales à jour."
 
 #: users/templates/users/register.html:12
 msgid "Join to submit libraries and help keep information up to date."
-msgstr "Registrati per inviare librerie e aiutare a mantenere le informazioni aggiornate."
+msgstr "Inscrivez-vous pour ajouter des boîtes à livres et aider à garder les informations à jour."
 
 #: users/templates/users/register.html:40
 msgid "Confirm password"
-msgstr "Conferma password"
+msgstr "Confirmez le mot de passe"
 
 #: users/templates/users/register.html:48
 msgid "The agreement lets Book Corners use and share the data and images you contribute. It applies to your contributions, not your account details."
-msgstr "L'accordo consente a Book Corners di utilizzare e condividere i dati e le immagini che fornisci. Si applica ai tuoi contributi, non ai dati del tuo account."
+msgstr "Cet accord permet à Book Corners d'utiliser et de partager les données et les images que vous apportez. Il s'applique à vos contributions, pas aux informations de votre compte."
 
 #: users/templates/users/register.html:53
 msgid "I have read and accept the"
-msgstr "Ho letto e accetto"
+msgstr "J'ai lu et j'accepte"
 
 #: users/templates/users/register.html:55
 #, python-format
 msgid "Contributor Agreement v%(agreement_version)s"
-msgstr "l'Accordo per i contributori v%(agreement_version)s"
+msgstr "l'Accord de contribution v%(agreement_version)s"
 
 #: users/templates/users/register.html:64
 msgid "Create account"
-msgstr "Crea account"
+msgstr "Créer le compte"
 
 #: users/templates/users/register.html:93
 msgid "Already have an account?"
-msgstr "Hai già un account?"
+msgstr "Vous avez déjà un compte ?"
 
 #: users/views.py:117
 msgid "Too many registration attempts. Please try again in a few minutes."
-msgstr "Troppi tentativi di registrazione. Riprova tra qualche minuto."
+msgstr "Trop de tentatives d'inscription. Veuillez réessayer dans quelques minutes."
 
 #: users/views.py:197
 msgid "Too many login attempts. Please try again in a few minutes."
-msgstr "Troppi tentativi di accesso. Riprova tra qualche minuto."
+msgstr "Trop de tentatives de connexion. Veuillez réessayer dans quelques minutes."
 
 #: users/views.py:237
 msgid "Social login accounts cannot change their email address."
-msgstr "Gli account con accesso social non possono cambiare il proprio indirizzo email."
+msgstr "Les comptes de connexion sociale ne peuvent pas changer leur adresse e-mail."
 
 #: users/views.py:243
 msgid "Your email address has been updated."
-msgstr "Il tuo indirizzo email è stato aggiornato."
+msgstr "Votre adresse e-mail a été mise à jour."
 
 #: users/views.py:253
 msgid "Social login accounts cannot change their password."
-msgstr "Gli account con accesso social non possono cambiare la propria password."
+msgstr "Les comptes de connexion sociale ne peuvent pas changer leur mot de passe."
 
 #: users/views.py:259
 msgid "Your password has been changed."
-msgstr "La tua password è stata cambiata."
+msgstr "Votre mot de passe a été modifié."
 
 #: users/views.py:277
 msgid "Your account has been deleted."
-msgstr "Il tuo account è stato eliminato."
+msgstr "Votre compte a été supprimé."
 
 #~ msgid "ago"
-#~ msgstr "fa"
-
-#~ msgid "Your submissions"
-#~ msgstr "Le tue librerie"
-
-#~ msgid "Manage user accounts."
-#~ msgstr "Gestisci gli account utente."
-
-#~ msgid "Moderate community-submitted photos."
-#~ msgstr "Modera le foto inviate dalla comunità."
-
-#~ msgid "Review and resolve user-submitted reports."
-#~ msgstr "Rivedi e risolvi le segnalazioni degli utenti."
-
-#~ msgid "Manage and moderate library submissions."
-#~ msgstr "Gestisci e modera le librerie inviate."
-
-#~ msgid "Welcome to the Book Corners management area."
-#~ msgstr "Benvenuto nell'area di gestione di Book Corners."
-
-#~ msgid "Track the moderation status of the libraries you submitted."
-#~ msgstr "Segui lo stato di moderazione delle librerie che hai inviato."
+#~ msgstr "il y a"
