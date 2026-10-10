@@ -22,6 +22,7 @@ from PIL.TiffImagePlugin import IFDRational
 from pillow_heif import from_pillow
 
 from libraries.admin import LibraryAdmin
+from libraries.clustering import CLUSTER_ZOOM_THRESHOLD, get_grid_size_for_zoom
 from libraries.geolocation import extract_gps_coordinates
 from libraries.image_processing import (
     LIBRARY_PHOTO_TARGET_BYTES,
@@ -1991,7 +1992,16 @@ class TestMapPageView:
             created_by=user,
         )
 
-        response = client.get(reverse("map_libraries_geojson"))
+        response = client.get(
+            reverse("map_libraries_geojson"),
+            {
+                "zoom": "14",
+                "min_lat": "41.0",
+                "min_lng": "11.0",
+                "max_lat": "44.0",
+                "max_lng": "13.0",
+            },
+        )
 
         payload = response.json()
         assert response.status_code == 200
@@ -2295,27 +2305,109 @@ class TestMapGeoJSONClustering:
         assert response.status_code == 200
         assert payload["meta"].get("clustered") is not True
 
-    def test_no_zoom_falls_back_to_individual(self, client, user):
-        """Verify omitting zoom parameter returns individual points for backwards compatibility.
-        Ensures direct URL hits and old cached pages still work."""
-        Library.objects.create(
-            name="No Zoom Shelf",
-            photo="libraries/photos/2026/02/no-zoom.jpg",
-            location=Point(x=11.2558, y=43.7696, srid=4326),
-            address="Via Test 1",
-            city="Florence",
-            country="IT",
-            status=Library.Status.APPROVED,
-            created_by=user,
-        )
+    def _create_florence_libraries(self, *, user, count: int) -> None:
+        """Create approved libraries close together in Florence.
+        Gives unbounded requests a known cluster to aggregate."""
+        for i in range(count):
+            Library.objects.create(
+                name=f"Unbounded Shelf {i}",
+                location=Point(x=11.25 + i * 0.001, y=43.77, srid=4326),
+                address=f"Via Test {i}",
+                city="Florence",
+                country="IT",
+                status=Library.Status.APPROVED,
+                created_by=user,
+            )
+
+    def test_no_parameters_returns_clusters(self, client, user):
+        """Verify a request without zoom or bounds returns clustered features.
+        Stops direct hits on the endpoint from downloading every library."""
+        self._create_florence_libraries(user=user, count=3)
 
         response = client.get(reverse("map_libraries_geojson"))
 
         payload = response.json()
         assert response.status_code == 200
-        assert payload["meta"].get("clustered") is not True
-        assert len(payload["features"]) == 1
-        assert "slug" in payload["features"][0]["properties"]
+        assert payload["meta"]["clustered"] is True
+        assert payload["meta"]["bounds_applied"] is False
+        assert payload["meta"]["total_count"] == 3
+        assert all(feature["properties"]["cluster"] for feature in payload["features"])
+        assert "slug" not in payload["features"][0]["properties"]
+
+    def test_high_zoom_without_bounds_returns_clusters(self, client, user):
+        """Verify a high zoom without bounds is capped below the cluster threshold.
+        Prevents a zoom value alone from unlocking the full per-library payload."""
+        self._create_florence_libraries(user=user, count=3)
+
+        response = client.get(reverse("map_libraries_geojson"), {"zoom": "13"})
+
+        payload = response.json()
+        assert response.status_code == 200
+        assert payload["meta"]["clustered"] is True
+        assert payload["meta"]["grid_size"] == get_grid_size_for_zoom(
+            CLUSTER_ZOOM_THRESHOLD - 1
+        )
+        assert all(feature["properties"]["cluster"] for feature in payload["features"])
+
+    @pytest.mark.parametrize(
+        "bounds",
+        [
+            {"min_lat": "44.0", "min_lng": "11.0", "max_lat": "43.5", "max_lng": "11.5"},
+            {"min_lat": "43.5", "min_lng": "11.0", "max_lat": "95.0", "max_lng": "11.5"},
+            {"min_lat": "43.5", "min_lng": "11.0", "max_lat": "44.0"},
+            {"min_lat": "abc", "min_lng": "11.0", "max_lat": "44.0", "max_lng": "11.5"},
+        ],
+    )
+    def test_invalid_bounds_return_clusters(self, client, user, bounds):
+        """Verify invalid or incomplete bounds get the same clustered fallback.
+        Keeps malformed requests from falling through to the full dataset."""
+        self._create_florence_libraries(user=user, count=3)
+
+        response = client.get(
+            reverse("map_libraries_geojson"),
+            {"zoom": "14", **bounds},
+        )
+
+        payload = response.json()
+        assert response.status_code == 200
+        assert payload["meta"]["clustered"] is True
+        assert payload["meta"]["bounds_applied"] is False
+        assert payload["meta"]["total_count"] == 3
+
+    def test_invalid_zoom_without_bounds_uses_world_zoom(self, client, user):
+        """Verify a non-numeric zoom without bounds clusters at zoom zero.
+        Treats garbage zoom values the same as a missing zoom."""
+        self._create_florence_libraries(user=user, count=2)
+
+        response = client.get(reverse("map_libraries_geojson"), {"zoom": "abc"})
+
+        payload = response.json()
+        assert response.status_code == 200
+        assert payload["meta"]["clustered"] is True
+        assert payload["meta"]["grid_size"] == get_grid_size_for_zoom(0)
+
+    def test_unbounded_clusters_refresh_after_moderation(self, admin_client, user):
+        """Verify an approval invalidates the cached unbounded cluster response.
+        Confirms the cluster cache version replaces the removed full-dataset cache key."""
+        self._create_florence_libraries(user=user, count=2)
+        pending_library = Library.objects.create(
+            name="Pending Unbounded Shelf",
+            location=Point(x=11.26, y=43.77, srid=4326),
+            address="Via Test 9",
+            city="Florence",
+            country="IT",
+            status=Library.Status.PENDING,
+            created_by=user,
+        )
+
+        first_payload = admin_client.get(reverse("map_libraries_geojson")).json()
+        admin_client.post(
+            reverse("manage:library_approve", kwargs={"pk": pending_library.pk})
+        )
+        second_payload = admin_client.get(reverse("map_libraries_geojson")).json()
+
+        assert first_payload["meta"]["total_count"] == 2
+        assert second_payload["meta"]["total_count"] == 3
 
 
 @pytest.mark.django_db

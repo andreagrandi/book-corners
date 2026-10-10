@@ -33,7 +33,7 @@ from libraries.notifications import (
     notify_library_rejected,
     notify_library_update_approved,
 )
-from libraries.views import GEOJSON_CACHE_KEY, HOMEPAGE_COUNT_CACHE_KEY, invalidate_cluster_cache
+from libraries.views import HOMEPAGE_COUNT_CACHE_KEY, invalidate_cluster_cache
 
 
 class OpenStreetMapStateFilter(SimpleListFilter):
@@ -772,7 +772,6 @@ class LibraryAdmin(admin.GISModelAdmin):
             if delete_ids:
                 pk_list = [int(pk) for pk in delete_ids]
                 deleted_count = Library.objects.filter(pk__in=pk_list).delete()[0]
-                cache.delete(GEOJSON_CACHE_KEY)
                 cache.delete(HOMEPAGE_COUNT_CACHE_KEY)
                 invalidate_cluster_cache()
                 context["deleted_count"] = deleted_count
@@ -884,7 +883,6 @@ class LibraryAdmin(admin.GISModelAdmin):
                 if was_pending:
                     notify_library_approved(library)
         count = len(libraries)
-        cache.delete(GEOJSON_CACHE_KEY)
         cache.delete(HOMEPAGE_COUNT_CACHE_KEY)
         invalidate_cluster_cache()
         self.message_user(
@@ -908,7 +906,6 @@ class LibraryAdmin(admin.GISModelAdmin):
         ):
             obj.set_photo_origin(origin=Library.PhotoOrigin.UNKNOWN)
         super().save_model(request, obj, form, change)
-        cache.delete(GEOJSON_CACHE_KEY)
         cache.delete(HOMEPAGE_COUNT_CACHE_KEY)
         invalidate_cluster_cache()
         if old_status == Library.Status.PENDING and obj.status == Library.Status.APPROVED:
@@ -930,7 +927,6 @@ class LibraryAdmin(admin.GISModelAdmin):
                 library.status = Library.Status.REJECTED
                 library.save(update_fields=["status", "updated_at"])
         count = len(libraries)
-        cache.delete(GEOJSON_CACHE_KEY)
         cache.delete(HOMEPAGE_COUNT_CACHE_KEY)
         invalidate_cluster_cache()
         self.message_user(

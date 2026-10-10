@@ -334,8 +334,6 @@ def map_page(request: HttpRequest) -> HttpResponse:
     )
 
 
-GEOJSON_CACHE_KEY = "map_geojson_all"
-GEOJSON_CACHE_TIMEOUT = 300  # 5 minutes
 CLUSTER_CACHE_PREFIX = "map_cluster_v"
 CLUSTER_CACHE_VERSION_KEY = "map_cluster_version"
 CLUSTER_CACHE_TIMEOUT = 300  # 5 minutes
@@ -343,46 +341,9 @@ CLUSTER_CACHE_TIMEOUT = 300  # 5 minutes
 
 def invalidate_cluster_cache() -> None:
     """Bump the cluster cache version counter to invalidate all cached cluster responses.
-    Called alongside GEOJSON_CACHE_KEY invalidation when library data changes."""
+    Called whenever library data changes so map clusters reflect the edit."""
     current = cache.get(CLUSTER_CACHE_VERSION_KEY, 0)
     cache.set(CLUSTER_CACHE_VERSION_KEY, current + 1, timeout=None)
-
-
-def _build_all_approved_geojson_json() -> str:
-    """Serialize all approved libraries to a GeoJSON JSON string.
-    The result is cached so subsequent requests skip DB and serialization."""
-    cached = cache.get(GEOJSON_CACHE_KEY)
-    if cached is not None:
-        return cached
-
-    queryset = (
-        Library.objects.filter(status=Library.Status.APPROVED)
-        .order_by("-created_at")
-        .only("id", "slug", "name", "description", "city", "country", "address",
-              "location", "photo", "photo_thumbnail")
-    )
-    detail_url_template = reverse("library_detail", kwargs={"slug": "__SLUG__"})
-    features = [
-        _serialize_library_geojson_feature(
-            library=library, detail_url_template=detail_url_template,
-        )
-        for library in queryset
-    ]
-    payload = {
-        "type": "FeatureCollection",
-        "features": features,
-        "meta": {
-            "count": len(features),
-            "total_count": len(features),
-            "near_query": "",
-            "location_resolution_failed": False,
-            "center": None,
-            "bounds_applied": False,
-        },
-    }
-    json_str = json.dumps(payload)
-    cache.set(GEOJSON_CACHE_KEY, json_str, GEOJSON_CACHE_TIMEOUT)
-    return json_str
 
 
 def _build_cluster_cache_key(*, zoom: int, bounds: Polygon | None) -> str:
@@ -399,16 +360,19 @@ def _build_cluster_cache_key(*, zoom: int, bounds: Polygon | None) -> str:
 
 def map_libraries_geojson(request: HttpRequest) -> JsonResponse | HttpResponse:
     """Return approved libraries as a GeoJSON feature collection.
-    Serves a cached JSON string for unfiltered requests to avoid re-serialization."""
+    Unbounded unfiltered requests are clustered so they never return every library."""
     form = LibrarySearchForm(request.GET or None)
     has_search_filters = form.is_valid() and any(
         form.cleaned_data.get(k) for k in ("q", "near", "city", "country", "postal_code")
     )
-    has_bounds = _get_map_bounds_polygon(request=request) is not None
+    bounds_polygon = _get_map_bounds_polygon(request=request)
 
     zoom = _parse_query_int(request=request, key="zoom")
+    if not has_search_filters and bounds_polygon is None:
+        # Without bounds or filters, individual features would cover the whole dataset.
+        zoom = min(zoom or 0, CLUSTER_ZOOM_THRESHOLD - 1)
+
     if zoom is not None and zoom < CLUSTER_ZOOM_THRESHOLD and not has_search_filters:
-        bounds_polygon = _get_map_bounds_polygon(request=request)
         cluster_cache_key = _build_cluster_cache_key(zoom=zoom, bounds=bounds_polygon)
         cached_cluster = cache.get(cluster_cache_key)
         if cached_cluster is not None:
@@ -437,10 +401,6 @@ def map_libraries_geojson(request: HttpRequest) -> JsonResponse | HttpResponse:
         cache.set(cluster_cache_key, json_str, CLUSTER_CACHE_TIMEOUT)
         return HttpResponse(json_str, content_type="application/json")
 
-    if not has_search_filters and not has_bounds:
-        json_str = _build_all_approved_geojson_json()
-        return HttpResponse(json_str, content_type="application/json")
-
     if has_search_filters:
         queryset, location_resolution_failed, near_query, resolved_center = _run_map_filters(form=form)
     else:
@@ -455,9 +415,8 @@ def map_libraries_geojson(request: HttpRequest) -> JsonResponse | HttpResponse:
     )
     total_count = queryset.count()
 
-    map_bounds_polygon = _get_map_bounds_polygon(request=request)
-    if map_bounds_polygon is not None:
-        queryset = queryset.filter(location__within=map_bounds_polygon)
+    if bounds_polygon is not None:
+        queryset = queryset.filter(location__within=bounds_polygon)
 
     detail_url_template = reverse("library_detail", kwargs={"slug": "__SLUG__"})
     features = [
@@ -483,7 +442,7 @@ def map_libraries_geojson(request: HttpRequest) -> JsonResponse | HttpResponse:
             "near_query": near_query,
             "location_resolution_failed": location_resolution_failed,
             "center": center_payload,
-            "bounds_applied": map_bounds_polygon is not None,
+            "bounds_applied": bounds_polygon is not None,
         },
     }
     if form.errors:
