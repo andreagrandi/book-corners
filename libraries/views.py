@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from calendar import monthrange
 from datetime import date
+import hashlib
 import json
 
 from django.conf import settings
@@ -346,25 +347,36 @@ def invalidate_cluster_cache() -> None:
     cache.set(CLUSTER_CACHE_VERSION_KEY, current + 1, timeout=None)
 
 
-def _build_cluster_cache_key(*, zoom: int, bounds: Polygon | None) -> str:
+def _build_cluster_cache_key(
+    *, zoom: int, bounds: Polygon | None, filters: dict[str, str] | None = None
+) -> str:
     """Build a versioned cache key for a clustered GeoJSON response.
-    Includes zoom, rounded bounds, and a version counter for invalidation."""
+    Includes zoom, rounded bounds, hashed search filters, and a version counter for invalidation."""
     version = cache.get(CLUSTER_CACHE_VERSION_KEY, 0)
     if bounds is None:
         bounds_part = "none"
     else:
         extent = bounds.extent
         bounds_part = f"{extent[0]:.2f}_{extent[1]:.2f}_{extent[2]:.2f}_{extent[3]:.2f}"
-    return f"{CLUSTER_CACHE_PREFIX}{version}_z{zoom}_{bounds_part}"
+    key = f"{CLUSTER_CACHE_PREFIX}{version}_z{zoom}_{bounds_part}"
+    if filters:
+        # Hashing keeps user-typed search text out of the key and its length fixed.
+        filters_json = json.dumps(filters, sort_keys=True)
+        key += "_f" + hashlib.sha256(filters_json.encode()).hexdigest()[:32]
+    return key
+
+
+CLUSTER_FILTER_KEYS = ("q", "city", "country", "postal_code")
 
 
 def map_libraries_geojson(request: HttpRequest) -> JsonResponse | HttpResponse:
     """Return approved libraries as a GeoJSON feature collection.
-    Unbounded unfiltered requests are clustered so they never return every library."""
+    Low-zoom and unbounded requests are clustered so they never return every match."""
     form = LibrarySearchForm(request.GET or None)
     has_search_filters = form.is_valid() and any(
         form.cleaned_data.get(k) for k in ("q", "near", "city", "country", "postal_code")
     )
+    has_near_filter = form.is_valid() and bool(form.cleaned_data.get("near"))
     bounds_polygon = _get_map_bounds_polygon(request=request)
 
     zoom = _parse_query_int(request=request, key="zoom")
@@ -372,23 +384,40 @@ def map_libraries_geojson(request: HttpRequest) -> JsonResponse | HttpResponse:
         # Without bounds or filters, individual features would cover the whole dataset.
         zoom = min(zoom or 0, CLUSTER_ZOOM_THRESHOLD - 1)
 
-    if zoom is not None and zoom < CLUSTER_ZOOM_THRESHOLD and not has_search_filters:
-        cluster_cache_key = _build_cluster_cache_key(zoom=zoom, bounds=bounds_polygon)
+    # Near searches re-center the map at the cluster threshold and keep individual pins.
+    if zoom is not None and zoom < CLUSTER_ZOOM_THRESHOLD and not has_near_filter:
+        cluster_filters = None
+        if has_search_filters:
+            cluster_filters = {
+                key: str(form.cleaned_data.get(key) or "") for key in CLUSTER_FILTER_KEYS
+            }
+        cluster_cache_key = _build_cluster_cache_key(
+            zoom=zoom, bounds=bounds_polygon, filters=cluster_filters,
+        )
         cached_cluster = cache.get(cluster_cache_key)
         if cached_cluster is not None:
             return HttpResponse(cached_cluster, content_type="application/json")
 
         grid_size = get_grid_size_for_zoom(zoom)
-        features = build_clustered_features(zoom=zoom, bounds=bounds_polygon)
-        total_libraries = sum(
+        filtered_queryset = None
+        if has_search_filters:
+            filtered_queryset = _run_map_filters(form=form)[0]
+        features = build_clustered_features(
+            zoom=zoom, bounds=bounds_polygon, queryset=filtered_queryset,
+        )
+        clustered_count = sum(
             f["properties"]["point_count"] for f in features
         )
+        total_count = clustered_count
+        if filtered_queryset is not None and bounds_polygon is not None:
+            # Filtered totals ignore the viewport, as in the individual-feature response.
+            total_count = filtered_queryset.count()
         payload = {
             "type": "FeatureCollection",
             "features": features,
             "meta": {
-                "count": total_libraries,
-                "total_count": total_libraries,
+                "count": clustered_count,
+                "total_count": total_count,
                 "near_query": "",
                 "location_resolution_failed": False,
                 "center": None,

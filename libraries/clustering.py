@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from django.contrib.gis.geos import Polygon
 from django.db import connection
+from django.db.models import QuerySet
 
 from libraries.models import Library
 
@@ -48,21 +49,24 @@ def _parse_box2d(box2d_str: str | None) -> list[float] | None:
 
 
 def build_clustered_features(
-    *, zoom: int, bounds: Polygon | None = None
+    *,
+    zoom: int,
+    bounds: Polygon | None = None,
+    queryset: QuerySet[Library] | None = None,
 ) -> list[dict[str, object]]:
-    """Aggregate approved libraries into clusters using PostGIS ST_SnapToGrid.
-    Returns lightweight GeoJSON features with cluster counts and sample metadata."""
+    """Aggregate libraries into clusters using PostGIS ST_SnapToGrid.
+    Clusters the given filtered queryset, or every approved library when none is given."""
     grid_size = get_grid_size_for_zoom(zoom)
 
-    where_clauses = ["status = 'approved'"]
-    params: list[object] = []
-
+    if queryset is None:
+        queryset = Library.objects.filter(status=Library.Status.APPROVED)
     if bounds is not None:
-        where_clauses.append("ST_Within(location, ST_GeomFromEWKT(%s))")
-        params.append(bounds.ewkt)
+        queryset = queryset.filter(location__within=bounds)
 
-    where_sql = " AND ".join(where_clauses)
-    table_name = Library._meta.db_table
+    # The filtered queryset becomes a subquery, so search filters reuse the ORM code.
+    inner_sql, inner_params = (
+        queryset.order_by().values("location", "city", "country").query.sql_with_params()
+    )
 
     sql = f"""
         SELECT
@@ -72,12 +76,11 @@ def build_clustered_features(
             MIN(city) AS sample_city,
             MIN(country) AS sample_country,
             ST_Extent(location) AS extent
-        FROM {table_name}
-        WHERE {where_sql}
+        FROM ({inner_sql}) AS filtered_libraries
         GROUP BY ST_SnapToGrid(location, %s)
         ORDER BY point_count DESC
     """
-    params.append(grid_size)
+    params = [*inner_params, grid_size]
 
     features: list[dict[str, object]] = []
     with connection.cursor() as cursor:
