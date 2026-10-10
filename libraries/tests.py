@@ -2051,6 +2051,11 @@ class TestMapPageView:
             {
                 "city": "Flor",
                 "country": "IT",
+                "zoom": "14",
+                "min_lat": "-85.0",
+                "min_lng": "-180.0",
+                "max_lat": "85.0",
+                "max_lng": "180.0",
             },
         )
 
@@ -2164,7 +2169,16 @@ class TestMapPageView:
     @pytest.mark.parametrize(
         "query_parameters",
         [
-            pytest.param({"city": "Florence"}, id="filtered"),
+            pytest.param(
+                {
+                    "city": "Florence",
+                    "min_lat": "43.5",
+                    "min_lng": "11.0",
+                    "max_lat": "44.0",
+                    "max_lng": "11.5",
+                },
+                id="filtered",
+            ),
             pytest.param(
                 {
                     "min_lat": "43.5",
@@ -2349,6 +2363,34 @@ class TestMapGeoJSONClustering:
         assert response.status_code == 200
         assert payload["meta"]["clustered"] is True
         assert sum(point_counts) == expected_count
+
+    @pytest.mark.parametrize(
+        ("zoom_parameter", "expected_zoom"),
+        [
+            pytest.param({}, 0, id="no_zoom"),
+            pytest.param({"zoom": "14"}, CLUSTER_ZOOM_THRESHOLD - 1, id="high_zoom"),
+        ],
+    )
+    def test_filtered_request_without_bounds_returns_clusters(
+        self, client, user, zoom_parameter: dict[str, str], expected_zoom: int
+    ):
+        """Verify filtered requests without bounds are clustered like unfiltered ones.
+        Stops a direct country or text search from returning every match as a pin."""
+        self._create_country_libraries(user=user, country="DE", count=5, x=8.0, y=50.0)
+        self._create_country_libraries(user=user, country="IT", count=2, x=11.0, y=43.0)
+
+        response = client.get(
+            reverse("map_libraries_geojson"),
+            {"country": "DE", **zoom_parameter},
+        )
+
+        payload = response.json()
+        assert response.status_code == 200
+        assert payload["meta"]["clustered"] is True
+        assert payload["meta"]["bounds_applied"] is False
+        assert payload["meta"]["grid_size"] == get_grid_size_for_zoom(expected_zoom)
+        assert payload["meta"]["total_count"] == 5
+        assert all(feature["properties"]["cluster"] for feature in payload["features"])
 
     def test_filtered_high_zoom_returns_individual_features(self, client, user):
         """Verify a filtered request at the cluster threshold returns individual libraries.
