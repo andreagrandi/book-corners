@@ -24,7 +24,6 @@ from libraries.notifications import (
     notify_library_update_rejected,
 )
 from libraries.views import (
-    GEOJSON_CACHE_KEY,
     HOMEPAGE_COUNT_CACHE_KEY,
     invalidate_cluster_cache,
 )
@@ -38,7 +37,6 @@ LIBRARIES_PER_PAGE = 25
 def _invalidate_library_caches() -> None:
     """Clear caches affected by library data changes.
     Keeps maps, search, and homepage counts in sync."""
-    cache.delete(GEOJSON_CACHE_KEY)
     cache.delete(HOMEPAGE_COUNT_CACHE_KEY)
     invalidate_cluster_cache()
 

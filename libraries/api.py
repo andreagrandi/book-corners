@@ -87,7 +87,7 @@ from libraries.photo_licence import (
     annotate_library_photo_licence_for_user_photos,
 )
 from libraries.search import run_library_search
-from libraries.views import GEOJSON_CACHE_KEY, HOMEPAGE_COUNT_CACHE_KEY, invalidate_cluster_cache
+from libraries.views import HOMEPAGE_COUNT_CACHE_KEY, invalidate_cluster_cache
 
 library_router = Router(tags=["libraries"])
 User = get_user_model()
@@ -104,7 +104,6 @@ def _is_staff_user(request) -> bool:
 def _invalidate_library_caches() -> None:
     """Clear caches affected by library moderation changes.
     Keeps map, homepage, and clustering data fresh after status updates."""
-    cache.delete(GEOJSON_CACHE_KEY)
     cache.delete(HOMEPAGE_COUNT_CACHE_KEY)
     invalidate_cluster_cache()
 
