@@ -2365,14 +2365,14 @@ class TestMapGeoJSONClustering:
         assert sum(point_counts) == expected_count
 
     @pytest.mark.parametrize(
-        ("zoom_parameter", "expected_zoom"),
+        "zoom_parameter",
         [
-            pytest.param({}, 0, id="no_zoom"),
-            pytest.param({"zoom": "14"}, CLUSTER_ZOOM_THRESHOLD - 1, id="high_zoom"),
+            pytest.param({}, id="no_zoom"),
+            pytest.param({"zoom": "14"}, id="high_zoom"),
         ],
     )
     def test_filtered_request_without_bounds_returns_clusters(
-        self, client, user, zoom_parameter: dict[str, str], expected_zoom: int
+        self, client, user, zoom_parameter: dict[str, str]
     ):
         """Verify filtered requests without bounds are clustered like unfiltered ones.
         Stops a direct country or text search from returning every match as a pin."""
@@ -2388,7 +2388,7 @@ class TestMapGeoJSONClustering:
         assert response.status_code == 200
         assert payload["meta"]["clustered"] is True
         assert payload["meta"]["bounds_applied"] is False
-        assert payload["meta"]["grid_size"] == get_grid_size_for_zoom(expected_zoom)
+        assert payload["meta"]["grid_size"] == get_grid_size_for_zoom(0)
         assert payload["meta"]["total_count"] == 5
         assert all(feature["properties"]["cluster"] for feature in payload["features"])
 
@@ -2534,19 +2534,18 @@ class TestMapGeoJSONClustering:
         assert all(feature["properties"]["cluster"] for feature in payload["features"])
         assert "slug" not in payload["features"][0]["properties"]
 
-    def test_high_zoom_without_bounds_returns_clusters(self, client, user):
-        """Verify a high zoom without bounds is capped below the cluster threshold.
-        Prevents a zoom value alone from unlocking the full per-library payload."""
+    @pytest.mark.parametrize("zoom", ["5", "11", "13"])
+    def test_zoom_without_bounds_uses_world_grid(self, client, user, zoom: str):
+        """Verify any zoom without bounds clusters on the world-zoom grid.
+        Fine grids over the whole world returned 12,203 clusters and 3.16 MB in production."""
         self._create_florence_libraries(user=user, count=3)
 
-        response = client.get(reverse("map_libraries_geojson"), {"zoom": "13"})
+        response = client.get(reverse("map_libraries_geojson"), {"zoom": zoom})
 
         payload = response.json()
         assert response.status_code == 200
         assert payload["meta"]["clustered"] is True
-        assert payload["meta"]["grid_size"] == get_grid_size_for_zoom(
-            CLUSTER_ZOOM_THRESHOLD - 1
-        )
+        assert payload["meta"]["grid_size"] == get_grid_size_for_zoom(0)
         assert all(feature["properties"]["cluster"] for feature in payload["features"])
 
     @pytest.mark.parametrize(

@@ -381,8 +381,9 @@ def map_libraries_geojson(request: HttpRequest) -> JsonResponse | HttpResponse:
 
     zoom = _parse_query_int(request=request, key="zoom")
     if not has_near_filter and bounds_polygon is None:
-        # Without bounds, individual features would cover the whole dataset or every match.
-        zoom = min(zoom or 0, CLUSTER_ZOOM_THRESHOLD - 1)
+        # Without bounds the response covers the whole world, so finer grids still
+        # return thousands of clusters. The world-zoom grid keeps the payload small.
+        zoom = 0
 
     # Near searches re-center the map at the cluster threshold and keep individual pins.
     if zoom is not None and zoom < CLUSTER_ZOOM_THRESHOLD and not has_near_filter:
