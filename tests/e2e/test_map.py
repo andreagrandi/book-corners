@@ -2,9 +2,11 @@ from threading import Event
 from unittest.mock import Mock, patch
 
 import pytest
+from django.contrib.gis.geos import Point
 from django.core.cache import cache
 
 from libraries import geolocation
+from libraries.models import Library
 
 
 pytestmark = [pytest.mark.e2e, pytest.mark.django_db(transaction=True)]
@@ -163,3 +165,74 @@ def test_proximity_filter_deduplicates_concurrent_map_and_list_geocoding(
         mocked_nominatim.return_value.geocode.assert_called_once()
 
     page.get_by_text(single_library.name).wait_for(state="visible", timeout=10000)
+
+
+def test_country_search_clusters_then_zooms_to_pins(
+    live_server, page, mock_external_apis, e2e_user
+) -> None:
+    """Verify a country search from a wide view renders server clusters.
+    Clicking clusters must zoom in until individual library pins appear."""
+    cache.clear()
+    city_origins = [(13.40, 52.52), (11.58, 48.14), (9.99, 53.55)]
+    for city_index, (lng, lat) in enumerate(city_origins):
+        for offset in range(4):
+            Library.objects.create(
+                name=f"German Shelf {city_index}-{offset}",
+                location=Point(x=lng + offset * 0.01, y=lat, srid=4326),
+                address=f"Teststrasse {offset}",
+                city=f"German City {city_index}",
+                country="DE",
+                status=Library.Status.APPROVED,
+                created_by=e2e_user,
+            )
+    Library.objects.create(
+        name="Italian Shelf",
+        location=Point(x=11.2558, y=43.7696, srid=4326),
+        address="Via Rosina 15",
+        city="Florence",
+        country="IT",
+        status=Library.Status.APPROVED,
+        created_by=e2e_user,
+    )
+
+    with page.expect_response(
+        lambda response: "libraries.geojson" in response.url, timeout=15000
+    ):
+        page.goto(f"{live_server.url}/map/")
+
+    page.locator("#id_country").select_option("DE")
+    with page.expect_response(
+        lambda response: (
+            "libraries.geojson" in response.url and "country=DE" in response.url
+        ),
+        timeout=15000,
+    ) as filtered_response_info:
+        page.get_by_role("button", name="Apply filters").click()
+
+    filtered_payload = filtered_response_info.value.json()
+    assert filtered_payload["meta"]["clustered"] is True
+    assert sum(
+        feature["properties"]["point_count"] for feature in filtered_payload["features"]
+    ) == 12
+
+    cluster_icons = page.locator(".server-cluster-icon")
+    cluster_icons.first.wait_for(state="visible", timeout=10000)
+
+    payload = filtered_payload
+    for _attempt in range(5):
+        if not payload["meta"].get("clustered"):
+            break
+        with page.expect_response(
+            lambda response: (
+                "libraries.geojson" in response.url and "country=DE" in response.url
+            ),
+            timeout=15000,
+        ) as zoom_response_info:
+            cluster_icons.first.click()
+        payload = zoom_response_info.value.json()
+
+    assert payload["meta"].get("clustered") is not True
+    assert all("slug" in feature["properties"] for feature in payload["features"])
+    pins = page.locator(".leaflet-marker-icon:not(.server-cluster-icon)")
+    pins.first.wait_for(state="visible", timeout=10000)
+    assert page.locator(".server-cluster-icon").count() == 0

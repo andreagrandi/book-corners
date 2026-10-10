@@ -11,6 +11,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
 from django.core import mail
+from django.core.cache import cache
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
@@ -2283,27 +2284,184 @@ class TestMapGeoJSONClustering:
         assert feature["properties"]["slug"] == library.slug
         assert "detail_url" in feature["properties"]
 
-    def test_search_filters_bypass_clustering(self, client, user):
-        """Verify search filters at low zoom bypass clustering and return individual results.
-        Users expect precise matches when actively filtering."""
-        Library.objects.create(
-            name="Filtered Shelf",
-            location=Point(x=11.2558, y=43.7696, srid=4326),
-            address="Via Test 1",
-            city="Florence",
-            country="IT",
-            status=Library.Status.APPROVED,
-            created_by=user,
-        )
+    WORLD_BOUNDS = {
+        "min_lat": "-85.0",
+        "min_lng": "-180.0",
+        "max_lat": "85.0",
+        "max_lng": "180.0",
+    }
+
+    def _create_country_libraries(self, *, user, country: str, count: int, x: float, y: float) -> None:
+        """Create approved libraries spread over a few cities in one country.
+        Gives filtered cluster requests matches and non-matches to separate."""
+        for i in range(count):
+            Library.objects.create(
+                name=f"{country} Shelf {i}",
+                location=Point(x=x + (i % 3) * 2.0, y=y + i * 0.01, srid=4326),
+                address=f"Test Street {i}",
+                city=f"{country} City {i % 3}",
+                country=country,
+                status=Library.Status.APPROVED,
+                created_by=user,
+            )
+
+    def test_filtered_low_zoom_returns_clusters_for_matches(self, client, user):
+        """Verify a country search at low zoom clusters only the matching libraries.
+        Stops wide filtered views from returning thousands of individual features."""
+        self._create_country_libraries(user=user, country="DE", count=7, x=8.0, y=50.0)
+        self._create_country_libraries(user=user, country="IT", count=4, x=11.0, y=43.0)
 
         response = client.get(
             reverse("map_libraries_geojson"),
-            {"zoom": "5", "city": "Florence"},
+            {"zoom": "4", "country": "DE", **self.WORLD_BOUNDS},
+        )
+
+        payload = response.json()
+        assert response.status_code == 200
+        assert payload["meta"]["clustered"] is True
+        assert all(feature["properties"]["cluster"] for feature in payload["features"])
+        assert sum(f["properties"]["point_count"] for f in payload["features"]) == 7
+        assert {f["properties"]["sample_country"] for f in payload["features"]} == {"DE"}
+
+    @pytest.mark.parametrize(
+        ("search_filter", "expected_count"),
+        [
+            pytest.param({"city": "DE City 1"}, 2, id="city"),
+            pytest.param({"q": "Shelf"}, 6, id="q"),
+            pytest.param({"postal_code": "101"}, 2, id="postal_code"),
+        ],
+    )
+    def test_other_search_filters_cluster_at_low_zoom(
+        self, client, user, search_filter: dict[str, str], expected_count: int
+    ):
+        """Verify text, city, and postal code filters go through the same grid clustering.
+        Confirms every non-proximity search filter reaches the clustered subquery."""
+        self._create_country_libraries(user=user, country="DE", count=6, x=8.0, y=50.0)
+        Library.objects.filter(city="DE City 1").update(postal_code="10115")
+
+        response = client.get(
+            reverse("map_libraries_geojson"),
+            {"zoom": "4", **search_filter, **self.WORLD_BOUNDS},
+        )
+
+        payload = response.json()
+        point_counts = [f["properties"]["point_count"] for f in payload["features"]]
+        assert response.status_code == 200
+        assert payload["meta"]["clustered"] is True
+        assert sum(point_counts) == expected_count
+
+    def test_filtered_high_zoom_returns_individual_features(self, client, user):
+        """Verify a filtered request at the cluster threshold returns individual libraries.
+        Keeps full popups once the user zooms into the filtered results."""
+        self._create_country_libraries(user=user, country="DE", count=3, x=8.0, y=50.0)
+
+        response = client.get(
+            reverse("map_libraries_geojson"),
+            {"zoom": str(CLUSTER_ZOOM_THRESHOLD), "country": "DE", **self.WORLD_BOUNDS},
         )
 
         payload = response.json()
         assert response.status_code == 200
         assert payload["meta"].get("clustered") is not True
+        assert len(payload["features"]) == 3
+        assert all("slug" in f["properties"] for f in payload["features"])
+
+    def test_near_filter_at_low_zoom_returns_individual_features(self, client, user):
+        """Verify proximity searches keep individual pins even at low zoom.
+        Near searches re-center the map, so they never need clustered output."""
+        self._create_country_libraries(user=user, country="DE", count=2, x=8.0, y=50.0)
+
+        with patch("libraries.views.forward_geocode_place", return_value=(50.0, 8.0)):
+            response = client.get(
+                reverse("map_libraries_geojson"),
+                {"zoom": "4", "near": "Frankfurt", **self.WORLD_BOUNDS},
+            )
+
+        payload = response.json()
+        assert response.status_code == 200
+        assert payload["meta"].get("clustered") is not True
+        assert payload["meta"]["center"] == {"lat": 50.0, "lng": 8.0}
+
+    def test_filtered_clusters_keep_count_meaning(self, client, user):
+        """Verify clustered filtered counts match the individual-feature response.
+        Keeps the map summary showing viewport matches out of all filtered matches."""
+        self._create_country_libraries(user=user, country="DE", count=6, x=8.0, y=50.0)
+        # Only the libraries at longitude 8.0 fall inside this viewport.
+        viewport = {"min_lat": "49.0", "min_lng": "7.0", "max_lat": "51.0", "max_lng": "9.0"}
+        in_viewport = 2
+
+        clustered = client.get(
+            reverse("map_libraries_geojson"),
+            {"zoom": "4", "country": "DE", **viewport},
+        ).json()
+        individual = client.get(
+            reverse("map_libraries_geojson"),
+            {"zoom": "14", "country": "DE", **viewport},
+        ).json()
+
+        assert clustered["meta"]["clustered"] is True
+        assert clustered["meta"]["count"] == individual["meta"]["count"] == in_viewport
+        assert clustered["meta"]["total_count"] == individual["meta"]["total_count"] == 6
+
+    def test_filtered_cluster_cache_key_includes_filters(self, client, user):
+        """Verify cached filtered clusters are not shared between different searches.
+        A cache key without filter values would serve one country's clusters for another."""
+        self._create_country_libraries(user=user, country="DE", count=3, x=8.0, y=50.0)
+        self._create_country_libraries(user=user, country="IT", count=2, x=11.0, y=43.0)
+
+        params = {"zoom": "4", **self.WORLD_BOUNDS}
+        unfiltered = client.get(reverse("map_libraries_geojson"), params).json()
+        germany = client.get(reverse("map_libraries_geojson"), {**params, "country": "DE"}).json()
+        italy = client.get(reverse("map_libraries_geojson"), {**params, "country": "IT"}).json()
+
+        assert unfiltered["meta"]["count"] == 5
+        assert germany["meta"]["count"] == 3
+        assert italy["meta"]["count"] == 2
+
+    def test_filtered_clusters_refresh_after_library_change(self, admin_client, user):
+        """Verify an approval invalidates cached filtered cluster responses.
+        Filtered clusters share the cluster cache version with unfiltered ones."""
+        self._create_country_libraries(user=user, country="DE", count=2, x=8.0, y=50.0)
+        pending_library = Library.objects.create(
+            name="Pending DE Shelf",
+            location=Point(x=9.0, y=50.0, srid=4326),
+            address="Test Street 9",
+            city="DE City 0",
+            country="DE",
+            status=Library.Status.PENDING,
+            created_by=user,
+        )
+        params = {"zoom": "4", "country": "DE", **self.WORLD_BOUNDS}
+
+        first_payload = admin_client.get(reverse("map_libraries_geojson"), params).json()
+        cached_payload = admin_client.get(reverse("map_libraries_geojson"), params).json()
+        admin_client.post(
+            reverse("manage:library_approve", kwargs={"pk": pending_library.pk})
+        )
+        second_payload = admin_client.get(reverse("map_libraries_geojson"), params).json()
+
+        assert first_payload == cached_payload
+        assert first_payload["meta"]["count"] == 2
+        assert second_payload["meta"]["count"] == 3
+
+    def test_filtered_cluster_query_count_is_constant(self, client, user):
+        """Verify a clustered filtered request runs the same queries for few or many matches.
+        Guards against per-library queries creeping into the cluster path."""
+        url = reverse("map_libraries_geojson")
+        params = {"zoom": "4", "country": "DE", **self.WORLD_BOUNDS}
+
+        self._create_country_libraries(user=user, country="DE", count=2, x=8.0, y=50.0)
+        cache.clear()
+        with CaptureQueriesContext(connection) as few_queries:
+            client.get(url, params)
+
+        self._create_country_libraries(user=user, country="DE", count=20, x=8.0, y=50.0)
+        cache.clear()
+        with CaptureQueriesContext(connection) as many_queries:
+            response = client.get(url, params)
+
+        assert response.json()["meta"]["total_count"] == 22
+        assert len(few_queries.captured_queries) == len(many_queries.captured_queries)
 
     def _create_florence_libraries(self, *, user, count: int) -> None:
         """Create approved libraries close together in Florence.
