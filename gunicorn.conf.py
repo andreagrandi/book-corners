@@ -3,7 +3,7 @@ Tunes workers, threads, and recycling for a small-to-medium VPS."""
 
 import multiprocessing
 
-workers = min(multiprocessing.cpu_count() * 2 + 1, 9)
+workers = 2
 threads = 2
 timeout = 30
 keepalive = 5
