@@ -1,0 +1,19 @@
+{% load i18n %}
+{{ agreement_form.contributor_agreement_version }}
+<div class="rounded-box border border-base-300 bg-base-200/40 p-4">
+  <p id="contributor-agreement-explanation" class="mb-3 text-sm text-base-content/70">
+    {% blocktrans %}The agreement lets Book Corners use and share the data and images you contribute. It applies to your contributions, not your account details.{% endblocktrans %}
+  </p>
+  <div class="flex items-start gap-3">
+    {{ agreement_form.contributor_agreement_accepted }}
+    <label for="{{ agreement_form.contributor_agreement_accepted.id_for_label }}" class="text-sm leading-6">
+      {% trans "I have read and accept the" %}
+      <a href="{% url 'contributor_agreement_page' %}" class="link link-primary" target="_blank" rel="noopener noreferrer">
+        {% blocktrans %}Contributor Agreement v{{ agreement_version }}{% endblocktrans %}
+      </a>.
+    </label>
+  </div>
+  {% if agreement_form.contributor_agreement_accepted.errors %}
+    <p id="contributor-agreement-error" class="mt-2 text-sm text-error" role="alert">{{ agreement_form.contributor_agreement_accepted.errors.0 }}</p>
+  {% endif %}
+</div>

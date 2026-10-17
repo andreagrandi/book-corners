@@ -19,6 +19,8 @@ from libraries.social.image_ai import (
     enrich_library_from_image,
 )
 from libraries.tasks import enrich_library_with_ai
+from users.contributor_agreements import CURRENT_CONTRIBUTOR_AGREEMENT_VERSION
+from users.models import ContributorAgreementAcceptance
 
 User = get_user_model()
 
@@ -46,11 +48,17 @@ def _build_uploaded_photo(
 def enrichment_user(db):
     """Create a test user for enrichment tests.
     Provides a minimal user record for library ownership."""
-    return User.objects.create_user(
+    enrichment_user = User.objects.create_user(
         username="enrichuser",
         password="testpass123",
         email="enrichuser@example.com",
     )
+    ContributorAgreementAcceptance.objects.create(
+        user=enrichment_user,
+        agreement_version=CURRENT_CONTRIBUTOR_AGREEMENT_VERSION,
+        channel=ContributorAgreementAcceptance.Channel.WEB_CREDENTIAL_REGISTRATION,
+    )
+    return enrichment_user
 
 
 @pytest.fixture

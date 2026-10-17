@@ -1,3 +1,4 @@
+import copy
 from typing import Any
 
 from django import forms
@@ -9,8 +10,11 @@ from django.utils.translation import gettext_lazy as _
 from users.auth import resolve_login_identifier
 from users.contributor_agreements import (
     CURRENT_CONTRIBUTOR_AGREEMENT_VERSION,
+    has_current_acceptance,
+    record_current_acceptance,
     validate_acceptance,
 )
+from users.models import ContributorAgreementAcceptance
 
 User = get_user_model()
 
@@ -22,6 +26,37 @@ def _apply_input_classes(*, form: forms.BaseForm) -> None:
         existing_classes = field.widget.attrs.get("class", "")
         classes = f"{existing_classes} input w-full".strip()
         field.widget.attrs["class"] = classes
+
+
+def _validate_agreement_fields(
+    *,
+    form: forms.BaseForm,
+    cleaned_data: dict[str, Any],
+    required_message: str,
+) -> None:
+    """Validate the agreement checkbox and version fields on a form.
+    Adds a translated checkbox error and marks the widget as invalid."""
+    agreement_version = cleaned_data.get("contributor_agreement_version")
+    agreement_accepted = cleaned_data.get("contributor_agreement_accepted")
+    agreement_error = validate_acceptance(
+        agreement_version=agreement_version,
+        agreement_accepted=agreement_accepted,
+    )
+    if not agreement_error:
+        return
+    if agreement_version != CURRENT_CONTRIBUTOR_AGREEMENT_VERSION:
+        message = _(
+            "The contributor agreement has changed. Review and accept the current version."
+        )
+    else:
+        message = required_message
+    form.add_error("contributor_agreement_accepted", message)
+    widget_attrs = form.fields["contributor_agreement_accepted"].widget.attrs
+    widget_attrs["aria-describedby"] = (
+        "contributor-agreement-explanation contributor-agreement-error"
+    )
+    widget_attrs["aria-errormessage"] = "contributor-agreement-error"
+    widget_attrs["aria-invalid"] = "true"
 
 
 class ContributorAgreementForm(forms.Form):
@@ -51,34 +86,19 @@ class ContributorAgreementForm(forms.Form):
         )
         super().__init__(*args, **kwargs)
 
+    required_message = _(
+        "You must accept the contributor agreement to create an account."
+    )
+
     def clean(self) -> dict[str, Any]:
         """Validate that the submitted choice accepts the exact current version.
         Adds a translated checkbox error without trusting client audit metadata."""
         cleaned_data = super().clean()
-        agreement_version = cleaned_data.get("contributor_agreement_version")
-        agreement_accepted = cleaned_data.get("contributor_agreement_accepted")
-        agreement_error = validate_acceptance(
-            agreement_version=agreement_version,
-            agreement_accepted=agreement_accepted,
+        _validate_agreement_fields(
+            form=self,
+            cleaned_data=cleaned_data,
+            required_message=self.required_message,
         )
-        if agreement_error:
-            if agreement_version != CURRENT_CONTRIBUTOR_AGREEMENT_VERSION:
-                message = _(
-                    "The contributor agreement has changed. Review and accept the current version."
-                )
-            else:
-                message = _(
-                    "You must accept the contributor agreement to create an account."
-                )
-            self.add_error("contributor_agreement_accepted", message)
-            widget_attrs = self.fields[
-                "contributor_agreement_accepted"
-            ].widget.attrs
-            widget_attrs["aria-describedby"] = (
-                "contributor-agreement-explanation contributor-agreement-error"
-            )
-            widget_attrs["aria-errormessage"] = "contributor-agreement-error"
-            widget_attrs["aria-invalid"] = "true"
         return cleaned_data
 
     def reset_stale_choice(self) -> None:
@@ -93,6 +113,71 @@ class ContributorAgreementForm(forms.Form):
         data["contributor_agreement_version"] = CURRENT_CONTRIBUTOR_AGREEMENT_VERSION
         data.pop("contributor_agreement_accepted", None)
         self.data = data
+
+
+class ExistingUserContributorAgreementForm(ContributorAgreementForm):
+    """Validate agreement acceptance by an already registered user.
+    Uses a required message that does not mention account creation."""
+
+    required_message = _("You must accept the contributor agreement to continue.")
+
+
+class ContributorAgreementMixin:
+    """Add the agreement checkbox to contribution forms for users who lack acceptance.
+    Records the acceptance only when the owning form saves successfully."""
+
+    needs_agreement = False
+    agreement_version = CURRENT_CONTRIBUTOR_AGREEMENT_VERSION
+
+    def init_agreement_fields(self, *, user: Any) -> None:
+        """Add the version and checkbox fields when the user has no current acceptance.
+        Leaves the form untouched for anonymous users and users who already accepted."""
+        self.needs_agreement = bool(
+            user is not None
+            and getattr(user, "is_authenticated", False)
+            and not has_current_acceptance(user=user)
+        )
+        if not self.needs_agreement:
+            return
+        for name, field in ContributorAgreementForm.base_fields.items():
+            self.fields[name] = copy.deepcopy(field)
+        self.initial.setdefault(
+            "contributor_agreement_version",
+            CURRENT_CONTRIBUTOR_AGREEMENT_VERSION,
+        )
+
+    def clean_agreement(self, *, cleaned_data: dict[str, Any]) -> None:
+        """Validate the agreement fields when they are part of the form.
+        Resets a stale submitted version so the re-rendered form shows the current one."""
+        if not self.needs_agreement:
+            return
+        _validate_agreement_fields(
+            form=self,
+            cleaned_data=cleaned_data,
+            required_message=ExistingUserContributorAgreementForm.required_message,
+        )
+        if "contributor_agreement_accepted" in self.errors:
+            self._reset_stale_agreement_choice()
+
+    def _reset_stale_agreement_choice(self) -> None:
+        """Render a stale submitted version as the current version unchecked.
+        Prevents an old checked choice from becoming acceptance of changed terms."""
+        submitted_version = self.data.get("contributor_agreement_version")
+        if submitted_version == CURRENT_CONTRIBUTOR_AGREEMENT_VERSION:
+            return
+        data = self.data.copy()
+        data["contributor_agreement_version"] = CURRENT_CONTRIBUTOR_AGREEMENT_VERSION
+        data.pop("contributor_agreement_accepted", None)
+        self.data = data
+
+    def record_agreement_acceptance(self, *, user: Any) -> None:
+        """Record web acceptance for a user who just submitted a valid agreement.
+        Runs inside the caller's transaction so it commits together with the save."""
+        if self.needs_agreement:
+            record_current_acceptance(
+                user=user,
+                channel=ContributorAgreementAcceptance.Channel.WEB_EXISTING_USER,
+            )
 
 
 class RegistrationForm(UserCreationForm):

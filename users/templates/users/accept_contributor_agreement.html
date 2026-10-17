@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Contributor agreement" %} - Book Corners{% endblock %}
+{% block meta_description %}{% trans "Accept the Book Corners contributor agreement so your photos are credited under an open licence." %}{% endblock %}
+
+{% block content %}
+  <section class="mx-auto w-full max-w-md">
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body">
+        <h1 class="card-title text-2xl">{% trans "Contributor agreement" %}</h1>
+
+        {% if already_accepted %}
+          <div class="alert alert-success text-sm">
+            <span>{% blocktrans %}You have accepted the Contributor Agreement v{{ agreement_version }}.{% endblocktrans %}</span>
+          </div>
+          <p>
+            <a href="{% url 'contributor_agreement_page' %}" class="link link-primary" target="_blank" rel="noopener noreferrer">
+              {% trans "Read the contributor agreement" %}
+            </a>
+          </p>
+          <div class="flex gap-3">
+            <a href="{% url 'dashboard' %}" class="btn btn-primary">{% trans "Back to the contribution center" %}</a>
+          </div>
+        {% else %}
+          <p class="text-base-content/70">
+            {% trans "Accepting the agreement licenses your contributions, including photos you uploaded before, under CC BY-SA 4.0. Your photos are then shown with a credit to you." %}
+          </p>
+
+          <form method="post" class="mt-2 space-y-4" novalidate>
+            {% csrf_token %}
+            {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
+
+            {% include "users/_contributor_agreement_fields.html" %}
+
+            <div class="flex gap-3">
+              <button type="submit" class="btn btn-primary">{% trans "Accept the agreement" %}</button>
+              <a href="{% url 'dashboard' %}" class="btn btn-ghost">{% trans "Cancel" %}</a>
+            </div>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+{% endblock %}
