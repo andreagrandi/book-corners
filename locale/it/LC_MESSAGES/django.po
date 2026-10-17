@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Book Corners 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 06:45+0000\n"
+"POT-Creation-Date: 2026-10-16 18:04+0000\n"
 "PO-Revision-Date: 2026-02-28 15:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Italian\n"
@@ -94,7 +94,7 @@ msgstr "Errore ritentabile: %(value)s"
 #: libraries/templates/libraries/library_detail.html:64
 #: manage/templates/manage/libraries/detail.html:166
 #: manage/templates/manage/libraries/detail.html:170
-#: manage/views/libraries.py:125
+#: manage/views/libraries.py:123
 msgid "Yes"
 msgstr "Sì"
 
@@ -103,7 +103,7 @@ msgstr "Sì"
 #: libraries/templates/libraries/library_detail.html:64
 #: manage/templates/manage/libraries/detail.html:166
 #: manage/templates/manage/libraries/detail.html:170
-#: manage/views/libraries.py:125
+#: manage/views/libraries.py:123
 msgid "No"
 msgstr "No"
 
@@ -189,15 +189,15 @@ msgstr "Il candidato rimane un duplicato non risolto."
 msgid "Resolve OpenStreetMap duplicate"
 msgstr "Risolvi duplicato OpenStreetMap"
 
-#: libraries/admin.py:619 manage/views/libraries.py:465
+#: libraries/admin.py:619 manage/views/libraries.py:463
 msgid "This library has no photo for AI analysis."
 msgstr "Questa libreria non ha una foto per l'analisi IA."
 
-#: libraries/admin.py:629 manage/views/libraries.py:473
+#: libraries/admin.py:629 manage/views/libraries.py:471
 msgid "Could not access the library photo."
 msgstr "Impossibile accedere alla foto della libreria."
 
-#: libraries/admin.py:636 manage/views/libraries.py:478
+#: libraries/admin.py:636 manage/views/libraries.py:476
 msgid "AI enrichment failed. Check logs for details."
 msgstr "Arricchimento IA fallito. Controlla i log per i dettagli."
 
@@ -207,11 +207,11 @@ msgstr "Arricchimento IA fallito. Controlla i log per i dettagli."
 msgid "AI Enrich: Confirm"
 msgstr "Arricchisci con IA: Conferma"
 
-#: libraries/admin.py:679 manage/views/libraries.py:507
+#: libraries/admin.py:679 manage/views/libraries.py:505
 msgid "AI-generated name and description applied."
 msgstr "Nome e descrizione generati dall'IA applicati."
 
-#: libraries/admin.py:681 manage/views/libraries.py:509
+#: libraries/admin.py:681 manage/views/libraries.py:507
 msgid "No AI values to apply."
 msgstr "Nessun valore IA da applicare."
 
@@ -219,82 +219,82 @@ msgstr "Nessun valore IA da applicare."
 msgid "Library export is temporarily unavailable. Please try again later."
 msgstr "L'esportazione delle librerie non è temporaneamente disponibile. Riprova più tardi."
 
-#: libraries/forms.py:25 libraries/templates/libraries/submit_library.html:362
+#: libraries/forms.py:27 libraries/templates/libraries/submit_library.html:366
 msgid "Select a country"
 msgstr "Seleziona un paese"
 
-#: libraries/forms.py:33
+#: libraries/forms.py:35
 msgid "Any country"
 msgstr "Qualsiasi paese"
 
-#: libraries/forms.py:46
+#: libraries/forms.py:48
 #, python-format
 msgid "JPEG, PNG, WebP, HEIC, or HEIF. Maximum file size: %(size).0f MB."
 msgstr "JPEG, PNG, WebP, HEIC o HEIF. Dimensione massima del file: %(size).0f MB."
 
-#: libraries/forms.py:65
+#: libraries/forms.py:67
 #, python-format
 msgid "Photo must be %(size).0fMB or smaller."
 msgstr "La foto deve essere di %(size).0fMB o meno."
 
-#: libraries/forms.py:68
+#: libraries/forms.py:70
 #, python-format
 msgid "Photo must be at most %(size)s bytes."
 msgstr "La foto deve essere di massimo %(size)s byte."
 
-#: libraries/forms.py:86 libraries/forms.py:90 libraries/forms.py:108
+#: libraries/forms.py:88 libraries/forms.py:92 libraries/forms.py:110
 msgid "Upload a valid image in JPEG, PNG, WEBP, HEIC, or HEIF format."
 msgstr "Carica un'immagine valida in formato JPEG, PNG, WEBP, HEIC o HEIF."
 
-#: libraries/forms.py:178
+#: libraries/forms.py:181
 msgid "Approximate book capacity"
 msgstr "Capacità approssimativa di libri"
 
-#: libraries/forms.py:186
+#: libraries/forms.py:189
 msgid "Email, phone, etc."
 msgstr "Email, telefono, ecc."
 
-#: libraries/forms.py:190
+#: libraries/forms.py:193
 msgid "Organisation managing this library"
 msgstr "Organizzazione che gestisce questa libreria"
 
-#: libraries/forms.py:194
+#: libraries/forms.py:197
 msgid "e.g. Local book exchange network"
 msgstr "es. Rete locale per lo scambio di libri"
 
-#: libraries/forms.py:202 manage/forms.py:122
+#: libraries/forms.py:205 manage/forms.py:122
 msgid "Latitude must be between -90 and 90."
 msgstr "La latitudine deve essere compresa tra -90 e 90."
 
-#: libraries/forms.py:210 manage/forms.py:130
+#: libraries/forms.py:213 manage/forms.py:130
 msgid "Longitude must be between -180 and 180."
 msgstr "La longitudine deve essere compresa tra -180 e 180."
 
-#: libraries/forms.py:238
+#: libraries/forms.py:241
 msgid "Address is required when coordinates are not provided."
 msgstr "L'indirizzo è obbligatorio quando le coordinate non vengono fornite."
 
-#: libraries/forms.py:366
+#: libraries/forms.py:378
 msgid "Keywords in name or description"
 msgstr "Parole chiave nel nome o nella descrizione"
 
-#: libraries/forms.py:372
+#: libraries/forms.py:384
 msgid "City, area, postcode, or address"
 msgstr "Città, zona, CAP o indirizzo"
 
-#: libraries/forms.py:386
+#: libraries/forms.py:398
 msgid "Filter by city"
 msgstr "Filtra per città"
 
-#: libraries/forms.py:397
+#: libraries/forms.py:409
 msgid "Filter by postal code"
 msgstr "Filtra per CAP"
 
-#: libraries/forms.py:443
+#: libraries/forms.py:456
 msgid "Optional caption for your photo"
 msgstr "Didascalia opzionale per la tua foto"
 
-#: libraries/forms.py:469
+#: libraries/forms.py:482
 #, python-format
 msgid "You can submit at most %(max)s photos per library."
 msgstr "Puoi inviare al massimo %(max)s foto per libreria."
@@ -619,8 +619,8 @@ msgid "%(km)s km away"
 msgstr "a %(km)s km"
 
 #: libraries/templates/libraries/_library_card.html:35
-#: libraries/templates/libraries/dashboard.html:109
-#: libraries/templates/libraries/dashboard.html:262
+#: libraries/templates/libraries/dashboard.html:122
+#: libraries/templates/libraries/dashboard.html:275
 #: libraries/templates/libraries/map.html:300
 msgid "View details"
 msgstr "Dettagli"
@@ -680,8 +680,8 @@ msgid "Photo from an external source"
 msgstr "Foto da una fonte esterna"
 
 #: libraries/templates/libraries/_photo_gallery.html:4
-#: libraries/templates/libraries/dashboard.html:26
-#: libraries/templates/libraries/dashboard.html:197
+#: libraries/templates/libraries/dashboard.html:38
+#: libraries/templates/libraries/dashboard.html:210
 msgid "Community photos"
 msgstr "Foto della community"
 
@@ -703,7 +703,7 @@ msgid "Please review the highlighted fields and try again."
 msgstr "Controlla i campi evidenziati e riprova."
 
 #: libraries/templates/libraries/_photo_submission_form.html:34
-#: libraries/templates/libraries/dashboard.html:214
+#: libraries/templates/libraries/dashboard.html:227
 #: templates/admin/index.html:135
 msgid "Photo"
 msgstr "Foto"
@@ -712,7 +712,7 @@ msgstr "Foto"
 msgid "Caption (optional)"
 msgstr "Didascalia (opzionale)"
 
-#: libraries/templates/libraries/_photo_submission_form.html:46
+#: libraries/templates/libraries/_photo_submission_form.html:50
 msgid "Submit photo"
 msgstr "Invia foto"
 
@@ -725,7 +725,7 @@ msgid "Tell us what is wrong with this library entry so moderators can review an
 msgstr "Dicci cosa non va con questa libreria in modo che i moderatori possano verificare e correggere."
 
 #: libraries/templates/libraries/_report_form.html:34
-#: libraries/templates/libraries/dashboard.html:172
+#: libraries/templates/libraries/dashboard.html:185
 #: manage/templates/manage/reports/_table.html:20
 #: manage/templates/manage/reports/list.html:35
 #: manage/templates/manage/users/detail.html:112
@@ -772,13 +772,25 @@ msgstr "Controlla le librerie inviate, le segnalazioni, le foto della community 
 msgid "Manage your account and track every contribution you have sent to moderation."
 msgstr "Gestisci il tuo account e segui ogni contributo inviato alla moderazione."
 
-#: libraries/templates/libraries/dashboard.html:18
-#: libraries/templates/libraries/dashboard.html:77
+#: libraries/templates/libraries/dashboard.html:20
+msgid "Accept the contributor agreement"
+msgstr "Accetta l'accordo per i contributori"
+
+#: libraries/templates/libraries/dashboard.html:21
+msgid "Your photos are only shown with a credit to you after you accept the contributor agreement."
+msgstr "Le tue foto vengono mostrate con il tuo nome come autore solo dopo che hai accettato l'accordo per i contributori."
+
+#: libraries/templates/libraries/dashboard.html:23
+msgid "Review and accept"
+msgstr "Consulta e accetta"
+
+#: libraries/templates/libraries/dashboard.html:30
+#: libraries/templates/libraries/dashboard.html:90
 msgid "Library submissions"
 msgstr "Librerie inviate"
 
-#: libraries/templates/libraries/dashboard.html:22
-#: libraries/templates/libraries/dashboard.html:153
+#: libraries/templates/libraries/dashboard.html:34
+#: libraries/templates/libraries/dashboard.html:166
 #: manage/templates/manage/base.html:65
 #: manage/templates/manage/libraries/detail.html:233
 #: manage/templates/manage/reports/list.html:4
@@ -788,38 +800,38 @@ msgstr "Librerie inviate"
 msgid "Reports"
 msgstr "Segnalazioni"
 
-#: libraries/templates/libraries/dashboard.html:35
+#: libraries/templates/libraries/dashboard.html:47
 #: libraries/templates/libraries/library_export_download.html:4
 #: libraries/templates/libraries/library_export_download.html:10
 msgid "Download library data"
 msgstr "Scarica i dati delle librerie"
 
-#: libraries/templates/libraries/dashboard.html:36
+#: libraries/templates/libraries/dashboard.html:48
 msgid "Download the complete approved library catalogue as a GeoJSON file."
 msgstr "Scarica il catalogo completo delle librerie approvate in formato GeoJSON."
 
-#: libraries/templates/libraries/dashboard.html:38
+#: libraries/templates/libraries/dashboard.html:50
 msgid "View download"
 msgstr "Apri la pagina di download"
 
-#: libraries/templates/libraries/dashboard.html:44
+#: libraries/templates/libraries/dashboard.html:56
 msgid "Account information"
 msgstr "Informazioni account"
 
-#: libraries/templates/libraries/dashboard.html:47
+#: libraries/templates/libraries/dashboard.html:59
 #: manage/templates/manage/users/_table.html:7
 #: users/templates/users/register.html:22
 msgid "Username"
 msgstr "Nome utente"
 
-#: libraries/templates/libraries/dashboard.html:51
+#: libraries/templates/libraries/dashboard.html:63
 #: manage/templates/manage/users/_table.html:8
 #: manage/templates/manage/users/detail.html:39
 #: users/templates/users/register.html:28
 msgid "Email"
 msgstr "Email"
 
-#: libraries/templates/libraries/dashboard.html:56
+#: libraries/templates/libraries/dashboard.html:68
 #: manage/templates/manage/libraries/_table.html:19
 #: manage/templates/manage/libraries/ai_enrich_confirm.html:40
 #: manage/templates/manage/libraries/duplicates.html:66
@@ -831,117 +843,123 @@ msgstr "Email"
 msgid "Name"
 msgstr "Nome"
 
-#: libraries/templates/libraries/dashboard.html:61
+#: libraries/templates/libraries/dashboard.html:73
 msgid "Member since"
 msgstr "Membro dal"
 
-#: libraries/templates/libraries/dashboard.html:67
+#: libraries/templates/libraries/dashboard.html:79
 #: users/templates/users/change_email.html:4
 #: users/templates/users/change_email.html:11
 msgid "Change email"
 msgstr "Cambia email"
 
-#: libraries/templates/libraries/dashboard.html:68
+#: libraries/templates/libraries/dashboard.html:80
 #: users/templates/users/change_password.html:4
 #: users/templates/users/change_password.html:11
 #: users/templates/users/change_password.html:40
 msgid "Change password"
 msgstr "Cambia password"
 
-#: libraries/templates/libraries/dashboard.html:70
+#: libraries/templates/libraries/dashboard.html:82 templates/base.html:171
+#: users/templates/users/accept_contributor_agreement.html:4
+#: users/templates/users/accept_contributor_agreement.html:11
+msgid "Contributor agreement"
+msgstr "Accordo per i contributori"
+
+#: libraries/templates/libraries/dashboard.html:83
 #: users/templates/users/delete_account.html:4
 #: users/templates/users/delete_account.html:11
 msgid "Delete account"
 msgstr "Elimina account"
 
-#: libraries/templates/libraries/dashboard.html:78
+#: libraries/templates/libraries/dashboard.html:91
 msgid "Libraries you added or edited, with their current moderation status."
 msgstr "Librerie che hai aggiunto o modificato, con il loro stato di moderazione attuale."
 
-#: libraries/templates/libraries/dashboard.html:80
-#: libraries/templates/libraries/dashboard.html:146 libraries/views.py:895
+#: libraries/templates/libraries/dashboard.html:93
+#: libraries/templates/libraries/dashboard.html:159 libraries/views.py:886
 #: templates/about.html:76 templates/home.html:36
 msgid "Submit a library"
 msgstr "Invia una libreria"
 
-#: libraries/templates/libraries/dashboard.html:107
+#: libraries/templates/libraries/dashboard.html:120
 #: libraries/templates/libraries/library_detail.html:76
 #: manage/templates/manage/libraries/edit.html:23
 msgid "Edit"
 msgstr "Modifica"
 
-#: libraries/templates/libraries/dashboard.html:144
+#: libraries/templates/libraries/dashboard.html:157
 msgid "No library submissions yet"
 msgstr "Nessuna libreria inviata per ora"
 
-#: libraries/templates/libraries/dashboard.html:145
+#: libraries/templates/libraries/dashboard.html:158
 msgid "Share your first book exchange spot to start your contribution history."
 msgstr "Condividi il tuo primo punto di scambio libri per iniziare la cronologia dei contributi."
 
-#: libraries/templates/libraries/dashboard.html:154
+#: libraries/templates/libraries/dashboard.html:167
 msgid "Issues you reported for existing libraries, including open and reviewed reports."
 msgstr "Problemi che hai segnalato per librerie esistenti, incluse segnalazioni aperte e revisionate."
 
-#: libraries/templates/libraries/dashboard.html:162
+#: libraries/templates/libraries/dashboard.html:175
 #: templates/admin/index.html:113
 msgid "Report"
 msgstr "Segnalazione"
 
-#: libraries/templates/libraries/dashboard.html:173
-#: libraries/templates/libraries/dashboard.html:223
+#: libraries/templates/libraries/dashboard.html:186
+#: libraries/templates/libraries/dashboard.html:236
 #: templates/admin/index.html:93 templates/admin/index.html:115
 #: templates/admin/index.html:137
 msgid "Submitted"
 msgstr "Inviato il"
 
-#: libraries/templates/libraries/dashboard.html:177
-#: libraries/templates/libraries/dashboard.html:226
+#: libraries/templates/libraries/dashboard.html:190
+#: libraries/templates/libraries/dashboard.html:239
 msgid "View library"
 msgstr "Vedi libreria"
 
-#: libraries/templates/libraries/dashboard.html:179
-#: libraries/templates/libraries/dashboard.html:228
+#: libraries/templates/libraries/dashboard.html:192
+#: libraries/templates/libraries/dashboard.html:241
 msgid "Related library is not public"
 msgstr "La libreria collegata non è pubblica"
 
-#: libraries/templates/libraries/dashboard.html:188
+#: libraries/templates/libraries/dashboard.html:201
 msgid "No reports yet"
 msgstr "Nessuna segnalazione per ora"
 
-#: libraries/templates/libraries/dashboard.html:189
+#: libraries/templates/libraries/dashboard.html:202
 msgid "When you report an issue from a library page, it will appear here."
 msgstr "Quando segnali un problema dalla pagina di una libreria, apparirà qui."
 
-#: libraries/templates/libraries/dashboard.html:190
-#: libraries/templates/libraries/dashboard.html:239
+#: libraries/templates/libraries/dashboard.html:203
+#: libraries/templates/libraries/dashboard.html:252
 msgid "Find libraries"
 msgstr "Trova librerie"
 
-#: libraries/templates/libraries/dashboard.html:198
+#: libraries/templates/libraries/dashboard.html:211
 msgid "Photos you submitted for existing libraries, with moderation outcomes."
 msgstr "Foto che hai inviato per librerie esistenti, con gli esiti della moderazione."
 
-#: libraries/templates/libraries/dashboard.html:237
+#: libraries/templates/libraries/dashboard.html:250
 msgid "No community photos yet"
 msgstr "Nessuna foto della community per ora"
 
-#: libraries/templates/libraries/dashboard.html:238
+#: libraries/templates/libraries/dashboard.html:251
 msgid "Photo submissions from library pages will appear here while moderators review them."
 msgstr "Le foto inviate dalle pagine delle librerie appariranno qui mentre i moderatori le revisionano."
 
-#: libraries/templates/libraries/dashboard.html:245
+#: libraries/templates/libraries/dashboard.html:258
 msgid "My favourites"
 msgstr "I miei preferiti"
 
-#: libraries/templates/libraries/dashboard.html:270
+#: libraries/templates/libraries/dashboard.html:283
 msgid "No favourites yet"
 msgstr "Nessun preferito"
 
-#: libraries/templates/libraries/dashboard.html:271
+#: libraries/templates/libraries/dashboard.html:284
 msgid "Tap the heart icon on any library to save it here."
 msgstr "Tocca l'icona del cuore su qualsiasi libreria per salvarla qui."
 
-#: libraries/templates/libraries/dashboard.html:272
+#: libraries/templates/libraries/dashboard.html:285
 #: libraries/templates/libraries/map.html:53
 msgid "Explore libraries"
 msgstr "Esplora le librerie"
@@ -1335,59 +1353,59 @@ msgstr "Indirizzo (opzionale)"
 msgid "Postal code (optional)"
 msgstr "CAP (opzionale)"
 
-#: libraries/templates/libraries/submit_library.html:147
+#: libraries/templates/libraries/submit_library.html:151
 msgid "Center from address"
 msgstr "Centra dall'indirizzo"
 
-#: libraries/templates/libraries/submit_library.html:320
+#: libraries/templates/libraries/submit_library.html:324
 msgid "Marker moved. Coordinates updated."
 msgstr "Marcatore spostato. Coordinate aggiornate."
 
-#: libraries/templates/libraries/submit_library.html:342
+#: libraries/templates/libraries/submit_library.html:346
 msgid "Map point selected. Coordinates updated."
 msgstr "Punto sulla mappa selezionato. Coordinate aggiornate."
 
-#: libraries/templates/libraries/submit_library.html:437
+#: libraries/templates/libraries/submit_library.html:441
 msgid "Suggestion selected. Marker centered from autocomplete; drag to refine if needed."
 msgstr "Suggerimento selezionato. Marcatore centrato dall'autocompletamento; trascina per affinare se necessario."
 
-#: libraries/templates/libraries/submit_library.html:545
+#: libraries/templates/libraries/submit_library.html:549
 msgid "Reading GPS metadata from the selected photo..."
 msgstr "Lettura dei metadati GPS dalla foto selezionata..."
 
-#: libraries/templates/libraries/submit_library.html:562
+#: libraries/templates/libraries/submit_library.html:566
 msgid "No GPS metadata found in this photo. Set location manually on the map."
 msgstr "Nessun metadato GPS trovato in questa foto. Imposta la posizione manualmente sulla mappa."
 
-#: libraries/templates/libraries/submit_library.html:577
+#: libraries/templates/libraries/submit_library.html:581
 msgid "GPS metadata found. Map centered and address fields pre-filled from the photo."
 msgstr "Metadati GPS trovati. Mappa centrata e campi indirizzo precompilati dalla foto."
 
-#: libraries/templates/libraries/submit_library.html:581
+#: libraries/templates/libraries/submit_library.html:585
 msgid "GPS metadata found. Map centered from photo location."
 msgstr "Metadati GPS trovati. Mappa centrata dalla posizione della foto."
 
-#: libraries/templates/libraries/submit_library.html:583
+#: libraries/templates/libraries/submit_library.html:587
 msgid "Could not read photo metadata right now. Set the location manually on the map."
 msgstr "Impossibile leggere i metadati della foto al momento. Imposta la posizione manualmente sulla mappa."
 
-#: libraries/templates/libraries/submit_library.html:606
+#: libraries/templates/libraries/submit_library.html:610
 msgid "Finding location from address..."
 msgstr "Ricerca della posizione dall'indirizzo..."
 
-#: libraries/templates/libraries/submit_library.html:623
+#: libraries/templates/libraries/submit_library.html:627
 msgid "Address not found. Move the marker manually on the map."
 msgstr "Indirizzo non trovato. Sposta il marcatore manualmente sulla mappa."
 
-#: libraries/templates/libraries/submit_library.html:630
+#: libraries/templates/libraries/submit_library.html:634
 msgid "Address lookup returned invalid coordinates."
 msgstr "La ricerca dell'indirizzo ha restituito coordinate non valide."
 
-#: libraries/templates/libraries/submit_library.html:635
+#: libraries/templates/libraries/submit_library.html:639
 msgid "Map centered from address. Drag marker if you need to refine the point."
 msgstr "Mappa centrata dall'indirizzo. Trascina il marcatore se devi affinare il punto."
 
-#: libraries/templates/libraries/submit_library.html:637
+#: libraries/templates/libraries/submit_library.html:641
 msgid "Geocoding is unavailable right now. You can still click the map to pick coordinates."
 msgstr "La geocodifica non è disponibile al momento. Puoi comunque cliccare sulla mappa per scegliere le coordinate."
 
@@ -1408,101 +1426,101 @@ msgstr "Grazie per il contributo. La tua libreria è stata inviata ai moderatori
 msgid "Continue"
 msgstr "Continua"
 
-#: libraries/views.py:646
+#: libraries/views.py:636
 msgid "Your changes were saved for review. The approved library remains live until moderators approve the update."
 msgstr "Le tue modifiche sono state salvate per la revisione. La libreria approvata rimane visibile finché i moderatori non approvano l'aggiornamento."
 
-#: libraries/views.py:650
+#: libraries/views.py:640
 msgid "No new changes were saved. Your existing changes remain under moderator review."
 msgstr "Non sono state salvate nuove modifiche. Le modifiche esistenti rimangono in attesa di revisione."
 
-#: libraries/views.py:654
+#: libraries/views.py:644
 msgid "No changes were found. The approved library remains live."
 msgstr "Non sono state rilevate modifiche. La libreria approvata rimane visibile."
 
-#: libraries/views.py:660
+#: libraries/views.py:650
 msgid "Your changes were saved and remain under moderator review."
 msgstr "Le tue modifiche sono state salvate e restano in attesa di revisione da parte dei moderatori."
 
-#: libraries/views.py:672 manage/templates/manage/libraries/edit.html:4
+#: libraries/views.py:662 manage/templates/manage/libraries/edit.html:4
 #: manage/templates/manage/libraries/edit.html:15
 #: manage/templates/manage/libraries/edit.html:31
 msgid "Edit library"
 msgstr "Modifica libreria"
 
-#: libraries/views.py:675
+#: libraries/views.py:665
 msgid "Update your library details. The current approved version stays live while your changes are reviewed."
 msgstr "Aggiorna i dettagli della tua libreria. La versione attualmente approvata rimane visibile mentre le modifiche vengono revisionate."
 
-#: libraries/views.py:679
+#: libraries/views.py:669
 msgid "Update your library details. Changes will be sent back to moderators before they appear publicly."
 msgstr "Aggiorna i dettagli della tua libreria. Le modifiche saranno inviate di nuovo ai moderatori prima di apparire pubblicamente."
 
-#: libraries/views.py:684
+#: libraries/views.py:674
 msgid "Only your proposed changes are reviewed. They replace the current details after moderator approval."
 msgstr "Vengono revisionate solo le modifiche proposte. Sostituiranno i dettagli attuali dopo l'approvazione dei moderatori."
 
-#: libraries/views.py:688
+#: libraries/views.py:678
 msgid "Changes are reviewed before they become live. After you save, moderators will approve the update before it appears publicly."
 msgstr "Le modifiche vengono revisionate prima di diventare visibili. Dopo il salvataggio, i moderatori approveranno l'aggiornamento prima che appaia pubblicamente."
 
-#: libraries/views.py:691
+#: libraries/views.py:681
 msgid "Edit a library you submitted on Book Corners."
 msgstr "Modifica una libreria che hai inviato su Book Corners."
 
-#: libraries/views.py:692 manage/templates/manage/libraries/edit.html:194
+#: libraries/views.py:682 manage/templates/manage/libraries/edit.html:194
 msgid "Save changes"
 msgstr "Salva modifiche"
 
-#: libraries/views.py:693
+#: libraries/views.py:683
 msgid "Replace photo (optional)"
 msgstr "Sostituisci foto (opzionale)"
 
-#: libraries/views.py:694
+#: libraries/views.py:684
 msgid "Leave this empty to keep the current photo."
 msgstr "Lascia vuoto questo campo per mantenere la foto attuale."
 
-#: libraries/views.py:695
+#: libraries/views.py:685
 msgid "Update exact location"
 msgstr "Aggiorna posizione esatta"
 
-#: libraries/views.py:696
+#: libraries/views.py:686
 msgid "Use the map to adjust the saved point, or keep the marker where it is."
 msgstr "Usa la mappa per regolare il punto salvato, oppure lascia il marker dov'è."
 
-#: libraries/views.py:697
+#: libraries/views.py:687
 msgid "Saved marker loaded. Drag it or click the map to adjust the location."
 msgstr "Marker salvato caricato. Trascinalo o fai clic sulla mappa per regolare la posizione."
 
-#: libraries/views.py:896
+#: libraries/views.py:887
 msgid "Share a public bookcase with the community. Set the exact point on the map before submitting."
 msgstr "Condividi una casetta dei libri con la community. Imposta il punto esatto sulla mappa prima di inviare."
 
-#: libraries/views.py:897
+#: libraries/views.py:888
 msgid "Submit a public bookcase to Book Corners with a photo, location, and address details."
 msgstr "Invia una casetta dei libri a Book Corners con foto, posizione e dettagli dell'indirizzo."
 
-#: libraries/views.py:898
+#: libraries/views.py:889
 msgid "Submit library"
 msgstr "Invia libreria"
 
-#: libraries/views.py:899
+#: libraries/views.py:890
 msgid "Photo (required)"
 msgstr "Foto (obbligatoria)"
 
-#: libraries/views.py:901
+#: libraries/views.py:892
 msgid "Upload a clear photo showing the library. It helps moderators verify it and helps visitors recognise it."
 msgstr "Carica una foto nitida che mostri la libreria. Aiuta i moderatori a verificarla e i visitatori a riconoscerla."
 
-#: libraries/views.py:903
+#: libraries/views.py:894
 msgid "Set exact location"
 msgstr "Imposta posizione esatta"
 
-#: libraries/views.py:904
+#: libraries/views.py:895
 msgid "Type an address and choose a suggestion to center the map. Drag the marker to refine the exact point."
 msgstr "Digita un indirizzo e scegli un suggerimento per centrare la mappa. Trascina il marcatore per affinare il punto esatto."
 
-#: libraries/views.py:905
+#: libraries/views.py:896
 msgid "Choose the map point by centering from address, dragging marker, or clicking map."
 msgstr "Scegli il punto sulla mappa centrando dall'indirizzo, trascinando il marcatore o cliccando sulla mappa."
 
@@ -1778,6 +1796,7 @@ msgstr "Descrizione"
 #: templates/admin/libraries/ai_enrich_confirm.html:46
 #: templates/admin/libraries/geojson_import_form.html:45
 #: templates/admin/libraries/osm_duplicate_resolution.html:80
+#: users/templates/users/accept_contributor_agreement.html:38
 #: users/templates/users/change_email.html:34
 #: users/templates/users/change_password.html:41
 #: users/templates/users/delete_account.html:39
@@ -1987,7 +2006,7 @@ msgid "Contact"
 msgstr "Contatto"
 
 #: manage/templates/manage/libraries/edit.html:154
-#: manage/views/libraries.py:158
+#: manage/views/libraries.py:156
 msgid "Location"
 msgstr "Posizione"
 
@@ -2149,7 +2168,7 @@ msgstr "Nessuna libreria inviata."
 msgid "Reports Submitted"
 msgstr "Segnalazioni inviate"
 
-#: manage/templates/manage/users/list.html:27 users/forms.py:229
+#: manage/templates/manage/users/list.html:27 users/forms.py:314
 #: users/templates/users/login.html:23
 msgid "Username or email"
 msgstr "Nome utente o email"
@@ -2162,36 +2181,36 @@ msgstr "Ruolo"
 msgid "All users"
 msgstr "Tutti gli utenti"
 
-#: manage/views/libraries.py:201
+#: manage/views/libraries.py:199
 msgid "Library changes approved."
 msgstr "Modifiche alla libreria approvate."
 
-#: manage/views/libraries.py:225
+#: manage/views/libraries.py:223
 msgid "Library approved."
 msgstr "Libreria approvata."
 
-#: manage/views/libraries.py:249
+#: manage/views/libraries.py:247
 msgid "Library changes rejected."
 msgstr "Modifiche alla libreria rifiutate."
 
-#: manage/views/libraries.py:269
+#: manage/views/libraries.py:267
 msgid "Library rejected."
 msgstr "Libreria rifiutata."
 
-#: manage/views/libraries.py:349
+#: manage/views/libraries.py:347
 msgid "Library details saved."
 msgstr "Dettagli della libreria salvati."
 
-#: manage/views/libraries.py:369
+#: manage/views/libraries.py:367
 msgid "Please select a GeoJSON file to upload."
 msgstr "Seleziona un file GeoJSON da caricare."
 
-#: manage/views/libraries.py:376
+#: manage/views/libraries.py:374
 #, python-format
 msgid "Invalid GeoJSON file: %(error)s"
 msgstr "File GeoJSON non valido: %(error)s"
 
-#: manage/views/libraries.py:405
+#: manage/views/libraries.py:403
 #, python-format
 msgid "Import of %(count)d features has been queued for background processing."
 msgstr "L'importazione di %(count)d elementi è stata messa in coda per l'elaborazione."
@@ -2627,10 +2646,6 @@ msgstr "Privacy"
 msgid "Terms of use"
 msgstr "Condizioni d'uso"
 
-#: templates/base.html:171
-msgid "Contributor agreement"
-msgstr "Accordo per i contributori"
-
 #: templates/base.html:178
 msgid "App"
 msgstr "App"
@@ -2700,50 +2715,95 @@ msgstr "Completa la registrazione"
 msgid "To create a new account with social login, start from registration and accept the contributor agreement."
 msgstr "Per creare un nuovo account con accesso social, inizia dalla registrazione e accetta l'accordo per i contributori."
 
-#: users/forms.py:67
+#: users/forms.py:49
 msgid "The contributor agreement has changed. Review and accept the current version."
 msgstr "L'accordo per i contributori è cambiato. Consulta e accetta la versione corrente."
 
-#: users/forms.py:71
+#: users/forms.py:90
 msgid "You must accept the contributor agreement to create an account."
 msgstr "Devi accettare l'accordo per i contributori per creare un account."
 
-#: users/forms.py:122 users/forms.py:146
+#: users/forms.py:122
+msgid "You must accept the contributor agreement to continue."
+msgstr "Devi accettare l'accordo per i contributori per continuare."
+
+#: users/forms.py:207 users/forms.py:231
 msgid "A user with this email already exists."
 msgstr "Un utente con questa email esiste già."
 
-#: users/forms.py:130 users/templates/users/change_email.html:27
+#: users/forms.py:215 users/templates/users/change_email.html:27
 msgid "New email address"
 msgstr "Nuovo indirizzo email"
 
-#: users/forms.py:144
+#: users/forms.py:229
 msgid "This is already your current email address."
 msgstr "Questo è già il tuo indirizzo email attuale."
 
-#: users/forms.py:155 users/templates/users/change_password.html:22
+#: users/forms.py:240 users/templates/users/change_password.html:22
 msgid "Current password"
 msgstr "Password attuale"
 
-#: users/forms.py:175
+#: users/forms.py:260
 msgid "Your current password is incorrect."
 msgstr "La tua password attuale non è corretta."
 
-#: users/forms.py:184 users/templates/users/login.html:29
+#: users/forms.py:269 users/templates/users/login.html:29
 #: users/templates/users/register.html:34
 msgid "Password"
 msgstr "Password"
 
-#: users/forms.py:200
+#: users/forms.py:285
 msgid "Incorrect password."
 msgstr "Password non corretta."
 
-#: users/forms.py:209 users/templates/users/delete_account.html:25
+#: users/forms.py:294 users/templates/users/delete_account.html:25
 msgid "Type DELETE to confirm"
 msgstr "Digita DELETE per confermare"
 
-#: users/forms.py:224
+#: users/forms.py:309
 msgid "Please type DELETE to confirm."
 msgstr "Per favore digita DELETE per confermare."
+
+#: users/templates/users/_contributor_agreement_fields.html:5
+#: users/templates/users/register.html:48
+msgid "The agreement lets Book Corners use and share the data and images you contribute. It applies to your contributions, not your account details."
+msgstr "L'accordo consente a Book Corners di utilizzare e condividere i dati e le immagini che fornisci. Si applica ai tuoi contributi, non ai dati del tuo account."
+
+#: users/templates/users/_contributor_agreement_fields.html:10
+#: users/templates/users/register.html:53
+msgid "I have read and accept the"
+msgstr "Ho letto e accetto"
+
+#: users/templates/users/_contributor_agreement_fields.html:12
+#: users/templates/users/register.html:55
+#, python-format
+msgid "Contributor Agreement v%(agreement_version)s"
+msgstr "l'Accordo per i contributori v%(agreement_version)s"
+
+#: users/templates/users/accept_contributor_agreement.html:5
+msgid "Accept the Book Corners contributor agreement so your photos are credited under an open licence."
+msgstr "Accetta l'accordo per i contributori di Book Corners, così le tue foto vengono attribuite con una licenza aperta."
+
+#: users/templates/users/accept_contributor_agreement.html:15
+#, python-format
+msgid "You have accepted the Contributor Agreement v%(agreement_version)s."
+msgstr "Hai accettato l'Accordo per i contributori v%(agreement_version)s."
+
+#: users/templates/users/accept_contributor_agreement.html:19
+msgid "Read the contributor agreement"
+msgstr "Leggi l'accordo per i contributori"
+
+#: users/templates/users/accept_contributor_agreement.html:23
+msgid "Back to the contribution center"
+msgstr "Torna al centro contributi"
+
+#: users/templates/users/accept_contributor_agreement.html:27
+msgid "Accepting the agreement licenses your contributions, including photos you uploaded before, under CC BY-SA 4.0. Your photos are then shown with a credit to you."
+msgstr "Accettando l'accordo, i tuoi contributi, comprese le foto che hai caricato in precedenza, vengono rilasciati con licenza CC BY-SA 4.0. Le tue foto saranno poi mostrate con l'attribuzione a te."
+
+#: users/templates/users/accept_contributor_agreement.html:37
+msgid "Accept the agreement"
+msgstr "Accetta l'accordo"
 
 #: users/templates/users/change_email.html:5
 msgid "Update the email address associated with your Book Corners account."
@@ -2838,19 +2898,6 @@ msgstr "Registrati per inviare librerie e aiutare a mantenere le informazioni ag
 msgid "Confirm password"
 msgstr "Conferma password"
 
-#: users/templates/users/register.html:48
-msgid "The agreement lets Book Corners use and share the data and images you contribute. It applies to your contributions, not your account details."
-msgstr "L'accordo consente a Book Corners di utilizzare e condividere i dati e le immagini che fornisci. Si applica ai tuoi contributi, non ai dati del tuo account."
-
-#: users/templates/users/register.html:53
-msgid "I have read and accept the"
-msgstr "Ho letto e accetto"
-
-#: users/templates/users/register.html:55
-#, python-format
-msgid "Contributor Agreement v%(agreement_version)s"
-msgstr "l'Accordo per i contributori v%(agreement_version)s"
-
 #: users/templates/users/register.html:64
 msgid "Create account"
 msgstr "Crea account"
@@ -2859,31 +2906,35 @@ msgstr "Crea account"
 msgid "Already have an account?"
 msgstr "Hai già un account?"
 
-#: users/views.py:117
+#: users/views.py:119
 msgid "Too many registration attempts. Please try again in a few minutes."
 msgstr "Troppi tentativi di registrazione. Riprova tra qualche minuto."
 
-#: users/views.py:197
+#: users/views.py:199
 msgid "Too many login attempts. Please try again in a few minutes."
 msgstr "Troppi tentativi di accesso. Riprova tra qualche minuto."
 
-#: users/views.py:237
+#: users/views.py:247
+msgid "Thank you, you accepted the contributor agreement."
+msgstr "Grazie, hai accettato l'accordo per i contributori."
+
+#: users/views.py:268
 msgid "Social login accounts cannot change their email address."
 msgstr "Gli account con accesso social non possono cambiare il proprio indirizzo email."
 
-#: users/views.py:243
+#: users/views.py:274
 msgid "Your email address has been updated."
 msgstr "Il tuo indirizzo email è stato aggiornato."
 
-#: users/views.py:253
+#: users/views.py:284
 msgid "Social login accounts cannot change their password."
 msgstr "Gli account con accesso social non possono cambiare la propria password."
 
-#: users/views.py:259
+#: users/views.py:290
 msgid "Your password has been changed."
 msgstr "La tua password è stata cambiata."
 
-#: users/views.py:277
+#: users/views.py:308
 msgid "Your account has been deleted."
 msgstr "Il tuo account è stato eliminato."
 

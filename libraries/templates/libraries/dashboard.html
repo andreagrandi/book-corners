@@ -13,6 +13,18 @@
       </p>
     </header>
 
+    {% if needs_contributor_agreement %}
+      <article id="contributor-agreement-notice" class="rounded-box border border-warning/40 bg-warning/10 p-6 shadow-sm">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-xl font-semibold">{% trans "Accept the contributor agreement" %}</h2>
+            <p class="mt-1 text-base-content/75">{% trans "Your photos are only shown with a credit to you after you accept the contributor agreement." %}</p>
+          </div>
+          <a href="{% url 'accept_contributor_agreement' %}" class="btn btn-primary">{% trans "Review and accept" %}</a>
+        </div>
+      </article>
+    {% endif %}
+
     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
       <article class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
         <p class="text-sm font-medium text-base-content/60">{% trans "Library submissions" %}</p>
@@ -67,6 +79,7 @@
           <a href="{% url 'change_email' %}" class="btn btn-sm btn-outline">{% trans "Change email" %}</a>
           <a href="{% url 'change_password' %}" class="btn btn-sm btn-outline">{% trans "Change password" %}</a>
         {% endif %}
+        <a href="{% url 'accept_contributor_agreement' %}" class="btn btn-sm btn-outline">{% trans "Contributor agreement" %}</a>
         <a href="{% url 'delete_account' %}" class="btn btn-sm btn-outline btn-error">{% trans "Delete account" %}</a>
       </div>
     </div>

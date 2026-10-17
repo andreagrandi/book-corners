@@ -9,6 +9,7 @@ from django import forms
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 
 from libraries.image_processing import build_optimized_photo_file
@@ -19,6 +20,7 @@ from libraries.models import (
     LibraryPhoto,
     Report,
 )
+from users.forms import ContributorAgreementMixin
 
 
 COUNTRY_CHOICES = [
@@ -116,7 +118,7 @@ def _validate_uploaded_photo(
     return uploaded_photo
 
 
-class LibrarySubmissionForm(forms.ModelForm):
+class LibrarySubmissionForm(ContributorAgreementMixin, forms.ModelForm):
     """Validate and save website library submissions.
     Requires photos on creation while allowing optional replacements on edit."""
 
@@ -150,6 +152,7 @@ class LibrarySubmissionForm(forms.ModelForm):
         Sets up values required by later calls."""
         self.created_by = kwargs.pop("created_by", None)
         super().__init__(*args, **kwargs)
+        self.init_agreement_fields(user=self.created_by)
 
         if self.instance.pk and self.instance.location:
             self.initial.setdefault("latitude", self.instance.location.y)
@@ -238,6 +241,7 @@ class LibrarySubmissionForm(forms.ModelForm):
                 _("Address is required when coordinates are not provided."),
             )
 
+        self.clean_agreement(cleaned_data=cleaned_data)
         return cleaned_data
 
     def save(self, commit: bool = True) -> Library:
@@ -263,7 +267,9 @@ class LibrarySubmissionForm(forms.ModelForm):
         )
 
         if commit:
-            library.save()
+            with transaction.atomic():
+                library.save()
+                self.record_agreement_acceptance(user=self.created_by)
 
         return library
 
@@ -284,7 +290,13 @@ class LibrarySubmissionForm(forms.ModelForm):
         if self.files.get(self.add_prefix("photo")) is not None:
             uploaded_photo = self.cleaned_data["photo"]
 
-        return library.stage_update(changes=changes, photo=uploaded_photo)
+        with transaction.atomic():
+            proposal_changed = library.stage_update(
+                changes=changes,
+                photo=uploaded_photo,
+            )
+            self.record_agreement_acceptance(user=self.created_by)
+        return proposal_changed
 
 
 class ReportSubmissionForm(forms.ModelForm):
@@ -416,7 +428,7 @@ class LibrarySearchForm(forms.Form):
         return cleaned_data
 
 
-class LibraryPhotoSubmissionForm(forms.ModelForm):
+class LibraryPhotoSubmissionForm(ContributorAgreementMixin, forms.ModelForm):
     """Validate community photos submitted to an existing library.
     Enforces upload and per-user moderation constraints."""
 
@@ -430,6 +442,7 @@ class LibraryPhotoSubmissionForm(forms.ModelForm):
         self.created_by = kwargs.pop("created_by", None)
         self.library = kwargs.pop("library", None)
         super().__init__(*args, **kwargs)
+        self.init_agreement_fields(user=self.created_by)
 
         self.fields["photo"].help_text = _photo_upload_help_text(
             max_size_bytes=settings.MAX_LIBRARY_PHOTO_SUBMISSION_BYTES,
@@ -470,6 +483,7 @@ class LibraryPhotoSubmissionForm(forms.ModelForm):
                     % {"max": MAX_LIBRARY_PHOTOS_PER_USER}
                 )
 
+        self.clean_agreement(cleaned_data=cleaned_data)
         return cleaned_data
 
     def save(self, commit: bool = True) -> LibraryPhoto:
@@ -486,6 +500,8 @@ class LibraryPhotoSubmissionForm(forms.ModelForm):
         library_photo.status = LibraryPhoto.Status.PENDING
 
         if commit:
-            library_photo.save()
+            with transaction.atomic():
+                library_photo.save()
+                self.record_agreement_acceptance(user=self.created_by)
 
         return library_photo

@@ -136,6 +136,10 @@
           {% if form.latitude.errors %}<p class="text-sm text-error">{{ form.latitude.errors.0 }}</p>{% endif %}
           {% if form.longitude.errors %}<p class="text-sm text-error">{{ form.longitude.errors.0 }}</p>{% endif %}
 
+          {% if form.needs_agreement %}
+            {% include "users/_contributor_agreement_fields.html" with agreement_form=form agreement_version=form.agreement_version %}
+          {% endif %}
+
           <button type="submit" class="btn btn-primary w-full">{{ form_button_label }}</button>
         </form>
       </div>

@@ -19,12 +19,14 @@ from users.forms import (
     ChangePasswordForm,
     ContributorAgreementForm,
     DeleteAccountForm,
+    ExistingUserContributorAgreementForm,
     RegistrationForm,
     SocialDeleteAccountForm,
     UsernameOrEmailAuthenticationForm,
 )
 from users.contributor_agreements import (
     CURRENT_CONTRIBUTOR_AGREEMENT_VERSION,
+    has_current_acceptance,
     record_current_acceptance,
     web_social_registration_state_data,
 )
@@ -227,6 +229,35 @@ def set_language_view(request: HttpRequest) -> HttpResponse:
             request.user.language = language
             request.user.save(update_fields=["language"])
     return response
+
+
+@login_required(login_url="login")
+def accept_contributor_agreement_view(request: HttpRequest) -> HttpResponse:
+    """Let a registered user accept the current contributor agreement on the website.
+    Records the acceptance so their past and future photos are credited under the licence."""
+    already_accepted = has_current_acceptance(user=request.user)
+    form = None
+    if not already_accepted:
+        form = ExistingUserContributorAgreementForm(request.POST or None)
+        if request.method == "POST" and form.is_valid():
+            record_current_acceptance(
+                user=request.user,
+                channel=ContributorAgreementAcceptance.Channel.WEB_EXISTING_USER,
+            )
+            messages.success(request, _("Thank you, you accepted the contributor agreement."))
+            return redirect(
+                _get_safe_next_url(request=request) or "accept_contributor_agreement"
+            )
+        form.reset_stale_choice()
+    return render(
+        request,
+        "users/accept_contributor_agreement.html",
+        {
+            "agreement_form": form,
+            "already_accepted": already_accepted,
+            "agreement_version": CURRENT_CONTRIBUTOR_AGREEMENT_VERSION,
+        },
+    )
 
 
 @login_required(login_url="login")

@@ -3085,6 +3085,7 @@ class TestLibraryDetailView:
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("agreement_accepted")
 class TestEditLibraryView:
     def test_edit_view_requires_authentication(self, client, user):
         """Verify anonymous users are redirected before editing.
@@ -3779,6 +3780,7 @@ class TestUserDashboardView:
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("agreement_accepted")
 class TestSubmitLibraryView:
     """Tests for authenticated website library submissions.
     Ensures the public form validates and persists user contributions."""
@@ -4357,6 +4359,7 @@ class TestLibraryPhotoAdmin:
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("agreement_accepted")
 class TestLibraryPhotoSubmission:
     """Tests for community photo submission via web form."""
 

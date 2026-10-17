@@ -232,6 +232,7 @@ class TestLibraryPhotoOriginModel:
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures("agreement_accepted")
 class TestWebSubmissionPhotoOrigin:
     """Tests for photo origin on website submit and pending edit."""
 

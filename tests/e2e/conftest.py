@@ -8,6 +8,8 @@ from PIL import Image
 from playwright.sync_api import Page, Route
 
 from libraries.models import Library
+from users.contributor_agreements import CURRENT_CONTRIBUTOR_AGREEMENT_VERSION
+from users.models import ContributorAgreementAcceptance
 
 User = get_user_model()
 
@@ -65,11 +67,17 @@ def browser_context_args():
 def e2e_user(db):
     """Create a test user for E2E browser tests.
     Provides a user that can log in through the real login form."""
-    return User.objects.create_user(
+    e2e_user = User.objects.create_user(
         username="e2euser",
         email="e2e@example.com",
         password="E2eTestPass123!",
     )
+    ContributorAgreementAcceptance.objects.create(
+        user=e2e_user,
+        agreement_version=CURRENT_CONTRIBUTOR_AGREEMENT_VERSION,
+        channel=ContributorAgreementAcceptance.Channel.WEB_CREDENTIAL_REGISTRATION,
+    )
+    return e2e_user
 
 
 @pytest.fixture
