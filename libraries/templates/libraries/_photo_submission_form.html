@@ -43,6 +43,10 @@
         {% if photo_form.caption.errors %}<span class="mt-1 text-sm text-error">{{ photo_form.caption.errors.0 }}</span>{% endif %}
       </label>
 
+      {% if photo_form.needs_agreement %}
+        {% include "users/_contributor_agreement_fields.html" with agreement_form=photo_form agreement_version=photo_form.agreement_version %}
+      {% endif %}
+
       <button type="submit" class="btn btn-primary">{% trans "Submit photo" %}</button>
     </form>
   {% endif %}

@@ -10,6 +10,12 @@ from django.test import override_settings
 from django.urls import reverse
 from django.utils import translation
 
+from users.contributor_agreements import (
+    CURRENT_CONTRIBUTOR_AGREEMENT_VERSION,
+    record_current_acceptance,
+)
+from users.models import ContributorAgreementAcceptance
+
 User = get_user_model()
 
 
@@ -472,3 +478,131 @@ class TestI18nLanguageSwitching:
             password="TestPass123!",
         )
         assert user.language == "en"
+
+
+@pytest.mark.django_db
+class TestAcceptContributorAgreementPage:
+    """Tests for the website page where existing users accept the agreement."""
+
+    def _url(self) -> str:
+        """Return the page URL.
+        Keeps the tests short."""
+        return reverse("accept_contributor_agreement")
+
+    def _post_data(self, **overrides):
+        """Build a valid acceptance POST body.
+        Accepts overrides for unchecked or stale submissions."""
+        data = {
+            "contributor_agreement_version": CURRENT_CONTRIBUTOR_AGREEMENT_VERSION,
+            "contributor_agreement_accepted": "on",
+        }
+        data.update(overrides)
+        return {key: value for key, value in data.items() if value is not None}
+
+    def test_anonymous_user_is_redirected_to_login(self, client):
+        """Verify anonymous visitors are sent to the login page.
+        Acceptance needs an authenticated account."""
+        response = client.get(self._url())
+
+        assert response.status_code == 302
+        assert response.url.startswith(f"{reverse('login')}?next=")
+
+    def test_get_shows_form_for_user_without_acceptance(self, client, user):
+        """Verify the page explains the agreement and shows the checkbox.
+        Users without acceptance get the form."""
+        client.force_login(user)
+
+        response = client.get(self._url())
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert 'name="contributor_agreement_accepted"' in content
+        assert "CC BY-SA 4.0" in content
+
+    def test_get_shows_confirmation_for_accepted_user(self, client, user):
+        """Verify an accepted user sees a confirmation with the version.
+        The form is not rendered again."""
+        record_current_acceptance(
+            user=user,
+            channel=ContributorAgreementAcceptance.Channel.WEB_CREDENTIAL_REGISTRATION,
+        )
+        client.force_login(user)
+
+        response = client.get(self._url())
+
+        content = response.content.decode()
+        assert f"Contributor Agreement v{CURRENT_CONTRIBUTOR_AGREEMENT_VERSION}" in content
+        assert 'name="contributor_agreement_accepted"' not in content
+
+    def test_post_records_web_existing_user_acceptance(self, client, user):
+        """Verify a valid POST records one acceptance and redirects back.
+        The channel identifies the website existing-user flow."""
+        client.force_login(user)
+
+        response = client.post(self._url(), self._post_data())
+
+        assert response.status_code == 302
+        assert response.url == self._url()
+        acceptance = ContributorAgreementAcceptance.objects.get(user=user)
+        assert acceptance.channel == ContributorAgreementAcceptance.Channel.WEB_EXISTING_USER
+        assert acceptance.agreement_version == CURRENT_CONTRIBUTOR_AGREEMENT_VERSION
+
+    def test_post_without_checkbox_creates_nothing(self, client, user):
+        """Verify an unchecked POST shows an error and records nothing.
+        The message does not mention account creation."""
+        client.force_login(user)
+
+        response = client.post(self._url(), self._post_data(contributor_agreement_accepted=None))
+
+        content = response.content.decode()
+        assert response.status_code == 200
+        assert "You must accept the contributor agreement to continue." in content
+        assert "to create an account" not in content
+        assert not ContributorAgreementAcceptance.objects.filter(user=user).exists()
+
+    def test_post_with_stale_version_creates_nothing(self, client, user):
+        """Verify a stale version shows an error and records nothing.
+        The re-rendered form carries the current version."""
+        client.force_login(user)
+
+        response = client.post(self._url(), self._post_data(contributor_agreement_version="0.1"))
+
+        assert response.status_code == 200
+        assert "The contributor agreement has changed." in response.content.decode()
+        assert not ContributorAgreementAcceptance.objects.filter(user=user).exists()
+
+    def test_repeat_post_is_idempotent(self, client, user):
+        """Verify posting twice keeps a single acceptance row.
+        The second request shows the confirmation instead of failing."""
+        client.force_login(user)
+
+        client.post(self._url(), self._post_data())
+        response = client.post(self._url(), self._post_data())
+
+        assert response.status_code == 200
+        assert ContributorAgreementAcceptance.objects.filter(user=user).count() == 1
+
+    def test_post_redirects_to_safe_next_only(self, client, user):
+        """Verify the next parameter is honoured only for same-site URLs.
+        External targets fall back to the page itself."""
+        client.force_login(user)
+
+        response = client.post(self._url(), self._post_data(next="https://evil.example/"))
+
+        assert response.url == self._url()
+
+    def test_dashboard_notice_only_for_user_without_acceptance(self, client, user):
+        """Verify the dashboard shows the notice until the user accepts.
+        The notice links to the acceptance page."""
+        client.force_login(user)
+
+        before = client.get(reverse("dashboard")).content.decode()
+        record_current_acceptance(
+            user=user,
+            channel=ContributorAgreementAcceptance.Channel.WEB_EXISTING_USER,
+        )
+        after = client.get(reverse("dashboard")).content.decode()
+
+        assert "contributor-agreement-notice" in before
+        assert self._url() in before
+        assert "contributor-agreement-notice" not in after

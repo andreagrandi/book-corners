@@ -22,6 +22,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _, override
 
 from libraries.clustering import CLUSTER_ZOOM_THRESHOLD, build_clustered_features, get_grid_size_for_zoom
+from users.contributor_agreements import has_current_acceptance
 from libraries.forms import LibraryPhotoSubmissionForm, LibrarySearchForm, LibrarySubmissionForm, ReportSubmissionForm
 from libraries.notifications import notify_library_update, notify_new_library, notify_new_photo, notify_new_report
 from libraries.tasks import enrich_library_with_ai
@@ -852,6 +853,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
             "is_social_only": is_social_only_user(request.user),
             "favourites": favourites,
             "library_export_available": is_library_export_delivery_available(),
+            "needs_contributor_agreement": not has_current_acceptance(user=request.user),
         },
     )
 

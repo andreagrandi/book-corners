@@ -46,6 +46,7 @@ class ContributorAgreementAcceptance(models.Model):
         API_SOCIAL_APPLE = "api_social_apple", "API Apple registration"
         API_SOCIAL_GOOGLE = "api_social_google", "API Google registration"
         API_EXISTING_USER = "api_existing_user", "API existing-user acceptance"
+        WEB_EXISTING_USER = "web_existing_user", "Web existing-user acceptance"
         WEB_CREDENTIAL_REGISTRATION = (
             "web_credential_registration",
             "Web credential registration",

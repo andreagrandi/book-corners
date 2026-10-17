@@ -1,6 +1,9 @@
 import pytest
 from django.contrib.auth import get_user_model
 
+from users.contributor_agreements import CURRENT_CONTRIBUTOR_AGREEMENT_VERSION
+from users.models import ContributorAgreementAcceptance
+
 User = get_user_model()
 
 
@@ -11,6 +14,17 @@ def user(db):
     return User.objects.create_user(
         username="testuser",
         password="testpass123",
+    )
+
+
+@pytest.fixture
+def agreement_accepted(user):
+    """Record current contributor agreement acceptance for the default user.
+    Lets web contribution tests run without the agreement checkbox."""
+    return ContributorAgreementAcceptance.objects.create(
+        user=user,
+        agreement_version=CURRENT_CONTRIBUTOR_AGREEMENT_VERSION,
+        channel=ContributorAgreementAcceptance.Channel.WEB_CREDENTIAL_REGISTRATION,
     )
 
 
