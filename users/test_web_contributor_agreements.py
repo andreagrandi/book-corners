@@ -298,7 +298,11 @@ class TestSocialWebRegistrationStart:
         state_id = next(iter(states))
         callback_request = rf.get("/accounts/google/login/callback/")
         callback_request.session = client.session
-        restored_state = statekit.unstash_state(callback_request, state_id)
+        restored_state = statekit.unstash_state(
+            callback_request,
+            state_id=state_id,
+            provider_id="google",
+        )
         assert restored_state is not None
         assert restored_state["process"] == AuthProcess.LOGIN
         assert restored_state["data"] == web_social_registration_state_data(

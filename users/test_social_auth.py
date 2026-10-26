@@ -73,7 +73,7 @@ def _stash_callback_state(client):
     session = client.session
     state_id = "test-state-id"
     session["socialaccount_states"] = {
-        state_id: ({"process": "login", "redirect_url": "/"}, time.time())
+        state_id: ({"process": "login", "redirect_url": "/"}, time.time(), "google")
     }
     session.save()
     return state_id
