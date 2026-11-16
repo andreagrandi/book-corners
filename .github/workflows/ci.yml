@@ -4,6 +4,7 @@ on:
   push:
     branches: [master]
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -136,9 +137,46 @@ jobs:
       - name: Run E2E browser tests
         run: uvx nox -s e2e
 
+  dependabot-merge:
+    needs: [tests, e2e]
+    if: >-
+      github.event_name == 'pull_request'
+      && github.event.pull_request.user.login == 'dependabot[bot]'
+      && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Read update metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v3
+        with:
+          github-token: ${{ github.token }}
+
+      # A group reports its highest bump. Anything else, including an unknown
+      # type, stays open for a person to review.
+      - name: Merge and run CI on master
+        if: >-
+          steps.metadata.outputs.update-type == 'version-update:semver-patch'
+          || steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          gh pr merge "$PR_URL" --merge --match-head-commit "$HEAD_SHA"
+          # A merge made with GITHUB_TOKEN starts no push workflows, but dispatch is allowed.
+          gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref master
+
   deploy:
     needs: [tests, e2e]
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    # Dependabot merges dispatch this workflow, because a merge made with
+    # GITHUB_TOKEN does not start push workflows.
+    if: >-
+      github.ref == 'refs/heads/master'
+      && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
 
     steps:
