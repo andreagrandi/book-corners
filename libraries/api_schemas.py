@@ -4,12 +4,17 @@ from datetime import datetime
 from enum import Enum
 
 from ninja import Schema
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from libraries.models import Library, LibraryPhoto, Report
 from libraries.photo_licence import (
     get_library_photo_licence_fields,
     get_user_photo_licence_fields,
+)
+from libraries.validators import (
+    WEBSITE_URL_ERROR,
+    is_website_url,
+    normalize_website_url,
 )
 
 PHOTO_ORIGIN_DESCRIPTION = "Who provided the photo: user, external, or unknown. Null when there is no photo."
@@ -608,6 +613,15 @@ class LibrarySearchParams(Schema):
     page_size: int = Field(default=20, ge=1, le=50, description="Number of items per page.", json_schema_extra={"example": 20})
 
 
+def _check_website(*, value: str) -> str:
+    """Normalize a submitted website and reject anything but http or https URLs.
+    Shares one rule between the submit and update input schemas."""
+    value = normalize_website_url(value)
+    if value and not is_website_url(value=value):
+        raise ValueError(WEBSITE_URL_ERROR)
+    return value
+
+
 class LibrarySubmitIn(Schema):
     """Input schema for submitting a new library.
     Captures location and descriptive fields from authenticated users."""
@@ -622,7 +636,7 @@ class LibrarySubmitIn(Schema):
     capacity: int | None = Field(default=None, ge=0, description="Approximate book capacity.", examples=[50])
     is_indoor: bool | None = Field(default=None, description="Whether the library is inside a building.", examples=[False])
     is_lit: bool | None = Field(default=None, description="Whether the library is illuminated at night.", examples=[True])
-    website: str = Field(default="", max_length=500, description="External website link.", examples=["https://example.org/bookcases/12345"])
+    website: str = Field(default="", max_length=500, description="External website link. Must be an http or https URL.", examples=["https://example.org/bookcases/12345"])
     contact: str = Field(default="", max_length=255, description="Contact information (email, phone, etc.).", examples=["info@example.org"])
     operator: str = Field(default="", max_length=255, description="Organisation that maintains the library.", examples=["City Library Association"])
     brand: str = Field(default="", max_length=255, description="Network or brand name.", examples=["Local Book Exchange Network"])
@@ -637,6 +651,13 @@ class LibrarySubmitIn(Schema):
         ),
         examples=[False],
     )
+
+    @field_validator("website")
+    @classmethod
+    def validate_website(cls, value: str) -> str:
+        """Accept only empty values or http and https website URLs.
+        Stops script URLs from reaching the library detail page link."""
+        return _check_website(value=value)
 
 
 class LibraryUpdateIn(Schema):
@@ -653,12 +674,21 @@ class LibraryUpdateIn(Schema):
     capacity: int | None = Field(default=None, ge=0, description="Approximate book capacity.", examples=[50])
     is_indoor: bool | None = Field(default=None, description="Whether the library is inside a building.", examples=[False])
     is_lit: bool | None = Field(default=None, description="Whether the library is illuminated at night.", examples=[True])
-    website: str | None = Field(default=None, max_length=500, description="External website link.", examples=["https://example.org/bookcases/12345"])
+    website: str | None = Field(default=None, max_length=500, description="External website link. Must be an http or https URL.", examples=["https://example.org/bookcases/12345"])
     contact: str | None = Field(default=None, max_length=255, description="Contact information (email, phone, etc.).", examples=["info@example.org"])
     operator: str | None = Field(default=None, max_length=255, description="Organisation that maintains the library.", examples=["City Library Association"])
     brand: str | None = Field(default=None, max_length=255, description="Network or brand name.", examples=["Local Book Exchange Network"])
     latitude: float | None = Field(default=None, ge=-90, le=90, description="Latitude of the library (WGS 84). Must be provided with longitude.", examples=[52.5200])
     longitude: float | None = Field(default=None, ge=-180, le=180, description="Longitude of the library (WGS 84). Must be provided with latitude.", examples=[13.4050])
+
+    @field_validator("website")
+    @classmethod
+    def validate_website(cls, value: str | None) -> str | None:
+        """Accept only omitted, empty, or http and https website URLs.
+        Stops owner edits from storing or staging script URLs."""
+        if value is None:
+            return None
+        return _check_website(value=value)
 
 
 class ReportReasonEnum(str, Enum):

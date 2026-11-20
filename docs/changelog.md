@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- `POST /api/v1/libraries/` and `PATCH /api/v1/libraries/{slug}` now accept `website` only as an empty value or an `http://` or `https://` URL. A value without a scheme, such as `example.org`, is stored with `https://` added. Other schemes and values that are not URLs return `422`. Stored websites without a scheme gain `https://` in the same release.
 - A new [terms of use](https://bookcorners.org/terms/) page explains how to reuse and credit Book Corners data and images. Export metadata version `3` adds `terms_of_use_url` with a link to it.
 - Library responses (list, search, latest, detail, favourites, submit, update, `mine`, and staff moderation) now include `photo_origin`, `photo_license`, `photo_author`, and `photo_source_url` for the main photo. Community photo responses in `GET /api/v1/libraries/moderation/photos`, the photo status update, and `GET /api/v1/libraries/mine/photos` carry the same fields. `photo_license` is `CC-BY-SA-4.0` only for user photos whose author accepted the Contributor Agreement; a `null` licence means no licence information is available for the image.
 - The bulk GeoJSON export schema version is now `2` and adds the same four photo properties to every feature. Export metadata version `3` replaces `photo_notice` with an `images` object that states images are licensed separately per image and asks reusers to host downloaded images themselves.
