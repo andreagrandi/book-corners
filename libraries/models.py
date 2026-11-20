@@ -14,6 +14,7 @@ from django.utils.text import slugify
 from django.utils.translation import gettext, gettext_lazy as _
 
 from libraries.image_processing import build_library_photo_files
+from libraries.validators import is_website_url, validate_website_url
 
 MAX_LIBRARY_PHOTOS_PER_USER = 3
 LIBRARY_PLACEHOLDER_IMAGE = "images/library-placeholder.png"
@@ -111,7 +112,12 @@ class Library(models.Model):
     capacity = models.PositiveIntegerField(null=True, blank=True)
     is_indoor = models.BooleanField(null=True, blank=True)
     is_lit = models.BooleanField(null=True, blank=True)
-    website = models.URLField(max_length=500, blank=True, default="")
+    website = models.URLField(
+        max_length=500,
+        blank=True,
+        default="",
+        validators=[validate_website_url],
+    )
     contact = models.CharField(max_length=255, blank=True, default="")
     source = models.CharField(max_length=100, blank=True, default="")
     operator = models.CharField(max_length=255, blank=True, default="")
@@ -318,6 +324,12 @@ class Library(models.Model):
         """Return whether owner-proposed changes await moderation.
         Uses null to distinguish no proposal from a photo-only proposal."""
         return self.pending_changes is not None
+
+    @property
+    def safe_website(self) -> str:
+        """Return the website only when it is an http or https URL.
+        Keeps rows saved before validation from rendering script links."""
+        return self.website if is_website_url(value=self.website) else ""
 
     def stage_update(
         self,

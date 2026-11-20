@@ -192,3 +192,60 @@ def test_photo_origin_backfill_classifies_existing_photos() -> None:
 
     executor = MigrationExecutor(connection=connection)
     executor.migrate(targets=executor.loader.graph.leaf_nodes())
+
+
+@pytest.mark.django_db(transaction=True)
+def test_website_migration_adds_https_to_bare_domains() -> None:
+    """Verify bare domain websites gain https:// and other values stay as they were.
+    Fixes broken relative links without guessing at values that are not URLs."""
+    migrate_from = ("libraries", "0023_library_website_http_only")
+    migrate_to = ("libraries", "0024_add_https_to_bare_library_websites")
+    executor = MigrationExecutor(connection=connection)
+    executor.migrate(targets=[migrate_from])
+    old_apps = executor.loader.project_state(nodes=[migrate_from]).apps
+    OldLibrary = old_apps.get_model("libraries", "Library")
+
+    websites = {
+        "bare-domain": "www.quartier-breidert.de",
+        "mixed-case": "LittleFreeLibrary.org",
+        "padded": " example.org/path ",
+        "already-https": "https://example.org",
+        "already-http": "http://example.org",
+        "empty": "",
+        "free-text": "not yet available",
+        "unknown-tld": "www.bibliotecagaragoaa",
+        "file-scheme": "file:///home/user/page.html",
+        "script": "javascript:alert(1)",
+    }
+    pks = {
+        slug: OldLibrary.objects.create(
+            slug=slug,
+            location=Point(x=11.2558, y=43.7696, srid=4326),
+            city="Florence",
+            country="IT",
+            website=website,
+        ).pk
+        for slug, website in websites.items()
+    }
+
+    executor = MigrationExecutor(connection=connection)
+    executor.migrate(targets=[migrate_to])
+    new_apps = executor.loader.project_state(nodes=[migrate_to]).apps
+    NewLibrary = new_apps.get_model("libraries", "Library")
+    migrated = {slug: NewLibrary.objects.get(pk=pk).website for slug, pk in pks.items()}
+
+    assert migrated == {
+        "bare-domain": "https://www.quartier-breidert.de",
+        "mixed-case": "https://LittleFreeLibrary.org",
+        "padded": "https://example.org/path",
+        "already-https": "https://example.org",
+        "already-http": "http://example.org",
+        "empty": "",
+        "free-text": "not yet available",
+        "unknown-tld": "https://www.bibliotecagaragoaa",
+        "file-scheme": "file:///home/user/page.html",
+        "script": "javascript:alert(1)",
+    }
+
+    executor = MigrationExecutor(connection=connection)
+    executor.migrate(targets=executor.loader.graph.leaf_nodes())

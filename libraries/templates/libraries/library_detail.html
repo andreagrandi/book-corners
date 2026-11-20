@@ -62,7 +62,7 @@
           {% if library.capacity %}<p><span class="font-semibold">{% trans "Capacity:" %}</span> {{ library.capacity }} {% trans "books" %}</p>{% endif %}
           {% if library.is_indoor is not None %}<p><span class="font-semibold">{% trans "Indoor:" %}</span> {% if library.is_indoor %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</p>{% endif %}
           {% if library.is_lit is not None %}<p><span class="font-semibold">{% trans "Lit at night:" %}</span> {% if library.is_lit %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</p>{% endif %}
-          {% if library.website %}<p><span class="font-semibold">{% trans "Website:" %}</span> <a href="{{ library.website }}" target="_blank" rel="noopener noreferrer" class="link link-primary">{{ library.website|truncatechars:50 }}</a></p>{% endif %}
+          {% if library.safe_website %}<p><span class="font-semibold">{% trans "Website:" %}</span> <a href="{{ library.safe_website }}" target="_blank" rel="noopener noreferrer" class="link link-primary">{{ library.safe_website|truncatechars:50 }}</a></p>{% endif %}
           {% if library.contact %}<p><span class="font-semibold">{% trans "Contact:" %}</span> {{ library.contact }}</p>{% endif %}
           {% if library.operator %}<p><span class="font-semibold">{% trans "Operator:" %}</span> {{ library.operator }}</p>{% endif %}
           {% if library.brand %}<p><span class="font-semibold">{% trans "Brand:" %}</span> {{ library.brand }}</p>{% endif %}

@@ -18,6 +18,7 @@ from django.contrib.gis.measure import D
 
 from libraries.management.commands.find_duplicates import _extract_street
 from libraries.models import Library
+from libraries.validators import is_website_url, normalize_website_url
 
 logger = logging.getLogger(__name__)
 
@@ -142,6 +143,9 @@ def parse_geojson(geojson_data: dict[str, Any]) -> list[ImportCandidate]:
             str(properties.get("website") or "").strip()
             or str(properties.get("contact:website") or "").strip()
         )
+        website = normalize_website_url(website)
+        if not is_website_url(value=website):
+            website = ""
 
         contact_parts = []
         phone = str(properties.get("phone") or "").strip()
