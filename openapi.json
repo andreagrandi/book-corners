@@ -1012,7 +1012,7 @@
                   },
                   "website": {
                     "default": "",
-                    "description": "External website link.",
+                    "description": "External website link. Must be an http or https URL.",
                     "examples": [
                       "https://example.org/bookcases/12345"
                     ],
@@ -2791,7 +2791,7 @@
                         "type": "null"
                       }
                     ],
-                    "description": "External website link.",
+                    "description": "External website link. Must be an http or https URL.",
                     "examples": [
                       "https://example.org/bookcases/12345"
                     ],
@@ -4847,7 +4847,7 @@
           },
           "website": {
             "default": "",
-            "description": "External website link.",
+            "description": "External website link. Must be an http or https URL.",
             "examples": [
               "https://example.org/bookcases/12345"
             ],
@@ -6990,7 +6990,7 @@
                 "type": "null"
               }
             ],
-            "description": "External website link.",
+            "description": "External website link. Must be an http or https URL.",
             "examples": [
               "https://example.org/bookcases/12345"
             ],
