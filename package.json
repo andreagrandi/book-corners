@@ -6,11 +6,11 @@
     "watch:css": "tailwindcss -i ./assets/css/input.css -o ./static/css/app.css --watch=always"
   },
   "devDependencies": {
-    "@tailwindcss/cli": "^4.3.4",
-    "@tailwindcss/postcss": "^4.3.4",
-    "autoprefixer": "^10.6.2",
-    "daisyui": "^5.7.50",
-    "postcss": "^8.5.32",
+    "@tailwindcss/cli": "^4.3.5",
+    "@tailwindcss/postcss": "^4.3.5",
+    "autoprefixer": "^10.7.0",
+    "daisyui": "^5.8.1",
+    "postcss": "^8.5.33",
     "tailwindcss": "^4.2.1"
   }
 }
